@@ -151,16 +151,16 @@ const Analytics = () => {
 
   if (userRole !== 'admin') {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-gray-50">
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="max-w-2xl mx-auto">
+          <Card className="max-w-2xl mx-auto border-red-200 bg-red-50">
             <CardHeader>
-              <CardTitle className="text-red-600 flex items-center">
+              <CardTitle className="text-red-800 flex items-center">
                 <Shield className="w-5 h-5 mr-2" />
                 Admin Access Required
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-red-700">
                 You need Administrator privileges to access analytics.
               </CardDescription>
             </CardHeader>
@@ -172,7 +172,7 @@ const Analytics = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-gray-50">
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
@@ -185,7 +185,7 @@ const Analytics = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <Header />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -200,7 +200,7 @@ const Analytics = () => {
             </div>
             <div className="flex space-x-4">
               <Select value={timeRange} onValueChange={setTimeRange}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-[180px] border-gray-300 bg-white">
                   <Calendar className="w-4 h-4 mr-2" />
                   <SelectValue />
                 </SelectTrigger>
@@ -211,7 +211,7 @@ const Analytics = () => {
                   <SelectItem value="all">All time</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline">
+              <Button variant="outline" className="border-gray-300 bg-white">
                 <Download className="w-4 h-4 mr-2" />
                 Export Report
               </Button>
@@ -221,7 +221,7 @@ const Analytics = () => {
 
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
+          <Card className="bg-white border">
             <CardContent className="p-6">
               <div className="flex items-center">
                 <Building2 className="w-8 h-8 text-blue-600" />
@@ -234,7 +234,7 @@ const Analytics = () => {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="bg-white border">
             <CardContent className="p-6">
               <div className="flex items-center">
                 <DollarSign className="w-8 h-8 text-green-600" />
@@ -247,7 +247,7 @@ const Analytics = () => {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="bg-white border">
             <CardContent className="p-6">
               <div className="flex items-center">
                 <Target className="w-8 h-8 text-purple-600" />
@@ -260,7 +260,7 @@ const Analytics = () => {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="bg-white border">
             <CardContent className="p-6">
               <div className="flex items-center">
                 <Users className="w-8 h-8 text-orange-600" />
@@ -275,19 +275,19 @@ const Analytics = () => {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="sectors">Sectors</TabsTrigger>
-            <TabsTrigger value="geography">Geography</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
-            <TabsTrigger value="trends">Trends</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5 bg-white">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Overview</TabsTrigger>
+            <TabsTrigger value="sectors" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Sectors</TabsTrigger>
+            <TabsTrigger value="geography" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Geography</TabsTrigger>
+            <TabsTrigger value="performance" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Performance</TabsTrigger>
+            <TabsTrigger value="trends" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Trends</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
+              <Card className="bg-white border">
                 <CardHeader>
-                  <CardTitle>Monthly Platform Growth</CardTitle>
+                  <CardTitle className="text-black">Monthly Platform Growth</CardTitle>
                   <CardDescription>New users and survey completions</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -304,9 +304,9 @@ const Analytics = () => {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="bg-white border">
                 <CardHeader>
-                  <CardTitle>Fund Stage Distribution</CardTitle>
+                  <CardTitle className="text-black">Fund Stage Distribution</CardTitle>
                   <CardDescription>Current fund stages across platform</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -323,9 +323,9 @@ const Analytics = () => {
               </Card>
             </div>
 
-            <Card>
+            <Card className="bg-white border">
               <CardHeader>
-                <CardTitle>Capital Deployment Trends</CardTitle>
+                <CardTitle className="text-black">Capital Deployment Trends</CardTitle>
                 <CardDescription>Quarterly capital raised vs deployed (in millions USD)</CardDescription>
               </CardHeader>
               <CardContent>
@@ -345,15 +345,22 @@ const Analytics = () => {
 
           <TabsContent value="sectors" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
+              <Card className="bg-white border">
                 <CardHeader>
-                  <CardTitle>Sector Distribution</CardTitle>
+                  <CardTitle className="text-black">Sector Distribution</CardTitle>
                   <CardDescription>Investment focus by sector</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={400}>
                     <RechartsPieChart>
-                      <Pie
+                      <defs>
+                        {analyticsData.sectorDistribution.map((entry, index) => (
+                          <pattern key={`pattern-${index}`} id={`pattern-${index}`} patternUnits="userSpaceOnUse" width="8" height="8">
+                            <rect width="8" height="8" fill={entry.color} />
+                          </pattern>
+                        ))}
+                      </defs>
+                      <RechartsPieChart.Pie
                         data={analyticsData.sectorDistribution}
                         cx="50%"
                         cy="50%"
@@ -365,16 +372,16 @@ const Analytics = () => {
                         {analyticsData.sectorDistribution.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
-                      </Pie>
+                      </RechartsPieChart.Pie>
                       <Tooltip formatter={(value) => [`${value}%`, '']} />
                     </RechartsPieChart>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="bg-white border">
                 <CardHeader>
-                  <CardTitle>Sector Breakdown</CardTitle>
+                  <CardTitle className="text-black">Sector Breakdown</CardTitle>
                   <CardDescription>Detailed sector allocation</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -386,7 +393,7 @@ const Analytics = () => {
                             className="w-4 h-4 rounded-full" 
                             style={{ backgroundColor: sector.color }}
                           ></div>
-                          <span className="text-sm font-medium">{sector.name}</span>
+                          <span className="text-sm font-medium text-black">{sector.name}</span>
                         </div>
                         <span className="text-sm text-gray-600">{sector.value}%</span>
                       </div>
@@ -398,9 +405,9 @@ const Analytics = () => {
           </TabsContent>
 
           <TabsContent value="geography" className="space-y-6">
-            <Card>
+            <Card className="bg-white border">
               <CardHeader>
-                <CardTitle>Geographic Distribution</CardTitle>
+                <CardTitle className="text-black">Geographic Distribution</CardTitle>
                 <CardDescription>Fund distribution and capital by region</CardDescription>
               </CardHeader>
               <CardContent>

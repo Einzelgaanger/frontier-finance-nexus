@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import Header from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,7 +31,6 @@ const Survey = () => {
     markets_operated: {},
     ticket_size_min: '',
     ticket_size_max: '',
-    ticket_description: '',
     target_capital: '',
     capital_raised: '',
     capital_in_market: '',
@@ -79,19 +78,37 @@ const Survey = () => {
     if (formData.team_size_min) completed++;
     if (formData.team_size_max) completed++;
     if (formData.team_description) completed++;
-    // Add more field checks as needed
     return completed;
   }
 
   const handleSave = async () => {
     try {
+      // Convert string values to numbers where needed
+      const processedData = {
+        ...formData,
+        user_id: user?.id,
+        team_size_min: formData.team_size_min ? parseInt(formData.team_size_min) : null,
+        team_size_max: formData.team_size_max ? parseInt(formData.team_size_max) : null,
+        ticket_size_min: formData.ticket_size_min ? parseFloat(formData.ticket_size_min) : null,
+        ticket_size_max: formData.ticket_size_max ? parseFloat(formData.ticket_size_max) : null,
+        target_capital: formData.target_capital ? parseFloat(formData.target_capital) : null,
+        capital_raised: formData.capital_raised ? parseFloat(formData.capital_raised) : null,
+        capital_in_market: formData.capital_in_market ? parseFloat(formData.capital_in_market) : null,
+        target_return_min: formData.target_return_min ? parseFloat(formData.target_return_min) : null,
+        target_return_max: formData.target_return_max ? parseFloat(formData.target_return_max) : null,
+        equity_investments_made: formData.equity_investments_made ? parseFloat(formData.equity_investments_made) : null,
+        equity_investments_exited: formData.equity_investments_exited ? parseFloat(formData.equity_investments_exited) : null,
+        self_liquidating_made: formData.self_liquidating_made ? parseFloat(formData.self_liquidating_made) : null,
+        self_liquidating_exited: formData.self_liquidating_exited ? parseFloat(formData.self_liquidating_exited) : null,
+        legal_entity_date_from: formData.legal_entity_date_from ? parseInt(formData.legal_entity_date_from) : null,
+        legal_entity_date_to: formData.legal_entity_date_to ? parseInt(formData.legal_entity_date_to) : null,
+        first_close_date_from: formData.first_close_date_from ? parseInt(formData.first_close_date_from) : null,
+        first_close_date_to: formData.first_close_date_to ? parseInt(formData.first_close_date_to) : null,
+      };
+
       const { error } = await supabase
         .from('survey_responses')
-        .upsert({
-          user_id: user?.id,
-          ...formData,
-          updated_at: new Date().toISOString()
-        });
+        .upsert(processedData);
 
       if (error) throw error;
 
@@ -100,6 +117,7 @@ const Survey = () => {
         description: "Your progress has been saved successfully.",
       });
     } catch (error) {
+      console.error('Save error:', error);
       toast({
         title: "Error",
         description: "Failed to save survey. Please try again.",
@@ -110,14 +128,33 @@ const Survey = () => {
 
   const handleComplete = async () => {
     try {
+      // Convert string values to numbers where needed
+      const processedData = {
+        ...formData,
+        user_id: user?.id,
+        completed_at: new Date().toISOString(),
+        team_size_min: formData.team_size_min ? parseInt(formData.team_size_min) : null,
+        team_size_max: formData.team_size_max ? parseInt(formData.team_size_max) : null,
+        ticket_size_min: formData.ticket_size_min ? parseFloat(formData.ticket_size_min) : null,
+        ticket_size_max: formData.ticket_size_max ? parseFloat(formData.ticket_size_max) : null,
+        target_capital: formData.target_capital ? parseFloat(formData.target_capital) : null,
+        capital_raised: formData.capital_raised ? parseFloat(formData.capital_raised) : null,
+        capital_in_market: formData.capital_in_market ? parseFloat(formData.capital_in_market) : null,
+        target_return_min: formData.target_return_min ? parseFloat(formData.target_return_min) : null,
+        target_return_max: formData.target_return_max ? parseFloat(formData.target_return_max) : null,
+        equity_investments_made: formData.equity_investments_made ? parseFloat(formData.equity_investments_made) : null,
+        equity_investments_exited: formData.equity_investments_exited ? parseFloat(formData.equity_investments_exited) : null,
+        self_liquidating_made: formData.self_liquidating_made ? parseFloat(formData.self_liquidating_made) : null,
+        self_liquidating_exited: formData.self_liquidating_exited ? parseFloat(formData.self_liquidating_exited) : null,
+        legal_entity_date_from: formData.legal_entity_date_from ? parseInt(formData.legal_entity_date_from) : null,
+        legal_entity_date_to: formData.legal_entity_date_to ? parseInt(formData.legal_entity_date_to) : null,
+        first_close_date_from: formData.first_close_date_from ? parseInt(formData.first_close_date_from) : null,
+        first_close_date_to: formData.first_close_date_to ? parseInt(formData.first_close_date_to) : null,
+      };
+
       const { error } = await supabase
         .from('survey_responses')
-        .upsert({
-          user_id: user?.id,
-          ...formData,
-          completed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        });
+        .upsert(processedData);
 
       if (error) throw error;
 
@@ -126,6 +163,7 @@ const Survey = () => {
         description: "Thank you for completing the survey!",
       });
     } catch (error) {
+      console.error('Complete error:', error);
       toast({
         title: "Error",
         description: "Failed to complete survey. Please try again.",
@@ -163,7 +201,7 @@ const Survey = () => {
             
             <div className="space-y-4">
               <div>
-                <Label htmlFor="vehicle_websites">Vehicle Website(s)</Label>
+                <Label htmlFor="vehicle_websites" className="text-black font-medium">Vehicle Website(s)</Label>
                 <Input
                   id="vehicle_websites"
                   placeholder="https://example.com"
@@ -172,13 +210,14 @@ const Survey = () => {
                     ...prev,
                     vehicle_websites: e.target.value.split(', ').filter(Boolean)
                   }))}
+                  className="border-gray-300"
                 />
               </div>
 
               <div>
-                <Label htmlFor="vehicle_type">Vehicle Type</Label>
+                <Label htmlFor="vehicle_type" className="text-black font-medium">Vehicle Type</Label>
                 <Select value={formData.vehicle_type} onValueChange={(value) => setFormData(prev => ({ ...prev, vehicle_type: value }))}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-gray-300">
                     <SelectValue placeholder="Select vehicle type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -190,13 +229,14 @@ const Survey = () => {
               </div>
 
               <div>
-                <Label htmlFor="thesis">Investment Thesis</Label>
+                <Label htmlFor="thesis" className="text-black font-medium">Investment Thesis</Label>
                 <Textarea
                   id="thesis"
                   placeholder="Describe your investment philosophy and approach..."
                   value={formData.thesis}
                   onChange={(e) => setFormData(prev => ({ ...prev, thesis: e.target.value }))}
                   rows={4}
+                  className="border-gray-300"
                 />
               </div>
             </div>
@@ -208,14 +248,14 @@ const Survey = () => {
           <div className="space-y-6">
             <div className="flex items-center space-x-3 mb-6">
               <Icon className="w-6 h-6 text-blue-600" />
-              <h2 className="text-2xl font-bold text-black">Team & Leadership</h2>
+              <h2 className="text-2xl font-bold text-black">Team &amp; Leadership</h2>
             </div>
             
             <div className="space-y-4">
               <div>
-                <Label>Team Members</Label>
+                <Label className="text-black font-medium">Team Members</Label>
                 {formData.team_members.map((member, index) => (
-                  <Card key={index} className="p-4 mt-2">
+                  <Card key={index} className="p-4 mt-2 border-gray-200">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Input
                         placeholder="Name"
@@ -225,6 +265,7 @@ const Survey = () => {
                           newMembers[index].name = e.target.value;
                           setFormData(prev => ({ ...prev, team_members: newMembers }));
                         }}
+                        className="border-gray-300"
                       />
                       <Input
                         placeholder="Email"
@@ -235,6 +276,7 @@ const Survey = () => {
                           newMembers[index].email = e.target.value;
                           setFormData(prev => ({ ...prev, team_members: newMembers }));
                         }}
+                        className="border-gray-300"
                       />
                       <Input
                         placeholder="Phone"
@@ -244,6 +286,7 @@ const Survey = () => {
                           newMembers[index].phone = e.target.value;
                           setFormData(prev => ({ ...prev, team_members: newMembers }));
                         }}
+                        className="border-gray-300"
                       />
                       <div className="flex space-x-2">
                         <Input
@@ -254,12 +297,14 @@ const Survey = () => {
                             newMembers[index].role = e.target.value;
                             setFormData(prev => ({ ...prev, team_members: newMembers }));
                           }}
+                          className="border-gray-300"
                         />
                         {index > 0 && (
                           <Button
                             type="button"
                             variant="outline"
                             onClick={() => removeTeamMember(index)}
+                            className="border-gray-300"
                           >
                             Remove
                           </Button>
@@ -268,40 +313,43 @@ const Survey = () => {
                     </div>
                   </Card>
                 ))}
-                <Button type="button" variant="outline" onClick={addTeamMember} className="mt-2">
+                <Button type="button" variant="outline" onClick={addTeamMember} className="mt-2 border-gray-300">
                   Add Team Member
                 </Button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="team_size_min">Minimum Team Size</Label>
+                  <Label htmlFor="team_size_min" className="text-black font-medium">Minimum Team Size</Label>
                   <Input
                     id="team_size_min"
                     type="number"
                     value={formData.team_size_min}
                     onChange={(e) => setFormData(prev => ({ ...prev, team_size_min: e.target.value }))}
+                    className="border-gray-300"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="team_size_max">Maximum Team Size</Label>
+                  <Label htmlFor="team_size_max" className="text-black font-medium">Maximum Team Size</Label>
                   <Input
                     id="team_size_max"
                     type="number"
                     value={formData.team_size_max}
                     onChange={(e) => setFormData(prev => ({ ...prev, team_size_max: e.target.value }))}
+                    className="border-gray-300"
                   />
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="team_description">Team Description</Label>
+                <Label htmlFor="team_description" className="text-black font-medium">Team Description</Label>
                 <Textarea
                   id="team_description"
                   placeholder="Describe your team's background and experience..."
                   value={formData.team_description}
                   onChange={(e) => setFormData(prev => ({ ...prev, team_description: e.target.value }))}
                   rows={3}
+                  className="border-gray-300"
                 />
               </div>
             </div>
@@ -321,13 +369,13 @@ const Survey = () => {
 
   if (userRole !== 'member' && userRole !== 'admin') {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-gray-50">
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="max-w-2xl mx-auto">
+          <Card className="max-w-2xl mx-auto border-red-200 bg-red-50">
             <CardHeader>
-              <CardTitle className="text-red-600">Access Restricted</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-red-800">Access Restricted</CardTitle>
+              <CardDescription className="text-red-700">
                 You need Member access to complete the survey. Please request membership upgrade.
               </CardDescription>
             </CardHeader>
@@ -338,7 +386,7 @@ const Survey = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <Header />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -356,9 +404,9 @@ const Survey = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar Navigation */}
           <div className="lg:col-span-1">
-            <Card>
+            <Card className="bg-white border">
               <CardHeader>
-                <CardTitle className="text-lg">Survey Sections</CardTitle>
+                <CardTitle className="text-lg text-black">Survey Sections</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <nav className="space-y-1">
@@ -391,34 +439,36 @@ const Survey = () => {
 
           {/* Main Content */}
           <div className="lg:col-span-3">
-            <Card>
+            <Card className="bg-white border">
               <CardContent className="p-8">
                 {renderSection()}
                 
                 {/* Navigation Buttons */}
-                <div className="flex justify-between items-center mt-8 pt-6 border-t">
+                <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
                   <Button
                     variant="outline"
                     onClick={() => setCurrentSection(Math.max(1, currentSection - 1))}
                     disabled={currentSection === 1}
+                    className="border-gray-300"
                   >
                     <ChevronLeft className="w-4 h-4 mr-2" />
                     Previous
                   </Button>
 
                   <div className="flex space-x-2">
-                    <Button variant="outline" onClick={handleSave}>
+                    <Button variant="outline" onClick={handleSave} className="border-gray-300">
                       <Save className="w-4 h-4 mr-2" />
                       Save Progress
                     </Button>
                     
                     {currentSection === sections.length ? (
-                      <Button onClick={handleComplete} className="bg-green-600 hover:bg-green-700">
+                      <Button onClick={handleComplete} className="bg-green-600 hover:bg-green-700 text-white">
                         Complete Survey
                       </Button>
                     ) : (
                       <Button
                         onClick={() => setCurrentSection(Math.min(sections.length, currentSection + 1))}
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
                       >
                         Next
                         <ChevronRight className="w-4 h-4 ml-2" />
