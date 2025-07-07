@@ -1,108 +1,123 @@
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, User, Settings } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Button } from '@/components/ui/button';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import { 
+  User, 
+  LogOut, 
+  Settings, 
+  Shield, 
+  Users, 
+  BarChart3,
+  Menu,
+  Home,
+  FileText,
+  Network
+} from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 
-interface HeaderProps {
-  user?: any;
-  onLogout?: () => void;
-}
-
-const Header = ({ user, onLogout }: HeaderProps) => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+export default function Header() {
+  const { user, userRole, signOut } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
+  const getRoleBadgeColor = (role: string) => {
+    switch (role) {
+      case 'admin': return 'bg-red-100 text-red-800 border-red-200';
+      case 'member': return 'bg-blue-100 text-blue-800 border-blue-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
 
   const navigation = [
-    { name: "Dashboard", href: "/dashboard" },
-    { name: "Network", href: "/network" },
-    { name: "Profile", href: "/profile" },
+    { name: 'Dashboard', href: '/dashboard', icon: Home },
+    { name: 'Network', href: '/network', icon: Network, roles: ['member', 'admin'] },
+    { name: 'Survey', href: '/survey', icon: FileText, roles: ['member', 'admin'] },
+    { name: 'Admin', href: '/admin', icon: Shield, roles: ['admin'] },
+    { name: 'Analytics', href: '/analytics', icon: BarChart3, roles: ['admin'] },
   ];
 
-  const isActive = (path: string) => location.pathname === path;
+  const filteredNavigation = navigation.filter(item => 
+    !item.roles || item.roles.includes(userRole || 'viewer')
+  );
 
   return (
-    <header className="bg-white/80 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-50">
+    <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-gold-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">CF</span>
-            </div>
-            <span className="font-bold text-xl text-gray-900">
-              Collaborative Frontier
-            </span>
-          </Link>
+          <div className="flex items-center">
+            <Link to="/dashboard" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <Users className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xl font-bold text-gray-900">CF Finance</span>
+            </Link>
+          </div>
 
           {/* Desktop Navigation */}
-          {user && (
-            <nav className="hidden md:flex space-x-8">
-              {navigation.map((item) => (
+          <nav className="hidden md:flex space-x-8">
+            {filteredNavigation.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.href;
+              return (
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActive(item.href)
-                      ? "text-blue-600 bg-blue-50"
-                      : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+                  className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                   }`}
                 >
-                  {item.name}
+                  <Icon className="w-4 h-4" />
+                  <span>{item.name}</span>
                 </Link>
-              ))}
-            </nav>
-          )}
+              );
+            })}
+          </nav>
 
-          {/* User Menu / Auth Buttons */}
+          {/* User Menu */}
           <div className="flex items-center space-x-4">
-            {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center space-x-2">
-                    <User className="w-4 h-4" />
-                    <span className="hidden sm:block">
-                      {user.email?.split("@")[0] || "User"}
-                    </span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem asChild>
-                    <Link to="/profile" className="flex items-center">
-                      <User className="w-4 h-4 mr-2" />
-                      Profile
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/settings" className="flex items-center">
-                      <Settings className="w-4 h-4 mr-2" />
-                      Settings
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={onLogout}>
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <Button variant="ghost" asChild>
-                  <Link to="/auth">Sign In</Link>
+            <Badge className={`${getRoleBadgeColor(userRole || 'viewer')} capitalize`}>
+              {userRole || 'viewer'}
+            </Badge>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center space-x-2">
+                  <User className="w-4 h-4" />
+                  <span className="hidden sm:block">{user?.email}</span>
                 </Button>
-                <Button asChild>
-                  <Link to="/auth">Get Started</Link>
-                </Button>
-              </div>
-            )}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem asChild>
+                  <Link to="/profile" className="flex items-center">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Profile Settings
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {/* Mobile menu button */}
             <Button
@@ -111,39 +126,38 @@ const Header = ({ user, onLogout }: HeaderProps) => {
               className="md:hidden"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
-              {isMobileMenuOpen ? (
-                <X className="w-5 h-5" />
-              ) : (
-                <Menu className="w-5 h-5" />
-              )}
+              <Menu className="w-5 h-5" />
             </Button>
           </div>
         </div>
 
         {/* Mobile Navigation */}
-        {isMobileMenuOpen && user && (
-          <div className="md:hidden border-t border-gray-200 py-4">
-            <nav className="flex flex-col space-y-2">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`px-3 py-2 rounded-md text-base font-medium transition-colors ${
-                    isActive(item.href)
-                      ? "text-blue-600 bg-blue-50"
-                      : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
-                  }`}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {item.name}
-                </Link>
-              ))}
-            </nav>
+        {isMobileMenuOpen && (
+          <div className="md:hidden border-t border-gray-200 bg-white">
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              {filteredNavigation.map((item) => {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.href;
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium ${
+                      isActive
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span>{item.name}</span>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
     </header>
   );
-};
-
-export default Header;
+}

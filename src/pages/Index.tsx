@@ -1,112 +1,105 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, Users, Globe, TrendingUp, Shield, Star, CheckCircle } from "lucide-react";
+import { ArrowRight, Users, Building2, TrendingUp, Globe, Shield, BarChart3, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/dashboard');
+    }
+  }, [user, loading, navigate]);
+
   const features = [
     {
       icon: Users,
-      title: "Global Network",
-      description: "Connect with 150+ fund managers across 25 countries in emerging markets"
+      title: "Fund Manager Network",
+      description: "Connect with 150+ active fund managers across 25 countries managing $2.4B+ in assets"
     },
     {
-      icon: TrendingUp,
-      title: "Market Insights",
-      description: "Access comprehensive data on $2.4B+ in assets under management"
+      icon: FileText,
+      title: "Comprehensive Surveys",
+      description: "Complete detailed surveys covering investment strategy, team composition, and market focus"
+    },
+    {
+      icon: BarChart3,
+      title: "Advanced Analytics",
+      description: "Access powerful analytics and insights on fund performance and market trends"
     },
     {
       icon: Shield,
-      title: "Verified Data",
-      description: "All fund information is verified and regularly updated by our team"
-    },
-    {
-      icon: Globe,
-      title: "Emerging Markets Focus",
-      description: "Specialized platform for frontier and emerging market opportunities"
+      title: "Role-Based Access",
+      description: "Secure platform with viewer, member, and admin access levels for data protection"
     }
   ];
 
   const stats = [
-    { value: "150+", label: "Fund Managers" },
-    { value: "$2.4B", label: "Assets Under Management" },
-    { value: "25", label: "Countries" },
-    { value: "99.2%", label: "Data Accuracy" }
+    { icon: Users, value: "150+", label: "Fund Managers" },
+    { icon: TrendingUp, value: "$2.4B", label: "Assets Under Management" },
+    { icon: Globe, value: "25", label: "Countries" },
+    { icon: Building2, value: "85", label: "Active Funds" }
   ];
 
-  const testimonials = [
-    {
-      quote: "Collaborative Frontier has revolutionized how we discover and connect with fund managers in emerging markets.",
-      author: "Sarah Chen",
-      title: "Investment Director, Global Ventures"
-    },
-    {
-      quote: "The platform's comprehensive database and verified data have been invaluable for our investment decisions.",
-      author: "David Okafor",
-      title: "Managing Partner, Africa Growth Fund"
-    },
-    {
-      quote: "Finally, a platform that understands the unique challenges of frontier market investing.",
-      author: "Maria Rodriguez",
-      title: "Portfolio Manager, LatAm Capital"
-    }
-  ];
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-50">
+      <header className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-yellow-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">CF</span>
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <Users className="w-5 h-5 text-white" />
               </div>
-              <span className="font-bold text-xl text-gray-900">
-                Collaborative Frontier
-              </span>
+              <span className="text-xl font-bold text-gray-900">Collaborative Frontier</span>
             </div>
-            
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" asChild>
-                <Link to="/auth">Sign In</Link>
-              </Button>
-              <Button className="bg-gradient-to-r from-blue-600 to-blue-700" asChild>
-                <Link to="/auth">Get Started</Link>
-              </Button>
-            </div>
+            <Button asChild className="bg-blue-600 hover:bg-blue-700">
+              <Link to="/auth">
+                Get Started
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Link>
+            </Button>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="relative py-20 lg:py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-yellow-500/10" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="animate-fade-in">
-            <h1 className="text-5xl lg:text-7xl font-bold text-gray-900 mb-8">
-              The Premier
-              <span className="bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent">
-                {" "}Fund Manager{" "}
-              </span>
-              Network
+      <section className="bg-white py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+              Premier Fund Manager
+              <span className="text-blue-600 block">Database Platform</span>
             </h1>
-            
-            <p className="text-xl lg:text-2xl text-gray-600 max-w-4xl mx-auto mb-12">
-              Connect with the world's leading fund managers in emerging markets. 
-              Access comprehensive data, verified insights, and exclusive networking opportunities.
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+              Connect with emerging market fund managers, access comprehensive data, 
+              and unlock powerful analytics for better investment decisions.
             </p>
-            
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-4 text-lg" asChild>
+              <Button size="lg" asChild className="bg-blue-600 hover:bg-blue-700">
                 <Link to="/auth">
                   Join the Network
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" className="px-8 py-4 text-lg">
-                Learn More
+              <Button size="lg" variant="outline" asChild>
+                <Link to="/auth">
+                  Request Demo
+                </Link>
               </Button>
             </div>
           </div>
@@ -114,15 +107,18 @@ const Index = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-white/50 backdrop-blur-sm">
+      <section className="bg-gray-50 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
-                <div className="text-4xl lg:text-5xl font-bold text-gray-900 mb-2">
-                  {stat.value}
+                <div className="flex items-center justify-center mb-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <stat.icon className="w-6 h-6 text-blue-600" />
+                  </div>
                 </div>
-                <div className="text-gray-600 font-medium">{stat.label}</div>
+                <div className="text-3xl font-bold text-gray-900 mb-2">{stat.value}</div>
+                <div className="text-gray-600">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -133,26 +129,27 @@ const Index = () => {
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Why Choose Collaborative Frontier?
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Powerful Platform Features
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Our platform provides unmatched access to emerging market fund managers 
-              with verified data and comprehensive insights.
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Everything you need to connect, analyze, and grow in the emerging markets ecosystem.
             </p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="hover:shadow-xl transition-all duration-300 hover:-translate-y-2 backdrop-blur-sm bg-white/70">
-                <CardHeader className="text-center">
-                  <div className="mx-auto w-12 h-12 bg-gradient-to-r from-blue-100 to-yellow-100 rounded-xl flex items-center justify-center mb-4">
+              <Card key={index} className="border border-gray-200 hover:border-blue-200 transition-colors">
+                <CardHeader>
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
                     <feature.icon className="w-6 h-6 text-blue-600" />
                   </div>
-                  <CardTitle className="text-xl">{feature.title}</CardTitle>
+                  <CardTitle className="text-xl text-gray-900">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600 text-center">{feature.description}</p>
+                  <CardDescription className="text-gray-600 text-base">
+                    {feature.description}
+                  </CardDescription>
                 </CardContent>
               </Card>
             ))}
@@ -160,35 +157,72 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-20 bg-gradient-to-r from-blue-50 to-yellow-50">
+      {/* Access Levels Section */}
+      <section className="bg-gray-50 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Trusted by Industry Leaders
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Choose Your Access Level
             </h2>
             <p className="text-xl text-gray-600">
-              See what fund managers are saying about our platform
+              Different access levels designed for different needs and use cases.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="backdrop-blur-sm bg-white/80">
-                <CardContent className="pt-6">
-                  <div className="flex items-start mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                    ))}
-                  </div>
-                  <p className="text-gray-700 mb-4 italic">"{testimonial.quote}"</p>
-                  <div>
-                    <div className="font-semibold text-gray-900">{testimonial.author}</div>
-                    <div className="text-sm text-gray-600">{testimonial.title}</div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+            <Card className="border border-gray-200">
+              <CardHeader>
+                <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
+                  <Users className="w-6 h-6 text-gray-600" />
+                </div>
+                <CardTitle className="text-xl">Viewer</CardTitle>
+                <CardDescription>Free access to public directory</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li>• Browse public fund directory</li>
+                  <li>• View basic fund information</li>
+                  <li>• Access platform statistics</li>
+                  <li>• Request membership upgrade</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 border-blue-200 bg-blue-50">
+              <CardHeader>
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                  <Building2 className="w-6 h-6 text-blue-600" />
+                </div>
+                <CardTitle className="text-xl text-blue-900">Member</CardTitle>
+                <CardDescription className="text-blue-700">Full network access</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm text-blue-800">
+                  <li>• Complete fund manager network</li>
+                  <li>• Detailed fund profiles and data</li>
+                  <li>• Survey completion and profile</li>
+                  <li>• Networking capabilities</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card className="border border-gray-200">
+              <CardHeader>
+                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
+                  <Shield className="w-6 h-6 text-red-600" />
+                </div>
+                <CardTitle className="text-xl">Admin</CardTitle>
+                <CardDescription>Full system control</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li>• User management and roles</li>
+                  <li>• Advanced analytics dashboard</li>
+                  <li>• Data visibility controls</li>
+                  <li>• Platform administration</li>
+                </ul>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
@@ -196,90 +230,34 @@ const Index = () => {
       {/* CTA Section */}
       <section className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <Card className="backdrop-blur-sm bg-gradient-to-r from-blue-600 to-blue-700 border-0 text-white">
-            <CardHeader>
-              <CardTitle className="text-3xl lg:text-4xl font-bold mb-4">
-                Ready to Join the Network?
-              </CardTitle>
-              <CardDescription className="text-blue-100 text-lg">
-                Get access to our comprehensive fund manager database and start building 
-                valuable connections in emerging markets today.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4" asChild>
-                  <Link to="/auth">
-                    Start Free Trial
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </Link>
-                </Button>
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 px-8 py-4">
-                  Schedule Demo
-                </Button>
-              </div>
-              
-              <div className="flex items-center justify-center space-x-6 text-sm text-blue-100">
-                <div className="flex items-center">
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  No credit card required
-                </div>
-                <div className="flex items-center">
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  14-day free trial
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+            Ready to Join the Network?
+          </h2>
+          <p className="text-xl text-gray-600 mb-8">
+            Start with viewer access and upgrade to unlock the full potential of our platform.
+          </p>
+          <Button size="lg" asChild className="bg-blue-600 hover:bg-blue-700">
+            <Link to="/auth">
+              Get Started Today
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Link>
+          </Button>
         </div>
       </section>
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-yellow-500 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">CF</span>
-                </div>
-                <span className="font-bold text-lg">Collaborative Frontier</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <Users className="w-5 h-5 text-white" />
               </div>
-              <p className="text-gray-400">
-                The premier platform for emerging market fund managers and investors.
-              </p>
+              <span className="text-xl font-bold">Collaborative Frontier</span>
             </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4">Platform</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white">Fund Directory</a></li>
-                <li><a href="#" className="hover:text-white">Analytics</a></li>
-                <li><a href="#" className="hover:text-white">Network</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4">Company</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white">About</a></li>
-                <li><a href="#" className="hover:text-white">Contact</a></li>
-                <li><a href="#" className="hover:text-white">Careers</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4">Support</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white">Help Center</a></li>
-                <li><a href="#" className="hover:text-white">Privacy</a></li>
-                <li><a href="#" className="hover:text-white">Terms</a></li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Collaborative Frontier. All rights reserved.</p>
+            <p className="text-gray-400">
+              © 2024 Collaborative Frontier Finance. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>

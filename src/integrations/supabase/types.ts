@@ -14,16 +14,312 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      activity_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          ip_address: unknown | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      data_field_visibility: {
+        Row: {
+          field_name: string
+          id: string
+          updated_at: string | null
+          updated_by: string | null
+          visibility_level: string
+        }
+        Insert: {
+          field_name: string
+          id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          visibility_level?: string
+        }
+        Update: {
+          field_name?: string
+          id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          visibility_level?: string
+        }
+        Relationships: []
+      }
+      invitation_codes: {
+        Row: {
+          code: string
+          created_at: string | null
+          created_by: string
+          expires_at: string
+          id: string
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          created_by: string
+          expires_at: string
+          id?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          created_by?: string
+          expires_at?: string
+          id?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: []
+      }
+      membership_requests: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          user_id: string
+          vehicle_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id: string
+          vehicle_name: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id?: string
+          vehicle_name?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      survey_responses: {
+        Row: {
+          capital_in_market: number | null
+          capital_raised: number | null
+          completed_at: string | null
+          created_at: string | null
+          current_status: string | null
+          equity_investments_exited: number | null
+          equity_investments_made: number | null
+          expectations: string | null
+          first_close_date_from: number | null
+          first_close_date_to: number | null
+          fund_stage: string[] | null
+          how_heard_about_network: string | null
+          id: string
+          information_sharing: string | null
+          investment_instruments_priority: Json | null
+          legal_domicile: string[] | null
+          legal_entity_date_from: number | null
+          legal_entity_date_to: number | null
+          markets_operated: Json | null
+          sectors_allocation: Json | null
+          self_liquidating_exited: number | null
+          self_liquidating_made: number | null
+          supporting_document_url: string | null
+          target_capital: number | null
+          target_return_max: number | null
+          target_return_min: number | null
+          team_description: string | null
+          team_members: Json | null
+          team_size_max: number | null
+          team_size_min: number | null
+          thesis: string | null
+          ticket_description: string | null
+          ticket_size_max: number | null
+          ticket_size_min: number | null
+          updated_at: string | null
+          user_id: string
+          vehicle_type: string | null
+          vehicle_websites: string[] | null
+          year: number
+        }
+        Insert: {
+          capital_in_market?: number | null
+          capital_raised?: number | null
+          completed_at?: string | null
+          created_at?: string | null
+          current_status?: string | null
+          equity_investments_exited?: number | null
+          equity_investments_made?: number | null
+          expectations?: string | null
+          first_close_date_from?: number | null
+          first_close_date_to?: number | null
+          fund_stage?: string[] | null
+          how_heard_about_network?: string | null
+          id?: string
+          information_sharing?: string | null
+          investment_instruments_priority?: Json | null
+          legal_domicile?: string[] | null
+          legal_entity_date_from?: number | null
+          legal_entity_date_to?: number | null
+          markets_operated?: Json | null
+          sectors_allocation?: Json | null
+          self_liquidating_exited?: number | null
+          self_liquidating_made?: number | null
+          supporting_document_url?: string | null
+          target_capital?: number | null
+          target_return_max?: number | null
+          target_return_min?: number | null
+          team_description?: string | null
+          team_members?: Json | null
+          team_size_max?: number | null
+          team_size_min?: number | null
+          thesis?: string | null
+          ticket_description?: string | null
+          ticket_size_max?: number | null
+          ticket_size_min?: number | null
+          updated_at?: string | null
+          user_id: string
+          vehicle_type?: string | null
+          vehicle_websites?: string[] | null
+          year: number
+        }
+        Update: {
+          capital_in_market?: number | null
+          capital_raised?: number | null
+          completed_at?: string | null
+          created_at?: string | null
+          current_status?: string | null
+          equity_investments_exited?: number | null
+          equity_investments_made?: number | null
+          expectations?: string | null
+          first_close_date_from?: number | null
+          first_close_date_to?: number | null
+          fund_stage?: string[] | null
+          how_heard_about_network?: string | null
+          id?: string
+          information_sharing?: string | null
+          investment_instruments_priority?: Json | null
+          legal_domicile?: string[] | null
+          legal_entity_date_from?: number | null
+          legal_entity_date_to?: number | null
+          markets_operated?: Json | null
+          sectors_allocation?: Json | null
+          self_liquidating_exited?: number | null
+          self_liquidating_made?: number | null
+          supporting_document_url?: string | null
+          target_capital?: number | null
+          target_return_max?: number | null
+          target_return_min?: number | null
+          team_description?: string | null
+          team_members?: Json | null
+          team_size_max?: number | null
+          team_size_min?: number | null
+          thesis?: string | null
+          ticket_description?: string | null
+          ticket_size_max?: number | null
+          ticket_size_min?: number | null
+          updated_at?: string | null
+          user_id?: string
+          vehicle_type?: string | null
+          vehicle_websites?: string[] | null
+          year?: number
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: { user_uuid: string }
+        Returns: string
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "viewer" | "member" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +446,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["viewer", "member", "admin"],
+    },
   },
 } as const
