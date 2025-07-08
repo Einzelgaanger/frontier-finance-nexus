@@ -28,7 +28,7 @@ export function CodeVerificationModal({ open, onClose }: CodeVerificationModalPr
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!email.trim() || !vehicleName.trim() || !invitationCode.trim()) {
       toast({
@@ -96,11 +96,11 @@ export function CodeVerificationModal({ open, onClose }: CodeVerificationModalPr
         window.location.href = '/survey';
       }, 2000);
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Verification error:', error);
       toast({
         title: "Verification Failed",
-        description: error.message || "Failed to verify code. Please try again.",
+        description: "Failed to verify code. Please try again.",
         variant: "destructive"
       });
     } finally {

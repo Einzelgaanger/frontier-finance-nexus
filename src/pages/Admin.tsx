@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import Header from '@/components/layout/Header';
@@ -101,6 +100,8 @@ const Admin = () => {
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24);
 
+      console.log('Creating invitation code:', { code, requestEmail, vehicleName });
+
       const { error: codeError } = await supabase
         .from('invitation_codes')
         .insert({
@@ -111,7 +112,12 @@ const Admin = () => {
           vehicle_name: vehicleName
         });
 
-      if (codeError) throw codeError;
+      if (codeError) {
+        console.error('Error creating invitation code:', codeError);
+        throw codeError;
+      }
+
+      console.log('Updating membership request status');
 
       // Update request status
       const { error: requestError } = await supabase
@@ -119,12 +125,14 @@ const Admin = () => {
         .update({
           status: 'approved',
           reviewed_by: user?.id,
-          reviewed_at: new Date().toISOString(),
-          invitation_code: code
+          reviewed_at: new Date().toISOString()
         })
         .eq('id', requestId);
 
-      if (requestError) throw requestError;
+      if (requestError) {
+        console.error('Error updating membership request:', requestError);
+        throw requestError;
+      }
 
       toast({
         title: "Request Approved",
@@ -132,11 +140,11 @@ const Admin = () => {
       });
 
       fetchData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error approving request:', error);
       toast({
         title: "Error",
-        description: "Failed to approve membership request.",
+        description: error.message || "Failed to approve membership request.",
         variant: "destructive",
       });
     }
@@ -303,84 +311,6 @@ const Admin = () => {
           </Card>
         </div>
 
-        {/* System Information Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-white border">
-            <CardHeader>
-              <CardTitle className="text-black flex items-center">
-                <AlertTriangle className="w-5 h-5 mr-2 text-yellow-600" />
-                Recent System Alerts
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                  <span className="text-sm text-blue-800">New user registrations: +{users.filter(u => {
-                    const userDate = new Date(u.created_at);
-                    const today = new Date();
-                    return userDate.toDateString() === today.toDateString();
-                  }).length}</span>
-                  <span className="text-xs text-blue-600">Today</span>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                  <span className="text-sm text-green-800">Pending requests: {pendingRequestsCount}</span>
-                  <span className="text-xs text-green-600">Now</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border">
-            <CardHeader>
-              <CardTitle className="text-black flex items-center">
-                <Users className="w-5 h-5 mr-2 text-blue-600" />
-                User Distribution
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Admins</span>
-                  <span className="font-semibold">{users.filter(u => u.role === 'admin').length}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Members</span>
-                  <span className="font-semibold">{users.filter(u => u.role === 'member').length}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Viewers</span>
-                  <span className="font-semibold">{users.filter(u => u.role === 'viewer').length}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border">
-            <CardHeader>
-              <CardTitle className="text-black flex items-center">
-                <Activity className="w-5 h-5 mr-2 text-green-600" />
-                Platform Activity
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Active Sessions</span>
-                  <span className="font-semibold text-green-600">{Math.floor(users.length * 0.3)}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Total Requests</span>
-                  <span className="font-semibold">{membershipRequests.length}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Codes Generated</span>
-                  <span className="font-semibold">{invitationCodes.length}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
         <Tabs defaultValue="users" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3 bg-white">
             <TabsTrigger value="users" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">User Management</TabsTrigger>
@@ -477,7 +407,6 @@ const Admin = () => {
                       <TableHead className="font-semibold text-black">Vehicle Name</TableHead>
                       <TableHead className="font-semibold text-black">Email</TableHead>
                       <TableHead className="font-semibold text-black">Status</TableHead>
-                      <TableHead className="font-semibold text-black">Code</TableHead>
                       <TableHead className="font-semibold text-black">Requested</TableHead>
                       <TableHead className="font-semibold text-black">Actions</TableHead>
                     </TableRow>
@@ -491,9 +420,6 @@ const Admin = () => {
                           <Badge className={`${getStatusBadgeColor(request.status)} capitalize`}>
                             {request.status}
                           </Badge>
-                        </TableCell>
-                        <TableCell className="font-mono text-sm">
-                          {request.invitation_code || '-'}
                         </TableCell>
                         <TableCell className="text-sm text-gray-500">
                           {new Date(request.created_at).toLocaleDateString()}

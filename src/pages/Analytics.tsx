@@ -76,13 +76,15 @@ const Analytics = () => {
     const totalFunds = surveys.length;
     const totalCapital = surveys.reduce((sum, survey) => {
       const target = parseFloat(String(survey.target_capital || 0));
-      return sum + target;
+      return sum + (isNaN(target) ? 0 : target);
     }, 0);
     
     const averageTicketSize = surveys.reduce((sum, survey) => {
       const min = parseFloat(String(survey.ticket_size_min || 0));
       const max = parseFloat(String(survey.ticket_size_max || 0));
-      return sum + ((min + max) / 2);
+      const minVal = isNaN(min) ? 0 : min;
+      const maxVal = isNaN(max) ? 0 : max;
+      return sum + ((minVal + maxVal) / 2);
     }, 0) / (surveys.length || 1);
     
     const completedSurveys = surveys.length;
@@ -93,7 +95,9 @@ const Analytics = () => {
       if (survey.sectors_allocation && typeof survey.sectors_allocation === 'object') {
         Object.entries(survey.sectors_allocation).forEach(([sector, percentage]) => {
           const percent = parseFloat(String(percentage || 0));
-          sectorCounts[sector] = (sectorCounts[sector] || 0) + percent;
+          if (!isNaN(percent)) {
+            sectorCounts[sector] = (sectorCounts[sector] || 0) + percent;
+          }
         });
       }
     });
