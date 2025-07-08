@@ -72,37 +72,43 @@ const Analytics = () => {
     }
   };
 
-  const processAnalyticsData = (surveys, users) => {
+  const processAnalyticsData = (surveys: any[], users: any[]) => {
     const totalFunds = surveys.length;
-    const totalCapital = surveys.reduce((sum, survey) => sum + (parseFloat(survey.target_capital) || 0), 0);
+    const totalCapital = surveys.reduce((sum, survey) => {
+      const target = parseFloat(String(survey.target_capital || 0));
+      return sum + target;
+    }, 0);
+    
     const averageTicketSize = surveys.reduce((sum, survey) => {
-      const min = parseFloat(survey.ticket_size_min) || 0;
-      const max = parseFloat(survey.ticket_size_max) || 0;
+      const min = parseFloat(String(survey.ticket_size_min || 0));
+      const max = parseFloat(String(survey.ticket_size_max || 0));
       return sum + ((min + max) / 2);
-    }, 0) / surveys.length || 0;
+    }, 0) / (surveys.length || 1);
+    
     const completedSurveys = surveys.length;
 
     // Process sector distribution from actual data
-    const sectorCounts = {};
+    const sectorCounts: Record<string, number> = {};
     surveys.forEach(survey => {
       if (survey.sectors_allocation && typeof survey.sectors_allocation === 'object') {
         Object.entries(survey.sectors_allocation).forEach(([sector, percentage]) => {
-          sectorCounts[sector] = (sectorCounts[sector] || 0) + (parseFloat(percentage) || 0);
+          const percent = parseFloat(String(percentage || 0));
+          sectorCounts[sector] = (sectorCounts[sector] || 0) + percent;
         });
       }
     });
 
     const sectorDistribution = Object.entries(sectorCounts).map(([name, value], index) => ({
       name,
-      value: Math.round(value / surveys.length) || 0,
+      value: Math.round(value / (surveys.length || 1)) || 0,
       color: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'][index % 6]
     }));
 
     // Process geographic distribution
-    const geographicCounts = {};
+    const geographicCounts: Record<string, number> = {};
     surveys.forEach(survey => {
       if (survey.legal_domicile && Array.isArray(survey.legal_domicile)) {
-        survey.legal_domicile.forEach(country => {
+        survey.legal_domicile.forEach((country: string) => {
           geographicCounts[country] = (geographicCounts[country] || 0) + 1;
         });
       }
@@ -110,15 +116,15 @@ const Analytics = () => {
 
     const geographicDistribution = Object.entries(geographicCounts).map(([region, funds]) => ({
       region,
-      funds,
-      capital: Math.round(totalCapital * (funds / totalFunds) / 1000000) // Convert to millions
+      funds: Number(funds),
+      capital: Math.round(totalCapital * (Number(funds) / totalFunds) / 1000000) // Convert to millions
     }));
 
     // Process fund stage distribution
-    const stageCounts = {};
+    const stageCounts: Record<string, number> = {};
     surveys.forEach(survey => {
       if (survey.fund_stage && Array.isArray(survey.fund_stage)) {
-        survey.fund_stage.forEach(stage => {
+        survey.fund_stage.forEach((stage: string) => {
           stageCounts[stage] = (stageCounts[stage] || 0) + 1;
         });
       }
@@ -126,7 +132,7 @@ const Analytics = () => {
 
     const fundStageDistribution = Object.entries(stageCounts).map(([stage, count]) => ({
       stage,
-      count
+      count: Number(count)
     }));
 
     // Generate monthly growth data based on user creation dates
@@ -174,7 +180,7 @@ const Analytics = () => {
     };
   };
 
-  const formatCurrency = (amount) => {
+  const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -183,7 +189,7 @@ const Analytics = () => {
     }).format(amount);
   };
 
-  const formatNumber = (num) => {
+  const formatNumber = (num: number) => {
     return new Intl.NumberFormat('en-US').format(num);
   };
 
