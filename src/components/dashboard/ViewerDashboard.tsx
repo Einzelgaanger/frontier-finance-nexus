@@ -49,7 +49,7 @@ const ViewerDashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Action Cards */}
+      {/* Primary Action Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Browse Directory */}
         <Card className="hover:shadow-lg transition-shadow">
@@ -94,21 +94,20 @@ const ViewerDashboard = () => {
         </Card>
       </div>
 
-      {/* Code Verification Section */}
+      {/* Code Verification Section - Prominent */}
       <Card className="border-yellow-200 bg-yellow-50">
         <CardHeader>
           <CardTitle className="text-yellow-900 flex items-center">
             <Key className="w-5 h-5 mr-2" />
-            Have an Invitation Code?
+            Already Approved? Verify Your Details
           </CardTitle>
           <CardDescription className="text-yellow-800">
-            If you've received an invitation code from our admin team, verify it here to upgrade your access.
+            If you've received approval and an invitation code, click below to complete your verification and proceed to the survey.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Button 
-            variant="outline" 
-            className="border-yellow-300 text-yellow-800 hover:bg-yellow-100"
+            className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
             onClick={() => setShowCodeModal(true)}
           >
             <Key className="w-4 h-4 mr-2" />

@@ -42,19 +42,21 @@ export function CodeVerificationModal({ open, onClose }: CodeVerificationModalPr
     setIsSubmitting(true);
 
     try {
-      // Verify the invitation code
+      // Verify the invitation code with email and vehicle name
       const { data: codeData, error: codeError } = await supabase
         .from('invitation_codes')
         .select('*')
         .eq('code', invitationCode.toUpperCase())
+        .eq('email', email)
+        .eq('vehicle_name', vehicleName)
         .is('used_at', null)
         .gt('expires_at', new Date().toISOString())
         .single();
 
       if (codeError || !codeData) {
         toast({
-          title: "Invalid Code",
-          description: "The invitation code is incorrect or has expired.",
+          title: "Invalid Details",
+          description: "The invitation code, email, or vehicle name is incorrect, or the code has expired.",
           variant: "destructive",
         });
         return;
@@ -177,12 +179,12 @@ export function CodeVerificationModal({ open, onClose }: CodeVerificationModalPr
           </div>
 
           <div className="bg-blue-50 p-4 rounded-lg">
-            <h4 className="font-medium text-blue-900 mb-2">Next Steps</h4>
+            <h4 className="font-medium text-blue-900 mb-2">Important Notes</h4>
             <ul className="text-sm text-blue-800 space-y-1">
-              <li>• Verify your details match the approved request</li>
-              <li>• Complete the comprehensive fund manager survey</li>
-              <li>• Access the full network of fund managers</li>
-              <li>• View member-level data and analytics</li>
+              <li>• Use the exact email and vehicle name from your membership request</li>
+              <li>• Invitation codes expire 24 hours after generation</li>
+              <li>• Each code can only be used once</li>
+              <li>• After verification, you'll be redirected to complete the survey</li>
             </ul>
           </div>
 

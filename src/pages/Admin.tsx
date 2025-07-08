@@ -20,7 +20,7 @@ import {
   Download,
   AlertTriangle,
   Activity,
-  TrendingUp
+  Key
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -43,20 +43,21 @@ const Admin = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Fetch profiles and roles separately due to database constraints
+      // Fetch profiles
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*');
 
       if (profilesError) throw profilesError;
 
+      // Fetch roles separately
       const { data: rolesData, error: rolesError } = await supabase
         .from('user_roles')
         .select('*');
 
       if (rolesError) throw rolesError;
 
-      // Combine the data manually
+      // Combine the data
       const usersWithRoles = profilesData?.map(profile => ({
         ...profile,
         role: rolesData?.find(role => role.user_id === profile.id)?.role || 'viewer'
@@ -280,7 +281,7 @@ const Admin = () => {
           <Card className="bg-white border">
             <CardContent className="p-6">
               <div className="flex items-center">
-                <UserPlus className="w-8 h-8 text-green-600" />
+                <Key className="w-8 h-8 text-green-600" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Active Codes</p>
                   <p className="text-2xl font-bold text-black">{activeCodesCount}</p>
@@ -292,7 +293,7 @@ const Admin = () => {
           <Card className="bg-white border">
             <CardContent className="p-6">
               <div className="flex items-center">
-                <BarChart3 className="w-8 h-8 text-purple-600" />
+                <UserPlus className="w-8 h-8 text-purple-600" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Members</p>
                   <p className="text-2xl font-bold text-black">{membersCount}</p>
@@ -302,7 +303,7 @@ const Admin = () => {
           </Card>
         </div>
 
-        {/* Recent System Alerts */}
+        {/* System Information Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           <Card className="bg-white border">
             <CardHeader>
@@ -313,13 +314,17 @@ const Admin = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
-                  <span className="text-sm text-yellow-800">System maintenance scheduled</span>
-                  <span className="text-xs text-yellow-600">2h ago</span>
-                </div>
                 <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                  <span className="text-sm text-blue-800">New user registrations: +5</span>
-                  <span className="text-xs text-blue-600">4h ago</span>
+                  <span className="text-sm text-blue-800">New user registrations: +{users.filter(u => {
+                    const userDate = new Date(u.created_at);
+                    const today = new Date();
+                    return userDate.toDateString() === today.toDateString();
+                  }).length}</span>
+                  <span className="text-xs text-blue-600">Today</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                  <span className="text-sm text-green-800">Pending requests: {pendingRequestsCount}</span>
+                  <span className="text-xs text-green-600">Now</span>
                 </div>
               </div>
             </CardContent>
@@ -364,12 +369,12 @@ const Admin = () => {
                   <span className="font-semibold text-green-600">{Math.floor(users.length * 0.3)}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Daily Visits</span>
-                  <span className="font-semibold">{Math.floor(users.length * 1.5)}</span>
+                  <span className="text-sm text-gray-600">Total Requests</span>
+                  <span className="font-semibold">{membershipRequests.length}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Survey Completions</span>
-                  <span className="font-semibold">{Math.floor(users.length * 0.6)}</span>
+                  <span className="text-sm text-gray-600">Codes Generated</span>
+                  <span className="font-semibold">{invitationCodes.length}</span>
                 </div>
               </div>
             </CardContent>
