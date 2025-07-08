@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import Header from '@/components/layout/Header';
@@ -18,10 +17,12 @@ const Survey = () => {
   const { user, userRole } = useAuth();
   const { toast } = useToast();
   const [currentSection, setCurrentSection] = useState(1);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [formData, setFormData] = useState({
     year: new Date().getFullYear(),
     vehicle_websites: [],
     vehicle_type: '',
+    vehicle_type_other: '',
     thesis: '',
     team_members: [{ name: '', email: '', phone: '', role: '' }],
     team_size_min: '',
@@ -31,6 +32,7 @@ const Survey = () => {
     markets_operated: {},
     ticket_size_min: '',
     ticket_size_max: '',
+    ticket_description: '',
     target_capital: '',
     capital_raised: '',
     capital_in_market: '',
@@ -40,10 +42,15 @@ const Survey = () => {
     how_heard_about_network: '',
     fund_stage: [],
     current_status: '',
+    current_status_other: '',
     legal_entity_date_from: '',
     legal_entity_date_to: '',
+    legal_entity_month_from: '',
+    legal_entity_month_to: '',
     first_close_date_from: '',
     first_close_date_to: '',
+    first_close_month_from: '',
+    first_close_month_to: '',
     investment_instruments_priority: {},
     sectors_allocation: {},
     target_return_min: '',
@@ -57,7 +64,7 @@ const Survey = () => {
   const sections = [
     { id: 1, title: 'Basic Vehicle Information', icon: Building2, fields: 3 },
     { id: 2, title: 'Team & Leadership', icon: Users, fields: 4 },
-    { id: 3, title: 'Geographic & Market Focus', icon: Globe, fields: 2 },
+    { id: 3, title: 'Geographic & Market Focus', icon: Globe, fields: 3 },
     { id: 4, title: 'Investment Strategy', icon: Target, fields: 4 },
     { id: 5, title: 'Fund Operations', icon: FileText, fields: 4 },
     { id: 6, title: 'Fund Status & Timeline', icon: BarChart3, fields: 6 },
@@ -69,24 +76,61 @@ const Survey = () => {
   const completedFields = calculateCompletedFields();
   const progress = (completedFields / totalFields) * 100;
 
+  const availableSectors = [
+    'Agri: SME/Food value chain/Agritech',
+    'Software services/SaaS', 
+    'Clean energy/renewable/e-mobility',
+    'Manufacturing',
+    'Agri: Primary Agri',
+    'Healthcare/medical services',
+    'Education',
+    'Tech/telecom/data infrastructure',
+    'FMCG',
+    'Logistics/Transport/Distribution',
+    'Merchandising/Retail/On-demand-retail'
+  ];
+
+  const investmentInstruments = [
+    'Senior debt secured',
+    'Senior debt unsecured',
+    'Mezzanine/subordinate debt',
+    'Convertible notes',
+    'SAFEs',
+    'Shared revenue/earning instruments',
+    'Preferred equity',
+    'Common equity'
+  ];
+
+  const fundStages = ['Implementation', 'Ideation', 'Pilot', 'Scale'];
+
+  const countries = [
+    'Kenya', 'Uganda', 'Tanzania', 'Rwanda', 'Ethiopia', 'Nigeria', 'Ghana', 'South Africa',
+    'Egypt', 'Morocco', 'Senegal', 'Ivory Coast', 'Cameroon', 'Zimbabwe', 'Zambia', 'Botswana'
+  ];
+
   function calculateCompletedFields() {
     let completed = 0;
     if (formData.vehicle_websites.length > 0) completed++;
     if (formData.vehicle_type) completed++;
     if (formData.thesis) completed++;
     if (formData.team_members.some(member => member.name && member.email)) completed++;
-    if (formData.team_size_min) completed++;
-    if (formData.team_size_max) completed++;
+    if (formData.team_size_min && formData.team_size_max) completed++;
     if (formData.team_description) completed++;
+    if (formData.legal_domicile.length > 0) completed++;
+    if (Object.keys(formData.markets_operated).length > 0) completed++;
+    if (formData.ticket_size_min && formData.ticket_size_max) completed++;
+    if (formData.target_capital) completed++;
+    if (formData.capital_raised) completed++;
+    if (formData.capital_in_market) completed++;
     return completed;
   }
 
   const handleSave = async () => {
     try {
-      // Convert string values to numbers where needed
       const processedData = {
         ...formData,
         user_id: user?.id,
+        year: selectedYear,
         team_size_min: formData.team_size_min ? parseInt(formData.team_size_min) : null,
         team_size_max: formData.team_size_max ? parseInt(formData.team_size_max) : null,
         ticket_size_min: formData.ticket_size_min ? parseFloat(formData.ticket_size_min) : null,
@@ -104,11 +148,14 @@ const Survey = () => {
         legal_entity_date_to: formData.legal_entity_date_to ? parseInt(formData.legal_entity_date_to) : null,
         first_close_date_from: formData.first_close_date_from ? parseInt(formData.first_close_date_from) : null,
         first_close_date_to: formData.first_close_date_to ? parseInt(formData.first_close_date_to) : null,
+        updated_at: new Date().toISOString()
       };
 
       const { error } = await supabase
         .from('survey_responses')
-        .upsert(processedData);
+        .upsert(processedData, {
+          onConflict: 'user_id,year'
+        });
 
       if (error) throw error;
 
@@ -128,10 +175,10 @@ const Survey = () => {
 
   const handleComplete = async () => {
     try {
-      // Convert string values to numbers where needed
       const processedData = {
         ...formData,
         user_id: user?.id,
+        year: selectedYear,
         completed_at: new Date().toISOString(),
         team_size_min: formData.team_size_min ? parseInt(formData.team_size_min) : null,
         team_size_max: formData.team_size_max ? parseInt(formData.team_size_max) : null,
@@ -150,18 +197,26 @@ const Survey = () => {
         legal_entity_date_to: formData.legal_entity_date_to ? parseInt(formData.legal_entity_date_to) : null,
         first_close_date_from: formData.first_close_date_from ? parseInt(formData.first_close_date_from) : null,
         first_close_date_to: formData.first_close_date_to ? parseInt(formData.first_close_date_to) : null,
+        updated_at: new Date().toISOString()
       };
 
       const { error } = await supabase
         .from('survey_responses')
-        .upsert(processedData);
+        .upsert(processedData, {
+          onConflict: 'user_id,year'
+        });
 
       if (error) throw error;
 
       toast({
         title: "Survey Completed",
-        description: "Thank you for completing the survey!",
+        description: "Thank you for completing the survey! Redirecting to dashboard...",
       });
+
+      // Redirect to dashboard after completion
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 2000);
     } catch (error) {
       console.error('Complete error:', error);
       toast({
@@ -186,6 +241,12 @@ const Survey = () => {
     }));
   };
 
+  const calculateDryPowder = () => {
+    const raised = parseFloat(formData.capital_raised) || 0;
+    const inMarket = parseFloat(formData.capital_in_market) || 0;
+    return raised - inMarket;
+  };
+
   const renderSection = () => {
     const currentSectionData = sections.find(s => s.id === currentSection);
     const Icon = currentSectionData?.icon || FileText;
@@ -204,7 +265,7 @@ const Survey = () => {
                 <Label htmlFor="vehicle_websites" className="text-black font-medium">Vehicle Website(s)</Label>
                 <Input
                   id="vehicle_websites"
-                  placeholder="https://example.com"
+                  placeholder="https://example.com (separate multiple URLs with commas)"
                   value={formData.vehicle_websites.join(', ')}
                   onChange={(e) => setFormData(prev => ({
                     ...prev,
@@ -226,6 +287,14 @@ const Survey = () => {
                     <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
+                {formData.vehicle_type === 'other' && (
+                  <Input
+                    placeholder="Please specify"
+                    value={formData.vehicle_type_other}
+                    onChange={(e) => setFormData(prev => ({ ...prev, vehicle_type_other: e.target.value }))}
+                    className="mt-2 border-gray-300"
+                  />
+                )}
               </div>
 
               <div>
@@ -253,12 +322,12 @@ const Survey = () => {
             
             <div className="space-y-4">
               <div>
-                <Label className="text-black font-medium">Team Members</Label>
+                <Label className="text-black font-medium">Team Members (Founders/Partners)</Label>
                 {formData.team_members.map((member, index) => (
                   <Card key={index} className="p-4 mt-2 border-gray-200">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Input
-                        placeholder="Name"
+                        placeholder="Name*"
                         value={member.name}
                         onChange={(e) => {
                           const newMembers = [...formData.team_members];
@@ -268,7 +337,7 @@ const Survey = () => {
                         className="border-gray-300"
                       />
                       <Input
-                        placeholder="Email"
+                        placeholder="Email*"
                         type="email"
                         value={member.email}
                         onChange={(e) => {
@@ -279,7 +348,7 @@ const Survey = () => {
                         className="border-gray-300"
                       />
                       <Input
-                        placeholder="Phone"
+                        placeholder="Phone*"
                         value={member.phone}
                         onChange={(e) => {
                           const newMembers = [...formData.team_members];
@@ -290,7 +359,7 @@ const Survey = () => {
                       />
                       <div className="flex space-x-2">
                         <Input
-                          placeholder="Role"
+                          placeholder="Role*"
                           value={member.role}
                           onChange={(e) => {
                             const newMembers = [...formData.team_members];
@@ -320,7 +389,7 @@ const Survey = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="team_size_min" className="text-black font-medium">Minimum Team Size</Label>
+                  <Label htmlFor="team_size_min" className="text-black font-medium">Minimum Team Size*</Label>
                   <Input
                     id="team_size_min"
                     type="number"
@@ -330,7 +399,7 @@ const Survey = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="team_size_max" className="text-black font-medium">Maximum Team Size</Label>
+                  <Label htmlFor="team_size_max" className="text-black font-medium">Maximum Team Size*</Label>
                   <Input
                     id="team_size_max"
                     type="number"
@@ -342,10 +411,10 @@ const Survey = () => {
               </div>
 
               <div>
-                <Label htmlFor="team_description" className="text-black font-medium">Team Description</Label>
+                <Label htmlFor="team_description" className="text-black font-medium">Team Description (Optional)</Label>
                 <Textarea
                   id="team_description"
-                  placeholder="Describe your team's background and experience..."
+                  placeholder="Tell us more about your team's background and experience..."
                   value={formData.team_description}
                   onChange={(e) => setFormData(prev => ({ ...prev, team_description: e.target.value }))}
                   rows={3}
@@ -356,12 +425,166 @@ const Survey = () => {
           </div>
         );
 
+      case 3:
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center space-x-3 mb-6">
+              <Icon className="w-6 h-6 text-blue-600" />
+              <h2 className="text-2xl font-bold text-black">Geographic &amp; Market Focus</h2>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <Label className="text-black font-medium">Legal Vehicle Domicile (Main Office)</Label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+                  {countries.map((country) => (
+                    <div key={country} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`domicile-${country}`}
+                        checked={formData.legal_domicile.includes(country)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              legal_domicile: [...prev.legal_domicile, country] 
+                            }));
+                          } else {
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              legal_domicile: prev.legal_domicile.filter(c => c !== country) 
+                            }));
+                          }
+                        }}
+                      />
+                      <Label htmlFor={`domicile-${country}`} className="text-sm">{country}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-black font-medium">Markets Operated In</Label>
+                <p className="text-sm text-gray-600 mb-2">Select where you invest (can be continental, regional, or specific countries)</p>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="africa" />
+                    <Label htmlFor="africa">All of Africa</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="east-africa" />
+                    <Label htmlFor="east-africa">East Africa</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="west-africa" />
+                    <Label htmlFor="west-africa">West Africa</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="specific-countries" />
+                    <Label htmlFor="specific-countries">Specific Countries</Label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center space-x-3 mb-6">
+              <Icon className="w-6 h-6 text-blue-600" />
+              <h2 className="text-2xl font-bold text-black">Investment Strategy</h2>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="ticket_size_min" className="text-black font-medium">Min Ticket Size (USD)</Label>
+                  <Input
+                    id="ticket_size_min"
+                    type="number"
+                    value={formData.ticket_size_min}
+                    onChange={(e) => setFormData(prev => ({ ...prev, ticket_size_min: e.target.value }))}
+                    className="border-gray-300"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="ticket_size_max" className="text-black font-medium">Max Ticket Size (USD)</Label>
+                  <Input
+                    id="ticket_size_max"
+                    type="number"
+                    value={formData.ticket_size_max}
+                    onChange={(e) => setFormData(prev => ({ ...prev, ticket_size_max: e.target.value }))}
+                    className="border-gray-300"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="ticket_description" className="text-black font-medium">Ticket Size Description (Optional)</Label>
+                <Textarea
+                  id="ticket_description"
+                  placeholder="Additional details about your ticket sizing approach..."
+                  value={formData.ticket_description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, ticket_description: e.target.value }))}
+                  rows={2}
+                  className="border-gray-300"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="target_capital" className="text-black font-medium">Target Capital (USD)</Label>
+                  <Input
+                    id="target_capital"
+                    type="number"
+                    value={formData.target_capital}
+                    onChange={(e) => setFormData(prev => ({ ...prev, target_capital: e.target.value }))}
+                    className="border-gray-300"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="capital_raised" className="text-black font-medium">Capital Actually Raised (USD)</Label>
+                  <Input
+                    id="capital_raised"
+                    type="number"
+                    value={formData.capital_raised}
+                    onChange={(e) => setFormData(prev => ({ ...prev, capital_raised: e.target.value }))}
+                    className="border-gray-300"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="capital_in_market" className="text-black font-medium">Capital in Market (USD)</Label>
+                  <Input
+                    id="capital_in_market"
+                    type="number"
+                    value={formData.capital_in_market}
+                    onChange={(e) => setFormData(prev => ({ ...prev, capital_in_market: e.target.value }))}
+                    className="border-gray-300"
+                  />
+                </div>
+              </div>
+
+              {(formData.capital_raised || formData.capital_in_market) && (
+                <div className="p-4 bg-blue-50 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-blue-900">Dry Powder (Auto-calculated):</span>
+                    <span className="text-xl font-bold text-blue-900">
+                      ${calculateDryPowder().toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-center py-8">
             <Icon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Section Under Construction</h3>
-            <p className="text-gray-600">This section is being developed. Please check back soon.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Section Under Development</h3>
+            <p className="text-gray-600">This section is being implemented. Please continue with other sections.</p>
           </div>
         );
     }
@@ -390,10 +613,34 @@ const Survey = () => {
       <Header />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Year Selection */}
+        <div className="mb-6">
+          <Card className="bg-white border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-black">Survey Year</h2>
+                  <p className="text-gray-600">Select the year for this survey submission</p>
+                </div>
+                <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+                  <SelectTrigger className="w-[180px] border-gray-300">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[2024, 2025, 2026, 2027].map(year => (
+                      <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Progress Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold text-black">Fund Manager Survey</h1>
+            <h1 className="text-3xl font-bold text-black">Fund Manager Survey - {selectedYear}</h1>
             <div className="text-sm text-gray-600">
               {Math.round(progress)}% Complete
             </div>

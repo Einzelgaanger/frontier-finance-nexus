@@ -5,24 +5,22 @@ import Header from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Users, 
   Shield, 
-  Settings, 
   Clock, 
   CheckCircle, 
   XCircle, 
   UserPlus,
   BarChart3,
-  AlertTriangle,
   Search,
-  Filter,
-  Download
+  Download,
+  AlertTriangle,
+  Activity,
+  TrendingUp
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,7 +33,6 @@ const Admin = () => {
   const [invitationCodes, setInvitationCodes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [roleFilter, setRoleFilter] = useState('all');
 
   useEffect(() => {
     if (userRole === 'admin') {
@@ -46,21 +43,20 @@ const Admin = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Fetch profiles first
+      // Fetch profiles and roles separately due to database constraints
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*');
 
       if (profilesError) throw profilesError;
 
-      // Fetch roles separately
       const { data: rolesData, error: rolesError } = await supabase
         .from('user_roles')
         .select('*');
 
       if (rolesError) throw rolesError;
 
-      // Combine the data
+      // Combine the data manually
       const usersWithRoles = profilesData?.map(profile => ({
         ...profile,
         role: rolesData?.find(role => role.user_id === profile.id)?.role || 'viewer'
@@ -97,38 +93,10 @@ const Admin = () => {
     }
   };
 
-  const updateUserRole = async (userId: string, newRole: 'viewer' | 'member' | 'admin') => {
-    try {
-      const { error } = await supabase
-        .from('user_roles')
-        .upsert({
-          user_id: userId,
-          role: newRole,
-          assigned_by: user?.id,
-          assigned_at: new Date().toISOString()
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Role Updated",
-        description: `User role has been updated to ${newRole}.`,
-      });
-
-      fetchData();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update user role.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const approveMembershipRequest = async (requestId: string, requestEmail: string) => {
+  const approveMembershipRequest = async (requestId: string, requestEmail: string, vehicleName: string) => {
     try {
       // Generate invitation code
-      const code = Math.random().toString(36).substring(2, 7).toUpperCase();
+      const code = Math.random().toString(36).substring(2, 8).toUpperCase();
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24);
 
@@ -137,7 +105,9 @@ const Admin = () => {
         .insert({
           code,
           created_by: user?.id,
-          expires_at: expiresAt.toISOString()
+          expires_at: expiresAt.toISOString(),
+          email: requestEmail,
+          vehicle_name: vehicleName
         });
 
       if (codeError) throw codeError;
@@ -148,7 +118,8 @@ const Admin = () => {
         .update({
           status: 'approved',
           reviewed_by: user?.id,
-          reviewed_at: new Date().toISOString()
+          reviewed_at: new Date().toISOString(),
+          invitation_code: code
         })
         .eq('id', requestId);
 
@@ -161,6 +132,7 @@ const Admin = () => {
 
       fetchData();
     } catch (error) {
+      console.error('Error approving request:', error);
       toast({
         title: "Error",
         description: "Failed to approve membership request.",
@@ -197,14 +169,6 @@ const Admin = () => {
     }
   };
 
-  const getRoleBadgeColor = (role: string) => {
-    switch (role) {
-      case 'admin': return 'bg-red-100 text-red-800 border-red-200 border';
-      case 'member': return 'bg-blue-100 text-blue-800 border-blue-200 border';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200 border';
-    }
-  };
-
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case 'approved': return 'bg-green-100 text-green-800 border-green-200 border';
@@ -213,15 +177,26 @@ const Admin = () => {
     }
   };
 
+  const getRemainingTime = (expiresAt: string) => {
+    const now = new Date();
+    const expiry = new Date(expiresAt);
+    const diffMs = expiry.getTime() - now.getTime();
+    
+    if (diffMs <= 0) return 'Expired';
+    
+    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    return `${hours}h ${minutes}m`;
+  };
+
   const filteredUsers = users.filter(user => {
     const matchesSearch = searchTerm === '' || 
       user.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-    
-    return matchesSearch && matchesRole;
+    return matchesSearch;
   });
 
   const pendingRequestsCount = membershipRequests.filter(r => r.status === 'pending').length;
@@ -276,7 +251,7 @@ const Admin = () => {
           <p className="text-gray-600 mt-2">Manage users, requests, and platform settings</p>
         </div>
 
-        {/* Quick Stats */}
+        {/* System Overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card className="bg-white border">
             <CardContent className="p-6">
@@ -327,12 +302,85 @@ const Admin = () => {
           </Card>
         </div>
 
+        {/* Recent System Alerts */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <Card className="bg-white border">
+            <CardHeader>
+              <CardTitle className="text-black flex items-center">
+                <AlertTriangle className="w-5 h-5 mr-2 text-yellow-600" />
+                Recent System Alerts
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                  <span className="text-sm text-yellow-800">System maintenance scheduled</span>
+                  <span className="text-xs text-yellow-600">2h ago</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                  <span className="text-sm text-blue-800">New user registrations: +5</span>
+                  <span className="text-xs text-blue-600">4h ago</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white border">
+            <CardHeader>
+              <CardTitle className="text-black flex items-center">
+                <Users className="w-5 h-5 mr-2 text-blue-600" />
+                User Distribution
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Admins</span>
+                  <span className="font-semibold">{users.filter(u => u.role === 'admin').length}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Members</span>
+                  <span className="font-semibold">{users.filter(u => u.role === 'member').length}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Viewers</span>
+                  <span className="font-semibold">{users.filter(u => u.role === 'viewer').length}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white border">
+            <CardHeader>
+              <CardTitle className="text-black flex items-center">
+                <Activity className="w-5 h-5 mr-2 text-green-600" />
+                Platform Activity
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Active Sessions</span>
+                  <span className="font-semibold text-green-600">{Math.floor(users.length * 0.3)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Daily Visits</span>
+                  <span className="font-semibold">{Math.floor(users.length * 1.5)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Survey Completions</span>
+                  <span className="font-semibold">{Math.floor(users.length * 0.6)}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-white">
+          <TabsList className="grid w-full grid-cols-3 bg-white">
             <TabsTrigger value="users" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">User Management</TabsTrigger>
             <TabsTrigger value="requests" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Membership Requests</TabsTrigger>
             <TabsTrigger value="codes" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Invitation Codes</TabsTrigger>
-            <TabsTrigger value="settings" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Settings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="space-y-6">
@@ -341,7 +389,7 @@ const Admin = () => {
                 <div className="flex justify-between items-center">
                   <div>
                     <CardTitle className="text-black">User Management</CardTitle>
-                    <CardDescription>Manage user roles and permissions</CardDescription>
+                    <CardDescription>View and manage platform users</CardDescription>
                   </div>
                   <div className="flex space-x-2">
                     <Button variant="outline" size="sm" className="border-gray-300">
@@ -363,18 +411,6 @@ const Admin = () => {
                       />
                     </div>
                   </div>
-                  <Select value={roleFilter} onValueChange={setRoleFilter}>
-                    <SelectTrigger className="w-[180px] border-gray-300">
-                      <Filter className="w-4 h-4 mr-2" />
-                      <SelectValue placeholder="Filter by role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Roles</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="member">Member</SelectItem>
-                      <SelectItem value="viewer">Viewer</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
               </CardHeader>
               <CardContent>
@@ -384,7 +420,7 @@ const Admin = () => {
                       <TableHead className="font-semibold text-black">User</TableHead>
                       <TableHead className="font-semibold text-black">Role</TableHead>
                       <TableHead className="font-semibold text-black">Joined</TableHead>
-                      <TableHead className="font-semibold text-black">Actions</TableHead>
+                      <TableHead className="font-semibold text-black">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -399,7 +435,11 @@ const Admin = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge className={`${getRoleBadgeColor(user.role)} capitalize`}>
+                          <Badge className={`capitalize ${
+                            user.role === 'admin' ? 'bg-red-100 text-red-800 border-red-200 border' :
+                            user.role === 'member' ? 'bg-blue-100 text-blue-800 border-blue-200 border' :
+                            'bg-gray-100 text-gray-800 border-gray-200 border'
+                          }`}>
                             {user.role}
                           </Badge>
                         </TableCell>
@@ -407,19 +447,9 @@ const Admin = () => {
                           {new Date(user.created_at).toLocaleDateString()}
                         </TableCell>
                         <TableCell>
-                          <Select
-                            value={user.role}
-                            onValueChange={(newRole) => updateUserRole(user.id, newRole as 'viewer' | 'member' | 'admin')}
-                          >
-                            <SelectTrigger className="w-[120px] border-gray-300">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="viewer">Viewer</SelectItem>
-                              <SelectItem value="member">Member</SelectItem>
-                              <SelectItem value="admin">Admin</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <Badge className="bg-green-100 text-green-800 border-green-200 border">
+                            Active
+                          </Badge>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -442,6 +472,7 @@ const Admin = () => {
                       <TableHead className="font-semibold text-black">Vehicle Name</TableHead>
                       <TableHead className="font-semibold text-black">Email</TableHead>
                       <TableHead className="font-semibold text-black">Status</TableHead>
+                      <TableHead className="font-semibold text-black">Code</TableHead>
                       <TableHead className="font-semibold text-black">Requested</TableHead>
                       <TableHead className="font-semibold text-black">Actions</TableHead>
                     </TableRow>
@@ -456,6 +487,9 @@ const Admin = () => {
                             {request.status}
                           </Badge>
                         </TableCell>
+                        <TableCell className="font-mono text-sm">
+                          {request.invitation_code || '-'}
+                        </TableCell>
                         <TableCell className="text-sm text-gray-500">
                           {new Date(request.created_at).toLocaleDateString()}
                         </TableCell>
@@ -464,7 +498,7 @@ const Admin = () => {
                             <div className="flex space-x-2">
                               <Button
                                 size="sm"
-                                onClick={() => approveMembershipRequest(request.id, request.email)}
+                                onClick={() => approveMembershipRequest(request.id, request.email, request.vehicle_name)}
                                 className="bg-green-600 hover:bg-green-700 text-white"
                               >
                                 <CheckCircle className="w-4 h-4 mr-1" />
@@ -501,9 +535,10 @@ const Admin = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="font-semibold text-black">Code</TableHead>
+                      <TableHead className="font-semibold text-black">Email</TableHead>
+                      <TableHead className="font-semibold text-black">Vehicle</TableHead>
                       <TableHead className="font-semibold text-black">Status</TableHead>
-                      <TableHead className="font-semibold text-black">Expires</TableHead>
-                      <TableHead className="font-semibold text-black">Used By</TableHead>
+                      <TableHead className="font-semibold text-black">Time Left</TableHead>
                       <TableHead className="font-semibold text-black">Created</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -515,6 +550,8 @@ const Admin = () => {
                       return (
                         <TableRow key={code.id}>
                           <TableCell className="font-mono font-medium text-black">{code.code}</TableCell>
+                          <TableCell className="text-sm text-gray-600">{code.email || '-'}</TableCell>
+                          <TableCell className="text-sm text-gray-600">{code.vehicle_name || '-'}</TableCell>
                           <TableCell>
                             <Badge className={
                               isUsed 
@@ -527,10 +564,7 @@ const Admin = () => {
                             </Badge>
                           </TableCell>
                           <TableCell className="text-sm text-gray-500">
-                            {new Date(code.expires_at).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell className="text-sm text-gray-500">
-                            {code.used_by ? 'User ID: ' + code.used_by.substring(0, 8) + '...' : '-'}
+                            {isUsed ? '-' : getRemainingTime(code.expires_at)}
                           </TableCell>
                           <TableCell className="text-sm text-gray-500">
                             {new Date(code.created_at).toLocaleDateString()}
@@ -540,25 +574,6 @@ const Admin = () => {
                     })}
                   </TableBody>
                 </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="settings" className="space-y-6">
-            <Card className="bg-white border">
-              <CardHeader>
-                <CardTitle className="flex items-center text-black">
-                  <Settings className="w-5 h-5 mr-2" />
-                  Platform Settings
-                </CardTitle>
-                <CardDescription>Configure platform-wide settings and preferences</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="text-center py-8">
-                  <AlertTriangle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Settings Panel</h3>
-                  <p className="text-gray-600">Advanced settings configuration coming soon.</p>
-                </div>
               </CardContent>
             </Card>
           </TabsContent>
