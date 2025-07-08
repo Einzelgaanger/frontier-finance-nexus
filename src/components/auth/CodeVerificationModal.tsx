@@ -47,8 +47,6 @@ export function CodeVerificationModal({ open, onClose }: CodeVerificationModalPr
         .from('invitation_codes')
         .select('*')
         .eq('code', invitationCode.toUpperCase())
-        .eq('email', email)
-        .eq('vehicle_name', vehicleName)
         .is('used_at', null)
         .gt('expires_at', new Date().toISOString())
         .single();
@@ -56,7 +54,7 @@ export function CodeVerificationModal({ open, onClose }: CodeVerificationModalPr
       if (codeError || !codeData) {
         toast({
           title: "Invalid Code",
-          description: "The invitation code, email, or vehicle name is incorrect, or the code has expired.",
+          description: "The invitation code is incorrect or has expired.",
           variant: "destructive",
         });
         return;
