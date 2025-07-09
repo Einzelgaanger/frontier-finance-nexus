@@ -28,7 +28,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 const Admin = () => {
-  const { userRole } = useAuth();
+  const { userRole, user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [membershipRequests, setMembershipRequests] = useState([]);
@@ -74,10 +74,20 @@ const Admin = () => {
 
   const approveRequest = async (requestId: string, email: string, vehicleName: string) => {
     try {
+      // Check if user is authenticated
+      if (!user?.id) {
+        toast({
+          title: "Authentication Error",
+          description: "Please log in again to perform this action",
+          variant: "destructive"
+        });
+        return;
+      }
+
       // Generate invitation code
       const invitationCode = Math.random().toString(36).substring(2, 8).toUpperCase();
       
-      console.log('Creating invitation code:', { code: invitationCode, email, vehicleName });
+      console.log('Creating invitation code:', { code: invitationCode, email, vehicleName, created_by: user.id });
       
       const { error: codeError } = await supabase
         .from('invitation_codes')
@@ -85,7 +95,7 @@ const Admin = () => {
           code: invitationCode,
           email: email,
           vehicle_name: vehicleName,
-          created_by: (await supabase.auth.getUser()).data.user?.id,
+          created_by: user.id,
           expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours from now
         });
 
@@ -100,7 +110,7 @@ const Admin = () => {
         .update({ 
           status: 'approved',
           reviewed_at: new Date().toISOString(),
-          reviewed_by: (await supabase.auth.getUser()).data.user?.id
+          reviewed_by: user.id
         })
         .eq('id', requestId);
 
@@ -127,12 +137,22 @@ const Admin = () => {
 
   const rejectRequest = async (requestId: string) => {
     try {
+      // Check if user is authenticated
+      if (!user?.id) {
+        toast({
+          title: "Authentication Error",
+          description: "Please log in again to perform this action",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from('membership_requests')
         .update({ 
           status: 'rejected',
           reviewed_at: new Date().toISOString(),
-          reviewed_by: (await supabase.auth.getUser()).data.user?.id
+          reviewed_by: user.id
         })
         .eq('id', requestId);
 
@@ -156,12 +176,22 @@ const Admin = () => {
 
   const updateFieldVisibility = async (fieldName: string, visibilityLevel: string) => {
     try {
+      // Check if user is authenticated
+      if (!user?.id) {
+        toast({
+          title: "Authentication Error",
+          description: "Please log in again to perform this action",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from('data_field_visibility')
         .update({ 
           visibility_level: visibilityLevel,
           updated_at: new Date().toISOString(),
-          updated_by: (await supabase.auth.getUser()).data.user?.id
+          updated_by: user.id
         })
         .eq('field_name', fieldName);
 
