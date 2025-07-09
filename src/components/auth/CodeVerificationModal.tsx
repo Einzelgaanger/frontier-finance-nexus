@@ -108,11 +108,11 @@ export function CodeVerificationModal({ open, onClose }: CodeVerificationModalPr
         title: "Verification Successful",
         description: "You have been upgraded to Member access! Redirecting...",
       });
-      // Redirect based on role - admins go to admin page, members go to survey
+      // Redirect based on role - admins go to admin page, members go to dashboard
       if (userRoleData?.role === 'admin') {
         navigate('/admin');
       } else {
-        navigate('/survey');
+        navigate('/dashboard');
       }
       onClose();
 
@@ -208,7 +208,7 @@ export function CodeVerificationModal({ open, onClose }: CodeVerificationModalPr
               <li>• Use the exact email and vehicle name from your membership request</li>
               <li>• Invitation codes expire 24 hours after generation</li>
               <li>• Each code can only be used once</li>
-              <li>• After verification, you'll be redirected to complete the survey</li>
+              <li>• After verification, you'll be redirected to your dashboard</li>
             </ul>
           </div>
 

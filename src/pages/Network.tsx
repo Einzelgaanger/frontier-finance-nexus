@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Search, Building2, Globe, Users, TrendingUp, MapPin, DollarSign, Target, Calendar, Award, ArrowRight } from 'lucide-react';
+import { Search, Building2, Globe, Users, TrendingUp, MapPin, DollarSign, Target, Calendar, Award, ArrowRight, Eye, Lock, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -170,6 +170,22 @@ const Network = () => {
             Connect with {fundManagers.length} fund managers across emerging markets
           </p>
           
+          {/* Role-based notice */}
+          {userRole === 'viewer' && (
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start space-x-3">
+                <Eye className="w-5 h-5 text-blue-600 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-blue-900 mb-1">Viewer Access</h3>
+                  <p className="text-sm text-blue-700">
+                    You're currently viewing public data only. 
+                    <span className="font-medium"> Contact an admin to complete a survey and become a member</span> for access to detailed fund performance, investment strategies, and team composition data.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {/* Search */}
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -237,6 +253,31 @@ const Network = () => {
                         {sector.sector}
                       </Badge>
                     ))}
+                  </div>
+                )}
+
+                {/* Role-based data indicators */}
+                {userRole === 'viewer' && (
+                  <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                    <div className="flex items-center text-xs text-gray-500">
+                      <Eye className="w-3 h-3 mr-1" />
+                      Public data only
+                    </div>
+                    <Badge variant="outline" className="text-xs border-blue-200 text-blue-600">
+                      Viewer
+                    </Badge>
+                  </div>
+                )}
+
+                {userRole === 'member' && (
+                  <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                    <div className="flex items-center text-xs text-gray-500">
+                      <Users className="w-3 h-3 mr-1" />
+                      Member access
+                    </div>
+                    <Badge variant="outline" className="text-xs border-green-200 text-green-600">
+                      Member
+                    </Badge>
                   </div>
                 )}
               </CardContent>

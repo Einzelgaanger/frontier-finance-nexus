@@ -137,13 +137,13 @@ export default function AuthForm() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
-      <Card className="w-full max-w-md border border-gray-200">
+    <div className="min-h-screen bg-cover bg-center bg-fixed flex items-center justify-center p-4" style={{ backgroundImage: 'url(/auth.jpg)' }}>
+      <Card className="w-full max-w-md border border-blue-600/40 bg-blue-700/30 backdrop-blur-md relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-gray-900">
+          <CardTitle className="text-2xl font-bold text-white">
             Collaborative Frontier
           </CardTitle>
-          <CardDescription className="text-gray-600">
+          <CardDescription className="text-white/90">
             Fund Manager Database Platform
           </CardDescription>
         </CardHeader>
@@ -153,7 +153,7 @@ export default function AuthForm() {
             <Button
               onClick={handleGoogleSignIn}
               disabled={isLoading}
-              className="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300"
+              className="w-full bg-blue-700/20 hover:bg-blue-700/30 text-white border border-blue-600/40 backdrop-blur-sm"
             >
               <GoogleIcon />
               Continue with Google
@@ -162,30 +162,30 @@ export default function AuthForm() {
 
           <div className="relative mb-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
+              <div className="w-full border-t border-blue-600/40" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or continue with email</span>
+              <span className="px-2 bg-blue-700/20 backdrop-blur-sm text-white/90">Or continue with email</span>
             </div>
           </div>
 
           <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 bg-blue-700/20 border-blue-600/40">
+              <TabsTrigger value="signin" className="text-white data-[state=active]:bg-blue-700/30 data-[state=active]:text-white">Sign In</TabsTrigger>
+              <TabsTrigger value="signup" className="text-white data-[state=active]:bg-blue-700/30 data-[state=active]:text-white">Sign Up</TabsTrigger>
             </TabsList>
             
             <TabsContent value="signin">
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signin-email">Email</Label>
+                  <Label htmlFor="signin-email" className="text-white font-medium">Email</Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-100/90 w-4 h-4" />
                     <Input
                       id="signin-email"
                       type="email"
                       placeholder="Enter your email"
-                      className="pl-10"
+                      className="pl-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60"
                       value={signInForm.email}
                       onChange={(e) => setSignInForm({ ...signInForm, email: e.target.value })}
                       required
@@ -194,21 +194,21 @@ export default function AuthForm() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="signin-password">Password</Label>
+                  <Label htmlFor="signin-password" className="text-white font-medium">Password</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-100/90 w-4 h-4" />
                     <Input
                       id="signin-password"
                       type={showSignInPassword ? "text" : "password"}
                       placeholder="Enter your password"
-                      className="pl-10 pr-10"
+                      className="pl-10 pr-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60"
                       value={signInForm.password}
                       onChange={(e) => setSignInForm({ ...signInForm, password: e.target.value })}
                       required
                     />
                     <button
                       type="button"
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-100/90 hover:text-blue-100"
                       onClick={() => setShowSignInPassword(!showSignInPassword)}
                     >
                       {showSignInPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -216,7 +216,7 @@ export default function AuthForm() {
                   </div>
                 </div>
                 
-                <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
+                <Button type="submit" className="w-full bg-blue-600/80 hover:bg-blue-600 text-white backdrop-blur-sm" disabled={isLoading}>
                   {isLoading ? 'Signing In...' : 'Sign In'}
                 </Button>
               </form>
@@ -226,13 +226,13 @@ export default function AuthForm() {
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="first-name">First Name</Label>
+                    <Label htmlFor="first-name" className="text-white font-medium">First Name</Label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-100/90 w-4 h-4" />
                       <Input
                         id="first-name"
                         placeholder="First name"
-                        className="pl-10"
+                        className="pl-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60"
                         value={signUpForm.firstName}
                         onChange={(e) => setSignUpForm({ ...signUpForm, firstName: e.target.value })}
                         required
@@ -241,13 +241,13 @@ export default function AuthForm() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="last-name">Last Name</Label>
+                    <Label htmlFor="last-name" className="text-white font-medium">Last Name</Label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-100/90 w-4 h-4" />
                       <Input
                         id="last-name"
                         placeholder="Last name"
-                        className="pl-10"
+                        className="pl-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60"
                         value={signUpForm.lastName}
                         onChange={(e) => setSignUpForm({ ...signUpForm, lastName: e.target.value })}
                         required
@@ -257,14 +257,14 @@ export default function AuthForm() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
+                  <Label htmlFor="signup-email" className="text-white font-medium">Email</Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-100/90 w-4 h-4" />
                     <Input
                       id="signup-email"
                       type="email"
                       placeholder="Enter your email"
-                      className="pl-10"
+                      className="pl-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60"
                       value={signUpForm.email}
                       onChange={(e) => setSignUpForm({ ...signUpForm, email: e.target.value })}
                       required
@@ -273,21 +273,21 @@ export default function AuthForm() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
+                  <Label htmlFor="signup-password" className="text-white font-medium">Password</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-100/90 w-4 h-4" />
                     <Input
                       id="signup-password"
                       type={showSignUpPassword ? "text" : "password"}
                       placeholder="Create a password"
-                      className="pl-10 pr-10"
+                      className="pl-10 pr-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60"
                       value={signUpForm.password}
                       onChange={(e) => setSignUpForm({ ...signUpForm, password: e.target.value })}
                       required
                     />
                     <button
                       type="button"
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-100/90 hover:text-blue-100"
                       onClick={() => setShowSignUpPassword(!showSignUpPassword)}
                     >
                       {showSignUpPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -353,15 +353,15 @@ export default function AuthForm() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="confirm-password">Confirm Password</Label>
+                  <Label htmlFor="confirm-password" className="text-white font-medium">Confirm Password</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-100/90 w-4 h-4" />
                     <Input
                       id="confirm-password"
                       type={showConfirmPassword ? "text" : "password"}
                       placeholder="Confirm your password"
-                      className={`pl-10 pr-10 ${
-                        signUpForm.confirmPassword && !passwordsMatch ? 'border-red-500' : ''
+                      className={`pl-10 pr-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60 ${
+                        signUpForm.confirmPassword && !passwordsMatch ? 'border-red-400' : ''
                       }`}
                       value={signUpForm.confirmPassword}
                       onChange={(e) => setSignUpForm({ ...signUpForm, confirmPassword: e.target.value })}
@@ -369,20 +369,20 @@ export default function AuthForm() {
                     />
                     <button
                       type="button"
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-100/90 hover:text-blue-100"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     >
                       {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                   {signUpForm.confirmPassword && !passwordsMatch && (
-                    <p className="text-xs text-red-600">Passwords don't match</p>
+                    <p className="text-xs text-red-300">Passwords don't match</p>
                   )}
                 </div>
                 
                 <Button 
                   type="submit" 
-                  className="w-full bg-blue-600 hover:bg-blue-700" 
+                  className="w-full bg-blue-600/80 hover:bg-blue-600 text-white backdrop-blur-sm" 
                   disabled={isLoading || passwordStrength.score < 3 || !passwordsMatch}
                 >
                   {isLoading ? 'Creating Account...' : 'Create Account'}
@@ -391,10 +391,10 @@ export default function AuthForm() {
             </TabsContent>
           </Tabs>
 
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+          <div className="mt-6 p-4 bg-blue-700/20 backdrop-blur-sm rounded-lg border border-blue-600/40">
             <div className="flex items-start space-x-2">
-              <AlertCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-blue-800">
+              <AlertCircle className="w-4 h-4 text-blue-100 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-white/90">
                 <p className="font-medium">Account Access Levels:</p>
                 <ul className="mt-1 space-y-1 text-xs">
                   <li>• <strong>Viewer:</strong> Browse public fund manager data</li>

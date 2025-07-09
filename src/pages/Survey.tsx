@@ -7,10 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form } from '@/components/ui/form';
 import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, FileText, Plus, Calendar, Eye, Users, Building2 } from 'lucide-react';
 import { VehicleInfoSection } from '@/components/survey/VehicleInfoSection';
 import { TeamSection } from '@/components/survey/TeamSection';
 import { GeographicSection } from '@/components/survey/GeographicSection';
@@ -19,6 +21,7 @@ import { FundOperationsSection } from '@/components/survey/FundOperationsSection
 import { FundStatusSection } from '@/components/survey/FundStatusSection';
 import { InvestmentInstrumentsSection } from '@/components/survey/InvestmentInstrumentsSection';
 import { SectorReturnsSection } from '@/components/survey/SectorReturnsSection';
+import Header from '@/components/layout/Header';
 
 const surveySchema = z.object({
   // Section 1: Vehicle Information
@@ -86,7 +89,10 @@ const Survey = () => {
   const [currentSection, setCurrentSection] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingResponse, setExistingResponse] = useState<any>(null);
-  const { user } = useAuth();
+  const [pastSurveys, setPastSurveys] = useState<any[]>([]);
+  const [showNewSurvey, setShowNewSurvey] = useState(false);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const { user, userRole } = useAuth();
   const { toast } = useToast();
 
   const totalSections = 8;
@@ -116,14 +122,40 @@ const Survey = () => {
   });
 
   useEffect(() => {
+    if (user) {
+      fetchPastSurveys();
+    }
+  }, [user]);
+
+  const fetchPastSurveys = async () => {
+    try {
+      let query = supabase
+        .from('survey_responses')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      // If member, only show their surveys
+      if (userRole === 'member') {
+        query = query.eq('user_id', user.id);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      setPastSurveys(data || []);
+    } catch (error) {
+      console.error('Error fetching past surveys:', error);
+    }
+  };
+
+  useEffect(() => {
     const loadExistingResponse = async () => {
-      if (!user) return;
+      if (!user || !showNewSurvey) return;
 
       const { data, error } = await supabase
         .from('survey_responses')
         .select('*')
         .eq('user_id', user.id)
-        .eq('year', new Date().getFullYear())
+        .eq('year', selectedYear)
         .single();
 
       if (data && !error) {
@@ -135,13 +167,23 @@ const Survey = () => {
           legal_entity_month_to: data.legal_entity_month_to || undefined,
           first_close_month_from: data.first_close_month_from || undefined,
           first_close_month_to: data.first_close_month_to || undefined,
+          team_members: Array.isArray(data.team_members) ? data.team_members as { name?: string; role?: string; experience?: string; }[] : [],
+          vehicle_websites: Array.isArray(data.vehicle_websites) ? data.vehicle_websites : [],
+          legal_domicile: Array.isArray(data.legal_domicile) ? data.legal_domicile : [],
+          fund_stage: Array.isArray(data.fund_stage) ? data.fund_stage : [],
+          markets_operated: typeof data.markets_operated === 'object' ? data.markets_operated as { [key: string]: number } : {},
+          investment_instruments_priority: typeof data.investment_instruments_priority === 'object' ? data.investment_instruments_priority as { [key: string]: number } : {},
+          sectors_allocation: typeof data.sectors_allocation === 'object' ? data.sectors_allocation as { [key: string]: number } : {},
         };
         form.reset(formData);
+      } else {
+        setExistingResponse(null);
+        form.reset();
       }
     };
 
     loadExistingResponse();
-  }, [user, form]);
+  }, [user, form, showNewSurvey, selectedYear]);
 
   const handleNext = () => {
     if (currentSection < totalSections) {
@@ -163,7 +205,7 @@ const Survey = () => {
       const formData = form.getValues();
       const surveyData = {
         user_id: user.id,
-        year: new Date().getFullYear(),
+        year: selectedYear,
         ...formData,
         legal_entity_month_from: formData.legal_entity_month_from || null,
         legal_entity_month_to: formData.legal_entity_month_to || null,
@@ -209,7 +251,7 @@ const Survey = () => {
     try {
       const surveyData = {
         user_id: user.id,
-        year: new Date().getFullYear(),
+        year: selectedYear,
         completed_at: new Date().toISOString(),
         ...data,
         legal_entity_month_from: data.legal_entity_month_from || null,
@@ -235,13 +277,13 @@ const Survey = () => {
 
       toast({
         title: "Survey Completed!",
-        description: "Thank you for completing the survey. You now have full access to the member network.",
+        description: "Thank you for completing the survey.",
       });
 
-      // Redirect to network page after completion
-      setTimeout(() => {
-        window.location.href = '/network';
-      }, 2000);
+      // Refresh past surveys and reset form
+      fetchPastSurveys();
+      setShowNewSurvey(false);
+      setCurrentSection(1);
 
     } catch (error) {
       console.error('Submit error:', error);
@@ -289,84 +331,237 @@ const Survey = () => {
     "Sector Focus & Returns"
   ];
 
-  return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold text-gray-900">Member Survey {new Date().getFullYear()}</h1>
-            <div className="text-sm text-gray-600">
-              Section {currentSection} of {totalSections}
+  // If showing new survey form
+  if (showNewSurvey) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowNewSurvey(false)}
+                  className="flex items-center"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Surveys
+                </Button>
+                <h1 className="text-3xl font-bold text-gray-900">Survey {selectedYear}</h1>
+              </div>
+              <div className="text-sm text-gray-600">
+                Section {currentSection} of {totalSections}
+              </div>
             </div>
+            <Progress value={progress} className="w-full" />
+            <p className="mt-2 text-gray-600">
+              Complete all sections to submit your survey
+            </p>
           </div>
-          <Progress value={progress} className="w-full" />
-          <p className="mt-2 text-gray-600">
-            Complete all sections to gain full access to the member network
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    {currentSection === totalSections && <CheckCircle className="w-5 h-5 mr-2 text-green-600" />}
+                    {sectionTitles[currentSection - 1]}
+                  </CardTitle>
+                  <CardDescription>
+                    {currentSection === totalSections 
+                      ? "Final section - Review and submit your survey"
+                      : `Section ${currentSection} of ${totalSections}`
+                    }
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {renderCurrentSection()}
+                </CardContent>
+              </Card>
+
+              <div className="flex justify-between items-center">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={handlePrevious}
+                  disabled={currentSection === 1}
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Previous
+                </Button>
+
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={handleSaveDraft}
+                  disabled={isSubmitting}
+                >
+                  Save Draft
+                </Button>
+
+                {currentSection < totalSections ? (
+                  <Button 
+                    type="button" 
+                    onClick={handleNext}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    Next
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                ) : (
+                  <Button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {isSubmitting ? 'Submitting...' : 'Complete Survey'}
+                    <CheckCircle className="w-4 h-4 ml-2" />
+                  </Button>
+                )}
+              </div>
+            </form>
+          </Form>
+        </div>
+      </div>
+    );
+  }
+
+  // Main survey management view
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Survey Management</h1>
+          <p className="text-gray-600">
+            {userRole === 'member' 
+              ? 'Manage your survey submissions and create new surveys'
+              : 'View and manage all survey submissions across the network'
+            }
           </p>
         </div>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <Tabs defaultValue="surveys" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="surveys" className="flex items-center space-x-2">
+              <FileText className="w-4 h-4" />
+              <span>Past Surveys</span>
+            </TabsTrigger>
+            <TabsTrigger value="new" className="flex items-center space-x-2">
+              <Plus className="w-4 h-4" />
+              <span>New Survey</span>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="surveys" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  {currentSection === totalSections && <CheckCircle className="w-5 h-5 mr-2 text-green-600" />}
-                  {sectionTitles[currentSection - 1]}
+                  <FileText className="w-5 h-5 mr-2" />
+                  Survey History
                 </CardTitle>
                 <CardDescription>
-                  {currentSection === totalSections 
-                    ? "Final section - Review and submit your survey"
-                    : `Section ${currentSection} of ${totalSections}`
+                  {userRole === 'member' 
+                    ? 'Your completed and draft surveys'
+                    : 'All survey submissions in the network'
                   }
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {renderCurrentSection()}
+                {pastSurveys.length === 0 ? (
+                  <div className="text-center py-8">
+                    <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No surveys found</h3>
+                    <p className="text-gray-600 mb-4">
+                      {userRole === 'member' 
+                        ? 'You haven\'t submitted any surveys yet.'
+                        : 'No surveys have been submitted yet.'
+                      }
+                    </p>
+                    {userRole === 'member' && (
+                      <Button onClick={() => setShowNewSurvey(true)}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Your First Survey
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {pastSurveys.map((survey) => (
+                      <div key={survey.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <Calendar className="w-5 h-5 text-blue-600" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">Survey {survey.year}</p>
+                            <p className="text-sm text-gray-600">
+                              {new Date(survey.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <Badge 
+                            variant={survey.completed_at ? "default" : "secondary"}
+                            className={survey.completed_at ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}
+                          >
+                            {survey.completed_at ? "Completed" : "Draft"}
+                          </Badge>
+                          {userRole === 'member' && !survey.completed_at && (
+                            <Button 
+                              size="sm" 
+                              onClick={() => {
+                                setSelectedYear(survey.year);
+                                setShowNewSurvey(true);
+                              }}
+                            >
+                              Continue
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
+          </TabsContent>
 
-            <div className="flex justify-between items-center">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={handlePrevious}
-                disabled={currentSection === 1}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Previous
-              </Button>
-
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={handleSaveDraft}
-                disabled={isSubmitting}
-              >
-                Save Draft
-              </Button>
-
-              {currentSection < totalSections ? (
-                <Button 
-                  type="button" 
-                  onClick={handleNext}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  Next
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              ) : (
-                <Button 
-                  type="submit" 
-                  disabled={isSubmitting}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  {isSubmitting ? 'Submitting...' : 'Complete Survey'}
-                  <CheckCircle className="w-4 h-4 ml-2" />
-                </Button>
-              )}
-            </div>
-          </form>
-        </Form>
+          <TabsContent value="new" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Plus className="w-5 h-5 mr-2" />
+                  Create New Survey
+                </CardTitle>
+                <CardDescription>
+                  Start a new survey for the current year
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="p-4 border rounded-lg">
+                    <h3 className="font-medium text-gray-900 mb-2">Survey {new Date().getFullYear()}</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Complete the comprehensive fund manager survey to provide detailed information about your fund.
+                    </p>
+                    <Button 
+                      onClick={() => {
+                        setSelectedYear(new Date().getFullYear());
+                        setShowNewSurvey(true);
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Start New Survey
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

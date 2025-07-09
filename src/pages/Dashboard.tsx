@@ -1,43 +1,48 @@
 
-import { useAuth } from "@/hooks/useAuth";
-import Header from "@/components/layout/Header";
-import ViewerDashboard from "@/components/dashboard/ViewerDashboard";
-import MemberDashboard from "@/components/dashboard/MemberDashboard";
-import AdminDashboard from "@/components/dashboard/AdminDashboard";
-import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { useAuth } from '@/hooks/useAuth';
+import Header from '@/components/layout/Header';
+import ViewerDashboard from '@/components/dashboard/ViewerDashboard';
+import MemberDashboard from '@/components/dashboard/MemberDashboard';
+import AdminDashboard from '@/components/dashboard/AdminDashboard';
 
 const Dashboard = () => {
-  const { userRole, loading } = useAuth();
+  const { userRole } = useAuth();
 
-  if (loading) {
+
+
+
+
+  // Viewer Dashboard
+  if (userRole === 'viewer') {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <LoadingSpinner size="lg" />
-          <p className="mt-4 text-gray-600">Loading your dashboard...</p>
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <ViewerDashboard />
         </div>
       </div>
     );
   }
 
-  const renderDashboard = () => {
-    switch (userRole) {
-      case 'admin':
-        return <AdminDashboard />;
-      case 'member':
-        return <MemberDashboard />;
-      default:
-        return <ViewerDashboard />;
-    }
-  };
+  // Member Dashboard
+  if (userRole === 'member') {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <MemberDashboard />
+        </div>
+      </div>
+    );
+  }
 
+  // Admin Dashboard
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <Header />
-      
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {renderDashboard()}
-      </main>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <AdminDashboard />
+      </div>
     </div>
   );
 };

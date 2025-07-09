@@ -92,6 +92,21 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    scrollbar-width: none;  /* Firefox */
+  }
+
+  body::-webkit-scrollbar {
+    display: none;  /* Safari and Chrome */
+  }
+
+  html {
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    scrollbar-width: none;  /* Firefox */
+  }
+
+  html::-webkit-scrollbar {
+    display: none;  /* Safari and Chrome */
   }
 }
 
@@ -202,4 +217,76 @@
   100% {
     background-position: 200% 0;
   }
+}
+
+/* Homepage animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out forwards;
+}
+
+.animate-fade-in-delay {
+  animation: fade-in 0.8s ease-out 0.2s forwards;
+  opacity: 0;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.8s ease-out 0.1s forwards;
+  opacity: 0;
+}
+
+.animate-slide-up-delay-1 {
+  animation: slide-up 0.8s ease-out 0.2s forwards;
+  opacity: 0;
+}
+
+.animate-slide-up-delay-2 {
+  animation: slide-up 0.8s ease-out 0.3s forwards;
+  opacity: 0;
+}
+
+.animate-slide-up-delay-3 {
+  animation: slide-up 0.8s ease-out 0.4s forwards;
+  opacity: 0;
+}
+
+.animate-slide-up-delay-4 {
+  animation: slide-up 0.8s ease-out 0.5s forwards;
+  opacity: 0;
+}
+
+.animate-slide-up-delay-5 {
+  animation: slide-up 0.8s ease-out 0.6s forwards;
+  opacity: 0;
+}
+
+/* Hide scrollbar for webkit browsers */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
 }

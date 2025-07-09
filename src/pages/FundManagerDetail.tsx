@@ -14,7 +14,10 @@ import {
   Calendar,
   TrendingUp,
   Users,
-  Award
+  Award,
+  Eye,
+  Lock,
+  AlertCircle
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -86,7 +89,7 @@ const FundManagerDetail = () => {
           .order('year', { ascending: false });
 
         if (surveyError) throw surveyError;
-        setSurveyResponses(surveyData || []);
+        setSurveyResponses((surveyData || []) as SurveyResponse[]);
 
         // Set the most recent year as default
         if (surveyData && surveyData.length > 0) {
@@ -172,6 +175,22 @@ const FundManagerDetail = () => {
             </div>
           </div>
 
+          {/* Role-based notice */}
+          {userRole === 'viewer' && (
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start space-x-3">
+                <Eye className="w-5 h-5 text-blue-600 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-blue-900 mb-1">Viewer Access</h3>
+                  <p className="text-sm text-blue-700">
+                    You're currently viewing public data only. 
+                    <span className="font-medium"> Contact an admin to complete a survey and become a member</span> for access to detailed fund performance, investment strategies, and team composition data.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Year Selection */}
           <div className="flex flex-wrap gap-2">
             {surveyResponses.map((response) => (
@@ -226,12 +245,17 @@ const FundManagerDetail = () => {
                 </CardContent>
               </Card>
 
-              {/* Investment Strategy */}
+              {/* Investment Strategy - Show limited data for viewers */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Target className="w-5 h-5 mr-2" />
                     Investment Strategy
+                    {userRole === 'viewer' && (
+                      <Badge variant="outline" className="ml-2 text-xs border-blue-200 text-blue-600">
+                        Public Data
+                      </Badge>
+                    )}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -246,15 +270,29 @@ const FundManagerDetail = () => {
                       <span className="font-medium text-gray-700">Target Capital:</span>
                       <p className="text-gray-900">{formatCurrency(selectedResponse.target_capital)}</p>
                     </div>
-                    <div>
-                      <span className="font-medium text-gray-700">Capital Raised:</span>
-                      <p className="text-gray-900">{formatCurrency(selectedResponse.capital_raised)}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-700">Target Returns:</span>
-                      <p className="text-gray-900">{selectedResponse.target_return_min}% - {selectedResponse.target_return_max}%</p>
-                    </div>
+                    {userRole !== 'viewer' && (
+                      <>
+                        <div>
+                          <span className="font-medium text-gray-700">Capital Raised:</span>
+                          <p className="text-gray-900">{formatCurrency(selectedResponse.capital_raised)}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">Target Returns:</span>
+                          <p className="text-gray-900">{selectedResponse.target_return_min}% - {selectedResponse.target_return_max}%</p>
+                        </div>
+                      </>
+                    )}
                   </div>
+                  {userRole === 'viewer' && (
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <Lock className="w-4 h-4 text-blue-600" />
+                        <span className="text-sm text-blue-700">
+                          Become a member to see capital raised and target returns
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -284,6 +322,7 @@ const FundManagerDetail = () => {
                         <div className="space-y-2 mt-2">
                           {Object.entries(selectedResponse.markets_operated)
                             .filter(([, percentage]) => percentage > 0)
+                            .slice(0, userRole === 'viewer' ? 3 : undefined) // Limit for viewers
                             .map(([market, percentage]) => (
                               <div key={market} className="flex justify-between items-center">
                                 <span className="text-sm">{market}</span>
@@ -299,6 +338,11 @@ const FundManagerDetail = () => {
                               </div>
                             ))}
                         </div>
+                        {userRole === 'viewer' && Object.keys(selectedResponse.markets_operated).length > 3 && (
+                          <div className="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+                            Showing top 3 markets. Become a member to see all markets.
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -319,20 +363,27 @@ const FundManagerDetail = () => {
                 <CardContent>
                   {selectedResponse.sectors_allocation && Object.keys(selectedResponse.sectors_allocation).length > 0 ? (
                     <div className="space-y-3">
-                      {getTopSectors(selectedResponse.sectors_allocation).map(({ sector, percentage }) => (
-                        <div key={sector} className="space-y-1">
-                          <div className="flex justify-between text-sm">
-                            <span className="font-medium">{sector}</span>
-                            <span className="text-gray-600">{percentage}%</span>
+                      {getTopSectors(selectedResponse.sectors_allocation)
+                        .slice(0, userRole === 'viewer' ? 3 : undefined) // Limit for viewers
+                        .map(({ sector, percentage }) => (
+                          <div key={sector} className="space-y-1">
+                            <div className="flex justify-between text-sm">
+                              <span className="font-medium">{sector}</span>
+                              <span className="text-gray-600">{percentage}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-blue-600 h-2 rounded-full" 
+                                style={{ width: `${Math.min(percentage, 100)}%` }}
+                              ></div>
+                            </div>
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-blue-600 h-2 rounded-full" 
-                              style={{ width: `${Math.min(percentage, 100)}%` }}
-                            ></div>
-                          </div>
+                        ))}
+                      {userRole === 'viewer' && Object.keys(selectedResponse.sectors_allocation).length > 3 && (
+                        <div className="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+                          Showing top 3 sectors. Become a member to see all sectors.
                         </div>
-                      ))}
+                      )}
                     </div>
                   ) : (
                     <p className="text-gray-500 text-sm">No sector allocation data available</p>
@@ -340,22 +391,32 @@ const FundManagerDetail = () => {
                 </CardContent>
               </Card>
 
-              {/* Fund Stage */}
+              {/* Fund Stage - Show limited for viewers */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Award className="w-5 h-5 mr-2" />
                     Fund Stage
+                    {userRole === 'viewer' && (
+                      <Badge variant="outline" className="ml-2 text-xs border-blue-200 text-blue-600">
+                        Limited
+                      </Badge>
+                    )}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
-                    {selectedResponse.fund_stage?.map((stage) => (
+                    {selectedResponse.fund_stage?.slice(0, userRole === 'viewer' ? 2 : undefined).map((stage) => (
                       <Badge key={stage} className="bg-green-100 text-green-800">
                         {stage}
                       </Badge>
                     ))}
                   </div>
+                  {userRole === 'viewer' && selectedResponse.fund_stage && selectedResponse.fund_stage.length > 2 && (
+                    <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+                      Showing 2 of {selectedResponse.fund_stage.length} stages. Become a member to see all.
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -383,6 +444,37 @@ const FundManagerDetail = () => {
                       </div>
                     ))}
                   </div>
+                </CardContent>
+              </Card>
+
+              {/* Role indicator */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Users className="w-5 h-5 mr-2" />
+                    Access Level
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center space-x-2">
+                    {userRole === 'viewer' ? (
+                      <>
+                        <Eye className="w-4 h-4 text-blue-600" />
+                        <span className="text-sm text-gray-700">Public Data Access</span>
+                      </>
+                    ) : (
+                      <>
+                        <Users className="w-4 h-4 text-green-600" />
+                        <span className="text-sm text-gray-700">Member Data Access</span>
+                      </>
+                    )}
+                  </div>
+                  <Badge 
+                    variant="outline" 
+                    className={`mt-2 ${userRole === 'viewer' ? 'border-blue-200 text-blue-600' : 'border-green-200 text-green-600'}`}
+                  >
+                    {userRole === 'viewer' ? 'Viewer' : 'Member'}
+                  </Badge>
                 </CardContent>
               </Card>
             </div>
