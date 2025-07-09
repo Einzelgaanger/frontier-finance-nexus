@@ -1,243 +1,404 @@
 
-import Header from "@/components/layout/Header";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Search, Filter, Users, Building2, Globe, TrendingUp } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Search, Building2, Globe, Users, TrendingUp, MapPin, DollarSign, Target, Calendar, Award } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+
+interface FundManager {
+  id: string;
+  user_id: string;
+  year: number;
+  vehicle_type: string;
+  thesis: string;
+  team_size_min: number;
+  team_size_max: number;
+  legal_domicile: string[];
+  markets_operated: Record<string, number>;
+  ticket_size_min: number;
+  ticket_size_max: number;
+  target_capital: number;
+  capital_raised: number;
+  fund_stage: string[];
+  current_status: string;
+  sectors_allocation: Record<string, number>;
+  target_return_min: number;
+  target_return_max: number;
+  profiles: {
+    first_name: string;
+    last_name: string;
+    email: string;
+  };
+}
 
 const Network = () => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [fundManagers, setFundManagers] = useState<FundManager[]>([]);
+  const [filteredManagers, setFilteredManagers] = useState<FundManager[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedManager, setSelectedManager] = useState<FundManager | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { userRole } = useAuth();
+  const { toast } = useToast();
 
-  // Mock data for fund managers
-  const fundManagers = [
-    {
-      id: 1,
-      name: "East Africa Growth Fund",
-      vehicle_type: "Closed",
-      fund_stage: ["Scale"],
-      legal_domicile: ["Kenya"],
-      sectors_allocation: { "Agri: SME/Food value chain/Agritech": 40, "Clean energy/renewable/e-mobility": 35, "Manufacturing": 25 },
-      team_size_range: "5-10",
-      target_capital: 50000000,
-      current_status: "Fundraising"
-    },
-    {
-      id: 2,
-      name: "Sahara Ventures",
-      vehicle_type: "Open",
-      fund_stage: ["Implementation", "Scale"],
-      legal_domicile: ["Nigeria", "Ghana"],
-      sectors_allocation: { "Software services/SaaS": 50, "Healthcare/medical services": 30, "Education": 20 },
-      team_size_range: "10-15",
-      target_capital: 75000000,
-      current_status: "Fundraising"
-    },
-    {
-      id: 3,
-      name: "Nile Capital Partners",
-      vehicle_type: "Closed",
-      fund_stage: ["Pilot", "Scale"],
-      legal_domicile: ["Egypt"],
-      sectors_allocation: { "Tech/telecom/data infrastructure": 45, "FMCG": 30, "Logistics/Transport/Distribution": 25 },
-      team_size_range: "8-12",
-      target_capital: 30000000,
-      current_status: "Other"
-    }
-  ];
+  useEffect(() => {
+    const fetchFundManagers = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('survey_responses')
+          .select(`
+            id,
+            user_id,
+            year,
+            vehicle_type,
+            thesis,
+            team_size_min,
+            team_size_max,
+            legal_domicile,
+            markets_operated,
+            ticket_size_min,
+            ticket_size_max,
+            target_capital,
+            capital_raised,
+            fund_stage,
+            current_status,
+            sectors_allocation,
+            target_return_min,
+            target_return_max,
+            profiles!inner (
+              first_name,
+              last_name,
+              email
+            )
+          `)
+          .not('completed_at', 'is', null)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        setFundManagers(data || []);
+        setFilteredManagers(data || []);
+      } catch (error) {
+        console.error('Error fetching fund managers:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load fund managers",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFundManagers();
+  }, [toast]);
+
+  useEffect(() => {
+    const filtered = fundManagers.filter(manager => {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        manager.profiles.first_name?.toLowerCase().includes(searchLower) ||
+        manager.profiles.last_name?.toLowerCase().includes(searchLower) ||
+        manager.vehicle_type?.toLowerCase().includes(searchLower) ||
+        manager.thesis?.toLowerCase().includes(searchLower) ||
+        manager.legal_domicile?.some(d => d.toLowerCase().includes(searchLower))
+      );
+    });
+    setFilteredManagers(filtered);
+  }, [searchTerm, fundManagers]);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
+    if (amount >= 1000000) {
+      return `$${(amount / 1000000).toFixed(1)}M`;
+    }
+    if (amount >= 1000) {
+      return `$${(amount / 1000).toFixed(0)}K`;
+    }
+    return `$${amount}`;
   };
 
-  const filteredFunds = fundManagers.filter(fund =>
-    fund.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    fund.legal_domicile.some(country => country.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
+  };
+
+  const getTopSectors = (sectors: Record<string, number>) => {
+    if (!sectors) return [];
+    return Object.entries(sectors)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 3)
+      .map(([sector, percentage]) => ({ sector, percentage }));
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-white">
-      <Header />
-      
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-8">
-          {/* Header */}
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              Fund Manager Network
-            </h1>
-            <p className="text-gray-600 mb-6">
-              Explore our comprehensive database of emerging market fund managers
-            </p>
-
-            {/* Search and Filters */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-6">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="Search funds by name or country..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Button variant="outline" className="border-gray-300">
-                <Filter className="w-4 h-4 mr-2" />
-                Filters
-              </Button>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <div className="flex items-center space-x-2 mb-2">
-                  <Users className="w-5 h-5 text-blue-600" />
-                  <span className="text-sm font-medium text-blue-900">Total Funds</span>
-                </div>
-                <p className="text-2xl font-bold text-blue-900">{filteredFunds.length}</p>
-              </div>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <div className="flex items-center space-x-2 mb-2">
-                  <TrendingUp className="w-5 h-5 text-green-600" />
-                  <span className="text-sm font-medium text-green-900">Avg Target</span>
-                </div>
-                <p className="text-2xl font-bold text-green-900">
-                  {formatCurrency(filteredFunds.reduce((acc, fund) => acc + fund.target_capital, 0) / filteredFunds.length)}
-                </p>
-              </div>
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <div className="flex items-center space-x-2 mb-2">
-                  <Globe className="w-5 h-5 text-purple-600" />
-                  <span className="text-sm font-medium text-purple-900">Countries</span>
-                </div>
-                <p className="text-2xl font-bold text-purple-900">
-                  {new Set(filteredFunds.flatMap(fund => fund.legal_domicile)).size}
-                </p>
-              </div>
-              <div className="bg-orange-50 p-4 rounded-lg">
-                <div className="flex items-center space-x-2 mb-2">
-                  <Building2 className="w-5 h-5 text-orange-600" />
-                  <span className="text-sm font-medium text-orange-900">Fundraising</span>
-                </div>
-                <p className="text-2xl font-bold text-orange-900">
-                  {filteredFunds.filter(fund => fund.current_status === 'Fundraising').length}
-                </p>
-              </div>
-            </div>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Fund Manager Network</h1>
+          <p className="text-gray-600 mb-6">
+            Connect with {fundManagers.length} fund managers across emerging markets
+          </p>
+          
+          {/* Search */}
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Search fund managers..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
+        </div>
 
-          {/* Fund Cards */}
-          <div className="grid gap-6">
-            {filteredFunds.map((fund) => (
-              <Card key={fund.id} className="border border-gray-200 hover:border-blue-200 transition-colors">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-xl text-gray-900">{fund.name}</CardTitle>
-                      <div className="flex items-center space-x-4 mt-2">
-                        <Badge variant="outline" className="border-blue-200 text-blue-700">
-                          {fund.vehicle_type}
-                        </Badge>
-                        <Badge variant="outline" className={`${
-                          fund.current_status === 'Fundraising' 
-                            ? 'border-green-200 text-green-700 bg-green-50' 
-                            : 'border-gray-200 text-gray-700'
-                        }`}>
-                          {fund.current_status}
-                        </Badge>
+        {/* Fund Managers Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredManagers.map((manager) => (
+            <Dialog key={manager.id}>
+              <DialogTrigger asChild>
+                <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer hover:-translate-y-1">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="w-12 h-12">
+                        <AvatarFallback className="bg-blue-100 text-blue-700">
+                          {getInitials(manager.profiles.first_name, manager.profiles.last_name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <CardTitle className="text-lg">
+                          {manager.profiles.first_name} {manager.profiles.last_name}
+                        </CardTitle>
+                        <CardDescription className="flex items-center">
+                          <Building2 className="w-3 h-3 mr-1" />
+                          {manager.vehicle_type?.replace('_', ' ').toUpperCase()}
+                        </CardDescription>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-gray-900">
-                        {formatCurrency(fund.target_capital)}
-                      </p>
-                      <p className="text-sm text-gray-600">Target Capital</p>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm text-gray-600 line-clamp-2">
+                      {manager.thesis}
+                    </p>
+                    
+                    <div className="flex items-center text-sm text-gray-600">
+                      <MapPin className="w-3 h-3 mr-1" />
+                      {manager.legal_domicile?.slice(0, 2).join(', ')}
+                      {manager.legal_domicile?.length > 2 && ` +${manager.legal_domicile.length - 2}`}
                     </div>
-                  </div>
-                </CardHeader>
-                
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* Geographic Focus */}
+
+                    <div className="flex items-center text-sm text-gray-600">
+                      <DollarSign className="w-3 h-3 mr-1" />
+                      {formatCurrency(manager.ticket_size_min)} - {formatCurrency(manager.ticket_size_max)}
+                    </div>
+
+                    <div className="flex flex-wrap gap-1">
+                      {getTopSectors(manager.sectors_allocation).slice(0, 2).map(({ sector }) => (
+                        <Badge key={sector} variant="secondary" className="text-xs">
+                          {sector}
+                        </Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </DialogTrigger>
+
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center space-x-3">
+                    <Avatar className="w-16 h-16">
+                      <AvatarFallback className="bg-blue-100 text-blue-700 text-lg">
+                        {getInitials(manager.profiles.first_name, manager.profiles.last_name)}
+                      </AvatarFallback>
+                    </Avatar>
                     <div>
-                      <h4 className="font-medium text-gray-900 mb-2 flex items-center">
-                        <Globe className="w-4 h-4 mr-1" />
+                      <h2 className="text-2xl font-bold">
+                        {manager.profiles.first_name} {manager.profiles.last_name}
+                      </h2>
+                      <p className="text-gray-600">{manager.profiles.email}</p>
+                    </div>
+                  </DialogTitle>
+                </DialogHeader>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                  {/* Fund Overview */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Building2 className="w-5 h-5 mr-2" />
+                        Fund Overview
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div>
+                        <span className="font-medium">Type: </span>
+                        {manager.vehicle_type?.replace('_', ' ').toUpperCase()}
+                      </div>
+                      <div>
+                        <span className="font-medium">Status: </span>
+                        {manager.current_status?.replace('_', ' ').toUpperCase()}
+                      </div>
+                      <div>
+                        <span className="font-medium">Team Size: </span>
+                        {manager.team_size_min} - {manager.team_size_max} members
+                      </div>
+                      <div>
+                        <span className="font-medium">Thesis: </span>
+                        <p className="mt-1 text-sm text-gray-600">{manager.thesis}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Investment Strategy */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Target className="w-5 h-5 mr-2" />
+                        Investment Strategy
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div>
+                        <span className="font-medium">Ticket Size: </span>
+                        {formatCurrency(manager.ticket_size_min)} - {formatCurrency(manager.ticket_size_max)}
+                      </div>
+                      {(userRole === 'admin' || userRole === 'member') && (
+                        <>
+                          <div>
+                            <span className="font-medium">Target Capital: </span>
+                            {formatCurrency(manager.target_capital)}
+                          </div>
+                          <div>
+                            <span className="font-medium">Capital Raised: </span>
+                            {formatCurrency(manager.capital_raised)}
+                          </div>
+                          <div>
+                            <span className="font-medium">Target Returns: </span>
+                            {manager.target_return_min}% - {manager.target_return_max}%
+                          </div>
+                        </>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Geographic Focus */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Globe className="w-5 h-5 mr-2" />
                         Geographic Focus
-                      </h4>
-                      <div className="flex flex-wrap gap-1">
-                        {fund.legal_domicile.map((country, idx) => (
-                          <Badge key={idx} variant="secondary" className="text-xs">
-                            {country}
-                          </Badge>
-                        ))}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <span className="font-medium">Legal Domicile:</span>
+                        <div className="flex flex-wrap gap-1">
+                          {manager.legal_domicile?.map((domicile) => (
+                            <Badge key={domicile} variant="outline">
+                              {domicile}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                      {manager.markets_operated && Object.keys(manager.markets_operated).length > 0 && (
+                        <div className="mt-4 space-y-2">
+                          <span className="font-medium">Market Focus:</span>
+                          <div className="space-y-1">
+                            {Object.entries(manager.markets_operated)
+                              .filter(([, percentage]) => percentage > 0)
+                              .map(([market, percentage]) => (
+                                <div key={market} className="flex justify-between text-sm">
+                                  <span>{market}</span>
+                                  <span>{percentage}%</span>
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
 
-                    {/* Fund Stage */}
-                    <div>
-                      <h4 className="font-medium text-gray-900 mb-2 flex items-center">
-                        <TrendingUp className="w-4 h-4 mr-1" />
-                        Fund Stage
-                      </h4>
-                      <div className="flex flex-wrap gap-1">
-                        {fund.fund_stage.map((stage, idx) => (
-                          <Badge key={idx} variant="secondary" className="text-xs">
+                  {/* Sector Allocation */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <TrendingUp className="w-5 h-5 mr-2" />
+                        Sector Focus
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {manager.sectors_allocation && Object.keys(manager.sectors_allocation).length > 0 ? (
+                        <div className="space-y-2">
+                          {Object.entries(manager.sectors_allocation)
+                            .filter(([, percentage]) => percentage > 0)
+                            .sort(([,a], [,b]) => b - a)
+                            .map(([sector, percentage]) => (
+                              <div key={sector} className="flex justify-between items-center">
+                                <span className="text-sm font-medium">{sector}</span>
+                                <div className="flex items-center space-x-2">
+                                  <div className="w-20 bg-gray-200 rounded-full h-2">
+                                    <div 
+                                      className="bg-blue-600 h-2 rounded-full" 
+                                      style={{ width: `${Math.min(percentage, 100)}%` }}
+                                    ></div>
+                                  </div>
+                                  <span className="text-sm text-gray-600">{percentage}%</span>
+                                </div>
+                              </div>
+                            ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 text-sm">No sector allocation data available</p>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Fund Stage & Timeline */}
+                  <Card className="md:col-span-2">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Calendar className="w-5 h-5 mr-2" />
+                        Fund Stage & Status
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-wrap gap-2">
+                        {manager.fund_stage?.map((stage) => (
+                          <Badge key={stage} className="bg-green-100 text-green-800">
                             {stage}
                           </Badge>
                         ))}
                       </div>
-                    </div>
-
-                    {/* Team Size */}
-                    <div>
-                      <h4 className="font-medium text-gray-900 mb-2 flex items-center">
-                        <Users className="w-4 h-4 mr-1" />
-                        Team Size
-                      </h4>
-                      <p className="text-sm text-gray-600">{fund.team_size_range} members</p>
-                    </div>
-                  </div>
-
-                  {/* Sector Allocation */}
-                  <div className="mt-6">
-                    <h4 className="font-medium text-gray-900 mb-3">Sector Allocation</h4>
-                    <div className="space-y-2">
-                      {Object.entries(fund.sectors_allocation).map(([sector, percentage]) => (
-                        <div key={sector} className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600 flex-1">{sector}</span>
-                          <div className="flex items-center space-x-2 flex-shrink-0">
-                            <div className="w-24 bg-gray-200 rounded-full h-2">
-                              <div 
-                                className="bg-blue-600 h-2 rounded-full" 
-                                style={{ width: `${percentage}%` }}
-                              ></div>
-                            </div>
-                            <span className="text-sm font-medium text-gray-900 w-8">{percentage}%</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {filteredFunds.length === 0 && (
-            <div className="text-center py-12">
-              <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No funds found</h3>
-              <p className="text-gray-600">Try adjusting your search terms or filters.</p>
-            </div>
-          )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </DialogContent>
+            </Dialog>
+          ))}
         </div>
-      </main>
+
+        {filteredManagers.length === 0 && (
+          <div className="text-center py-12">
+            <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No fund managers found</h3>
+            <p className="text-gray-500">
+              {searchTerm ? 'Try adjusting your search criteria' : 'No fund managers have completed their surveys yet'}
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

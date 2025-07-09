@@ -1,740 +1,372 @@
+
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import Header from '@/components/layout/Header';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form } from '@/components/ui/form';
 import { Progress } from '@/components/ui/progress';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ChevronLeft, ChevronRight, Save, FileText, Users, Globe, Target, Building2, BarChart3, PieChart, DollarSign } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
+import { VehicleInfoSection } from '@/components/survey/VehicleInfoSection';
+import { TeamSection } from '@/components/survey/TeamSection';
+import { GeographicSection } from '@/components/survey/GeographicSection';
+import { InvestmentStrategySection } from '@/components/survey/InvestmentStrategySection';
+import { FundOperationsSection } from '@/components/survey/FundOperationsSection';
+import { FundStatusSection } from '@/components/survey/FundStatusSection';
+import { InvestmentInstrumentsSection } from '@/components/survey/InvestmentInstrumentsSection';
+import { SectorReturnsSection } from '@/components/survey/SectorReturnsSection';
+
+const surveySchema = z.object({
+  // Section 1: Vehicle Information
+  vehicle_websites: z.array(z.string()).optional(),
+  vehicle_type: z.string().min(1, "Vehicle type is required"),
+  vehicle_type_other: z.string().optional(),
+  thesis: z.string().min(10, "Thesis must be at least 10 characters"),
+
+  // Section 2: Team & Leadership
+  team_members: z.array(z.object({
+    name: z.string(),
+    role: z.string(),
+    experience: z.string()
+  })).optional(),
+  team_size_min: z.number().min(1, "Minimum team size is required"),
+  team_size_max: z.number().min(1, "Maximum team size is required"),
+  team_description: z.string().min(10, "Team description is required"),
+
+  // Section 3: Geographic & Market Focus
+  legal_domicile: z.array(z.string()).min(1, "At least one legal domicile is required"),
+  markets_operated: z.record(z.number()).optional(),
+
+  // Section 4: Investment Strategy
+  ticket_size_min: z.number().min(0, "Minimum ticket size is required"),
+  ticket_size_max: z.number().min(0, "Maximum ticket size is required"),
+  ticket_description: z.string().optional(),
+  target_capital: z.number().min(0, "Target capital is required"),
+  capital_raised: z.number().min(0, "Capital raised is required"),
+  capital_in_market: z.number().min(0, "Capital in market is required"),
+
+  // Section 5: Fund Operations
+  supporting_document_url: z.string().optional(),
+  information_sharing: z.string().min(1, "Information sharing preference is required"),
+  expectations: z.string().min(10, "Expectations are required"),
+  how_heard_about_network: z.string().min(1, "How you heard about us is required"),
+
+  // Section 6: Fund Status & Timeline
+  fund_stage: z.array(z.string()).min(1, "At least one fund stage is required"),
+  current_status: z.string().min(1, "Current status is required"),
+  legal_entity_date_from: z.number().optional(),
+  legal_entity_date_to: z.number().optional(),
+  legal_entity_month_from: z.number().optional(),
+  legal_entity_month_to: z.number().optional(),
+  first_close_date_from: z.number().optional(),
+  first_close_date_to: z.number().optional(),
+  first_close_month_from: z.number().optional(),
+  first_close_month_to: z.number().optional(),
+
+  // Section 7: Investment Instruments
+  investment_instruments_priority: z.record(z.number()).optional(),
+
+  // Section 8: Sector Focus & Returns
+  sectors_allocation: z.record(z.number()).optional(),
+  target_return_min: z.number().min(0, "Minimum target return is required"),
+  target_return_max: z.number().min(0, "Maximum target return is required"),
+  equity_investments_made: z.number().min(0, "Equity investments made is required"),
+  equity_investments_exited: z.number().min(0, "Equity investments exited is required"),
+  self_liquidating_made: z.number().min(0, "Self-liquidating investments made is required"),
+  self_liquidating_exited: z.number().min(0, "Self-liquidating investments exited is required"),
+});
+
+type SurveyFormData = z.infer<typeof surveySchema>;
 
 const Survey = () => {
-  const { user, userRole } = useAuth();
-  const { toast } = useToast();
   const [currentSection, setCurrentSection] = useState(1);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [formData, setFormData] = useState({
-    year: new Date().getFullYear(),
-    vehicle_websites: [],
-    vehicle_type: '',
-    vehicle_type_other: '',
-    thesis: '',
-    team_members: [{ name: '', email: '', phone: '', role: '' }],
-    team_size_min: '',
-    team_size_max: '',
-    team_description: '',
-    legal_domicile: [],
-    markets_operated: {},
-    ticket_size_min: '',
-    ticket_size_max: '',
-    ticket_description: '',
-    target_capital: '',
-    capital_raised: '',
-    capital_in_market: '',
-    supporting_document_url: '',
-    information_sharing: '',
-    expectations: '',
-    how_heard_about_network: '',
-    fund_stage: [],
-    current_status: '',
-    current_status_other: '',
-    legal_entity_date_from: '',
-    legal_entity_date_to: '',
-    legal_entity_month_from: '',
-    legal_entity_month_to: '',
-    first_close_date_from: '',
-    first_close_date_to: '',
-    first_close_month_from: '',
-    first_close_month_to: '',
-    investment_instruments_priority: {},
-    sectors_allocation: {},
-    target_return_min: '',
-    target_return_max: '',
-    equity_investments_made: '',
-    equity_investments_exited: '',
-    self_liquidating_made: '',
-    self_liquidating_exited: ''
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [existingResponse, setExistingResponse] = useState<any>(null);
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  const totalSections = 8;
+  const progress = (currentSection / totalSections) * 100;
+
+  const form = useForm<SurveyFormData>({
+    resolver: zodResolver(surveySchema),
+    defaultValues: {
+      vehicle_websites: [],
+      team_members: [],
+      legal_domicile: [],
+      fund_stage: [],
+      team_size_min: 1,
+      team_size_max: 1,
+      ticket_size_min: 0,
+      ticket_size_max: 0,
+      target_capital: 0,
+      capital_raised: 0,
+      capital_in_market: 0,
+      target_return_min: 0,
+      target_return_max: 0,
+      equity_investments_made: 0,
+      equity_investments_exited: 0,
+      self_liquidating_made: 0,
+      self_liquidating_exited: 0,
+    }
   });
 
-  const sections = [
-    { id: 1, title: 'Basic Vehicle Information', icon: Building2, fields: 3 },
-    { id: 2, title: 'Team & Leadership', icon: Users, fields: 4 },
-    { id: 3, title: 'Geographic & Market Focus', icon: Globe, fields: 3 },
-    { id: 4, title: 'Investment Strategy', icon: Target, fields: 4 },
-    { id: 5, title: 'Fund Operations', icon: FileText, fields: 4 },
-    { id: 6, title: 'Fund Status & Timeline', icon: BarChart3, fields: 6 },
-    { id: 7, title: 'Investment Instruments', icon: PieChart, fields: 1 },
-    { id: 8, title: 'Sector Focus & Returns', icon: DollarSign, fields: 6 }
-  ];
+  useEffect(() => {
+    const loadExistingResponse = async () => {
+      if (!user) return;
 
-  const totalFields = sections.reduce((sum, section) => sum + section.fields, 0);
-  const completedFields = calculateCompletedFields();
-  const progress = (completedFields / totalFields) * 100;
+      const { data, error } = await supabase
+        .from('survey_responses')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('year', new Date().getFullYear())
+        .single();
 
-  const availableSectors = [
-    'Agri: SME/Food value chain/Agritech',
-    'Software services/SaaS', 
-    'Clean energy/renewable/e-mobility',
-    'Manufacturing',
-    'Agri: Primary Agri',
-    'Healthcare/medical services',
-    'Education',
-    'Tech/telecom/data infrastructure',
-    'FMCG',
-    'Logistics/Transport/Distribution',
-    'Merchandising/Retail/On-demand-retail'
-  ];
+      if (data && !error) {
+        setExistingResponse(data);
+        // Reset form with existing data
+        const formData = {
+          ...data,
+          legal_entity_month_from: data.legal_entity_month_from || undefined,
+          legal_entity_month_to: data.legal_entity_month_to || undefined,
+          first_close_month_from: data.first_close_month_from || undefined,
+          first_close_month_to: data.first_close_month_to || undefined,
+        };
+        form.reset(formData);
+      }
+    };
 
-  const investmentInstruments = [
-    'Senior debt secured',
-    'Senior debt unsecured',
-    'Mezzanine/subordinate debt',
-    'Convertible notes',
-    'SAFEs',
-    'Shared revenue/earning instruments',
-    'Preferred equity',
-    'Common equity'
-  ];
+    loadExistingResponse();
+  }, [user, form]);
 
-  const fundStages = ['Implementation', 'Ideation', 'Pilot', 'Scale'];
+  const handleNext = () => {
+    if (currentSection < totalSections) {
+      setCurrentSection(currentSection + 1);
+    }
+  };
 
-  const countries = [
-    'Kenya', 'Uganda', 'Tanzania', 'Rwanda', 'Ethiopia', 'Nigeria', 'Ghana', 'South Africa',
-    'Egypt', 'Morocco', 'Senegal', 'Ivory Coast', 'Cameroon', 'Zimbabwe', 'Zambia', 'Botswana'
-  ];
+  const handlePrevious = () => {
+    if (currentSection > 1) {
+      setCurrentSection(currentSection - 1);
+    }
+  };
 
-  function calculateCompletedFields() {
-    let completed = 0;
-    if (formData.vehicle_websites.length > 0) completed++;
-    if (formData.vehicle_type) completed++;
-    if (formData.thesis) completed++;
-    if (formData.team_members.some(member => member.name && member.email)) completed++;
-    if (formData.team_size_min && formData.team_size_max) completed++;
-    if (formData.team_description) completed++;
-    if (formData.legal_domicile.length > 0) completed++;
-    if (Object.keys(formData.markets_operated).length > 0) completed++;
-    if (formData.ticket_size_min && formData.ticket_size_max) completed++;
-    if (formData.target_capital) completed++;
-    if (formData.capital_raised) completed++;
-    if (formData.capital_in_market) completed++;
-    return completed;
-  }
+  const handleSaveDraft = async () => {
+    if (!user) return;
 
-  const handleSave = async () => {
+    setIsSubmitting(true);
     try {
-      const processedData = {
+      const formData = form.getValues();
+      const surveyData = {
+        user_id: user.id,
+        year: new Date().getFullYear(),
         ...formData,
-        user_id: user?.id,
-        year: selectedYear,
-        team_size_min: formData.team_size_min ? parseInt(formData.team_size_min) : null,
-        team_size_max: formData.team_size_max ? parseInt(formData.team_size_max) : null,
-        ticket_size_min: formData.ticket_size_min ? parseFloat(formData.ticket_size_min) : null,
-        ticket_size_max: formData.ticket_size_max ? parseFloat(formData.ticket_size_max) : null,
-        target_capital: formData.target_capital ? parseFloat(formData.target_capital) : null,
-        capital_raised: formData.capital_raised ? parseFloat(formData.capital_raised) : null,
-        capital_in_market: formData.capital_in_market ? parseFloat(formData.capital_in_market) : null,
-        target_return_min: formData.target_return_min ? parseFloat(formData.target_return_min) : null,
-        target_return_max: formData.target_return_max ? parseFloat(formData.target_return_max) : null,
-        equity_investments_made: formData.equity_investments_made ? parseFloat(formData.equity_investments_made) : null,
-        equity_investments_exited: formData.equity_investments_exited ? parseFloat(formData.equity_investments_exited) : null,
-        self_liquidating_made: formData.self_liquidating_made ? parseFloat(formData.self_liquidating_made) : null,
-        self_liquidating_exited: formData.self_liquidating_exited ? parseFloat(formData.self_liquidating_exited) : null,
-        legal_entity_date_from: formData.legal_entity_date_from ? parseInt(formData.legal_entity_date_from) : null,
-        legal_entity_date_to: formData.legal_entity_date_to ? parseInt(formData.legal_entity_date_to) : null,
-        legal_entity_month_from: formData.legal_entity_month_from ? parseInt(formData.legal_entity_month_from) : null,
-        legal_entity_month_to: formData.legal_entity_month_to ? parseInt(formData.legal_entity_month_to) : null,
-        first_close_date_from: formData.first_close_date_from ? parseInt(formData.first_close_date_from) : null,
-        first_close_date_to: formData.first_close_date_to ? parseInt(formData.first_close_date_to) : null,
-        first_close_month_from: formData.first_close_month_from ? parseInt(formData.first_close_month_from) : null,
-        first_close_month_to: formData.first_close_month_to ? parseInt(formData.first_close_month_to) : null,
-        updated_at: new Date().toISOString()
+        legal_entity_month_from: formData.legal_entity_month_from || null,
+        legal_entity_month_to: formData.legal_entity_month_to || null,
+        first_close_month_from: formData.first_close_month_from || null,
+        first_close_month_to: formData.first_close_month_to || null,
       };
 
-      const { error } = await supabase
-        .from('survey_responses')
-        .upsert(processedData, {
-          onConflict: 'user_id,year'
-        });
+      if (existingResponse) {
+        const { error } = await supabase
+          .from('survey_responses')
+          .update(surveyData)
+          .eq('id', existingResponse.id);
 
-      if (error) throw error;
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('survey_responses')
+          .insert(surveyData);
+
+        if (error) throw error;
+      }
 
       toast({
-        title: "Survey Saved",
+        title: "Draft Saved",
         description: "Your progress has been saved successfully.",
       });
     } catch (error) {
-      console.error('Save error:', error);
+      console.error('Error saving draft:', error);
       toast({
         title: "Error",
-        description: "Failed to save survey. Please try again.",
+        description: "Failed to save draft. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleComplete = async () => {
+  const onSubmit = async (data: SurveyFormData) => {
+    if (!user) return;
+
+    setIsSubmitting(true);
     try {
-      const processedData = {
-        ...formData,
-        user_id: user?.id,
-        year: selectedYear,
+      const surveyData = {
+        user_id: user.id,
+        year: new Date().getFullYear(),
         completed_at: new Date().toISOString(),
-        team_size_min: formData.team_size_min ? parseInt(formData.team_size_min) : null,
-        team_size_max: formData.team_size_max ? parseInt(formData.team_size_max) : null,
-        ticket_size_min: formData.ticket_size_min ? parseFloat(formData.ticket_size_min) : null,
-        ticket_size_max: formData.ticket_size_max ? parseFloat(formData.ticket_size_max) : null,
-        target_capital: formData.target_capital ? parseFloat(formData.target_capital) : null,
-        capital_raised: formData.capital_raised ? parseFloat(formData.capital_raised) : null,
-        capital_in_market: formData.capital_in_market ? parseFloat(formData.capital_in_market) : null,
-        target_return_min: formData.target_return_min ? parseFloat(formData.target_return_min) : null,
-        target_return_max: formData.target_return_max ? parseFloat(formData.target_return_max) : null,
-        equity_investments_made: formData.equity_investments_made ? parseFloat(formData.equity_investments_made) : null,
-        equity_investments_exited: formData.equity_investments_exited ? parseFloat(formData.equity_investments_exited) : null,
-        self_liquidating_made: formData.self_liquidating_made ? parseFloat(formData.self_liquidating_made) : null,
-        self_liquidating_exited: formData.self_liquidating_exited ? parseFloat(formData.self_liquidating_exited) : null,
-        legal_entity_date_from: formData.legal_entity_date_from ? parseInt(formData.legal_entity_date_from) : null,
-        legal_entity_date_to: formData.legal_entity_date_to ? parseInt(formData.legal_entity_date_to) : null,
-        legal_entity_month_from: formData.legal_entity_month_from ? parseInt(formData.legal_entity_month_from) : null,
-        legal_entity_month_to: formData.legal_entity_month_to ? parseInt(formData.legal_entity_month_to) : null,
-        first_close_date_from: formData.first_close_date_from ? parseInt(formData.first_close_date_from) : null,
-        first_close_date_to: formData.first_close_date_to ? parseInt(formData.first_close_date_to) : null,
-        first_close_month_from: formData.first_close_month_from ? parseInt(formData.first_close_month_from) : null,
-        first_close_month_to: formData.first_close_month_to ? parseInt(formData.first_close_month_to) : null,
-        updated_at: new Date().toISOString()
+        ...data,
+        legal_entity_month_from: data.legal_entity_month_from || null,
+        legal_entity_month_to: data.legal_entity_month_to || null,
+        first_close_month_from: data.first_close_month_from || null,
+        first_close_month_to: data.first_close_month_to || null,
       };
 
-      const { error } = await supabase
-        .from('survey_responses')
-        .upsert(processedData, {
-          onConflict: 'user_id,year'
-        });
+      if (existingResponse) {
+        const { error } = await supabase
+          .from('survey_responses')
+          .update(surveyData)
+          .eq('id', existingResponse.id);
 
-      if (error) throw error;
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('survey_responses')
+          .insert(surveyData);
+
+        if (error) throw error;
+      }
 
       toast({
-        title: "Survey Completed",
-        description: "Thank you for completing the survey! Redirecting to dashboard...",
+        title: "Survey Completed!",
+        description: "Thank you for completing the survey. You now have full access to the member network.",
       });
 
-      // Redirect to dashboard after completion
+      // Redirect to network page after completion
       setTimeout(() => {
-        window.location.href = '/dashboard';
+        window.location.href = '/network';
       }, 2000);
+
     } catch (error) {
-      console.error('Complete error:', error);
+      console.error('Submit error:', error);
       toast({
-        title: "Error",
-        description: "Failed to complete survey. Please try again.",
-        variant: "destructive",
+        title: "Submission Failed",
+        description: "Failed to submit survey. Please try again.",
+        variant: "destructive"
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const addTeamMember = () => {
-    setFormData(prev => ({
-      ...prev,
-      team_members: [...prev.team_members, { name: '', email: '', phone: '', role: '' }]
-    }));
-  };
-
-  const removeTeamMember = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      team_members: prev.team_members.filter((_, i) => i !== index)
-    }));
-  };
-
-  const calculateDryPowder = () => {
-    const raised = parseFloat(formData.capital_raised) || 0;
-    const inMarket = parseFloat(formData.capital_in_market) || 0;
-    return raised - inMarket;
-  };
-
-  const renderSection = () => {
-    const currentSectionData = sections.find(s => s.id === currentSection);
-    const Icon = currentSectionData?.icon || FileText;
-
+  const renderCurrentSection = () => {
     switch (currentSection) {
       case 1:
-        return (
-          <div className="space-y-6">
-            <div className="flex items-center space-x-3 mb-6">
-              <Icon className="w-6 h-6 text-blue-600" />
-              <h2 className="text-2xl font-bold text-black">Basic Vehicle Information</h2>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="vehicle_websites" className="text-black font-medium">Vehicle Website(s)</Label>
-                <Input
-                  id="vehicle_websites"
-                  placeholder="https://example.com (separate multiple URLs with commas)"
-                  value={formData.vehicle_websites.join(', ')}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    vehicle_websites: e.target.value.split(', ').filter(Boolean)
-                  }))}
-                  className="border-gray-300"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="vehicle_type" className="text-black font-medium">Vehicle Type</Label>
-                <Select value={formData.vehicle_type} onValueChange={(value) => setFormData(prev => ({ ...prev, vehicle_type: value }))}>
-                  <SelectTrigger className="border-gray-300">
-                    <SelectValue placeholder="Select vehicle type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="open">Open</SelectItem>
-                    <SelectItem value="closed">Closed</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-                {formData.vehicle_type === 'other' && (
-                  <Input
-                    placeholder="Please specify"
-                    value={formData.vehicle_type_other}
-                    onChange={(e) => setFormData(prev => ({ ...prev, vehicle_type_other: e.target.value }))}
-                    className="mt-2 border-gray-300"
-                  />
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="thesis" className="text-black font-medium">Investment Thesis</Label>
-                <Textarea
-                  id="thesis"
-                  placeholder="Describe your investment philosophy and approach..."
-                  value={formData.thesis}
-                  onChange={(e) => setFormData(prev => ({ ...prev, thesis: e.target.value }))}
-                  rows={4}
-                  className="border-gray-300"
-                />
-              </div>
-            </div>
-          </div>
-        );
-
+        return <VehicleInfoSection form={form} />;
       case 2:
-        return (
-          <div className="space-y-6">
-            <div className="flex items-center space-x-3 mb-6">
-              <Icon className="w-6 h-6 text-blue-600" />
-              <h2 className="text-2xl font-bold text-black">Team &amp; Leadership</h2>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <Label className="text-black font-medium">Team Members (Founders/Partners)</Label>
-                {formData.team_members.map((member, index) => (
-                  <Card key={index} className="p-4 mt-2 border-gray-200">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Input
-                        placeholder="Name*"
-                        value={member.name}
-                        onChange={(e) => {
-                          const newMembers = [...formData.team_members];
-                          newMembers[index].name = e.target.value;
-                          setFormData(prev => ({ ...prev, team_members: newMembers }));
-                        }}
-                        className="border-gray-300"
-                      />
-                      <Input
-                        placeholder="Email*"
-                        type="email"
-                        value={member.email}
-                        onChange={(e) => {
-                          const newMembers = [...formData.team_members];
-                          newMembers[index].email = e.target.value;
-                          setFormData(prev => ({ ...prev, team_members: newMembers }));
-                        }}
-                        className="border-gray-300"
-                      />
-                      <Input
-                        placeholder="Phone*"
-                        value={member.phone}
-                        onChange={(e) => {
-                          const newMembers = [...formData.team_members];
-                          newMembers[index].phone = e.target.value;
-                          setFormData(prev => ({ ...prev, team_members: newMembers }));
-                        }}
-                        className="border-gray-300"
-                      />
-                      <div className="flex space-x-2">
-                        <Input
-                          placeholder="Role*"
-                          value={member.role}
-                          onChange={(e) => {
-                            const newMembers = [...formData.team_members];
-                            newMembers[index].role = e.target.value;
-                            setFormData(prev => ({ ...prev, team_members: newMembers }));
-                          }}
-                          className="border-gray-300"
-                        />
-                        {index > 0 && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => removeTeamMember(index)}
-                            className="border-gray-300"
-                          >
-                            Remove
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-                <Button type="button" variant="outline" onClick={addTeamMember} className="mt-2 border-gray-300">
-                  Add Team Member
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="team_size_min" className="text-black font-medium">Minimum Team Size*</Label>
-                  <Input
-                    id="team_size_min"
-                    type="number"
-                    value={formData.team_size_min}
-                    onChange={(e) => setFormData(prev => ({ ...prev, team_size_min: e.target.value }))}
-                    className="border-gray-300"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="team_size_max" className="text-black font-medium">Maximum Team Size*</Label>
-                  <Input
-                    id="team_size_max"
-                    type="number"
-                    value={formData.team_size_max}
-                    onChange={(e) => setFormData(prev => ({ ...prev, team_size_max: e.target.value }))}
-                    className="border-gray-300"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="team_description" className="text-black font-medium">Team Description (Optional)</Label>
-                <Textarea
-                  id="team_description"
-                  placeholder="Tell us more about your team's background and experience..."
-                  value={formData.team_description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, team_description: e.target.value }))}
-                  rows={3}
-                  className="border-gray-300"
-                />
-              </div>
-            </div>
-          </div>
-        );
-
+        return <TeamSection form={form} />;
       case 3:
-        return (
-          <div className="space-y-6">
-            <div className="flex items-center space-x-3 mb-6">
-              <Icon className="w-6 h-6 text-blue-600" />
-              <h2 className="text-2xl font-bold text-black">Geographic &amp; Market Focus</h2>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <Label className="text-black font-medium">Legal Vehicle Domicile (Main Office)</Label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-                  {countries.map((country) => (
-                    <div key={country} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`domicile-${country}`}
-                        checked={formData.legal_domicile.includes(country)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setFormData(prev => ({ 
-                              ...prev, 
-                              legal_domicile: [...prev.legal_domicile, country] 
-                            }));
-                          } else {
-                            setFormData(prev => ({ 
-                              ...prev, 
-                              legal_domicile: prev.legal_domicile.filter(c => c !== country) 
-                            }));
-                          }
-                        }}
-                      />
-                      <Label htmlFor={`domicile-${country}`} className="text-sm">{country}</Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <Label className="text-black font-medium">Markets Operated In</Label>
-                <p className="text-sm text-gray-600 mb-2">Select where you invest (can be continental, regional, or specific countries)</p>
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="africa" />
-                    <Label htmlFor="africa">All of Africa</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="east-africa" />
-                    <Label htmlFor="east-africa">East Africa</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="west-africa" />
-                    <Label htmlFor="west-africa">West Africa</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="specific-countries" />
-                    <Label htmlFor="specific-countries">Specific Countries</Label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
+        return <GeographicSection form={form} />;
       case 4:
-        return (
-          <div className="space-y-6">
-            <div className="flex items-center space-x-3 mb-6">
-              <Icon className="w-6 h-6 text-blue-600" />
-              <h2 className="text-2xl font-bold text-black">Investment Strategy</h2>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="ticket_size_min" className="text-black font-medium">Min Ticket Size (USD)</Label>
-                  <Input
-                    id="ticket_size_min"
-                    type="number"
-                    value={formData.ticket_size_min}
-                    onChange={(e) => setFormData(prev => ({ ...prev, ticket_size_min: e.target.value }))}
-                    className="border-gray-300"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="ticket_size_max" className="text-black font-medium">Max Ticket Size (USD)</Label>
-                  <Input
-                    id="ticket_size_max"
-                    type="number"
-                    value={formData.ticket_size_max}
-                    onChange={(e) => setFormData(prev => ({ ...prev, ticket_size_max: e.target.value }))}
-                    className="border-gray-300"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="ticket_description" className="text-black font-medium">Ticket Size Description (Optional)</Label>
-                <Textarea
-                  id="ticket_description"
-                  placeholder="Additional details about your ticket sizing approach..."
-                  value={formData.ticket_description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, ticket_description: e.target.value }))}
-                  rows={2}
-                  className="border-gray-300"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="target_capital" className="text-black font-medium">Target Capital (USD)</Label>
-                  <Input
-                    id="target_capital"
-                    type="number"
-                    value={formData.target_capital}
-                    onChange={(e) => setFormData(prev => ({ ...prev, target_capital: e.target.value }))}
-                    className="border-gray-300"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="capital_raised" className="text-black font-medium">Capital Actually Raised (USD)</Label>
-                  <Input
-                    id="capital_raised"
-                    type="number"
-                    value={formData.capital_raised}
-                    onChange={(e) => setFormData(prev => ({ ...prev, capital_raised: e.target.value }))}
-                    className="border-gray-300"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="capital_in_market" className="text-black font-medium">Capital in Market (USD)</Label>
-                  <Input
-                    id="capital_in_market"
-                    type="number"
-                    value={formData.capital_in_market}
-                    onChange={(e) => setFormData(prev => ({ ...prev, capital_in_market: e.target.value }))}
-                    className="border-gray-300"
-                  />
-                </div>
-              </div>
-
-              {(formData.capital_raised || formData.capital_in_market) && (
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-blue-900">Dry Powder (Auto-calculated):</span>
-                    <span className="text-xl font-bold text-blue-900">
-                      ${calculateDryPowder().toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-
+        return <InvestmentStrategySection form={form} />;
+      case 5:
+        return <FundOperationsSection form={form} />;
+      case 6:
+        return <FundStatusSection form={form} />;
+      case 7:
+        return <InvestmentInstrumentsSection form={form} />;
+      case 8:
+        return <SectorReturnsSection form={form} />;
       default:
-        return (
-          <div className="text-center py-8">
-            <Icon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Section Under Development</h3>
-            <p className="text-gray-600">This section is being implemented. Please continue with other sections.</p>
-          </div>
-        );
+        return <VehicleInfoSection form={form} />;
     }
   };
 
-  if (userRole !== 'member' && userRole !== 'admin') {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="max-w-2xl mx-auto border-red-200 bg-red-50">
-            <CardHeader>
-              <CardTitle className="text-red-800">Access Restricted</CardTitle>
-              <CardDescription className="text-red-700">
-                You need Member access to complete the survey. Please request membership upgrade.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-      </div>
-    );
-  }
+  const sectionTitles = [
+    "Vehicle Information",
+    "Team & Leadership", 
+    "Geographic & Market Focus",
+    "Investment Strategy",
+    "Fund Operations",
+    "Fund Status & Timeline",
+    "Investment Instruments",
+    "Sector Focus & Returns"
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Year Selection */}
-        <div className="mb-6">
-          <Card className="bg-white border">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-bold text-black">Survey Year</h2>
-                  <p className="text-gray-600">Select the year for this survey submission</p>
-                </div>
-                <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
-                  <SelectTrigger className="w-[180px] border-gray-300">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[2024, 2025, 2026, 2027].map(year => (
-                      <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Progress Header */}
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-4">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold text-black">Fund Manager Survey - {selectedYear}</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Member Survey {new Date().getFullYear()}</h1>
             <div className="text-sm text-gray-600">
-              {Math.round(progress)}% Complete
+              Section {currentSection} of {totalSections}
             </div>
           </div>
-          <Progress value={progress} className="h-2" />
+          <Progress value={progress} className="w-full" />
+          <p className="mt-2 text-gray-600">
+            Complete all sections to gain full access to the member network
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar Navigation */}
-          <div className="lg:col-span-1">
-            <Card className="bg-white border">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <Card>
               <CardHeader>
-                <CardTitle className="text-lg text-black">Survey Sections</CardTitle>
+                <CardTitle className="flex items-center">
+                  {currentSection === totalSections && <CheckCircle className="w-5 h-5 mr-2 text-green-600" />}
+                  {sectionTitles[currentSection - 1]}
+                </CardTitle>
+                <CardDescription>
+                  {currentSection === totalSections 
+                    ? "Final section - Review and submit your survey"
+                    : `Section ${currentSection} of ${totalSections}`
+                  }
+                </CardDescription>
               </CardHeader>
-              <CardContent className="p-0">
-                <nav className="space-y-1">
-                  {sections.map((section) => {
-                    const Icon = section.icon;
-                    const isActive = currentSection === section.id;
-                    const isCompleted = section.id < currentSection;
-                    
-                    return (
-                      <button
-                        key={section.id}
-                        onClick={() => setCurrentSection(section.id)}
-                        className={`w-full flex items-center px-4 py-3 text-left text-sm font-medium transition-colors ${
-                          isActive
-                            ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                            : isCompleted
-                            ? 'text-green-600 hover:bg-gray-50'
-                            : 'text-gray-600 hover:bg-gray-50'
-                        }`}
-                      >
-                        <Icon className={`w-4 h-4 mr-3 ${isActive ? 'text-blue-700' : isCompleted ? 'text-green-600' : 'text-gray-400'}`} />
-                        <span className="truncate">{section.title}</span>
-                      </button>
-                    );
-                  })}
-                </nav>
+              <CardContent>
+                {renderCurrentSection()}
               </CardContent>
             </Card>
-          </div>
 
-          {/* Main Content */}
-          <div className="lg:col-span-3">
-            <Card className="bg-white border">
-              <CardContent className="p-8">
-                {renderSection()}
-                
-                {/* Navigation Buttons */}
-                <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
-                  <Button
-                    variant="outline"
-                    onClick={() => setCurrentSection(Math.max(1, currentSection - 1))}
-                    disabled={currentSection === 1}
-                    className="border-gray-300"
-                  >
-                    <ChevronLeft className="w-4 h-4 mr-2" />
-                    Previous
-                  </Button>
+            <div className="flex justify-between items-center">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={handlePrevious}
+                disabled={currentSection === 1}
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Previous
+              </Button>
 
-                  <div className="flex space-x-2">
-                    <Button variant="outline" onClick={handleSave} className="border-gray-300">
-                      <Save className="w-4 h-4 mr-2" />
-                      Save Progress
-                    </Button>
-                    
-                    {currentSection === sections.length ? (
-                      <Button onClick={handleComplete} className="bg-green-600 hover:bg-green-700 text-white">
-                        Complete Survey
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={() => setCurrentSection(Math.min(sections.length, currentSection + 1))}
-                        className="bg-blue-600 hover:bg-blue-700 text-white"
-                      >
-                        Next
-                        <ChevronRight className="w-4 h-4 ml-2" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={handleSaveDraft}
+                disabled={isSubmitting}
+              >
+                Save Draft
+              </Button>
+
+              {currentSection < totalSections ? (
+                <Button 
+                  type="button" 
+                  onClick={handleNext}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Next
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              ) : (
+                <Button 
+                  type="submit" 
+                  disabled={isSubmitting}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {isSubmitting ? 'Submitting...' : 'Complete Survey'}
+                  <CheckCircle className="w-4 h-4 ml-2" />
+                </Button>
+              )}
+            </div>
+          </form>
+        </Form>
       </div>
     </div>
   );
