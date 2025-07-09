@@ -458,17 +458,17 @@ const Admin = () => {
                     <p className="text-center text-gray-500 py-8">No membership requests found</p>
                   ) : (
                     membershipRequests.map((request) => (
-                      <div key={request.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg space-y-3 sm:space-y-0">
-                        <div className="flex-1">
+                      <div key={request.id} className="flex flex-col lg:flex-row lg:items-center lg:justify-between p-4 border rounded-lg space-y-4 lg:space-y-0">
+                        <div className="flex-1 min-w-0">
                           <div className="space-y-1">
-                            <p className="font-medium text-black text-sm sm:text-base">{request.email}</p>
-                            <p className="text-xs sm:text-sm text-gray-600">{request.vehicle_name}</p>
+                            <p className="font-medium text-black text-sm sm:text-base truncate">{request.email}</p>
+                            <p className="text-xs sm:text-sm text-gray-600 truncate">{request.vehicle_name}</p>
                             <p className="text-xs text-gray-400">
                               Requested: {new Date(request.created_at).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
-                        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 lg:flex-shrink-0">
                           <Badge 
                             variant={
                               request.status === 'approved' ? 'default' : 
@@ -484,7 +484,7 @@ const Admin = () => {
                               <Button
                                 size="sm"
                                 onClick={() => approveRequest(request.id, request.email, request.vehicle_name)}
-                                className="bg-green-600 hover:bg-green-700 text-white text-xs"
+                                className="bg-green-600 hover:bg-green-700 text-white text-xs whitespace-nowrap"
                               >
                                 <UserCheck className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                                 Approve
@@ -493,7 +493,7 @@ const Admin = () => {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => rejectRequest(request.id)}
-                                className="border-red-300 text-red-600 hover:bg-red-50 text-xs"
+                                className="border-red-300 text-red-600 hover:bg-red-50 text-xs whitespace-nowrap"
                               >
                                 <UserX className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                                 Reject
@@ -521,18 +521,18 @@ const Admin = () => {
                     <p className="text-center text-gray-500 py-8">No invitation codes found</p>
                   ) : (
                     invitationCodes.map((code) => (
-                      <div key={code.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg space-y-3 sm:space-y-0">
-                        <div className="flex-1">
+                      <div key={code.id} className="flex flex-col lg:flex-row lg:items-center lg:justify-between p-4 border rounded-lg space-y-4 lg:space-y-0">
+                        <div className="flex-1 min-w-0">
                           <div className="space-y-1">
-                            <p className="font-mono font-bold text-base sm:text-lg text-black">{code.code}</p>
-                            <p className="text-xs sm:text-sm text-gray-600">{code.email} - {code.vehicle_name}</p>
+                            <p className="font-mono font-bold text-base sm:text-lg text-black break-all">{code.code}</p>
+                            <p className="text-xs sm:text-sm text-gray-600 truncate">{code.email} - {code.vehicle_name}</p>
                             <p className="text-xs text-gray-400">
                               Created: {new Date(code.created_at).toLocaleDateString()} | 
                               Expires: {new Date(code.expires_at).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
-                        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 lg:flex-shrink-0">
                           <Badge 
                             variant={
                               code.used_at ? 'default' : 
@@ -569,14 +569,14 @@ const Admin = () => {
                     <p className="text-center text-gray-500 py-8">No data field visibility settings found</p>
                   ) : (
                     dataFieldVisibility.map((field) => (
-                      <div key={field.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg space-y-3 sm:space-y-0">
-                        <div className="flex-1">
+                      <div key={field.id} className="flex flex-col lg:flex-row lg:items-center lg:justify-between p-4 border rounded-lg space-y-4 lg:space-y-0">
+                        <div className="flex-1 min-w-0">
                           <div className="space-y-1">
                             <p className="font-medium text-black text-sm sm:text-base">{field.field_name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
                             <p className="text-xs sm:text-sm text-gray-600">Field: {field.field_name}</p>
                           </div>
                         </div>
-                        <div className="flex items-center">
+                        <div className="flex items-center lg:flex-shrink-0">
                           <Select
                             value={field.visibility_level}
                             onValueChange={(value) => updateFieldVisibility(field.field_name, value)}
