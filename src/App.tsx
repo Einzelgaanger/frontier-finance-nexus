@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Network from "./pages/Network";
+import FundManagerDetail from "./pages/FundManagerDetail";
 import Survey from "./pages/Survey";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
@@ -36,6 +37,11 @@ const App = () => (
             <Route path="/network" element={
               <ProtectedRoute requiredRole="member">
                 <Network />
+              </ProtectedRoute>
+            } />
+            <Route path="/network/fund-manager/:userId" element={
+              <ProtectedRoute requiredRole="member">
+                <FundManagerDetail />
               </ProtectedRoute>
             } />
             <Route path="/survey" element={
