@@ -84,18 +84,17 @@ export function CodeVerificationModal({ open, onClose }: CodeVerificationModalPr
 
       if (updateCodeError) throw updateCodeError;
 
-      // Update user role to member
+      // Update user role to member - use update instead of upsert to avoid duplicates
       const { error: roleError } = await supabase
         .from('user_roles')
-        .upsert({
-          user_id: user?.id,
+        .update({
           role: 'member',
           assigned_at: new Date().toISOString(),
           assigned_by: codeData.created_by
-        });
+        })
+        .eq('user_id', user?.id);
 
-      // If the user is already a member (409 duplicate key), treat as success
-      if (roleError && roleError.code !== '23505') throw roleError;
+      if (roleError) throw roleError;
 
       // Wait a moment for the database to update
       await new Promise(resolve => setTimeout(resolve, 1000));

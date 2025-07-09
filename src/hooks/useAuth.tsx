@@ -29,13 +29,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
-        .single();
+        .limit(1); // Use limit instead of single to avoid the 2 rows error
       
       if (error) {
         console.error('Error fetching user role:', error);
         setUserRole('viewer'); // Default to viewer if error
       } else {
-        setUserRole(data?.role || 'viewer');
+        // Take the first role if multiple exist (shouldn't happen after cleanup)
+        setUserRole(data?.[0]?.role || 'viewer');
       }
     } catch (error) {
       console.error('Error fetching user role:', error);
@@ -57,8 +58,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user role
-          await fetchUserRole(session.user.id);
+          // Fetch user role with timeout
+          try {
+            await Promise.race([
+              fetchUserRole(session.user.id),
+              new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Timeout')), 5000)
+              )
+            ]);
+          } catch (error) {
+            console.error('Error or timeout fetching user role:', error);
+            setUserRole('viewer'); // Default to viewer
+          }
         } else {
           setUserRole(null);
         }
@@ -66,12 +77,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    // Check for existing session with timeout
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          await Promise.race([
+            fetchUserRole(session.user.id),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Timeout')), 5000)
+            )
+          ]);
+        }
+      } catch (error) {
+        console.error('Error or timeout checking session:', error);
+        setUserRole('viewer'); // Default to viewer
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkSession();
 
     return () => subscription.unsubscribe();
   }, []);
