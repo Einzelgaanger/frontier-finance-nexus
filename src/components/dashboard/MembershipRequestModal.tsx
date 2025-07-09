@@ -63,7 +63,9 @@ export function MembershipRequestModal({ open, onClose }: MembershipRequestModal
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent
+        className="sm:max-w-md rounded-2xl shadow-xl p-6 max-w-[95vw] w-full border-0"
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Building2 className="w-5 h-5 text-blue-600" />
@@ -85,7 +87,7 @@ export function MembershipRequestModal({ open, onClose }: MembershipRequestModal
                   type="email"
                   value={user?.email || ''}
                   disabled
-                  className="pl-10 bg-gray-50"
+                  className="pl-10 bg-gray-50 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-all"
                 />
               </div>
             </div>
@@ -99,7 +101,7 @@ export function MembershipRequestModal({ open, onClose }: MembershipRequestModal
                   placeholder="Enter your fund vehicle name"
                   value={vehicleName}
                   onChange={(e) => setVehicleName(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-all"
                   required
                 />
               </div>
@@ -117,13 +119,13 @@ export function MembershipRequestModal({ open, onClose }: MembershipRequestModal
           </div>
 
           <div className="flex justify-end space-x-3">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} className="rounded-xl px-5 py-2">
               Cancel
             </Button>
             <Button 
               type="submit" 
               disabled={isSubmitting || !vehicleName.trim()}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-blue-600 hover:bg-blue-700 rounded-xl px-5 py-2 shadow-md"
             >
               {isSubmitting ? (
                 'Submitting...'

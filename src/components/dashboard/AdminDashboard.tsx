@@ -16,96 +16,99 @@ import {
   Mail
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from '@/integrations/supabase/client';
 
 const AdminDashboard = () => {
-  const stats = [
-    { 
-      title: "Total Users", 
-      value: "1,247", 
-      icon: Users, 
-      description: "Across all roles",
-      trend: { value: 12, isPositive: true }
-    },
-    { 
-      title: "Pending Requests", 
-      value: "23", 
-      icon: UserCheck, 
-      description: "Membership applications" 
-    },
-    { 
-      title: "Active Surveys", 
-      value: "156", 
-      icon: Building2, 
-      description: "Completed this month",
-      trend: { value: 8, isPositive: true }
-    },
-    { 
-      title: "Platform Health", 
-      value: "99.2%", 
-      icon: TrendingUp, 
-      description: "Uptime this month" 
-    },
-  ];
+  const [stats, setStats] = useState([
+    { title: 'Total Users', value: '...', icon: Users, description: 'Across all roles', trend: { value: 0, isPositive: true } },
+    { title: 'Pending Requests', value: '...', icon: UserCheck, description: 'Membership applications' },
+    { title: 'Active Surveys', value: '...', icon: Building2, description: 'Completed this month', trend: { value: 0, isPositive: true } },
+    { title: 'Platform Health', value: '99.9%', icon: TrendingUp, description: 'Uptime this month' },
+  ]);
+  const [userDistribution, setUserDistribution] = useState({ viewers: 0, members: 0, admins: 0 });
+  const [platformActivity, setPlatformActivity] = useState({ activeToday: 0, surveysCompleted: 0, newRegistrations: 0 });
+  const [pendingRequests, setPendingRequests] = useState(0);
+  const [expiringCodes, setExpiringCodes] = useState(0);
+  const [recentAlerts, setRecentAlerts] = useState([]);
+  useEffect(() => {
+    const fetchStats = async () => {
+      // 1. Total Users & User Distribution
+      const { data: roles, error: rolesError } = await supabase.from('user_roles').select('role');
+      let totalUsers = 0, viewers = 0, members = 0, admins = 0;
+      if (roles && !rolesError) {
+        totalUsers = roles.length;
+        viewers = roles.filter(r => r.role === 'viewer').length;
+        members = roles.filter(r => r.role === 'member').length;
+        admins = roles.filter(r => r.role === 'admin').length;
+        setUserDistribution({ viewers, members, admins });
+      }
+      // 2. Pending Requests
+      const { data: requests, error: reqError } = await supabase.from('membership_requests').select('id').eq('status', 'pending');
+      const pendingRequestsCount = requests && !reqError ? requests.length : 0;
+      setPendingRequests(pendingRequestsCount);
+      // 3. Active Surveys (completed this month)
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1); startOfMonth.setHours(0,0,0,0);
+      const { data: surveys, error: surveysError } = await supabase
+        .from('survey_responses')
+        .select('id, completed_at')
+        .gte('completed_at', startOfMonth.toISOString());
+      const activeSurveys = surveys && !surveysError ? surveys.length : 0;
+      // 4. New Registrations (today)
+      const startOfDay = new Date();
+      startOfDay.setHours(0,0,0,0);
+      let newRegistrations = 0;
+      // Try to get from profiles (if available)
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, created_at')
+        .gte('created_at', startOfDay.toISOString());
+      if (profiles && !profilesError) newRegistrations = profiles.length;
+      // 5. Surveys Completed (all time)
+      const { data: allSurveys, error: allSurveysError } = await supabase
+        .from('survey_responses')
+        .select('id')
+        .not('completed_at', 'is', null);
+      const surveysCompleted = allSurveys && !allSurveysError ? allSurveys.length : 0;
+      // 6. Active Users Today (not tracked, set to 0 or use activity_logs if available)
+      let activeToday = 0;
+      const { data: logs, error: logsError } = await supabase
+        .from('activity_logs')
+        .select('user_id, created_at')
+        .gte('created_at', startOfDay.toISOString());
+      if (logs && !logsError) activeToday = new Set(logs.map(l => l.user_id)).size;
+      setStats([
+        { title: 'Total Users', value: totalUsers, icon: Users, description: 'Across all roles', trend: { value: 0, isPositive: true } },
+        { title: 'Pending Requests', value: pendingRequestsCount, icon: UserCheck, description: 'Membership applications' },
+        { title: 'Active Surveys', value: activeSurveys, icon: Building2, description: 'Completed this month', trend: { value: 0, isPositive: true } },
+        { title: 'Platform Health', value: '99.9%', icon: TrendingUp, description: 'Uptime this month' },
+      ]);
+      setUserDistribution({ viewers, members, admins });
+      setPlatformActivity({ activeToday, surveysCompleted, newRegistrations });
+      // Invitation Codes Expiring Today
+      const endOfDay = new Date(startOfDay);
+      endOfDay.setHours(23,59,59,999);
+      const { data: codes, error: codesError } = await supabase
+        .from('invitation_codes')
+        .select('id, expires_at')
+        .gte('expires_at', startOfDay.toISOString())
+        .lte('expires_at', endOfDay.toISOString());
+      const expiringCodesCount = codes && !codesError ? codes.length : 0;
+      setExpiringCodes(expiringCodesCount);
+      // Recent Alerts
+      const alerts = [];
+      if (pendingRequestsCount > 0) alerts.push({ type: 'warning', message: `${pendingRequestsCount} membership requests awaiting approval`, time: 'Just now' });
+      if (expiringCodesCount > 0) alerts.push({ type: 'warning', message: `${expiringCodesCount} invitation codes expiring today`, time: 'Just now' });
+      // Add static/dummy alerts
+      alerts.push({ type: 'info', message: 'Monthly analytics report generated', time: '6 hours ago' });
+      alerts.push({ type: 'success', message: 'System backup completed successfully', time: '12 hours ago' });
+      setRecentAlerts(alerts);
+    };
+    fetchStats();
+  }, []);
 
-  const adminActions = [
-    {
-      title: "User Management",
-      description: "Manage user roles, permissions, and access levels",
-      icon: Users,
-      action: "Manage Users",
-      link: "/admin/users",
-      status: "normal",
-      badge: "1,247 users"
-    },
-    {
-      title: "Membership Requests",
-      description: "Review and approve pending membership applications",
-      icon: UserCheck,
-      action: "Review Requests",
-      link: "/admin/requests",
-      status: "urgent",
-      badge: "23 pending"
-    },
-    {
-      title: "Analytics Dashboard",
-      description: "View comprehensive platform analytics and insights",
-      icon: BarChart3,
-      action: "View Analytics",
-      link: "/admin/analytics",
-      status: "normal"
-    },
-    {
-      title: "Data Management",
-      description: "Control data visibility and field permissions",
-      icon: Settings,
-      action: "Manage Data",
-      link: "/admin/data",
-      status: "normal"
-    },
-    {
-      title: "System Monitoring",
-      description: "Monitor platform performance and user activity",
-      icon: Shield,
-      action: "View Monitoring",
-      link: "/admin/monitoring",
-      status: "normal"
-    },
-    {
-      title: "Invitation Codes",
-      description: "Generate and manage invitation codes",
-      icon: Mail,
-      action: "Manage Codes",
-      link: "/admin/invitations",
-      status: "normal"
-    }
-  ];
-
-  const recentAlerts = [
-    { type: "warning", message: "23 membership requests awaiting approval", time: "2 hours ago" },
-    { type: "info", message: "Monthly analytics report generated", time: "6 hours ago" },
-    { type: "success", message: "System backup completed successfully", time: "12 hours ago" },
-    { type: "warning", message: "5 invitation codes expiring today", time: "1 day ago" }
-  ];
+  // Remove the adminActions array and the entire section that renders it
 
   return (
     <div className="space-y-8">
@@ -128,17 +131,20 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <p className="text-red-700 mb-4">
-              You have 23 pending membership requests and 5 invitation codes expiring today.
+              You have {pendingRequests} pending membership requests and {expiringCodes} invitation codes expiring today.
             </p>
             <div className="flex flex-col sm:flex-row gap-2">
               <Button className="bg-red-600 hover:bg-red-700">
-                <Link to="/admin/requests" className="flex items-center">
+                <Link to="/admin" className="flex items-center">
                   Review Requests
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Link>
               </Button>
               <Button variant="outline" className="border-red-300 text-red-700 hover:bg-red-50">
-                <Link to="/admin/invitations">Manage Codes</Link>
+                <Link to="/admin" className="flex items-center">
+                  Manage Codes
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Link>
               </Button>
             </div>
           </CardContent>
@@ -151,45 +157,6 @@ const AdminDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat, index) => (
             <StatsCard key={index} {...stat} />
-          ))}
-        </div>
-      </div>
-
-      {/* Admin Actions */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Administrative Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {adminActions.map((action, index) => (
-            <Card key={index} className="hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <action.icon className="w-8 h-8 text-blue-600" />
-                  {action.status === "urgent" && (
-                    <div className="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
-                      Urgent
-                    </div>
-                  )}
-                  {action.badge && action.status !== "urgent" && (
-                    <div className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
-                      {action.badge}
-                    </div>
-                  )}
-                </div>
-                <CardTitle className="text-lg">{action.title}</CardTitle>
-                <CardDescription>{action.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  asChild 
-                  className={`w-full ${action.status === 'urgent' ? 'bg-red-600 hover:bg-red-700' : ''}`}
-                >
-                  <Link to={action.link}>
-                    {action.action}
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
           ))}
         </div>
       </div>
@@ -230,20 +197,19 @@ const AdminDashboard = () => {
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Viewers</span>
-                <span className="font-medium">892 (71.5%)</span>
+                <span className="font-medium">{userDistribution.viewers}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Members</span>
-                <span className="font-medium">332 (26.6%)</span>
+                <span className="font-medium">{userDistribution.members}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Admins</span>
-                <span className="font-medium">23 (1.9%)</span>
+                <span className="font-medium">{userDistribution.admins}</span>
               </div>
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader>
             <CardTitle>Platform Activity</CardTitle>
@@ -252,15 +218,15 @@ const AdminDashboard = () => {
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Active Users Today</span>
-                <span className="font-medium">156</span>
+                <span className="font-medium">{platformActivity.activeToday}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Surveys Completed</span>
-                <span className="font-medium">23</span>
+                <span className="font-medium">{platformActivity.surveysCompleted}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">New Registrations</span>
-                <span className="font-medium">8</span>
+                <span className="font-medium">{platformActivity.newRegistrations}</span>
               </div>
             </div>
           </CardContent>

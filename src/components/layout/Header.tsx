@@ -46,7 +46,7 @@ export default function Header() {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Network', href: '/network', icon: Network, roles: ['member', 'admin'] },
-    { name: 'Survey', href: '/survey', icon: FileText, roles: ['member', 'admin'] },
+    { name: 'Survey', href: '/survey', icon: FileText, roles: ['member'] },
     { name: 'Admin', href: '/admin', icon: Shield, roles: ['admin'] },
     { name: 'Analytics', href: '/analytics', icon: BarChart3, roles: ['admin'] },
   ];

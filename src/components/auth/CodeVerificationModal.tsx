@@ -14,6 +14,7 @@ import { Building2, Mail, Key } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface CodeVerificationModalProps {
   open: boolean;
@@ -29,6 +30,7 @@ export function CodeVerificationModal({ open, onClose }: CodeVerificationModalPr
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -92,18 +94,27 @@ export function CodeVerificationModal({ open, onClose }: CodeVerificationModalPr
           assigned_by: codeData.created_by
         });
 
-      if (roleError) throw roleError;
+      // If the user is already a member (409 duplicate key), treat as success
+      if (roleError && roleError.code !== '23505') throw roleError;
+
+      // Check if user is admin to determine redirect
+      const { data: userRoleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user?.id)
+        .single();
 
       toast({
         title: "Verification Successful",
-        description: "You have been upgraded to Member access! Redirecting to survey...",
+        description: "You have been upgraded to Member access! Redirecting...",
       });
-
-      // Close modal and redirect to survey
+      // Redirect based on role - admins go to admin page, members go to survey
+      if (userRoleData?.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/survey');
+      }
       onClose();
-      setTimeout(() => {
-        window.location.href = '/survey';
-      }, 2000);
 
     } catch (error) {
       console.error('Verification error:', error);
@@ -128,7 +139,9 @@ export function CodeVerificationModal({ open, onClose }: CodeVerificationModalPr
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent
+        className="sm:max-w-md !rounded-2xl !shadow-xl !p-6 !max-w-[95vw] !w-full !border-0"
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Key className="w-5 h-5 text-blue-600" />
@@ -151,7 +164,7 @@ export function CodeVerificationModal({ open, onClose }: CodeVerificationModalPr
                   placeholder="Enter the email used for the request"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  className="pl-10"
+                  className="pl-10 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-all"
                   required
                 />
               </div>
@@ -166,7 +179,7 @@ export function CodeVerificationModal({ open, onClose }: CodeVerificationModalPr
                   placeholder="Enter your fund vehicle name"
                   value={formData.vehicleName}
                   onChange={(e) => handleInputChange('vehicleName', e.target.value)}
-                  className="pl-10"
+                  className="pl-10 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-all"
                   required
                 />
               </div>
@@ -181,7 +194,7 @@ export function CodeVerificationModal({ open, onClose }: CodeVerificationModalPr
                   placeholder="Enter your 6-character invitation code"
                   value={formData.invitationCode}
                   onChange={(e) => handleInputChange('invitationCode', e.target.value.toUpperCase())}
-                  className="pl-10 font-mono"
+                  className="pl-10 font-mono rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-all"
                   maxLength={6}
                   required
                 />
@@ -200,13 +213,13 @@ export function CodeVerificationModal({ open, onClose }: CodeVerificationModalPr
           </div>
 
           <div className="flex justify-end space-x-3">
-            <Button type="button" variant="outline" onClick={handleClose}>
+            <Button type="button" variant="outline" onClick={handleClose} className="rounded-xl px-5 py-2">
               Cancel
             </Button>
-            <Button 
-              type="submit" 
-              disabled={isSubmitting || !formData.email.trim() || !formData.vehicleName.trim() || !formData.invitationCode.trim()}
-              className="bg-blue-600 hover:bg-blue-700"
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="bg-blue-600 hover:bg-blue-700 rounded-xl px-5 py-2 shadow-md"
             >
               {isSubmitting ? 'Verifying...' : 'Verify Code'}
             </Button>
