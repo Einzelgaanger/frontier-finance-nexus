@@ -73,28 +73,34 @@ export type Database = {
           code: string
           created_at: string | null
           created_by: string
+          email: string | null
           expires_at: string
           id: string
           used_at: string | null
           used_by: string | null
+          vehicle_name: string | null
         }
         Insert: {
           code: string
           created_at?: string | null
           created_by: string
+          email?: string | null
           expires_at: string
           id?: string
           used_at?: string | null
           used_by?: string | null
+          vehicle_name?: string | null
         }
         Update: {
           code?: string
           created_at?: string | null
           created_by?: string
+          email?: string | null
           expires_at?: string
           id?: string
           used_at?: string | null
           used_by?: string | null
+          vehicle_name?: string | null
         }
         Relationships: []
       }
@@ -170,6 +176,8 @@ export type Database = {
           expectations: string | null
           first_close_date_from: number | null
           first_close_date_to: number | null
+          first_close_month_from: number | null
+          first_close_month_to: number | null
           fund_stage: string[] | null
           how_heard_about_network: string | null
           id: string
@@ -178,6 +186,8 @@ export type Database = {
           legal_domicile: string[] | null
           legal_entity_date_from: number | null
           legal_entity_date_to: number | null
+          legal_entity_month_from: number | null
+          legal_entity_month_to: number | null
           markets_operated: Json | null
           sectors_allocation: Json | null
           self_liquidating_exited: number | null
@@ -197,6 +207,7 @@ export type Database = {
           updated_at: string | null
           user_id: string
           vehicle_type: string | null
+          vehicle_type_other: string | null
           vehicle_websites: string[] | null
           year: number
         }
@@ -211,6 +222,8 @@ export type Database = {
           expectations?: string | null
           first_close_date_from?: number | null
           first_close_date_to?: number | null
+          first_close_month_from?: number | null
+          first_close_month_to?: number | null
           fund_stage?: string[] | null
           how_heard_about_network?: string | null
           id?: string
@@ -219,6 +232,8 @@ export type Database = {
           legal_domicile?: string[] | null
           legal_entity_date_from?: number | null
           legal_entity_date_to?: number | null
+          legal_entity_month_from?: number | null
+          legal_entity_month_to?: number | null
           markets_operated?: Json | null
           sectors_allocation?: Json | null
           self_liquidating_exited?: number | null
@@ -238,6 +253,7 @@ export type Database = {
           updated_at?: string | null
           user_id: string
           vehicle_type?: string | null
+          vehicle_type_other?: string | null
           vehicle_websites?: string[] | null
           year: number
         }
@@ -252,6 +268,8 @@ export type Database = {
           expectations?: string | null
           first_close_date_from?: number | null
           first_close_date_to?: number | null
+          first_close_month_from?: number | null
+          first_close_month_to?: number | null
           fund_stage?: string[] | null
           how_heard_about_network?: string | null
           id?: string
@@ -260,6 +278,8 @@ export type Database = {
           legal_domicile?: string[] | null
           legal_entity_date_from?: number | null
           legal_entity_date_to?: number | null
+          legal_entity_month_from?: number | null
+          legal_entity_month_to?: number | null
           markets_operated?: Json | null
           sectors_allocation?: Json | null
           self_liquidating_exited?: number | null
@@ -279,6 +299,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
           vehicle_type?: string | null
+          vehicle_type_other?: string | null
           vehicle_websites?: string[] | null
           year?: number
         }

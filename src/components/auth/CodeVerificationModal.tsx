@@ -21,16 +21,25 @@ interface CodeVerificationModalProps {
 }
 
 export function CodeVerificationModal({ open, onClose }: CodeVerificationModalProps) {
-  const [email, setEmail] = useState('');
-  const [vehicleName, setVehicleName] = useState('');
-  const [invitationCode, setInvitationCode] = useState('');
+  const [formData, setFormData] = useState({
+    email: '',
+    vehicleName: '',
+    invitationCode: ''
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !vehicleName.trim() || !invitationCode.trim()) {
+    if (!formData.email.trim() || !formData.vehicleName.trim() || !formData.invitationCode.trim()) {
       toast({
         title: "Missing Information",
         description: "Please fill in all fields.",
@@ -46,9 +55,9 @@ export function CodeVerificationModal({ open, onClose }: CodeVerificationModalPr
       const { data: codeData, error: codeError } = await supabase
         .from('invitation_codes')
         .select('*')
-        .eq('code', invitationCode.toUpperCase())
-        .eq('email', email)
-        .eq('vehicle_name', vehicleName)
+        .eq('code', formData.invitationCode.toUpperCase())
+        .eq('email', formData.email)
+        .eq('vehicle_name', formData.vehicleName)
         .is('used_at', null)
         .gt('expires_at', new Date().toISOString())
         .single();
@@ -109,9 +118,11 @@ export function CodeVerificationModal({ open, onClose }: CodeVerificationModalPr
   };
 
   const handleClose = () => {
-    setEmail('');
-    setVehicleName('');
-    setInvitationCode('');
+    setFormData({
+      email: '',
+      vehicleName: '',
+      invitationCode: ''
+    });
     onClose();
   };
 
@@ -138,8 +149,8 @@ export function CodeVerificationModal({ open, onClose }: CodeVerificationModalPr
                   id="verify-email"
                   type="email"
                   placeholder="Enter the email used for the request"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
                   className="pl-10"
                   required
                 />
@@ -153,8 +164,8 @@ export function CodeVerificationModal({ open, onClose }: CodeVerificationModalPr
                 <Input
                   id="verify-vehicle"
                   placeholder="Enter your fund vehicle name"
-                  value={vehicleName}
-                  onChange={(e) => setVehicleName(e.target.value)}
+                  value={formData.vehicleName}
+                  onChange={(e) => handleInputChange('vehicleName', e.target.value)}
                   className="pl-10"
                   required
                 />
@@ -168,8 +179,8 @@ export function CodeVerificationModal({ open, onClose }: CodeVerificationModalPr
                 <Input
                   id="verify-code"
                   placeholder="Enter your 6-character invitation code"
-                  value={invitationCode}
-                  onChange={(e) => setInvitationCode(e.target.value.toUpperCase())}
+                  value={formData.invitationCode}
+                  onChange={(e) => handleInputChange('invitationCode', e.target.value.toUpperCase())}
                   className="pl-10 font-mono"
                   maxLength={6}
                   required
@@ -194,7 +205,7 @@ export function CodeVerificationModal({ open, onClose }: CodeVerificationModalPr
             </Button>
             <Button 
               type="submit" 
-              disabled={isSubmitting || !email.trim() || !vehicleName.trim() || !invitationCode.trim()}
+              disabled={isSubmitting || !formData.email.trim() || !formData.vehicleName.trim() || !formData.invitationCode.trim()}
               className="bg-blue-600 hover:bg-blue-700"
             >
               {isSubmitting ? 'Verifying...' : 'Verify Code'}
