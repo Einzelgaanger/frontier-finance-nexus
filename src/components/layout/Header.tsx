@@ -23,7 +23,7 @@ const Header = ({ showNav = true }: HeaderProps) => {
     { name: "Dashboard", href: "/dashboard", icon: Home, roles: ["admin", "member", "viewer"] },
     { name: "Network", href: "/network", icon: Network, roles: ["admin", "member", "viewer"] },
     { name: "Survey", href: "/survey", icon: FileText, roles: ["admin", "member"] }, // Removed viewer
-    { name: "Analytics", href: "/analytics", icon: BarChart3, roles: ["admin", "member", "viewer"] },
+    { name: "Analytics", href: "/analytics", icon: BarChart3, roles: ["admin", "member"] }, // Removed viewer
     { name: "Admin", href: "/admin", icon: Shield, roles: ["admin"] },
   ];
 

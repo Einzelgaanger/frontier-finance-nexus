@@ -35,12 +35,12 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/network" element={
-              <ProtectedRoute requiredRole="member">
+              <ProtectedRoute requiredRole="viewer">
                 <Network />
               </ProtectedRoute>
             } />
             <Route path="/network/fund-manager/:userId" element={
-              <ProtectedRoute requiredRole="member">
+              <ProtectedRoute requiredRole="viewer">
                 <FundManagerDetail />
               </ProtectedRoute>
             } />

@@ -28,7 +28,7 @@ export function CodeVerificationModal({ open, onClose }: CodeVerificationModalPr
     invitationCode: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user } = useAuth();
+  const { user, refreshUserRole } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -97,23 +97,19 @@ export function CodeVerificationModal({ open, onClose }: CodeVerificationModalPr
       // If the user is already a member (409 duplicate key), treat as success
       if (roleError && roleError.code !== '23505') throw roleError;
 
-      // Check if user is admin to determine redirect
-      const { data: userRoleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user?.id)
-        .single();
+      // Wait a moment for the database to update
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Refresh the user role in the frontend
+      await refreshUserRole();
 
       toast({
         title: "Verification Successful",
         description: "You have been upgraded to Member access! Redirecting...",
       });
-      // Redirect based on role - admins go to admin page, members go to dashboard
-      if (userRoleData?.role === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/dashboard');
-      }
+      
+      // Redirect to dashboard (role will be updated in the frontend)
+      navigate('/dashboard');
       onClose();
 
     } catch (error) {
