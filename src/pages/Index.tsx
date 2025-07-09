@@ -7,54 +7,58 @@ import { Link } from "react-router-dom";
 const Index = () => {
   return (
     <div className="min-h-screen bg-white">
-      {/* Navigation */}
-      <nav className="border-b border-white/20 bg-white/80 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <img src="/logo.jpg" alt="CFF Logo" className="w-8 h-8 rounded-lg" />
-              <span className="text-xl font-bold text-black">Collaborative for Frontier Finance</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link to="/auth">
-                <Button variant="outline" className="border-gray-300">
-                  Login
-                </Button>
-              </Link>
-              <Link to="/auth">
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                  Get Started
-                </Button>
-              </Link>
+      {/* Hero Section with Background Image - Full Screen */}
+      <section className="relative min-h-screen bg-cover bg-center bg-no-repeat" style={{ backgroundImage: 'url(/CFF.jpg)' }}>
+        <div className="absolute inset-0 bg-black/40"></div>
+        
+        {/* Navigation - Positioned absolutely over the background */}
+        <nav className="relative z-20 border-b border-white/20 bg-transparent">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              <div className="flex items-center space-x-3">
+                <img src="/logo.jpg" alt="CFF Logo" className="w-12 h-12 rounded-lg" />
+                <span className="text-2xl font-bold text-white">Collaborative for Frontier Finance</span>
+              </div>
+              <div className="flex items-center space-x-4">
+                <Link to="/auth">
+                  <Button variant="outline" className="border-white/30 text-white hover:bg-white/10">
+                    Login
+                  </Button>
+                </Link>
+                <Link to="/auth">
+                  <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                    Get Started
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
-      </nav>
+        </nav>
 
-      {/* Hero Section with Background Image */}
-      <section className="relative h-screen bg-cover bg-center bg-no-repeat flex items-center justify-center" style={{ backgroundImage: 'url(/CFF.jpg)' }}>
-        <div className="absolute inset-0 bg-black/40"></div>
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-5xl font-bold text-white mb-6">
-            Fund Manager Database Platform
-          </h1>
-          <p className="text-xl text-white/90 mb-8 max-w-3xl mx-auto">
-            A comprehensive platform for emerging market fund managers to connect, share data, 
-            and access valuable insights through our secure database network.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/auth">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white">
-                Join the Network
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
-            <Link to="/network">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-black">
-                Browse Directory
-                <Search className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
+        {/* Hero Content - Centered in the remaining space */}
+        <div className="relative z-10 flex items-center justify-center min-h-[calc(100vh-4rem)]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 className="text-5xl font-bold text-white mb-6">
+              Fund Manager Database Platform
+            </h1>
+            <p className="text-xl text-white/90 mb-8 max-w-3xl mx-auto">
+              A comprehensive platform for emerging market fund managers to connect, share data, 
+              and access valuable insights through our secure database network.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link to="/auth">
+                <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white">
+                  Join the Network
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
+              <Link to="/network">
+                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-black bg-white/10 backdrop-blur-sm">
+                  Browse Directory
+                  <Search className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
