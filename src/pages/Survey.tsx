@@ -146,8 +146,12 @@ const Survey = () => {
         self_liquidating_exited: formData.self_liquidating_exited ? parseFloat(formData.self_liquidating_exited) : null,
         legal_entity_date_from: formData.legal_entity_date_from ? parseInt(formData.legal_entity_date_from) : null,
         legal_entity_date_to: formData.legal_entity_date_to ? parseInt(formData.legal_entity_date_to) : null,
+        legal_entity_month_from: formData.legal_entity_month_from ? parseInt(formData.legal_entity_month_from) : null,
+        legal_entity_month_to: formData.legal_entity_month_to ? parseInt(formData.legal_entity_month_to) : null,
         first_close_date_from: formData.first_close_date_from ? parseInt(formData.first_close_date_from) : null,
         first_close_date_to: formData.first_close_date_to ? parseInt(formData.first_close_date_to) : null,
+        first_close_month_from: formData.first_close_month_from ? parseInt(formData.first_close_month_from) : null,
+        first_close_month_to: formData.first_close_month_to ? parseInt(formData.first_close_month_to) : null,
         updated_at: new Date().toISOString()
       };
 
@@ -195,8 +199,12 @@ const Survey = () => {
         self_liquidating_exited: formData.self_liquidating_exited ? parseFloat(formData.self_liquidating_exited) : null,
         legal_entity_date_from: formData.legal_entity_date_from ? parseInt(formData.legal_entity_date_from) : null,
         legal_entity_date_to: formData.legal_entity_date_to ? parseInt(formData.legal_entity_date_to) : null,
+        legal_entity_month_from: formData.legal_entity_month_from ? parseInt(formData.legal_entity_month_from) : null,
+        legal_entity_month_to: formData.legal_entity_month_to ? parseInt(formData.legal_entity_month_to) : null,
         first_close_date_from: formData.first_close_date_from ? parseInt(formData.first_close_date_from) : null,
         first_close_date_to: formData.first_close_date_to ? parseInt(formData.first_close_date_to) : null,
+        first_close_month_from: formData.first_close_month_from ? parseInt(formData.first_close_month_from) : null,
+        first_close_month_to: formData.first_close_month_to ? parseInt(formData.first_close_month_to) : null,
         updated_at: new Date().toISOString()
       };
 
