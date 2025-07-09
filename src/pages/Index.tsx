@@ -174,25 +174,25 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gradient-to-br from-black via-blue-950 to-black py-16">
+      <footer className="bg-gradient-to-br from-black via-blue-950 to-black py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Company Info */}
             <div className="col-span-1 lg:col-span-2">
-              <div className="flex items-center space-x-3 mb-6">
-                <img src="/logo.jpg" alt="CFF Logo" className="w-12 h-12 rounded-lg shadow-lg" />
-                <span className="text-2xl font-bold text-white">Collaborative for Frontier Finance</span>
+              <div className="flex items-center space-x-3 mb-4">
+                <img src="/logo.jpg" alt="CFF Logo" className="w-10 h-10 rounded-lg shadow-lg" />
+                <span className="text-xl font-bold text-white">Collaborative for Frontier Finance</span>
               </div>
-              <p className="text-gray-300 mb-6 text-lg leading-relaxed">
+              <p className="text-gray-300 mb-4 text-base leading-relaxed">
                 Connecting emerging market fund managers through comprehensive data collection and analytics.
               </p>
-                                        <div className="space-y-4 mb-6">
+              <div className="space-y-2">
                 <a 
                   href="mailto:info@cff.org" 
                   className="flex items-center space-x-2 text-blue-300 hover:text-blue-200 transition-colors group"
                 >
-                  <div className="w-8 h-8 bg-blue-600/20 rounded-lg flex items-center justify-center group-hover:bg-blue-600/30 transition-colors">
-                    <Mail className="w-4 h-4" />
+                  <div className="w-6 h-6 bg-blue-600/20 rounded flex items-center justify-center group-hover:bg-blue-600/30 transition-colors">
+                    <Mail className="w-3 h-3" />
                   </div>
                   <span className="text-sm font-medium">info@cff.org</span>
                 </a>
@@ -200,8 +200,8 @@ const Index = () => {
                   href="tel:+15551234567" 
                   className="flex items-center space-x-2 text-blue-300 hover:text-blue-200 transition-colors group"
                 >
-                  <div className="w-8 h-8 bg-blue-600/20 rounded-lg flex items-center justify-center group-hover:bg-blue-600/30 transition-colors">
-                    <Phone className="w-4 h-4" />
+                  <div className="w-6 h-6 bg-blue-600/20 rounded flex items-center justify-center group-hover:bg-blue-600/30 transition-colors">
+                    <Phone className="w-3 h-3" />
                   </div>
                   <span className="text-sm font-medium">+1 (555) 123-4567</span>
                 </a>
@@ -211,8 +211,8 @@ const Index = () => {
                   rel="noopener noreferrer"
                   className="flex items-center space-x-2 text-blue-300 hover:text-blue-200 transition-colors group"
                 >
-                  <div className="w-8 h-8 bg-blue-600/20 rounded-lg flex items-center justify-center group-hover:bg-blue-600/30 transition-colors">
-                    <MapPin className="w-4 h-4" />
+                  <div className="w-6 h-6 bg-blue-600/20 rounded flex items-center justify-center group-hover:bg-blue-600/30 transition-colors">
+                    <MapPin className="w-3 h-3" />
                   </div>
                   <span className="text-sm font-medium">Global Network Office</span>
                 </a>
@@ -221,32 +221,32 @@ const Index = () => {
             
             {/* Platform Links */}
             <div>
-              <h3 className="text-white font-semibold mb-6 text-lg flex items-center">
-                <Database className="w-5 h-5 mr-2" />
+              <h3 className="text-white font-semibold mb-4 text-base flex items-center">
+                <Database className="w-4 h-4 mr-2" />
                 Platform
               </h3>
-              <ul className="space-y-3">
+              <ul className="space-y-2">
                 <li>
                   <Link to="/auth" className="text-blue-300 hover:text-blue-200 transition-colors flex items-center group">
-                    <ExternalLink className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                    <ExternalLink className="w-3 h-3 mr-2 group-hover:scale-110 transition-transform" />
                     Login
                   </Link>
                 </li>
                 <li>
                   <Link to="/network" className="text-blue-300 hover:text-blue-200 transition-colors flex items-center group">
-                    <Globe className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                    <Globe className="w-3 h-3 mr-2 group-hover:scale-110 transition-transform" />
                     Fund Directory
                   </Link>
                 </li>
                 <li>
                   <a href="#" className="text-blue-300 hover:text-blue-200 transition-colors flex items-center group">
-                    <FileText className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                    <FileText className="w-3 h-3 mr-2 group-hover:scale-110 transition-transform" />
                     Documentation
                   </a>
                 </li>
                 <li>
                   <a href="#" className="text-blue-300 hover:text-blue-200 transition-colors flex items-center group">
-                    <BarChart3 className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                    <BarChart3 className="w-3 h-3 mr-2 group-hover:scale-110 transition-transform" />
                     Analytics
                   </a>
                 </li>
@@ -255,26 +255,26 @@ const Index = () => {
             
             {/* Support & Social */}
             <div>
-              <h3 className="text-white font-semibold mb-6 text-lg flex items-center">
-                <Shield className="w-5 h-5 mr-2" />
+              <h3 className="text-white font-semibold mb-4 text-base flex items-center">
+                <Shield className="w-4 h-4 mr-2" />
                 Support
               </h3>
-              <ul className="space-y-3 mb-8">
+              <ul className="space-y-2 mb-4">
                 <li>
                   <a href="#" className="text-blue-300 hover:text-blue-200 transition-colors flex items-center group">
-                    <Users className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                    <Users className="w-3 h-3 mr-2 group-hover:scale-110 transition-transform" />
                     Help Center
                   </a>
                 </li>
                 <li>
                   <a href="#" className="text-blue-300 hover:text-blue-200 transition-colors flex items-center group">
-                    <Mail className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                    <Mail className="w-3 h-3 mr-2 group-hover:scale-110 transition-transform" />
                     Contact Us
                   </a>
                 </li>
                 <li>
                   <a href="#" className="text-blue-300 hover:text-blue-200 transition-colors flex items-center group">
-                    <Shield className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                    <Shield className="w-3 h-3 mr-2 group-hover:scale-110 transition-transform" />
                     Privacy Policy
                   </a>
                 </li>
@@ -282,31 +282,31 @@ const Index = () => {
               
               {/* Social Media */}
               <div>
-                <h4 className="text-white font-semibold mb-4">Follow Us</h4>
-                <div className="flex space-x-4">
-                  <a href="#" className="w-10 h-10 bg-gray-800 hover:bg-blue-600 rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110">
-                    <Twitter className="w-5 h-5 text-white" />
+                <h4 className="text-white font-semibold mb-3 text-sm">Follow Us</h4>
+                <div className="flex space-x-3">
+                  <a href="#" className="w-8 h-8 bg-gray-800 hover:bg-blue-600 rounded flex items-center justify-center transition-all duration-300 hover:scale-110">
+                    <Twitter className="w-4 h-4 text-white" />
                   </a>
-                  <a href="#" className="w-10 h-10 bg-gray-800 hover:bg-blue-700 rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110">
-                    <Linkedin className="w-5 h-5 text-white" />
+                  <a href="#" className="w-8 h-8 bg-gray-800 hover:bg-blue-700 rounded flex items-center justify-center transition-all duration-300 hover:scale-110">
+                    <Linkedin className="w-4 h-4 text-white" />
                   </a>
-                  <a href="#" className="w-10 h-10 bg-gray-800 hover:bg-blue-800 rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110">
-                    <Facebook className="w-5 h-5 text-white" />
+                  <a href="#" className="w-8 h-8 bg-gray-800 hover:bg-blue-800 rounded flex items-center justify-center transition-all duration-300 hover:scale-110">
+                    <Facebook className="w-4 h-4 text-white" />
                   </a>
-                  <a href="#" className="w-10 h-10 bg-gray-800 hover:bg-pink-600 rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110">
-                    <Instagram className="w-5 h-5 text-white" />
+                  <a href="#" className="w-8 h-8 bg-gray-800 hover:bg-pink-600 rounded flex items-center justify-center transition-all duration-300 hover:scale-110">
+                    <Instagram className="w-4 h-4 text-white" />
                   </a>
                 </div>
               </div>
             </div>
           </div>
           
-          <div className="border-t border-blue-800 mt-12 pt-8">
+          <div className="border-t border-blue-800 mt-6 pt-4">
             <div className="flex flex-col md:flex-row justify-between items-center">
-              <p className="text-blue-300 text-sm mb-4 md:mb-0">
+              <p className="text-blue-300 text-sm mb-2 md:mb-0">
                 © 2025 Collaborative for Frontier Finance. All rights reserved.
               </p>
-              <div className="flex space-x-6 text-sm">
+              <div className="flex space-x-4 text-sm">
                 <a href="#" className="text-blue-300 hover:text-blue-200 transition-colors">Terms of Service</a>
                 <a href="#" className="text-blue-300 hover:text-blue-200 transition-colors">Privacy Policy</a>
                 <a href="#" className="text-blue-300 hover:text-blue-200 transition-colors">Cookie Policy</a>
