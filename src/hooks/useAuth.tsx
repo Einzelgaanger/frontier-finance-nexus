@@ -78,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (session?.user) {
           // Wait for the trigger to complete if it's a new signup
-          if (event === 'SIGNED_UP') {
+          if (event === 'SIGNED_IN' && !user) {
             setTimeout(() => {
               if (mounted) {
                 fetchUserRole(session.user.id);

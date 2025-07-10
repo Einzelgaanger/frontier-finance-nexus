@@ -23,7 +23,8 @@ import {
   Filter,
   ChevronDown,
   ChevronUp,
-  Plus
+  Plus,
+  AlertCircle
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -447,12 +448,14 @@ const Admin = () => {
 
       // Prepare data for export
       const exportData = data?.map(profile => ({
-        'Fund Manager': profile.vehicle_name || 'N/A',
+        'Fund Manager': `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'N/A',
         'Email': profile.email || 'N/A',
         'Created Date': profile.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A',
-        'Role': profile.role || 'N/A',
-        'Survey Responses': profile.survey_responses?.length || 0,
-        'Latest Survey Year': profile.survey_responses?.[0]?.year || 'N/A'
+        'Role': 'N/A', // Role is stored in user_roles table
+        'Survey Responses': Array.isArray(profile.survey_responses) ? profile.survey_responses.length : 0,
+        'Latest Survey Year': Array.isArray(profile.survey_responses) && profile.survey_responses.length > 0 
+          ? (profile.survey_responses[0] as any)?.year || 'N/A' 
+          : 'N/A'
       })) || [];
 
       // Create CSV content

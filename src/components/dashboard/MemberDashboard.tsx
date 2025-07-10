@@ -83,8 +83,8 @@ const MemberDashboard = () => {
         setStats([
           { title: "Network Access", value: "Full", icon: Users, description: "Complete fund directory" },
           { title: "Survey Status", value: `${completionPercentage}%`, icon: FileText, description: "Profile completion" },
-          { title: "Total Fund Managers", value: fundManagers?.length || 0, icon: Building2, description: "In network" },
-          { title: "Your Surveys", value: completedSurveys.length, icon: TrendingUp, description: "Completed" },
+          { title: "Total Fund Managers", value: String(fundManagers?.length || 0), icon: Building2, description: "In network" },
+          { title: "Your Surveys", value: String(completedSurveys.length), icon: TrendingUp, description: "Completed" },
         ]);
 
         // Update quick actions based on survey completion
@@ -123,8 +123,8 @@ const MemberDashboard = () => {
         setStats([
           { title: "Network Access", value: "Full", icon: Users, description: "Complete fund directory" },
           { title: "Survey Status", value: "0%", icon: FileText, description: "Profile completion" },
-          { title: "Total Fund Managers", value: 0, icon: Building2, description: "In network" },
-          { title: "Your Surveys", value: 0, icon: TrendingUp, description: "Completed" },
+          { title: "Total Fund Managers", value: "0", icon: Building2, description: "In network" },
+          { title: "Your Surveys", value: "0", icon: TrendingUp, description: "Completed" },
         ]);
       }
     };
