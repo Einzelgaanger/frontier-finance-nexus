@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -21,6 +20,13 @@ const GoogleIcon = () => (
   </svg>
 );
 
+const getErrorMessage = (error: unknown): string => {
+  if (error && typeof error === 'object' && 'message' in error) {
+    return error.message as string;
+  }
+  return 'An unexpected error occurred';
+};
+
 export default function AuthForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [showSignInPassword, setShowSignInPassword] = useState(false);
@@ -40,15 +46,6 @@ export default function AuthForm() {
   const { signIn, signUp, signInWithGoogle } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-
-  // Get the correct base URL for redirects
-  const getBaseUrl = () => {
-    // Use your production domain consistently
-    if (window.location.hostname === 'cffdatabase.onrender.com') {
-      return 'https://cffdatabase.onrender.com';
-    }
-    return window.location.origin;
-  };
 
   // Password strength checker
   const checkPasswordStrength = (password: string) => {
@@ -75,7 +72,7 @@ export default function AuthForm() {
       const { error } = await signIn(signInForm.email, signInForm.password);
       
       if (error) {
-        const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+        const errorMessage = getErrorMessage(error);
         toast({
           title: "Sign In Failed",
           description: errorMessage,
@@ -89,7 +86,7 @@ export default function AuthForm() {
         navigate('/dashboard');
       }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+      const errorMessage = getErrorMessage(error);
       toast({
         title: "Sign In Error",
         description: errorMessage,
@@ -134,7 +131,7 @@ export default function AuthForm() {
       );
       
       if (error) {
-        const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+        const errorMessage = getErrorMessage(error);
         if (errorMessage.includes('already registered')) {
           toast({
             title: "Account Already Exists",
@@ -163,7 +160,7 @@ export default function AuthForm() {
         });
       }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+      const errorMessage = getErrorMessage(error);
       toast({
         title: "Sign Up Error",
         description: errorMessage,
@@ -180,7 +177,7 @@ export default function AuthForm() {
       const { error } = await signInWithGoogle();
       
       if (error) {
-        const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+        const errorMessage = getErrorMessage(error);
         toast({
           title: "Google Sign In Failed",
           description: errorMessage,
@@ -188,7 +185,7 @@ export default function AuthForm() {
         });
       }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+      const errorMessage = getErrorMessage(error);
       toast({
         title: "Google Sign In Error",
         description: errorMessage,
@@ -204,13 +201,12 @@ export default function AuthForm() {
     setIsLoading(true);
 
     try {
-      const baseUrl = getBaseUrl();
       const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
-        redirectTo: `${baseUrl}/auth?mode=reset`,
+        redirectTo: 'https://cffdatabase.onrender.com/auth?mode=reset',
       });
 
       if (error) {
-        const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+        const errorMessage = getErrorMessage(error);
         toast({
           title: "Password Reset Failed",
           description: errorMessage,
@@ -225,7 +221,7 @@ export default function AuthForm() {
         setForgotPasswordEmail('');
       }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+      const errorMessage = getErrorMessage(error);
       toast({
         title: "Password Reset Error",
         description: errorMessage,

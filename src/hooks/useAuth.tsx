@@ -1,3 +1,4 @@
+
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,20 +25,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserRole = async (userId: string) => {
     try {
+      console.log('Fetching user role for:', userId);
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
-        .limit(1);
+        .single();
       
       if (error) {
         console.error('Error fetching user role:', error);
+        // If no role exists, try to create a default viewer role
+        const { error: insertError } = await supabase
+          .from('user_roles')
+          .insert({ user_id: userId, role: 'viewer' });
+        
+        if (insertError) {
+          console.error('Error creating default role:', insertError);
+        }
         setUserRole('viewer');
       } else {
-        setUserRole(data?.[0]?.role || 'viewer');
+        console.log('User role fetched:', data.role);
+        setUserRole(data.role);
       }
     } catch (error) {
-      console.error('Error fetching user role:', error);
+      console.error('Error in fetchUserRole:', error);
       setUserRole('viewer');
     }
   };
@@ -49,111 +60,133 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    let mounted = true;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
+        
+        if (!mounted) return;
+        
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          try {
-            await Promise.race([
-              fetchUserRole(session.user.id),
-              new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Timeout')), 10000)
-              )
-            ]);
-          } catch (error) {
-            console.error('Error or timeout fetching user role:', error);
-            setUserRole('viewer');
+          // Wait a bit for the trigger to complete if it's a new signup
+          if (event === 'SIGNED_UP') {
+            setTimeout(() => {
+              if (mounted) {
+                fetchUserRole(session.user.id);
+              }
+            }, 1000);
+          } else {
+            await fetchUserRole(session.user.id);
           }
 
-          // Handle redirect after Google OAuth signup/signin
-          if (event === 'SIGNED_IN' && window.location.pathname === '/auth') {
+          // Handle redirect after successful authentication
+          if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && 
+              window.location.pathname === '/auth') {
             window.location.href = '/dashboard';
           }
         } else {
           setUserRole(null);
         }
-        setLoading(false);
+        
+        if (mounted) {
+          setLoading(false);
+        }
       }
     );
 
+    // Check for existing session
     const checkSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        setSession(session);
-        setUser(session?.user ?? null);
+        const { data: { session }, error } = await supabase.auth.getSession();
         
-        if (session?.user) {
-          await Promise.race([
-            fetchUserRole(session.user.id),
-            new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Timeout')), 10000)
-            )
-          ]);
+        if (error) {
+          console.error('Error getting session:', error);
+          if (mounted) {
+            setLoading(false);
+          }
+          return;
+        }
+
+        if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          if (session?.user) {
+            await fetchUserRole(session.user.id);
+          }
+          setLoading(false);
         }
       } catch (error) {
-        console.error('Error or timeout checking session:', error);
-        setUserRole('viewer');
-      } finally {
-        setLoading(false);
+        console.error('Error in checkSession:', error);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
     checkSession();
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { error };
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      return { error };
+    } catch (error) {
+      console.error('Sign in error:', error);
+      return { error };
+    }
   };
 
   const signUp = async (email: string, password: string, metadata?: Record<string, unknown>) => {
-    const getRedirectUrl = () => {
-      if (window.location.hostname === 'cffdatabase.onrender.com') {
-        return 'https://cffdatabase.onrender.com/dashboard';
-      }
-      return `${window.location.origin}/dashboard`;
-    };
-    
-    const redirectUrl = getRedirectUrl();
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: metadata,
-      }
-    });
-    return { error };
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: 'https://cffdatabase.onrender.com/dashboard',
+          data: metadata,
+        }
+      });
+      return { error };
+    } catch (error) {
+      console.error('Sign up error:', error);
+      return { error };
+    }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
   };
 
   const signInWithGoogle = async () => {
-    const getRedirectUrl = () => {
-      if (window.location.hostname === 'cffdatabase.onrender.com') {
-        return 'https://cffdatabase.onrender.com/dashboard';
-      }
-      return `${window.location.origin}/dashboard`;
-    };
-    
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: getRedirectUrl()
-      }
-    });
-    return { error };
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: 'https://cffdatabase.onrender.com/dashboard'
+        }
+      });
+      return { error };
+    } catch (error) {
+      console.error('Google sign in error:', error);
+      return { error };
+    }
   };
 
   return (
