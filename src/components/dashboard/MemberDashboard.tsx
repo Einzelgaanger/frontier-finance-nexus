@@ -1,6 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import StatsCard from "./StatsCard";
 import { Users, Building2, TrendingUp, Globe, ArrowRight, FileText, User, CheckCircle, BarChart3, Calendar, Zap, Activity } from "lucide-react";
 import { Link } from "react-router-dom";
