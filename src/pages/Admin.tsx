@@ -39,6 +39,7 @@ const Admin = () => {
   const [selectedDateRange, setSelectedDateRange] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
+  const [updatingVisibility, setUpdatingVisibility] = useState<string | null>(null);
 
   const createDefaultDataFieldVisibility = useCallback(async () => {
     try {
@@ -359,7 +360,12 @@ const Admin = () => {
   };
 
   const updateFieldVisibility = async (fieldName: string, visibilityLevel: string) => {
+    // Prevent multiple simultaneous updates
+    if (updatingVisibility === fieldName) return;
+    
     try {
+      setUpdatingVisibility(fieldName);
+      
       // Check if user is authenticated
       if (!user?.id) {
         toast({
@@ -370,6 +376,15 @@ const Admin = () => {
         return;
       }
 
+      // Optimistically update the local state first
+      setDataFieldVisibility(prev => 
+        prev.map(field => 
+          field.field_name === fieldName 
+            ? { ...field, visibility_level: visibilityLevel }
+            : field
+        )
+      );
+
       const { error } = await supabase
         .from('data_field_visibility')
         .update({ 
@@ -379,14 +394,22 @@ const Admin = () => {
         })
         .eq('field_name', fieldName);
 
-      if (error) throw error;
+      if (error) {
+        // Revert the optimistic update if there's an error
+        setDataFieldVisibility(prev => 
+          prev.map(field => 
+            field.field_name === fieldName 
+              ? { ...field, visibility_level: field.visibility_level }
+              : field
+          )
+        );
+        throw error;
+      }
 
       toast({
         title: "Visibility Updated",
         description: `${fieldName} visibility set to ${visibilityLevel}`,
       });
-
-      fetchData();
     } catch (error) {
       console.error('Error updating field visibility:', error);
       toast({
@@ -394,6 +417,8 @@ const Admin = () => {
         description: "Failed to update field visibility",
         variant: "destructive"
       });
+    } finally {
+      setUpdatingVisibility(null);
     }
   };
 
@@ -839,9 +864,15 @@ const Admin = () => {
                           <Select
                             value={field.visibility_level}
                             onValueChange={(value) => updateFieldVisibility(field.field_name, value)}
+                            disabled={updatingVisibility === field.field_name}
                           >
-                            <SelectTrigger className="w-full sm:w-[120px] text-xs sm:text-sm">
+                            <SelectTrigger className={`w-full sm:w-[120px] text-xs sm:text-sm ${
+                              updatingVisibility === field.field_name ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}>
                               <SelectValue />
+                              {updatingVisibility === field.field_name && (
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 ml-2" />
+                              )}
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="public">
