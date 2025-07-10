@@ -1,4 +1,3 @@
-
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,18 +28,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
-        .limit(1); // Use limit instead of single to avoid the 2 rows error
+        .limit(1);
       
       if (error) {
         console.error('Error fetching user role:', error);
-        setUserRole('viewer'); // Default to viewer if error
+        setUserRole('viewer');
       } else {
-        // Take the first role if multiple exist (shouldn't happen after cleanup)
         setUserRole(data?.[0]?.role || 'viewer');
       }
     } catch (error) {
       console.error('Error fetching user role:', error);
-      setUserRole('viewer'); // Default to viewer if error
+      setUserRole('viewer');
     }
   };
 
@@ -51,14 +49,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user role with timeout
           try {
             await Promise.race([
               fetchUserRole(session.user.id),
@@ -68,7 +65,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             ]);
           } catch (error) {
             console.error('Error or timeout fetching user role:', error);
-            setUserRole('viewer'); // Default to viewer
+            setUserRole('viewer');
+          }
+
+          // Handle redirect after Google OAuth signup/signin
+          if (event === 'SIGNED_IN' && window.location.pathname === '/auth') {
+            window.location.href = '/dashboard';
           }
         } else {
           setUserRole(null);
@@ -77,7 +79,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
-    // Check for existing session with timeout
     const checkSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -94,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (error) {
         console.error('Error or timeout checking session:', error);
-        setUserRole('viewer'); // Default to viewer
+        setUserRole('viewer');
       } finally {
         setLoading(false);
       }
@@ -114,7 +115,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, metadata?: Record<string, unknown>) => {
-    // Get the correct redirect URL for your domain
     const getRedirectUrl = () => {
       if (window.location.hostname === 'cffdatabase.onrender.com') {
         return 'https://cffdatabase.onrender.com/dashboard';
@@ -140,7 +140,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signInWithGoogle = async () => {
-    // Get the correct redirect URL for your domain
     const getRedirectUrl = () => {
       if (window.location.hostname === 'cffdatabase.onrender.com') {
         return 'https://cffdatabase.onrender.com/dashboard';
