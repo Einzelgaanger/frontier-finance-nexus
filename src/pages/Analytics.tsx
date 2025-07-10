@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import Header from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -60,13 +60,7 @@ const Analytics = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [timeRange, setTimeRange] = useState('all');
 
-  useEffect(() => {
-    if (userRole === 'member' || userRole === 'admin') {
-      fetchSurveyData();
-    }
-  }, [userRole, selectedYear, timeRange]);
-
-  const fetchSurveyData = async () => {
+  const fetchSurveyData = useCallback(async () => {
     setLoading(true);
     try {
       let query = supabase
@@ -117,7 +111,13 @@ const Analytics = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedYear, timeRange, toast]);
+
+  useEffect(() => {
+    if (userRole === 'member' || userRole === 'admin') {
+      fetchSurveyData();
+    }
+  }, [userRole, fetchSurveyData]);
 
   const calculateMetrics = () => {
     if (!surveyData.length) return {

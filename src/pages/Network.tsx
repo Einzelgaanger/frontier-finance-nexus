@@ -75,14 +75,34 @@ const Network = () => {
           profilesMap.set(profile.id, profile);
         });
 
-        // Combine the data
+        // Combine the data with proper type handling
         const combinedData = surveyData?.map(survey => ({
           ...survey,
-          profiles: profilesMap.get(survey.user_id)
+          profiles: profilesMap.get(survey.user_id),
+          markets_operated: typeof survey.markets_operated === 'object' && survey.markets_operated !== null
+            ? survey.markets_operated as Record<string, number>
+            : typeof survey.markets_operated === 'string'
+              ? JSON.parse(survey.markets_operated)
+              : {},
+          sectors_allocation: typeof survey.sectors_allocation === 'object' && survey.sectors_allocation !== null
+            ? survey.sectors_allocation as Record<string, number>
+            : typeof survey.sectors_allocation === 'string'
+              ? JSON.parse(survey.sectors_allocation)
+              : {},
+          legal_domicile: Array.isArray(survey.legal_domicile)
+            ? survey.legal_domicile
+            : typeof survey.legal_domicile === 'string'
+              ? JSON.parse(survey.legal_domicile)
+              : [],
+          fund_stage: Array.isArray(survey.fund_stage)
+            ? survey.fund_stage
+            : typeof survey.fund_stage === 'string'
+              ? JSON.parse(survey.fund_stage)
+              : []
         })) || [];
 
-        setFundManagers(combinedData);
-        setFilteredManagers(combinedData);
+        setFundManagers(combinedData as FundManager[]);
+        setFilteredManagers(combinedData as FundManager[]);
       } catch (error) {
         console.error('Error fetching fund managers:', error);
         toast({
@@ -199,49 +219,53 @@ const Network = () => {
         </div>
 
         {/* Fund Managers Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {filteredManagers.map((manager) => (
             <Card 
               key={manager.id} 
-              className="hover:shadow-lg transition-all duration-300 cursor-pointer hover:-translate-y-1"
+              className="group hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-2 border-gray-200 hover:border-blue-300 bg-white"
               onClick={() => handleManagerClick(manager)}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-center space-x-3">
-                  <Avatar className="w-12 h-12">
-                    <AvatarFallback className="bg-blue-100 text-blue-700">
+                  <Avatar className="w-12 h-12 ring-2 ring-blue-100 group-hover:ring-blue-200 transition-all">
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-semibold">
                       {getInitials(manager.profiles?.first_name || '', manager.profiles?.last_name || '')}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1">
-                    <CardTitle className="text-lg">
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-lg font-semibold text-gray-900 truncate">
                       {manager.profiles?.first_name} {manager.profiles?.last_name}
                     </CardTitle>
-                    <CardDescription className="flex items-center">
-                      <Building2 className="w-3 h-3 mr-1" />
-                      {manager.vehicle_type?.replace('_', ' ').toUpperCase()}
+                    <CardDescription className="flex items-center text-sm">
+                      <Building2 className="w-3 h-3 mr-1 flex-shrink-0" />
+                      <span className="truncate">
+                        {manager.vehicle_type?.replace('_', ' ').toUpperCase()}
+                      </span>
                     </CardDescription>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-gray-400" />
+                  <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
                 </div>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-sm text-gray-600 line-clamp-2">
+              <CardContent className="space-y-4">
+                <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">
                   {manager.thesis}
                 </p>
                 
                 <div className="flex items-center text-sm text-gray-600">
-                  <MapPin className="w-3 h-3 mr-1" />
-                  {manager.legal_domicile?.slice(0, 2).join(', ')}
-                  {manager.legal_domicile?.length > 2 && ` +${manager.legal_domicile.length - 2}`}
+                  <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
+                  <span className="truncate">
+                    {manager.legal_domicile?.slice(0, 2).join(', ')}
+                    {manager.legal_domicile?.length > 2 && ` +${manager.legal_domicile.length - 2}`}
+                  </span>
                 </div>
 
                 <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center text-gray-600">
+                  <div className="flex items-center text-gray-700 font-medium">
                     <DollarSign className="w-3 h-3 mr-1" />
                     {formatCurrency(manager.target_capital)}
                   </div>
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
                     {manager.year}
                   </Badge>
                 </div>
@@ -249,7 +273,7 @@ const Network = () => {
                 {manager.sectors_allocation && (
                   <div className="flex flex-wrap gap-1">
                     {getTopSectors(manager.sectors_allocation).map((sector, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">
+                      <Badge key={index} variant="outline" className="text-xs border-gray-200 text-gray-600">
                         {sector.sector}
                       </Badge>
                     ))}
@@ -258,24 +282,26 @@ const Network = () => {
 
                 {/* Role-based data indicators */}
                 {userRole === 'viewer' && (
-                  <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                     <div className="flex items-center text-xs text-gray-500">
                       <Eye className="w-3 h-3 mr-1" />
-                      Public data only
+                      <span className="hidden sm:inline">Public data only</span>
+                      <span className="sm:hidden">Public</span>
                     </div>
-                    <Badge variant="outline" className="text-xs border-blue-200 text-blue-600">
+                    <Badge variant="outline" className="text-xs border-blue-200 text-blue-600 bg-blue-50">
                       Viewer
                     </Badge>
                   </div>
                 )}
 
                 {userRole === 'member' && (
-                  <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                     <div className="flex items-center text-xs text-gray-500">
                       <Users className="w-3 h-3 mr-1" />
-                      Member access
+                      <span className="hidden sm:inline">Member access</span>
+                      <span className="sm:hidden">Member</span>
                     </div>
-                    <Badge variant="outline" className="text-xs border-green-200 text-green-600">
+                    <Badge variant="outline" className="text-xs border-green-200 text-green-600 bg-green-50">
                       Member
                     </Badge>
                   </div>

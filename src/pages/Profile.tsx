@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import Header from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,9 +30,9 @@ const Profile = () => {
       fetchProfile();
       fetchSurveyResponses();
     }
-  }, [user]);
+  }, [user, fetchProfile, fetchSurveyResponses]);
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -49,9 +49,9 @@ const Profile = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
-  const fetchSurveyResponses = async () => {
+  const fetchSurveyResponses = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('survey_responses')
@@ -64,7 +64,7 @@ const Profile = () => {
     } catch (error) {
       console.error('Error fetching survey responses:', error);
     }
-  };
+  }, [user?.id]);
 
   const updateProfile = async () => {
     try {

@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 
+import type { SurveyFormData } from '@/types/survey';
 interface FundStatusSectionProps {
-  form: UseFormReturn<any>;
+  form: UseFormReturn<SurveyFormData>;
 }
 
 export function FundStatusSection({ form }: FundStatusSectionProps) {

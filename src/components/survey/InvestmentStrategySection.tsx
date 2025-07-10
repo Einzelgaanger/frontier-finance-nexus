@@ -6,8 +6,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useState, useEffect } from 'react';
 
+import type { SurveyFormData } from '@/types/survey';
 interface InvestmentStrategySectionProps {
-  form: UseFormReturn<any>;
+  form: UseFormReturn<SurveyFormData>;
 }
 
 export function InvestmentStrategySection({ form }: InvestmentStrategySectionProps) {

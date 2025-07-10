@@ -50,10 +50,11 @@ export function MembershipRequestModal({ open, onClose }: MembershipRequestModal
 
       setVehicleName('');
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to submit request. Please try again.";
       toast({
         title: "Submission Failed",
-        description: error.message || "Failed to submit request. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {

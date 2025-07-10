@@ -9,8 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, FileText, Eye } from 'lucide-react';
 import { useState } from 'react';
 
+import type { SurveyFormData } from '@/types/survey';
 interface FundOperationsSectionProps {
-  form: UseFormReturn<any>;
+  form: UseFormReturn<SurveyFormData>;
 }
 
 export function FundOperationsSection({ form }: FundOperationsSectionProps) {

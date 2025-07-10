@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -22,6 +22,50 @@ import { FundStatusSection } from '@/components/survey/FundStatusSection';
 import { InvestmentInstrumentsSection } from '@/components/survey/InvestmentInstrumentsSection';
 import { SectorReturnsSection } from '@/components/survey/SectorReturnsSection';
 import Header from '@/components/layout/Header';
+import type { SurveyFormData, TeamMember } from '@/types/survey';
+
+function mapSupabaseSurveyToFormData(data: Record<string, unknown>): SurveyFormData {
+  return {
+    ...data,
+    team_members: Array.isArray(data.team_members)
+      ? data.team_members as TeamMember[]
+      : typeof data.team_members === 'string'
+        ? JSON.parse(data.team_members)
+        : [],
+    vehicle_websites: Array.isArray(data.vehicle_websites)
+      ? data.vehicle_websites
+      : typeof data.vehicle_websites === 'string'
+        ? JSON.parse(data.vehicle_websites)
+        : [],
+    legal_domicile: Array.isArray(data.legal_domicile)
+      ? data.legal_domicile
+      : typeof data.legal_domicile === 'string'
+        ? JSON.parse(data.legal_domicile)
+        : [],
+    fund_stage: Array.isArray(data.fund_stage)
+      ? data.fund_stage
+      : typeof data.fund_stage === 'string'
+        ? JSON.parse(data.fund_stage)
+        : [],
+    markets_operated: typeof data.markets_operated === 'object' && data.markets_operated !== null
+      ? data.markets_operated
+      : typeof data.markets_operated === 'string'
+        ? JSON.parse(data.markets_operated)
+        : {},
+    investment_instruments_priority: typeof data.investment_instruments_priority === 'object' && data.investment_instruments_priority !== null
+      ? data.investment_instruments_priority
+      : typeof data.investment_instruments_priority === 'string'
+        ? JSON.parse(data.investment_instruments_priority)
+        : {},
+    sectors_allocation: typeof data.sectors_allocation === 'object' && data.sectors_allocation !== null
+      ? data.sectors_allocation
+      : typeof data.sectors_allocation === 'string'
+        ? JSON.parse(data.sectors_allocation)
+        : {},
+    legal_entity_date_to: typeof data.legal_entity_date_to === 'number' ? data.legal_entity_date_to : data.legal_entity_date_to === 'present' ? 9999 : undefined,
+    first_close_date_to: typeof data.first_close_date_to === 'number' ? data.first_close_date_to : data.first_close_date_to === 'present' ? 9999 : undefined,
+  };
+}
 
 const surveySchema = z.object({
   // Section 1: Vehicle Information
@@ -32,9 +76,11 @@ const surveySchema = z.object({
 
   // Section 2: Team & Leadership
   team_members: z.array(z.object({
-    name: z.string(),
-    role: z.string(),
-    experience: z.string()
+    name: z.string().min(1, 'Name is required'),
+    email: z.string().email('Invalid email').optional(),
+    phone: z.string().optional(),
+    role: z.string().min(1, 'Role is required'),
+    experience: z.string().optional(),
   })).optional(),
   team_size_min: z.number().min(1, "Minimum team size is required"),
   team_size_max: z.number().min(1, "Maximum team size is required"),
@@ -83,13 +129,11 @@ const surveySchema = z.object({
   self_liquidating_exited: z.number().min(0, "Self-liquidating investments exited is required"),
 });
 
-type SurveyFormData = z.infer<typeof surveySchema>;
-
 const Survey = () => {
   const [currentSection, setCurrentSection] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [existingResponse, setExistingResponse] = useState<any>(null);
-  const [pastSurveys, setPastSurveys] = useState<any[]>([]);
+  const [existingResponse, setExistingResponse] = useState<SurveyFormData | null>(null);
+  const [pastSurveys, setPastSurveys] = useState<SurveyFormData[]>([]);
   const [showNewSurvey, setShowNewSurvey] = useState(false);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const { user, userRole } = useAuth();
@@ -97,6 +141,26 @@ const Survey = () => {
 
   const totalSections = 8;
   const progress = (currentSection / totalSections) * 100;
+
+  const fetchPastSurveys = useCallback(async () => {
+    try {
+      let query = supabase
+        .from('survey_responses')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      // If member, only show their surveys
+      if (userRole === 'member') {
+        query = query.eq('user_id', user.id);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      setPastSurveys((data || []).map(mapSupabaseSurveyToFormData));
+    } catch (error) {
+      console.error('Error fetching past surveys:', error);
+    }
+  }, [userRole, user?.id]);
 
   const form = useForm<SurveyFormData>({
     resolver: zodResolver(surveySchema),
@@ -125,27 +189,7 @@ const Survey = () => {
     if (user) {
       fetchPastSurveys();
     }
-  }, [user]);
-
-  const fetchPastSurveys = async () => {
-    try {
-      let query = supabase
-        .from('survey_responses')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      // If member, only show their surveys
-      if (userRole === 'member') {
-        query = query.eq('user_id', user.id);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      setPastSurveys(data || []);
-    } catch (error) {
-      console.error('Error fetching past surveys:', error);
-    }
-  };
+  }, [user, fetchPastSurveys]);
 
   useEffect(() => {
     const loadExistingResponse = async () => {
@@ -159,23 +203,9 @@ const Survey = () => {
         .single();
 
       if (data && !error) {
-        setExistingResponse(data);
-        // Reset form with existing data
-        const formData = {
-          ...data,
-          legal_entity_month_from: data.legal_entity_month_from || undefined,
-          legal_entity_month_to: data.legal_entity_month_to || undefined,
-          first_close_month_from: data.first_close_month_from || undefined,
-          first_close_month_to: data.first_close_month_to || undefined,
-          team_members: Array.isArray(data.team_members) ? data.team_members as { name?: string; role?: string; experience?: string; }[] : [],
-          vehicle_websites: Array.isArray(data.vehicle_websites) ? data.vehicle_websites : [],
-          legal_domicile: Array.isArray(data.legal_domicile) ? data.legal_domicile : [],
-          fund_stage: Array.isArray(data.fund_stage) ? data.fund_stage : [],
-          markets_operated: typeof data.markets_operated === 'object' ? data.markets_operated as { [key: string]: number } : {},
-          investment_instruments_priority: typeof data.investment_instruments_priority === 'object' ? data.investment_instruments_priority as { [key: string]: number } : {},
-          sectors_allocation: typeof data.sectors_allocation === 'object' ? data.sectors_allocation as { [key: string]: number } : {},
-        };
-        form.reset(formData);
+        const mapped = mapSupabaseSurveyToFormData(data);
+        setExistingResponse(mapped);
+        form.reset(mapped);
       } else {
         setExistingResponse(null);
         form.reset();
@@ -203,21 +233,12 @@ const Survey = () => {
     setIsSubmitting(true);
     try {
       const formData = form.getValues();
-      const surveyData = {
-        user_id: user.id,
-        year: selectedYear,
-        ...formData,
-        legal_entity_month_from: formData.legal_entity_month_from || null,
-        legal_entity_month_to: formData.legal_entity_month_to || null,
-        first_close_month_from: formData.first_close_month_from || null,
-        first_close_month_to: formData.first_close_month_to || null,
-      };
+      const surveyData = prepareForDb(formData, user.id, selectedYear || 0, false);
 
       if (existingResponse) {
         const { error } = await supabase
           .from('survey_responses')
-          .update(surveyData)
-          .eq('id', existingResponse.id);
+          .update(surveyData);
 
         if (error) throw error;
       } else {
@@ -244,21 +265,24 @@ const Survey = () => {
     }
   };
 
+  const prepareForDb = (formData: SurveyFormData, userId: string, year: number, completed: boolean = false) => {
+    const dbData: any = {
+      ...formData,
+      user_id: userId,
+      year,
+      completed_at: completed ? new Date().toISOString() : null,
+      legal_entity_date_to: formData.legal_entity_date_to === 9999 ? 'present' : formData.legal_entity_date_to,
+      first_close_date_to: formData.first_close_date_to === 9999 ? 'present' : formData.first_close_date_to,
+    };
+    return dbData;
+  };
+
   const onSubmit = async (data: SurveyFormData) => {
     if (!user) return;
 
     setIsSubmitting(true);
     try {
-      const surveyData = {
-        user_id: user.id,
-        year: selectedYear,
-        completed_at: new Date().toISOString(),
-        ...data,
-        legal_entity_month_from: data.legal_entity_month_from || null,
-        legal_entity_month_to: data.legal_entity_month_to || null,
-        first_close_month_from: data.first_close_month_from || null,
-        first_close_month_to: data.first_close_month_to || null,
-      };
+      const surveyData = prepareForDb(data, user.id, selectedYear || 0, true);
 
       if (existingResponse) {
         const { error } = await supabase

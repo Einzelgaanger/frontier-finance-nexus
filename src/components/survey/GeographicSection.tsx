@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useState } from 'react';
 
+import type { SurveyFormData } from '@/types/survey';
 interface GeographicSectionProps {
-  form: UseFormReturn<any>;
+  form: UseFormReturn<SurveyFormData>;
 }
 
 export function GeographicSection({ form }: GeographicSectionProps) {

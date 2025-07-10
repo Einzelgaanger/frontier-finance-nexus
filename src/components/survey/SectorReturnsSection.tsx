@@ -10,8 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, X, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 
+import type { SurveyFormData } from '@/types/survey';
 interface SectorReturnsSectionProps {
-  form: UseFormReturn<any>;
+  form: UseFormReturn<SurveyFormData>;
 }
 
 interface SectorAllocation {
@@ -53,10 +54,10 @@ export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
     setSectorAllocations([...sectorAllocations, { sector: '', regions: [], percentage: 0 }]);
   };
 
-  const updateSectorAllocation = (index: number, field: keyof SectorAllocation, value: any) => {
+  const updateSectorAllocation = (index: number, field: keyof SectorAllocation, value: string | number | string[]) => {
     const newAllocations = [...sectorAllocations];
     if (field === 'regions') {
-      newAllocations[index].regions = value;
+      newAllocations[index].regions = value as string[];
     } else {
       newAllocations[index][field] = value;
     }

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import Header from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,9 +42,9 @@ const Admin = () => {
     if (userRole === 'admin') {
       fetchData();
     }
-  }, [userRole]);
+  }, [userRole, fetchData]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const [requestsRes, codesRes, visibilityRes] = await Promise.all([
@@ -70,7 +70,7 @@ const Admin = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   const approveRequest = async (requestId: string, email: string, vehicleName: string) => {
     try {

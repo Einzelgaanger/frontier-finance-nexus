@@ -7,8 +7,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowUp, ArrowDown, X } from 'lucide-react';
 import { useState } from 'react';
 
+import type { SurveyFormData } from '@/types/survey';
 interface InvestmentInstrumentsSectionProps {
-  form: UseFormReturn<any>;
+  form: UseFormReturn<SurveyFormData>;
 }
 
 export function InvestmentInstrumentsSection({ form }: InvestmentInstrumentsSectionProps) {
