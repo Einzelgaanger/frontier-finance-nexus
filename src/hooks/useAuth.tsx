@@ -30,11 +30,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
       
       if (error) {
         console.error('Error fetching user role:', error);
-        // If no role exists, try to create a default viewer role
+        setUserRole('viewer');
+        return;
+      }
+
+      if (!data) {
+        console.log('No role found, creating default viewer role');
         const { error: insertError } = await supabase
           .from('user_roles')
           .insert({ user_id: userId, role: 'viewer' });
@@ -72,13 +77,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Wait a bit for the trigger to complete if it's a new signup
+          // Wait for the trigger to complete if it's a new signup
           if (event === 'SIGNED_UP') {
             setTimeout(() => {
               if (mounted) {
                 fetchUserRole(session.user.id);
               }
-            }, 1000);
+            }, 2000);
           } else {
             await fetchUserRole(session.user.id);
           }

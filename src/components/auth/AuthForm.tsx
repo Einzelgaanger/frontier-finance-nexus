@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -83,7 +84,7 @@ export default function AuthForm() {
           title: "Welcome back!",
           description: "You have been signed in successfully.",
         });
-        navigate('/dashboard');
+        // Don't navigate here, let the auth context handle it
       }
     } catch (error: unknown) {
       const errorMessage = getErrorMessage(error);
@@ -183,7 +184,9 @@ export default function AuthForm() {
           description: errorMessage,
           variant: "destructive",
         });
+        setIsLoading(false);
       }
+      // Don't set loading false on success, redirect will happen
     } catch (error: unknown) {
       const errorMessage = getErrorMessage(error);
       toast({
@@ -191,7 +194,6 @@ export default function AuthForm() {
         description: errorMessage,
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
   };
@@ -437,7 +439,7 @@ export default function AuthForm() {
                     <Input
                       id="signup-password"
                       type={showSignUpPassword ? "text" : "password"}
-                      placeholder="Create a password"
+                      placeholder="Enter your password"
                       className="pl-10 pr-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60"
                       value={signUpForm.password}
                       onChange={(e) => setSignUpForm({ ...signUpForm, password: e.target.value })}
@@ -452,64 +454,32 @@ export default function AuthForm() {
                     </button>
                   </div>
                   
-                  {/* Password Strength Indicator */}
                   {signUpForm.password && (
                     <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <div className="flex-1 bg-gray-200 rounded-full h-2">
-                          <div 
-                            className={`h-2 rounded-full transition-all ${
-                              passwordStrength.strength === 'weak' ? 'bg-red-500 w-1/3' :
-                              passwordStrength.strength === 'medium' ? 'bg-yellow-500 w-2/3' :
-                              'bg-green-500 w-full'
-                            }`}
-                          />
-                        </div>
-                        <span className={`text-xs font-medium ${
-                          passwordStrength.strength === 'weak' ? 'text-red-600' :
-                          passwordStrength.strength === 'medium' ? 'text-yellow-600' :
-                          'text-green-600'
-                        }`}>
-                          {passwordStrength.strength}
+                      <div className="flex items-center gap-2 text-xs">
+                        <div className={`w-2 h-2 rounded-full ${passwordStrength.strength === 'weak' ? 'bg-red-400' : passwordStrength.strength === 'medium' ? 'bg-yellow-400' : 'bg-green-400'}`} />
+                        <span className="text-white/80">
+                          Password strength: {passwordStrength.strength}
                         </span>
                       </div>
                       
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div className={`flex items-center space-x-1 ${
-                          passwordStrength.checks.length ? 'text-green-600' : 'text-gray-500'
-                        }`}>
-                          {passwordStrength.checks.length ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                          <span>8+ characters</span>
-                        </div>
-                        <div className={`flex items-center space-x-1 ${
-                          passwordStrength.checks.uppercase ? 'text-green-600' : 'text-gray-500'
-                        }`}>
-                          {passwordStrength.checks.uppercase ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                          <span>Uppercase</span>
-                        </div>
-                        <div className={`flex items-center space-x-1 ${
-                          passwordStrength.checks.lowercase ? 'text-green-600' : 'text-gray-500'
-                        }`}>
-                          {passwordStrength.checks.lowercase ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                          <span>Lowercase</span>
-                        </div>
-                        <div className={`flex items-center space-x-1 ${
-                          passwordStrength.checks.number ? 'text-green-600' : 'text-gray-500'
-                        }`}>
-                          {passwordStrength.checks.number ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                          <span>Number</span>
-                        </div>
-                        <div className={`flex items-center space-x-1 ${
-                          passwordStrength.checks.special ? 'text-green-600' : 'text-gray-500'
-                        }`}>
-                          {passwordStrength.checks.special ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                          <span>Special char</span>
-                        </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs text-white/70">
+                        {Object.entries(passwordStrength.checks).map(([key, value]) => (
+                          <div key={key} className="flex items-center gap-1">
+                            {value ? <CheckCircle className="w-3 h-3 text-green-400" /> : <XCircle className="w-3 h-3 text-red-400" />}
+                            <span className={value ? 'text-green-400' : 'text-red-400'}>
+                              {key === 'length' ? '8+ chars' : 
+                               key === 'uppercase' ? 'Uppercase' :
+                               key === 'lowercase' ? 'Lowercase' :
+                               key === 'number' ? 'Number' : 'Special char'}
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )}
                 </div>
-
+                
                 <div className="space-y-2">
                   <Label htmlFor="confirm-password" className="text-white font-medium">Confirm Password</Label>
                   <div className="relative">
@@ -518,9 +488,7 @@ export default function AuthForm() {
                       id="confirm-password"
                       type={showConfirmPassword ? "text" : "password"}
                       placeholder="Confirm your password"
-                      className={`pl-10 pr-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60 ${
-                        signUpForm.confirmPassword && !passwordsMatch ? 'border-red-400' : ''
-                      }`}
+                      className="pl-10 pr-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60"
                       value={signUpForm.confirmPassword}
                       onChange={(e) => setSignUpForm({ ...signUpForm, confirmPassword: e.target.value })}
                       required
@@ -533,8 +501,14 @@ export default function AuthForm() {
                       {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
-                  {signUpForm.confirmPassword && !passwordsMatch && (
-                    <p className="text-xs text-red-300">Passwords don't match</p>
+                  
+                  {signUpForm.confirmPassword && (
+                    <div className="flex items-center gap-2 text-xs">
+                      {passwordsMatch ? 
+                        <><CheckCircle className="w-3 h-3 text-green-400" /><span className="text-green-400">Passwords match</span></> :
+                        <><XCircle className="w-3 h-3 text-red-400" /><span className="text-red-400">Passwords don't match</span></>
+                      }
+                    </div>
                   )}
                 </div>
                 
@@ -549,15 +523,15 @@ export default function AuthForm() {
             </TabsContent>
           </Tabs>
 
-          <div className="mt-6 p-4 bg-blue-700/20 backdrop-blur-sm rounded-lg border border-blue-600/40">
-            <div className="flex items-start space-x-2">
-              <AlertCircle className="w-4 h-4 text-blue-100 mt-0.5 flex-shrink-0" />
+          <div className="mt-6 p-4 bg-blue-700/20 rounded-lg border border-blue-600/40">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-blue-200 mt-0.5 flex-shrink-0" />
               <div className="text-sm text-white/90">
-                <p className="font-medium">Account Access Levels:</p>
-                <ul className="mt-1 space-y-1 text-xs">
-                  <li>• <strong>Viewer:</strong> Browse public fund manager data</li>
-                  <li>• <strong>Member:</strong> Access full network + complete survey</li>
-                  <li>• <strong>Admin:</strong> Full system control and analytics</li>
+                <p className="font-medium mb-2">Access Information:</p>
+                <ul className="space-y-1 text-xs">
+                  <li><span className="font-medium">Viewer:</span> Browse the network directory</li>
+                  <li><span className="font-medium">Member:</span> Access to member data and survey</li>
+                  <li><span className="font-medium">Admin:</span> Full platform management</li>
                 </ul>
               </div>
             </div>
