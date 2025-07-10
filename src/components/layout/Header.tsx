@@ -95,11 +95,6 @@ const Header = ({ showNav = true }: HeaderProps) => {
                           <img src="/logo.jpg" alt="CFF Logo" className="w-8 h-8 rounded-lg" />
                           <span className="text-lg font-bold text-gray-900">Menu</span>
                         </div>
-                        <SheetTrigger asChild>
-                          <Button variant="ghost" size="sm" className="hover:bg-gray-100">
-                            <X className="w-4 h-4" />
-                          </Button>
-                        </SheetTrigger>
                       </div>
                       
                       {/* Navigation */}

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import Header from '@/components/layout/Header';
@@ -127,17 +126,28 @@ const Admin = () => {
 
   const fetchUserStats = useCallback(async () => {
     try {
-      // Fetch user roles
+      console.log('Fetching user stats...');
+      
+      // Fetch user roles with proper counting
       const { data: userRoles, error: rolesError } = await supabase
         .from('user_roles')
         .select('role');
 
       if (rolesError) throw rolesError;
 
-      // Count users by role
-      const viewers = userRoles?.filter(ur => ur.role === 'viewer').length || 0;
-      const members = userRoles?.filter(ur => ur.role === 'member').length || 0;
-      const admins = userRoles?.filter(ur => ur.role === 'admin').length || 0;
+      console.log('User roles data:', userRoles);
+
+      // Count users by role (handle potential duplicates)
+      const roleCounts = userRoles?.reduce((acc, ur) => {
+        acc[ur.role] = (acc[ur.role] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>) || {};
+
+      const viewers = roleCounts.viewer || 0;
+      const members = roleCounts.member || 0;
+      const admins = roleCounts.admin || 0;
+
+      console.log('Role counts:', { viewers, members, admins });
 
       // Fetch completed surveys
       const { data: surveys, error: surveysError } = await supabase
@@ -146,6 +156,8 @@ const Admin = () => {
         .not('completed_at', 'is', null);
 
       if (surveysError) throw surveysError;
+
+      console.log('Completed surveys:', surveys?.length || 0);
 
       // Fetch profiles created today
       const today = new Date();
@@ -157,11 +169,28 @@ const Admin = () => {
 
       if (profilesError) throw profilesError;
 
+      console.log('New registrations today:', newProfiles?.length || 0);
+
+      // Calculate active users today (simplified - count users with recent activity)
+      const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+      const { data: recentActivity, error: activityError } = await supabase
+        .from('survey_responses')
+        .select('user_id')
+        .gte('updated_at', yesterday.toISOString());
+
+      if (activityError) {
+        console.error('Error fetching recent activity:', activityError);
+      }
+
+      const activeUsersToday = recentActivity ? new Set(recentActivity.map(a => a.user_id)).size : 0;
+
+      console.log('Active users today:', activeUsersToday);
+
       setUserStats({
         viewers,
         members,
         admins,
-        activeUsersToday: 0, // This would need session tracking
+        activeUsersToday,
         surveysCompleted: surveys?.length || 0,
         newRegistrations: newProfiles?.length || 0
       });
@@ -482,12 +511,21 @@ const Admin = () => {
   const exportData = async () => {
     setExportLoading(true);
     try {
-      console.log('Starting data export for period:', selectedDateRange);
+      console.log('Starting survey responses export for period:', selectedDateRange);
       
-      // Fetch profiles data for the selected time period
+      // Fetch survey responses data for the selected time period
       let query = supabase
-        .from('profiles')
-        .select('*');
+        .from('survey_responses')
+        .select(`
+          *,
+          profiles:user_id (
+            first_name,
+            last_name,
+            email,
+            phone
+          )
+        `)
+        .not('completed_at', 'is', null);
 
       // Apply date filter
       if (selectedDateRange !== 'all') {
@@ -509,52 +547,47 @@ const Admin = () => {
         }
 
         if (startDate) {
-          query = query.gte('created_at', startDate.toISOString());
+          query = query.gte('completed_at', startDate.toISOString());
         }
       }
 
-      const { data: profiles, error: profilesError } = await query;
+      const { data: surveyResponses, error: surveyError } = await query;
 
-      if (profilesError) {
-        console.error('Profiles query error:', profilesError);
-        throw profilesError;
+      if (surveyError) {
+        console.error('Survey responses query error:', surveyError);
+        throw surveyError;
       }
 
-      // Fetch survey responses separately
-      const { data: surveys, error: surveysError } = await supabase
-        .from('survey_responses')
-        .select('user_id, year, completed_at');
-
-      if (surveysError) {
-        console.error('Surveys query error:', surveysError);
-        throw surveysError;
-      }
-
-      // Create a map of user_id to survey data
-      const surveyMap = new Map();
-      surveys?.forEach(survey => {
-        if (!surveyMap.has(survey.user_id)) {
-          surveyMap.set(survey.user_id, []);
-        }
-        surveyMap.get(survey.user_id).push(survey);
-      });
-
-      console.log('Export data prepared:', { profiles: profiles?.length, surveys: surveys?.length });
+      console.log('Export data prepared:', { surveyResponses: surveyResponses?.length });
 
       // Prepare data for export
-      const exportData = profiles?.map(profile => {
-        const userSurveys = surveyMap.get(profile.id) || [];
-        const completedSurveys = userSurveys.filter(s => s.completed_at);
-        const latestSurvey = userSurveys.length > 0 ? userSurveys[0] : null;
-        
+      const exportData = surveyResponses?.map(survey => {
+        const profile = survey.profiles;
         return {
-          'Fund Manager': `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'N/A',
-          'Email': profile.email || 'N/A',
-          'Created Date': profile.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A',
-          'Total Surveys': userSurveys.length,
-          'Completed Surveys': completedSurveys.length,
-          'Latest Survey Year': latestSurvey?.year || 'N/A',
-          'Profile Status': completedSurveys.length > 0 ? 'Complete' : 'Incomplete'
+          'Fund Manager': `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 'N/A',
+          'Email': profile?.email || 'N/A',
+          'Phone': profile?.phone || 'N/A',
+          'Survey Year': survey.year || 'N/A',
+          'Vehicle Type': survey.vehicle_type || 'N/A',
+          'Thesis': survey.thesis || 'N/A',
+          'Legal Domicile': Array.isArray(survey.legal_domicile) ? survey.legal_domicile.join(', ') : 'N/A',
+          'Team Size': survey.team_size_min && survey.team_size_max ? `${survey.team_size_min}-${survey.team_size_max}` : 'N/A',
+          'Ticket Size Min': survey.ticket_size_min ? `$${survey.ticket_size_min.toLocaleString()}` : 'N/A',
+          'Ticket Size Max': survey.ticket_size_max ? `$${survey.ticket_size_max.toLocaleString()}` : 'N/A',
+          'Target Capital': survey.target_capital ? `$${survey.target_capital.toLocaleString()}` : 'N/A',
+          'Capital Raised': survey.capital_raised ? `$${survey.capital_raised.toLocaleString()}` : 'N/A',
+          'Capital in Market': survey.capital_in_market ? `$${survey.capital_in_market.toLocaleString()}` : 'N/A',
+          'Fund Stage': Array.isArray(survey.fund_stage) ? survey.fund_stage.join(', ') : 'N/A',
+          'Current Status': survey.current_status || 'N/A',
+          'Target Return Min': survey.target_return_min ? `${survey.target_return_min}%` : 'N/A',
+          'Target Return Max': survey.target_return_max ? `${survey.target_return_max}%` : 'N/A',
+          'Equity Investments Made': survey.equity_investments_made || 'N/A',
+          'Equity Investments Exited': survey.equity_investments_exited || 'N/A',
+          'Self-Liquidating Made': survey.self_liquidating_made || 'N/A',
+          'Self-Liquidating Exited': survey.self_liquidating_exited || 'N/A',
+          'Information Sharing': survey.information_sharing || 'N/A',
+          'How Heard About Network': survey.how_heard_about_network || 'N/A',
+          'Completed Date': survey.completed_at ? new Date(survey.completed_at).toLocaleDateString() : 'N/A'
         };
       }) || [];
 
@@ -570,7 +603,7 @@ const Admin = () => {
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
-      link.setAttribute('download', `fund_managers_${selectedDateRange}_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute('download', `survey_responses_${selectedDateRange}_${new Date().toISOString().split('T')[0]}.csv`);
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
@@ -578,13 +611,13 @@ const Admin = () => {
 
       toast({
         title: "Export Successful",
-        description: `Fund managers data exported for ${selectedDateRange}`,
+        description: `Survey responses exported for ${selectedDateRange}`,
       });
     } catch (error) {
       console.error('Error exporting data:', error);
       toast({
         title: "Export Failed",
-        description: "Failed to export data",
+        description: "Failed to export survey responses",
         variant: "destructive"
       });
     } finally {
@@ -960,8 +993,6 @@ const Admin = () => {
               </CardContent>
             </Card>
           </TabsContent>
-
-
         </Tabs>
       </div>
     </div>

@@ -21,7 +21,9 @@ import {
   AlertCircle,
   Briefcase,
   PieChart,
-  BarChart3
+  BarChart3,
+  Shield,
+  FileText
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -47,6 +49,30 @@ interface SurveyResponse {
   target_return_min: number;
   target_return_max: number;
   completed_at: string;
+  // Admin-only fields
+  supporting_document_url?: string;
+  team_members?: any[];
+  team_description?: string;
+  expectations?: string;
+  legal_entity_date_from?: number;
+  legal_entity_date_to?: number;
+  first_close_date_from?: number;
+  first_close_date_to?: number;
+  legal_entity_month_from?: number;
+  legal_entity_month_to?: number;
+  first_close_month_from?: number;
+  first_close_month_to?: number;
+  ticket_description?: string;
+  capital_in_market?: number;
+  vehicle_type_other?: string;
+  vehicle_websites?: string | string[];
+  investment_instruments_priority?: any[];
+  equity_investments_made?: number;
+  equity_investments_exited?: number;
+  self_liquidating_made?: number;
+  self_liquidating_exited?: number;
+  how_heard_about_network?: string;
+  information_sharing?: string;
 }
 
 interface Profile {
@@ -545,6 +571,196 @@ const FundManagerDetail = () => {
                   </div>
                 </CardContent>
               </Card>
+            </div>
+          </div>
+        )}
+
+        {/* Admin-Only Sections */}
+        {userRole === 'admin' && selectedResponse && (
+          <div className="mt-8 space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+              <Shield className="w-6 h-6 mr-3 text-purple-600" />
+              Admin-Only Data
+            </h2>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Team Information */}
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center text-xl">
+                    <Users className="w-6 h-6 mr-3 text-blue-600" />
+                    Team Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {selectedResponse.team_description && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">Team Description</h4>
+                      <p className="text-gray-700">{selectedResponse.team_description}</p>
+                    </div>
+                  )}
+                  
+                  {selectedResponse.team_members && selectedResponse.team_members.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">Team Members</h4>
+                      <div className="space-y-2">
+                        {selectedResponse.team_members.map((member, index) => (
+                          <div key={index} className="p-3 bg-gray-50 rounded-lg">
+                            <div className="font-medium text-gray-900">{member.name}</div>
+                            <div className="text-sm text-gray-600">{member.role}</div>
+                            <div className="text-sm text-gray-500">{member.email}</div>
+                            {member.phone && <div className="text-sm text-gray-500">{member.phone}</div>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Additional Fund Details */}
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center text-xl">
+                    <Building2 className="w-6 h-6 mr-3 text-green-600" />
+                    Additional Fund Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {selectedResponse.vehicle_websites && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">Vehicle Websites</h4>
+                      <div className="space-y-1">
+                        {Array.isArray(selectedResponse.vehicle_websites) 
+                          ? selectedResponse.vehicle_websites.map((url, index) => (
+                              <a key={index} href={url} target="_blank" rel="noopener noreferrer" 
+                                 className="text-blue-600 hover:text-blue-800 text-sm block">
+                                {url}
+                              </a>
+                            ))
+                          : <a href={selectedResponse.vehicle_websites} target="_blank" rel="noopener noreferrer" 
+                               className="text-blue-600 hover:text-blue-800 text-sm">
+                              {selectedResponse.vehicle_websites}
+                            </a>
+                        }
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedResponse.vehicle_type_other && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">Other Vehicle Type</h4>
+                      <p className="text-gray-700">{selectedResponse.vehicle_type_other}</p>
+                    </div>
+                  )}
+
+                  {selectedResponse.ticket_description && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">Ticket Size Description</h4>
+                      <p className="text-gray-700">{selectedResponse.ticket_description}</p>
+                    </div>
+                  )}
+
+                  {selectedResponse.capital_in_market && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">Capital in Market</h4>
+                      <p className="text-gray-700 font-semibold">{formatCurrency(selectedResponse.capital_in_market)}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Investment History */}
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center text-xl">
+                    <TrendingUp className="w-6 h-6 mr-3 text-orange-600" />
+                    Investment History
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-3 bg-blue-50 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">{selectedResponse.equity_investments_made || 0}</div>
+                      <div className="text-sm text-gray-600">Equity Made</div>
+                    </div>
+                    <div className="text-center p-3 bg-green-50 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">{selectedResponse.equity_investments_exited || 0}</div>
+                      <div className="text-sm text-gray-600">Equity Exited</div>
+                    </div>
+                    <div className="text-center p-3 bg-purple-50 rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600">{selectedResponse.self_liquidating_made || 0}</div>
+                      <div className="text-sm text-gray-600">Self-Liquidating Made</div>
+                    </div>
+                    <div className="text-center p-3 bg-yellow-50 rounded-lg">
+                      <div className="text-2xl font-bold text-yellow-600">{selectedResponse.self_liquidating_exited || 0}</div>
+                      <div className="text-sm text-gray-600">Self-Liquidating Exited</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Network Information */}
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center text-xl">
+                    <Globe className="w-6 h-6 mr-3 text-indigo-600" />
+                    Network Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {selectedResponse.how_heard_about_network && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">How Heard About Network</h4>
+                      <p className="text-gray-700">{selectedResponse.how_heard_about_network}</p>
+                    </div>
+                  )}
+
+                  {selectedResponse.information_sharing && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">Information Sharing</h4>
+                      <p className="text-gray-700">{selectedResponse.information_sharing}</p>
+                    </div>
+                  )}
+
+                  {selectedResponse.expectations && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">Expectations</h4>
+                      <p className="text-gray-700">{selectedResponse.expectations}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Supporting Documents */}
+              {selectedResponse.supporting_document_url && (
+                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm lg:col-span-2">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="flex items-center text-xl">
+                      <FileText className="w-6 h-6 mr-3 text-red-600" />
+                      Supporting Documents
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <FileText className="w-8 h-8 text-red-600" />
+                        <div>
+                          <h4 className="font-semibold text-red-900">Supporting Document</h4>
+                          <a 
+                            href={selectedResponse.supporting_document_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-red-600 hover:text-red-800 text-sm underline"
+                          >
+                            View Document
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
         )}
