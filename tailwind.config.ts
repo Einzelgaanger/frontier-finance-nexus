@@ -26,8 +26,8 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					DEFAULT: '#dc2626', // Tailwind red-600
+					foreground: '#fff1f2' // Tailwind red-50
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
