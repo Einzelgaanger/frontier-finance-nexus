@@ -77,14 +77,8 @@ export function VehicleInfoSection({ form }: VehicleInfoSectionProps) {
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="venture_capital">Venture Capital</SelectItem>
-                <SelectItem value="private_equity">Private Equity</SelectItem>
-                <SelectItem value="growth_equity">Growth Equity</SelectItem>
-                <SelectItem value="debt_fund">Debt Fund</SelectItem>
-                <SelectItem value="impact_fund">Impact Fund</SelectItem>
-                <SelectItem value="infrastructure">Infrastructure</SelectItem>
-                <SelectItem value="real_estate">Real Estate</SelectItem>
-                <SelectItem value="hedge_fund">Hedge Fund</SelectItem>
+                <SelectItem value="open">Open</SelectItem>
+                <SelectItem value="closed">Closed</SelectItem>
                 <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>

@@ -16,14 +16,21 @@ export function GeographicSection({ form }: GeographicSectionProps) {
   );
 
   const domicileOptions = [
-    'Kenya', 'Uganda', 'Tanzania', 'Rwanda', 'Ethiopia',
-    'Ghana', 'Nigeria', 'South Africa', 'Egypt', 'Morocco',
-    'Mauritius', 'United States', 'United Kingdom', 'Other'
+    'Kenya', 'Uganda', 'Tanzania', 'Rwanda', 'Ethiopia', 'Somalia', 'Djibouti', 'Eritrea',
+    'Ghana', 'Nigeria', 'Senegal', 'Côte d\'Ivoire', 'Burkina Faso', 'Mali', 'Niger',
+    'South Africa', 'Namibia', 'Botswana', 'Zimbabwe', 'Zambia', 'Malawi', 'Mozambique',
+    'Egypt', 'Morocco', 'Tunisia', 'Algeria', 'Libya', 'Sudan', 'South Sudan',
+    'Mauritius', 'Seychelles', 'Madagascar', 'Comoros',
+    'United States', 'United Kingdom', 'France', 'Germany', 'Netherlands', 'Switzerland',
+    'China', 'India', 'Japan', 'Singapore', 'United Arab Emirates', 'Saudi Arabia',
+    'Other'
   ];
 
   const marketOptions = [
-    'East Africa', 'West Africa', 'Southern Africa', 'North Africa',
-    'Sub-Saharan Africa', 'MENA', 'Global', 'Other'
+    'Africa (Pan-African)', 'East Africa', 'West Africa', 'Southern Africa', 'North Africa',
+    'Sub-Saharan Africa', 'MENA', 'East Africa (Kenya, Uganda, Tanzania, Rwanda)', 
+    'West Africa (Ghana, Nigeria, Senegal)', 'Southern Africa (South Africa, Namibia)',
+    'North Africa (Egypt, Morocco, Tunisia)', 'Global', 'Other'
   ];
 
   const updateMarketAllocation = (market: string, value: string) => {

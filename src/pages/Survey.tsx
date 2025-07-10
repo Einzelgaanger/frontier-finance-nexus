@@ -91,7 +91,7 @@ const Survey = () => {
   const [existingResponse, setExistingResponse] = useState<any>(null);
   const [pastSurveys, setPastSurveys] = useState<any[]>([]);
   const [showNewSurvey, setShowNewSurvey] = useState(false);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const { user, userRole } = useAuth();
   const { toast } = useToast();
 
@@ -536,26 +536,37 @@ const Survey = () => {
                   Create New Survey
                 </CardTitle>
                 <CardDescription>
-                  Start a new survey for the current year
+                  Choose a year and start a new survey
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="p-4 border rounded-lg">
-                    <h3 className="font-medium text-gray-900 mb-2">Survey {new Date().getFullYear()}</h3>
+                    <h3 className="font-medium text-gray-900 mb-2">Select Survey Year</h3>
                     <p className="text-sm text-gray-600 mb-4">
-                      Complete the comprehensive fund manager survey to provide detailed information about your fund.
+                      Choose which year this survey data represents. You can create surveys for different years.
                     </p>
-                    <Button 
-                      onClick={() => {
-                        setSelectedYear(new Date().getFullYear());
-                        setShowNewSurvey(true);
-                      }}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Start New Survey
-                    </Button>
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap gap-2">
+                        {[new Date().getFullYear(), new Date().getFullYear() - 1, new Date().getFullYear() - 2].map((year) => (
+                          <Button
+                            key={year}
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedYear(year);
+                              setShowNewSurvey(true);
+                            }}
+                            className="flex items-center space-x-2"
+                          >
+                            <Calendar className="w-4 h-4" />
+                            <span>{year}</span>
+                          </Button>
+                        ))}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Select the year that best represents your fund's data for this survey period.
+                      </div>
+                    </div>
                   </div>
                 </div>
               </CardContent>

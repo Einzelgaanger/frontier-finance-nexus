@@ -96,13 +96,10 @@ const AdminDashboard = () => {
         .lte('expires_at', endOfDay.toISOString());
       const expiringCodesCount = codes && !codesError ? codes.length : 0;
       setExpiringCodes(expiringCodesCount);
-      // Recent Alerts
+      // Recent Alerts - Only show real alerts
       const alerts = [];
       if (pendingRequestsCount > 0) alerts.push({ type: 'warning', message: `${pendingRequestsCount} membership requests awaiting approval`, time: 'Just now' });
       if (expiringCodesCount > 0) alerts.push({ type: 'warning', message: `${expiringCodesCount} invitation codes expiring today`, time: 'Just now' });
-      // Add static/dummy alerts
-      alerts.push({ type: 'info', message: 'Monthly analytics report generated', time: '6 hours ago' });
-      alerts.push({ type: 'success', message: 'System backup completed successfully', time: '12 hours ago' });
       setRecentAlerts(alerts);
     };
     fetchStats();

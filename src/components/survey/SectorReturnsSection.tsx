@@ -3,54 +3,221 @@ import { UseFormReturn } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus, X, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 
 interface SectorReturnsSectionProps {
   form: UseFormReturn<any>;
 }
 
+interface SectorAllocation {
+  sector: string;
+  regions: string[];
+  percentage: number;
+}
+
 export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
-  const [sectors, setSectors] = useState<Record<string, number>>(
-    form.getValues('sectors_allocation') || {}
+  const [sectorAllocations, setSectorAllocations] = useState<SectorAllocation[]>(
+    Object.keys(form.getValues('sectors_allocation') || {}).map(sector => ({
+      sector,
+      regions: [],
+      percentage: form.getValues('sectors_allocation')[sector] || 0
+    }))
   );
 
   const sectorOptions = [
-    'Fintech', 'Healthtech', 'Edtech', 'Agtech', 'E-commerce',
-    'SaaS', 'Mobility', 'Energy', 'Manufacturing', 'Real Estate',
-    'Consumer Goods', 'Media', 'Infrastructure', 'Other'
+    'Agri: SME/ Food value chain/ Agritech',
+    'Software services/ SaaS',
+    'Clean energy/ renewable/ e-mobility',
+    'Manufacturing',
+    'Agri: Primary Agri',
+    'Healthcare/ medical services',
+    'Education',
+    'Tech/ telecom/ data infrastructure',
+    'FMCG',
+    'Logistics/ Transport/ Distribution',
+    'Merchandising/ Retail/ On-time-retail'
   ];
 
-  const updateSectorAllocation = (sector: string, value: string) => {
-    const numValue = parseFloat(value) || 0;
-    const newSectors = { ...sectors, [sector]: numValue };
-    setSectors(newSectors);
-    form.setValue('sectors_allocation', newSectors);
+  const regionOptions = [
+    'East Africa', 'West Africa', 'Southern Africa', 'North Africa',
+    'Sub-Saharan Africa', 'MENA', 'Global', 'Kenya', 'Uganda', 'Tanzania',
+    'Ghana', 'Nigeria', 'South Africa', 'Egypt', 'Morocco', 'Other'
+  ];
+
+  const addSectorAllocation = () => {
+    setSectorAllocations([...sectorAllocations, { sector: '', regions: [], percentage: 0 }]);
   };
+
+  const updateSectorAllocation = (index: number, field: keyof SectorAllocation, value: any) => {
+    const newAllocations = [...sectorAllocations];
+    if (field === 'regions') {
+      newAllocations[index].regions = value;
+    } else {
+      newAllocations[index][field] = value;
+    }
+    setSectorAllocations(newAllocations);
+    updateFormValues(newAllocations);
+  };
+
+  const removeSectorAllocation = (index: number) => {
+    const newAllocations = sectorAllocations.filter((_, i) => i !== index);
+    setSectorAllocations(newAllocations);
+    updateFormValues(newAllocations);
+  };
+
+  const updateFormValues = (allocations: SectorAllocation[]) => {
+    const sectorsData: Record<string, number> = {};
+    allocations.forEach(allocation => {
+      if (allocation.sector && allocation.percentage > 0) {
+        sectorsData[allocation.sector] = allocation.percentage;
+      }
+    });
+    form.setValue('sectors_allocation', sectorsData);
+  };
+
+  const totalPercentage = sectorAllocations.reduce((sum, allocation) => sum + allocation.percentage, 0);
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Sector Allocation (%)</CardTitle>
+          <CardTitle className="text-lg">Sector Focus & Regional Allocation</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {sectorOptions.map((sector) => (
-              <div key={sector} className="flex items-center space-x-2">
-                <label className="flex-1 text-sm font-medium">{sector}</label>
-                <Input
-                  type="number"
-                  placeholder="0"
-                  value={sectors[sector] || ''}
-                  onChange={(e) => updateSectorAllocation(sector, e.target.value)}
-                  className="w-24"
-                />
-                <span className="text-sm text-gray-500">%</span>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-gray-600 mb-4">
+            For each sector you focus on, select the regions and specify the percentage allocation.
+            The total of all percentages should equal 100%.
+          </p>
+          
+          {sectorAllocations.map((allocation, index) => (
+            <div key={index} className="border rounded-lg p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium">Sector {index + 1}</h4>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeSectorAllocation(index)}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
               </div>
-            ))}
-          </div>
-          <div className="mt-4 text-sm text-gray-600">
-            Total allocation: {Object.values(sectors).reduce((sum, val) => sum + val, 0)}%
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name={`sector_${index}`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Sector *</FormLabel>
+                      <Select 
+                        onValueChange={(value) => updateSectorAllocation(index, 'sector', value)}
+                        value={allocation.sector}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select sector" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {sectorOptions.map((sector) => (
+                            <SelectItem key={sector} value={sector}>{sector}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name={`percentage_${index}`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Allocation Percentage *</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          value={allocation.percentage || ''}
+                          onChange={(e) => updateSectorAllocation(index, 'percentage', parseFloat(e.target.value) || 0)}
+                          className="w-full"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <FormLabel>Regions for this sector:</FormLabel>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {regionOptions.map((region) => (
+                    <div key={region} className="flex items-center space-x-2">
+                      <Checkbox
+                        checked={allocation.regions.includes(region)}
+                        onCheckedChange={(checked) => {
+                          const newRegions = checked
+                            ? [...allocation.regions, region]
+                            : allocation.regions.filter(r => r !== region);
+                          updateSectorAllocation(index, 'regions', newRegions);
+                        }}
+                      />
+                      <label className="text-sm">{region}</label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {allocation.regions.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {allocation.regions.map((region) => (
+                    <Badge key={region} variant="secondary">
+                      {region}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+          
+          <Button
+            type="button"
+            variant="outline"
+            onClick={addSectorAllocation}
+            className="w-full"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Another Sector
+          </Button>
+          
+          <div className={`p-3 rounded-lg ${
+            totalPercentage === 100 
+              ? 'bg-green-50 text-green-800' 
+              : totalPercentage > 100 
+                ? 'bg-red-50 text-red-800'
+                : 'bg-yellow-50 text-yellow-800'
+          }`}>
+            <div className="flex items-center space-x-2">
+              <AlertCircle className="w-4 h-4" />
+              <span className="font-medium">
+                Total Allocation: {totalPercentage}%
+              </span>
+            </div>
+            {totalPercentage === 100 && (
+              <p className="text-sm mt-1">Perfect! Total allocation equals 100%.</p>
+            )}
+            {totalPercentage > 100 && (
+              <p className="text-sm mt-1">Total allocation exceeds 100%. Please adjust percentages.</p>
+            )}
+            {totalPercentage < 100 && (
+              <p className="text-sm mt-1">Total allocation is less than 100%. You can add more sectors or adjust percentages.</p>
+            )}
           </div>
         </CardContent>
       </Card>

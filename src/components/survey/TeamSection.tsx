@@ -14,8 +14,9 @@ interface TeamSectionProps {
 
 interface TeamMember {
   name: string;
+  email: string;
+  phone: string;
   role: string;
-  experience: string;
 }
 
 export function TeamSection({ form }: TeamSectionProps) {
@@ -24,7 +25,7 @@ export function TeamSection({ form }: TeamSectionProps) {
   );
 
   const addTeamMember = () => {
-    const newMembers = [...teamMembers, { name: '', role: '', experience: '' }];
+    const newMembers = [...teamMembers, { name: '', email: '', phone: '', role: '' }];
     setTeamMembers(newMembers);
     form.setValue('team_members', newMembers);
   };
@@ -125,22 +126,32 @@ export function TeamSection({ form }: TeamSectionProps) {
               </Button>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Input
-                placeholder="Full Name"
-                value={member.name}
-                onChange={(e) => updateTeamMember(index, 'name', e.target.value)}
-              />
-              <Input
-                placeholder="Role/Position"
-                value={member.role}
-                onChange={(e) => updateTeamMember(index, 'role', e.target.value)}
-              />
-              <Textarea
-                placeholder="Experience and background..."
-                value={member.experience}
-                onChange={(e) => updateTeamMember(index, 'experience', e.target.value)}
-                className="min-h-[80px]"
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  placeholder="Full Name *"
+                  value={member.name}
+                  onChange={(e) => updateTeamMember(index, 'name', e.target.value)}
+                />
+                <Input
+                  placeholder="Email *"
+                  type="email"
+                  value={member.email}
+                  onChange={(e) => updateTeamMember(index, 'email', e.target.value)}
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  placeholder="Phone *"
+                  type="tel"
+                  value={member.phone}
+                  onChange={(e) => updateTeamMember(index, 'phone', e.target.value)}
+                />
+                <Input
+                  placeholder="Role/Position *"
+                  value={member.role}
+                  onChange={(e) => updateTeamMember(index, 'role', e.target.value)}
+                />
+              </div>
             </CardContent>
           </Card>
         ))}

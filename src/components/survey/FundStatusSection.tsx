@@ -11,7 +11,7 @@ interface FundStatusSectionProps {
 
 export function FundStatusSection({ form }: FundStatusSectionProps) {
   const fundStageOptions = [
-    'Fund Formation', 'First Close', 'Fundraising', 'Deployed', 'Exiting', 'Liquidated'
+    'Implementation', 'Ideation', 'Pilot', 'Scale'
   ];
 
   const currentYear = new Date().getFullYear();
@@ -72,7 +72,7 @@ export function FundStatusSection({ form }: FundStatusSectionProps) {
         name="current_status"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Current Status *</FormLabel>
+            <FormLabel>Current Status of Recent Operations *</FormLabel>
             <Select onValueChange={field.onChange} defaultValue={field.value}>
               <FormControl>
                 <SelectTrigger>
@@ -80,11 +80,7 @@ export function FundStatusSection({ form }: FundStatusSectionProps) {
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="raising">Currently Raising</SelectItem>
-                <SelectItem value="deploying">Deploying Capital</SelectItem>
-                <SelectItem value="managing">Managing Portfolio</SelectItem>
-                <SelectItem value="exiting">Preparing Exits</SelectItem>
-                <SelectItem value="new_fund">Planning New Fund</SelectItem>
+                <SelectItem value="fundraising">Fundraising</SelectItem>
                 <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
@@ -93,10 +89,26 @@ export function FundStatusSection({ form }: FundStatusSectionProps) {
         )}
       />
 
+      {form.watch('current_status') === 'other' && (
+        <FormField
+          control={form.control}
+          name="current_status_other"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Specify Other Status</FormLabel>
+              <FormControl>
+                <Input placeholder="Please specify your current status" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Legal Entity Formation</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <h3 className="text-lg font-semibold">Legal Entity Formation (Year Range)</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <FormField
               control={form.control}
               name="legal_entity_date_from"
@@ -124,7 +136,7 @@ export function FundStatusSection({ form }: FundStatusSectionProps) {
               name="legal_entity_month_from"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>From Month</FormLabel>
+                  <FormLabel>From Month (Optional)</FormLabel>
                   <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
                     <FormControl>
                       <SelectTrigger>
@@ -132,6 +144,53 @@ export function FundStatusSection({ form }: FundStatusSectionProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
+                      <SelectItem value="">Not specified</SelectItem>
+                      {months.map((month, index) => (
+                        <SelectItem key={month} value={(index + 1).toString()}>{month}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="legal_entity_date_to"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>To Year</FormLabel>
+                  <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Year" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="present">Up to Present</SelectItem>
+                      {years.map((year) => (
+                        <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="legal_entity_month_to"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>To Month (Optional)</FormLabel>
+                  <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Month" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="">Not specified</SelectItem>
                       {months.map((month, index) => (
                         <SelectItem key={month} value={(index + 1).toString()}>{month}</SelectItem>
                       ))}
@@ -145,8 +204,8 @@ export function FundStatusSection({ form }: FundStatusSectionProps) {
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">First Close</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <h3 className="text-lg font-semibold">First Close (Year Range)</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <FormField
               control={form.control}
               name="first_close_date_from"
@@ -174,7 +233,7 @@ export function FundStatusSection({ form }: FundStatusSectionProps) {
               name="first_close_month_from"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>From Month</FormLabel>
+                  <FormLabel>From Month (Optional)</FormLabel>
                   <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
                     <FormControl>
                       <SelectTrigger>
@@ -182,6 +241,53 @@ export function FundStatusSection({ form }: FundStatusSectionProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
+                      <SelectItem value="">Not specified</SelectItem>
+                      {months.map((month, index) => (
+                        <SelectItem key={month} value={(index + 1).toString()}>{month}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="first_close_date_to"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>To Year</FormLabel>
+                  <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Year" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="present">Up to Present</SelectItem>
+                      {years.map((year) => (
+                        <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="first_close_month_to"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>To Month (Optional)</FormLabel>
+                  <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Month" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="">Not specified</SelectItem>
                       {months.map((month, index) => (
                         <SelectItem key={month} value={(index + 1).toString()}>{month}</SelectItem>
                       ))}
