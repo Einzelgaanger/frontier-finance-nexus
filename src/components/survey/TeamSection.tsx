@@ -22,7 +22,7 @@ interface TeamMember {
 
 export function TeamSection({ form }: TeamSectionProps) {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>(
-    form.getValues('team_members') || []
+    (form.getValues('team_members') as TeamMember[]) || []
   );
 
   const addTeamMember = () => {

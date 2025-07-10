@@ -17,48 +17,22 @@ const Dashboard = () => {
     );
   }
 
-  // Viewer Dashboard
-  if (userRole === 'viewer') {
+  // Don't render any dashboard content until we have a confirmed role
+  if (!userRole) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <ViewerDashboard />
-        </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
-  // Member Dashboard
-  if (userRole === 'member') {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <MemberDashboard />
-        </div>
-      </div>
-    );
-  }
-
-  // Admin Dashboard
-  if (userRole === 'admin') {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <AdminDashboard />
-        </div>
-      </div>
-    );
-  }
-
-  // Fallback - should not happen but just in case
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <ViewerDashboard />
+        {userRole === 'viewer' && <ViewerDashboard />}
+        {userRole === 'member' && <MemberDashboard />}
+        {userRole === 'admin' && <AdminDashboard />}
       </div>
     </div>
   );

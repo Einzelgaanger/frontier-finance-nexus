@@ -30,7 +30,8 @@ const AdminDashboard = () => {
   const [platformActivity, setPlatformActivity] = useState({ activeToday: 0, surveysCompleted: 0, newRegistrations: 0 });
   const [pendingRequests, setPendingRequests] = useState(0);
   const [expiringCodes, setExpiringCodes] = useState(0);
-  const [recentAlerts, setRecentAlerts] = useState([]);
+  const [recentAlerts, setRecentAlerts] = useState<Array<{ type: string; message: string; time: string }>>([]);
+
   useEffect(() => {
     const fetchStats = async () => {
       // 1. Total Users & User Distribution
@@ -43,10 +44,12 @@ const AdminDashboard = () => {
         admins = roles.filter(r => r.role === 'admin').length;
         setUserDistribution({ viewers, members, admins });
       }
+
       // 2. Pending Requests
       const { data: requests, error: reqError } = await supabase.from('membership_requests').select('id').eq('status', 'pending');
       const pendingRequestsCount = requests && !reqError ? requests.length : 0;
       setPendingRequests(pendingRequestsCount);
+
       // 3. Active Surveys (completed this month)
       const startOfMonth = new Date();
       startOfMonth.setDate(1); startOfMonth.setHours(0,0,0,0);
@@ -55,6 +58,7 @@ const AdminDashboard = () => {
         .select('id, completed_at')
         .gte('completed_at', startOfMonth.toISOString());
       const activeSurveys = surveys && !surveysError ? surveys.length : 0;
+
       // 4. New Registrations (today)
       const startOfDay = new Date();
       startOfDay.setHours(0,0,0,0);
@@ -65,12 +69,14 @@ const AdminDashboard = () => {
         .select('id, created_at')
         .gte('created_at', startOfDay.toISOString());
       if (profiles && !profilesError) newRegistrations = profiles.length;
+
       // 5. Surveys Completed (all time)
       const { data: allSurveys, error: allSurveysError } = await supabase
         .from('survey_responses')
         .select('id')
         .not('completed_at', 'is', null);
       const surveysCompleted = allSurveys && !allSurveysError ? allSurveys.length : 0;
+
       // 6. Active Users Today (not tracked, set to 0 or use activity_logs if available)
       let activeToday = 0;
       const { data: logs, error: logsError } = await supabase
@@ -78,14 +84,16 @@ const AdminDashboard = () => {
         .select('user_id, created_at')
         .gte('created_at', startOfDay.toISOString());
       if (logs && !logsError) activeToday = new Set(logs.map(l => l.user_id)).size;
+
       setStats([
-        { title: 'Total Users', value: totalUsers, icon: Users, description: 'Across all roles', trend: { value: 0, isPositive: true } },
-        { title: 'Pending Requests', value: pendingRequestsCount, icon: UserCheck, description: 'Membership applications' },
-        { title: 'Active Surveys', value: activeSurveys, icon: Building2, description: 'Completed this month', trend: { value: 0, isPositive: true } },
+        { title: 'Total Users', value: totalUsers.toString(), icon: Users, description: 'Across all roles', trend: { value: 0, isPositive: true } },
+        { title: 'Pending Requests', value: pendingRequestsCount.toString(), icon: UserCheck, description: 'Membership applications' },
+        { title: 'Active Surveys', value: activeSurveys.toString(), icon: Building2, description: 'Completed this month', trend: { value: 0, isPositive: true } },
         { title: 'Platform Health', value: '99.9%', icon: TrendingUp, description: 'Uptime this month' },
       ]);
       setUserDistribution({ viewers, members, admins });
       setPlatformActivity({ activeToday, surveysCompleted, newRegistrations });
+
       // Invitation Codes Expiring Today
       const endOfDay = new Date(startOfDay);
       endOfDay.setHours(23,59,59,999);
@@ -96,16 +104,16 @@ const AdminDashboard = () => {
         .lte('expires_at', endOfDay.toISOString());
       const expiringCodesCount = codes && !codesError ? codes.length : 0;
       setExpiringCodes(expiringCodesCount);
+
       // Recent Alerts - Only show real alerts
       const alerts = [];
       if (pendingRequestsCount > 0) alerts.push({ type: 'warning', message: `${pendingRequestsCount} membership requests awaiting approval`, time: 'Just now' });
       if (expiringCodesCount > 0) alerts.push({ type: 'warning', message: `${expiringCodesCount} invitation codes expiring today`, time: 'Just now' });
       setRecentAlerts(alerts);
     };
+
     fetchStats();
   }, []);
-
-  // Remove the adminActions array and the entire section that renders it
 
   return (
     <div className="space-y-8">

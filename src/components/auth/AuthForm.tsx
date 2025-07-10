@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -74,9 +75,10 @@ export default function AuthForm() {
       const { error } = await signIn(signInForm.email, signInForm.password);
       
       if (error) {
+        const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
         toast({
           title: "Sign In Failed",
-          description: error.message,
+          description: errorMessage,
           variant: "destructive",
         });
       } else {
@@ -122,7 +124,6 @@ export default function AuthForm() {
     setIsLoading(true);
 
     try {
-      const baseUrl = getBaseUrl();
       const { error } = await signUp(
         signUpForm.email, 
         signUpForm.password,
@@ -133,7 +134,8 @@ export default function AuthForm() {
       );
       
       if (error) {
-        if (error.message.includes('already registered')) {
+        const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+        if (errorMessage.includes('already registered')) {
           toast({
             title: "Account Already Exists",
             description: "An account with this email already exists. Please sign in instead.",
@@ -142,7 +144,7 @@ export default function AuthForm() {
         } else {
           toast({
             title: "Sign Up Failed",
-            description: error.message,
+            description: errorMessage,
             variant: "destructive",
           });
         }
@@ -178,9 +180,10 @@ export default function AuthForm() {
       const { error } = await signInWithGoogle();
       
       if (error) {
+        const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
         toast({
           title: "Google Sign In Failed",
-          description: error.message,
+          description: errorMessage,
           variant: "destructive",
         });
       }
@@ -207,9 +210,10 @@ export default function AuthForm() {
       });
 
       if (error) {
+        const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
         toast({
           title: "Password Reset Failed",
-          description: error.message,
+          description: errorMessage,
           variant: "destructive",
         });
       } else {

@@ -58,8 +58,10 @@ export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
     const newAllocations = [...sectorAllocations];
     if (field === 'regions') {
       newAllocations[index].regions = value as string[];
-    } else {
-      newAllocations[index][field] = value;
+    } else if (field === 'sector') {
+      newAllocations[index].sector = value as string;
+    } else if (field === 'percentage') {
+      newAllocations[index].percentage = value as number;
     }
     setSectorAllocations(newAllocations);
     updateFormValues(newAllocations);
@@ -110,49 +112,33 @@ export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name={`sector_${index}`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Sector *</FormLabel>
-                      <Select 
-                        onValueChange={(value) => updateSectorAllocation(index, 'sector', value)}
-                        value={allocation.sector}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select sector" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {sectorOptions.map((sector) => (
-                            <SelectItem key={sector} value={sector}>{sector}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormItem>
-                  )}
-                />
+                <div className="space-y-2">
+                  <FormLabel>Sector *</FormLabel>
+                  <Select 
+                    onValueChange={(value) => updateSectorAllocation(index, 'sector', value)}
+                    value={allocation.sector}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select sector" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sectorOptions.map((sector) => (
+                        <SelectItem key={sector} value={sector}>{sector}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 
-                <FormField
-                  control={form.control}
-                  name={`percentage_${index}`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Allocation Percentage *</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="0"
-                          value={allocation.percentage || ''}
-                          onChange={(e) => updateSectorAllocation(index, 'percentage', parseFloat(e.target.value) || 0)}
-                          className="w-full"
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+                <div className="space-y-2">
+                  <FormLabel>Allocation Percentage *</FormLabel>
+                  <Input
+                    type="number"
+                    placeholder="0"
+                    value={allocation.percentage || ''}
+                    onChange={(e) => updateSectorAllocation(index, 'percentage', parseFloat(e.target.value) || 0)}
+                    className="w-full"
+                  />
+                </div>
               </div>
               
               <div className="space-y-2">

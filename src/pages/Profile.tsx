@@ -25,13 +25,6 @@ const Profile = () => {
   const [surveyResponses, setSurveyResponses] = useState([]);
   const [editMode, setEditMode] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      fetchProfile();
-      fetchSurveyResponses();
-    }
-  }, [user, fetchProfile, fetchSurveyResponses]);
-
   const fetchProfile = useCallback(async () => {
     try {
       const { data, error } = await supabase
@@ -65,6 +58,13 @@ const Profile = () => {
       console.error('Error fetching survey responses:', error);
     }
   }, [user?.id]);
+
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
+      fetchSurveyResponses();
+    }
+  }, [user, fetchProfile, fetchSurveyResponses]);
 
   const updateProfile = async () => {
     try {
@@ -242,7 +242,7 @@ const Profile = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {surveyResponses.map((response) => (
+                    {surveyResponses.map((response: any) => (
                       <Card key={response.id} className="border-gray-200">
                         <CardContent className="p-4">
                           <div className="flex justify-between items-center">
