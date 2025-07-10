@@ -20,7 +20,8 @@ const Profile = () => {
   const [profile, setProfile] = useState({
     first_name: '',
     last_name: '',
-    email: ''
+    email: '',
+    phone: ''
   });
   const [surveyResponses, setSurveyResponses] = useState([]);
   const [editMode, setEditMode] = useState(false);
@@ -73,6 +74,7 @@ const Profile = () => {
         .update({
           first_name: profile.first_name,
           last_name: profile.last_name,
+          phone: profile.phone,
         })
         .eq('id', user?.id);
 
@@ -112,7 +114,7 @@ const Profile = () => {
                 Viewer Access
               </CardTitle>
               <CardDescription className="text-yellow-700">
-                Profile settings are not available for Viewer accounts. Please upgrade to Member access.
+                Profile settings are not available for Viewer accounts. Please upgrade to Member access to manage your profile.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -216,6 +218,18 @@ const Profile = () => {
                     className="border-gray-300 bg-gray-50"
                   />
                   <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+                </div>
+                <div>
+                  <Label htmlFor="phone" className="text-black font-medium">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    value={profile.phone || ''}
+                    onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
+                    disabled={!editMode}
+                    placeholder="Enter your phone number"
+                    className="border-gray-300"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Optional - for network communication</p>
                 </div>
               </CardContent>
             </Card>

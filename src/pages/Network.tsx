@@ -173,7 +173,7 @@ const Network = () => {
             };
           }) || [];
         } else if (userRole === 'viewer') {
-          // Viewers see basic info including vehicle type, domicile, and vehicle links
+          // Viewers see the same information as members but cannot click cards
           combinedData = profilesData?.map(profile => {
             const survey = surveyMap.get(profile.id);
             return {
@@ -182,23 +182,32 @@ const Network = () => {
               profiles: profile,
               year: survey?.year || null,
               vehicle_type: survey?.vehicle_type || 'Not specified',
-              thesis: 'Contact admin for access to detailed information',
-              team_size_min: null,
-              team_size_max: null,
+              thesis: survey?.thesis || 'No investment thesis available',
+              team_size_min: survey?.team_size_min || null,
+              team_size_max: survey?.team_size_max || null,
               legal_domicile: survey?.legal_domicile ? 
                 (Array.isArray(survey.legal_domicile) ? survey.legal_domicile : 
                   (typeof survey.legal_domicile === 'string' ? JSON.parse(survey.legal_domicile) : [])) : 
                 [],
-              markets_operated: {},
-              ticket_size_min: null,
-              ticket_size_max: null,
-              target_capital: null,
-              capital_raised: null,
-              fund_stage: [],
-              current_status: 'Not specified',
-              sectors_allocation: {},
-              target_return_min: null,
-              target_return_max: null,
+              markets_operated: survey?.markets_operated ? 
+                (typeof survey.markets_operated === 'object' ? survey.markets_operated : 
+                  (typeof survey.markets_operated === 'string' ? JSON.parse(survey.markets_operated) : {})) : 
+                {},
+              ticket_size_min: survey?.ticket_size_min || null,
+              ticket_size_max: survey?.ticket_size_max || null,
+              target_capital: survey?.target_capital || null,
+              capital_raised: survey?.capital_raised || null,
+              fund_stage: survey?.fund_stage ? 
+                (Array.isArray(survey.fund_stage) ? survey.fund_stage : 
+                  (typeof survey.fund_stage === 'string' ? JSON.parse(survey.fund_stage) : [])) : 
+                [],
+              current_status: survey?.current_status || 'Not specified',
+              sectors_allocation: survey?.sectors_allocation ? 
+                (typeof survey.sectors_allocation === 'object' ? survey.sectors_allocation : 
+                  (typeof survey.sectors_allocation === 'string' ? JSON.parse(survey.sectors_allocation) : {})) : 
+                {},
+              target_return_min: survey?.target_return_min || null,
+              target_return_max: survey?.target_return_max || null,
               completed_at: survey?.completed_at || null,
               has_survey: !!survey,
               vehicle_websites: survey?.vehicle_websites || null
@@ -304,8 +313,8 @@ const Network = () => {
                 <div className="flex-1">
                   <h3 className="text-sm font-medium text-blue-900 mb-1">Viewer Access</h3>
                   <p className="text-sm text-blue-700">
-                    You're currently viewing public data only. 
-                    <span className="font-medium"> Contact an admin to complete a survey and become a member</span> for access to detailed fund performance, investment strategies, and team composition data.
+                    You can view all fund manager information, but cannot click on cards for detailed views. 
+                    <span className="font-medium"> Contact an admin to complete a survey and become a member</span> for full interactive access.
                   </p>
                 </div>
               </div>
@@ -359,7 +368,7 @@ const Network = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">
-                  {userRole === 'viewer' ? 'Contact admin for detailed information' : manager.thesis}
+                  {manager.thesis}
                 </p>
                 
                 <div className="flex items-center text-sm text-gray-600">
@@ -388,7 +397,7 @@ const Network = () => {
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center text-gray-700 font-medium">
                     <DollarSign className="w-3 h-3 mr-1" />
-                    {userRole === 'viewer' ? 'Contact for details' : formatCurrency(manager.target_capital)}
+                    {formatCurrency(manager.target_capital)}
                   </div>
                   <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
                     {manager.year || 'N/A'}
@@ -398,37 +407,10 @@ const Network = () => {
                 {manager.sectors_allocation && (
                   <div className="flex flex-wrap gap-1">
                     {getTopSectors(manager.sectors_allocation).map((sector, index) => (
-                      <Badge key={index} variant="outline" className="text-xs border-gray-200 text-gray-600">
+                      <Badge key={index} variant="outline" className="text-xs bg-gray-50 text-gray-700 border-gray-200">
                         {sector.sector}
                       </Badge>
                     ))}
-                  </div>
-                )}
-
-                {/* Role-based data indicators */}
-                {userRole === 'viewer' && (
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                    <div className="flex items-center text-xs text-gray-500">
-                      <Eye className="w-3 h-3 mr-1" />
-                      <span className="hidden sm:inline">Public data only</span>
-                      <span className="sm:hidden">Public</span>
-                    </div>
-                    <Badge variant="outline" className="text-xs border-blue-200 text-blue-600 bg-blue-50">
-                      Viewer
-                    </Badge>
-                  </div>
-                )}
-
-                {userRole === 'member' && (
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                    <div className="flex items-center text-xs text-gray-500">
-                      <Users className="w-3 h-3 mr-1" />
-                      <span className="hidden sm:inline">Member access</span>
-                      <span className="sm:hidden">Member</span>
-                    </div>
-                    <Badge variant="outline" className="text-xs border-green-200 text-green-600 bg-green-50">
-                      Member
-                    </Badge>
                   </div>
                 )}
               </CardContent>
