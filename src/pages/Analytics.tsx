@@ -128,7 +128,11 @@ const Analytics = () => {
       averageTeamSize: 0,
       averageReturn: 0,
       totalInvestments: 0,
-      completionRate: 0
+      completionRate: 0,
+      totalEquityInvestments: 0,
+      totalSelfLiquidatingInvestments: 0,
+      averageFundStage: 0,
+      totalDryPowder: 0
     };
 
     const totalFunds = surveyData.length;
@@ -137,6 +141,7 @@ const Analytics = () => {
     const totalCapital = surveyData.reduce((sum, fund) => sum + (Number(fund.target_capital) || 0), 0);
     const capitalRaised = surveyData.reduce((sum, fund) => sum + (Number(fund.capital_raised) || 0), 0);
     const capitalInMarket = surveyData.reduce((sum, fund) => sum + (Number(fund.capital_in_market) || 0), 0);
+    const totalDryPowder = capitalRaised - capitalInMarket;
     
     // Ticket size metrics
     const ticketSizes = surveyData.map(fund => {
@@ -180,22 +185,42 @@ const Analytics = () => {
       : 0;
 
     // Investment metrics
-    const totalInvestments = surveyData.reduce((sum, fund) => {
+    const totalEquityInvestments = surveyData.reduce((sum, fund) => {
       const equityMade = Number(fund.equity_investments_made) || 0;
-      const selfLiquidatingMade = Number(fund.self_liquidating_made) || 0;
-      return sum + equityMade + selfLiquidatingMade;
+      return sum + equityMade;
     }, 0);
+
+    const totalSelfLiquidatingInvestments = surveyData.reduce((sum, fund) => {
+      const selfLiquidatingMade = Number(fund.self_liquidating_made) || 0;
+      return sum + selfLiquidatingMade;
+    }, 0);
+
+    const totalInvestments = totalEquityInvestments + totalSelfLiquidatingInvestments;
+
+    // Fund stage metrics
+    const fundStages = surveyData.reduce((sum, fund) => {
+      if (fund.fund_stage && Array.isArray(fund.fund_stage)) {
+        return sum + fund.fund_stage.length;
+      }
+      return sum;
+    }, 0);
+    
+    const averageFundStage = totalFunds > 0 ? fundStages / totalFunds : 0;
 
     return {
       totalFunds,
       totalCapital,
       capitalRaised,
       capitalInMarket,
+      totalDryPowder,
       averageTicketSize,
       activeMarkets: uniqueMarkets.size,
       averageTeamSize,
       averageReturn,
       totalInvestments,
+      totalEquityInvestments,
+      totalSelfLiquidatingInvestments,
+      averageFundStage,
       completionRate: 100 // All data is completed since we filter for completed_at
     };
   };
@@ -207,6 +232,12 @@ const Analytics = () => {
     const sectorData = {};
     const investmentInstruments = {};
     const fundStatuses = {};
+    const informationSharing = {};
+    const howHeardAbout = {};
+    const currentStatuses = {};
+    const teamSizeRanges = {};
+    const ticketSizeRanges = {};
+    const returnRanges = {};
 
     surveyData.forEach(fund => {
       // Vehicle types
@@ -244,6 +275,46 @@ const Analytics = () => {
       // Fund statuses
       const status = fund.current_status || 'Unknown';
       fundStatuses[status] = (fundStatuses[status] || 0) + 1;
+
+      // Information sharing preferences
+      const sharing = fund.information_sharing || 'Unknown';
+      informationSharing[sharing] = (informationSharing[sharing] || 0) + 1;
+
+      // How heard about network
+      const heardAbout = fund.how_heard_about_network || 'Unknown';
+      howHeardAbout[heardAbout] = (howHeardAbout[heardAbout] || 0) + 1;
+
+      // Current status
+      const currentStatus = fund.current_status || 'Unknown';
+      currentStatuses[currentStatus] = (currentStatuses[currentStatus] || 0) + 1;
+
+      // Team size ranges
+      const teamSize = ((Number(fund.team_size_min) || 0) + (Number(fund.team_size_max) || 0)) / 2;
+      if (teamSize > 0) {
+        if (teamSize <= 5) teamSizeRanges['1-5'] = (teamSizeRanges['1-5'] || 0) + 1;
+        else if (teamSize <= 10) teamSizeRanges['6-10'] = (teamSizeRanges['6-10'] || 0) + 1;
+        else if (teamSize <= 20) teamSizeRanges['11-20'] = (teamSizeRanges['11-20'] || 0) + 1;
+        else teamSizeRanges['20+'] = (teamSizeRanges['20+'] || 0) + 1;
+      }
+
+      // Ticket size ranges
+      const ticketSize = ((Number(fund.ticket_size_min) || 0) + (Number(fund.ticket_size_max) || 0)) / 2;
+      if (ticketSize > 0) {
+        if (ticketSize <= 100000) ticketSizeRanges['$0-100K'] = (ticketSizeRanges['$0-100K'] || 0) + 1;
+        else if (ticketSize <= 500000) ticketSizeRanges['$100K-500K'] = (ticketSizeRanges['$100K-500K'] || 0) + 1;
+        else if (ticketSize <= 1000000) ticketSizeRanges['$500K-1M'] = (ticketSizeRanges['$500K-1M'] || 0) + 1;
+        else if (ticketSize <= 5000000) ticketSizeRanges['$1M-5M'] = (ticketSizeRanges['$1M-5M'] || 0) + 1;
+        else ticketSizeRanges['$5M+'] = (ticketSizeRanges['$5M+'] || 0) + 1;
+      }
+
+      // Return ranges
+      const returnRate = ((Number(fund.target_return_min) || 0) + (Number(fund.target_return_max) || 0)) / 2;
+      if (returnRate > 0) {
+        if (returnRate <= 15) returnRanges['0-15%'] = (returnRanges['0-15%'] || 0) + 1;
+        else if (returnRate <= 25) returnRanges['15-25%'] = (returnRanges['15-25%'] || 0) + 1;
+        else if (returnRate <= 35) returnRanges['25-35%'] = (returnRanges['25-35%'] || 0) + 1;
+        else returnRanges['35%+'] = (returnRanges['35%+'] || 0) + 1;
+      }
     });
 
     return {
@@ -252,7 +323,13 @@ const Analytics = () => {
       marketData: Object.entries(marketData).map(([name, value]) => ({ name, value })),
       sectorData: Object.entries(sectorData).map(([name, value]) => ({ name, value })),
       investmentInstruments: Object.entries(investmentInstruments).map(([name, value]) => ({ name, value })),
-      fundStatuses: Object.entries(fundStatuses).map(([name, value]) => ({ name, value }))
+      fundStatuses: Object.entries(fundStatuses).map(([name, value]) => ({ name, value })),
+      informationSharing: Object.entries(informationSharing).map(([name, value]) => ({ name, value })),
+      howHeardAbout: Object.entries(howHeardAbout).map(([name, value]) => ({ name, value })),
+      currentStatuses: Object.entries(currentStatuses).map(([name, value]) => ({ name, value })),
+      teamSizeRanges: Object.entries(teamSizeRanges).map(([name, value]) => ({ name, value })),
+      ticketSizeRanges: Object.entries(ticketSizeRanges).map(([name, value]) => ({ name, value })),
+      returnRanges: Object.entries(returnRanges).map(([name, value]) => ({ name, value }))
     };
   };
 
@@ -527,9 +604,60 @@ const Analytics = () => {
           </Card>
         </div>
 
+        {/* New Analytics Metrics */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <Card className="bg-white border">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center">
+                <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-cyan-600" />
+                <div className="ml-3 sm:ml-4">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Dry Powder</p>
+                  <p className="text-xl sm:text-2xl font-bold text-black">${(metrics.totalDryPowder / 1000000).toFixed(1)}M</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white border">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center">
+                <MapPin className="w-6 h-6 sm:w-8 sm:h-8 text-red-600" />
+                <div className="ml-3 sm:ml-4">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Equity Investments</p>
+                  <p className="text-xl sm:text-2xl font-bold text-black">{metrics.totalEquityInvestments}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white border">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center">
+                <Activity className="w-6 h-6 sm:w-8 sm:h-8 text-violet-600" />
+                <div className="ml-3 sm:ml-4">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Self-Liquidating</p>
+                  <p className="text-xl sm:text-2xl font-bold text-black">{metrics.totalSelfLiquidatingInvestments}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white border">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center">
+                <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-teal-600" />
+                <div className="ml-3 sm:ml-4">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Avg Fund Stages</p>
+                  <p className="text-xl sm:text-2xl font-bold text-black">{metrics.averageFundStage.toFixed(1)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Tabs Section */}
         <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 bg-white h-auto p-1">
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-7 bg-white h-auto p-1">
             <TabsTrigger 
               value="overview" 
               className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs sm:text-sm py-2 px-3"
@@ -553,6 +681,18 @@ const Analytics = () => {
               className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs sm:text-sm py-2 px-3"
             >
               Performance
+            </TabsTrigger>
+            <TabsTrigger 
+              value="team" 
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs sm:text-sm py-2 px-3"
+            >
+              Team
+            </TabsTrigger>
+            <TabsTrigger 
+              value="investments" 
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs sm:text-sm py-2 px-3"
+            >
+              Investments
             </TabsTrigger>
             <TabsTrigger 
               value="trends" 
@@ -735,6 +875,63 @@ const Analytics = () => {
                       <Scatter dataKey="targetReturn" fill="#8884d8" />
                     </ScatterChart>
                   </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="team" className="space-y-4 sm:space-y-6">
+            <Card className="bg-white border">
+              <CardHeader>
+                <CardTitle className="text-black text-lg sm:text-xl">Team Size Distribution</CardTitle>
+                <CardDescription>Distribution of team sizes across funds</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px] sm:h-[400px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData.teamSizeRanges} layout="horizontal">
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" />
+                      <YAxis dataKey="name" type="category" width={80} />
+                      <Tooltip />
+                      <Bar dataKey="value" fill="#8884d8" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="investments" className="space-y-4 sm:space-y-6">
+            <Card className="bg-white border">
+              <CardHeader>
+                <CardTitle className="text-black text-lg sm:text-xl">Investment Patterns</CardTitle>
+                <CardDescription>Distribution of ticket sizes and return rates</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                  <div className="h-[250px] sm:h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={chartData.ticketSizeRanges} layout="horizontal">
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis type="number" />
+                        <YAxis dataKey="name" type="category" width={80} />
+                        <Tooltip />
+                        <Bar dataKey="value" fill="#82ca9d" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="h-[250px] sm:h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={chartData.returnRanges} layout="horizontal">
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis type="number" />
+                        <YAxis dataKey="name" type="category" width={80} />
+                        <Tooltip />
+                        <Bar dataKey="value" fill="#ffc658" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               </CardContent>
             </Card>
