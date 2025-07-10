@@ -34,6 +34,7 @@ interface FundManager {
   target_return_max: number | null;
   completed_at: string | null;
   has_survey: boolean;
+  vehicle_websites?: string | null;
   profiles?: {
     first_name: string;
     last_name: string;
@@ -126,7 +127,8 @@ const Network = () => {
               target_return_min: survey?.target_return_min || null,
               target_return_max: survey?.target_return_max || null,
               completed_at: survey?.completed_at || null,
-              has_survey: !!survey
+              has_survey: !!survey,
+              vehicle_websites: survey?.vehicle_websites || null
             };
           }) || [];
         } else if (userRole === 'member') {
@@ -166,11 +168,12 @@ const Network = () => {
               target_return_min: survey?.target_return_min || null,
               target_return_max: survey?.target_return_max || null,
               completed_at: survey?.completed_at || null,
-              has_survey: !!survey
+              has_survey: !!survey,
+              vehicle_websites: survey?.vehicle_websites || null
             };
           }) || [];
         } else if (userRole === 'viewer') {
-          // Viewers see only basic info
+          // Viewers see basic info including vehicle type, domicile, and vehicle links
           combinedData = profilesData?.map(profile => {
             const survey = surveyMap.get(profile.id);
             return {
@@ -197,7 +200,8 @@ const Network = () => {
               target_return_min: null,
               target_return_max: null,
               completed_at: survey?.completed_at || null,
-              has_survey: !!survey
+              has_survey: !!survey,
+              vehicle_websites: survey?.vehicle_websites || null
             };
           }) || [];
         }
@@ -365,6 +369,21 @@ const Network = () => {
                     {manager.legal_domicile?.length > 2 && ` +${manager.legal_domicile.length - 2}`}
                   </span>
                 </div>
+
+                {manager.vehicle_websites && (
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Globe className="w-3 h-3 mr-1 flex-shrink-0" />
+                    <a 
+                      href={manager.vehicle_websites} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 underline truncate"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Visit Website
+                    </a>
+                  </div>
+                )}
 
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center text-gray-700 font-medium">
