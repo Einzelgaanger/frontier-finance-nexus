@@ -16,23 +16,24 @@ import { useNavigate } from 'react-router-dom';
 interface FundManager {
   id: string;
   user_id: string;
-  year: number;
+  year: number | null;
   vehicle_type: string;
   thesis: string;
-  team_size_min: number;
-  team_size_max: number;
+  team_size_min: number | null;
+  team_size_max: number | null;
   legal_domicile: string[];
   markets_operated: Record<string, number>;
-  ticket_size_min: number;
-  ticket_size_max: number;
-  target_capital: number;
-  capital_raised: number;
+  ticket_size_min: number | null;
+  ticket_size_max: number | null;
+  target_capital: number | null;
+  capital_raised: number | null;
   fund_stage: string[];
   current_status: string;
   sectors_allocation: Record<string, number>;
-  target_return_min: number;
-  target_return_max: number;
-  completed_at: string;
+  target_return_min: number | null;
+  target_return_max: number | null;
+  completed_at: string | null;
+  has_survey: boolean;
   profiles?: {
     first_name: string;
     last_name: string;
@@ -53,7 +54,15 @@ const Network = () => {
   useEffect(() => {
     const fetchFundManagers = async () => {
       try {
-        // First, get all completed survey responses
+        // Get all profiles first
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, email')
+          .order('created_at', { ascending: false });
+
+        if (profilesError) throw profilesError;
+
+        // Get all completed survey responses
         const { data: surveyData, error: surveyError } = await supabase
           .from('survey_responses')
           .select('*')
@@ -62,44 +71,48 @@ const Network = () => {
 
         if (surveyError) throw surveyError;
 
-        // Then, get all profiles
-        const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, first_name, last_name, email');
-
-        if (profilesError) throw profilesError;
-
-        // Create a map of user_id to profile data
-        const profilesMap = new Map();
-        profilesData?.forEach(profile => {
-          profilesMap.set(profile.id, profile);
+        // Create a map of user_id to survey data
+        const surveyMap = new Map();
+        surveyData?.forEach(survey => {
+          surveyMap.set(survey.user_id, survey);
         });
 
-        // Combine the data with proper type handling
-        const combinedData = surveyData?.map(survey => ({
-          ...survey,
-          profiles: profilesMap.get(survey.user_id),
-          markets_operated: typeof survey.markets_operated === 'object' && survey.markets_operated !== null
-            ? survey.markets_operated as Record<string, number>
-            : typeof survey.markets_operated === 'string'
-              ? JSON.parse(survey.markets_operated)
-              : {},
-          sectors_allocation: typeof survey.sectors_allocation === 'object' && survey.sectors_allocation !== null
-            ? survey.sectors_allocation as Record<string, number>
-            : typeof survey.sectors_allocation === 'string'
-              ? JSON.parse(survey.sectors_allocation)
-              : {},
-          legal_domicile: Array.isArray(survey.legal_domicile)
-            ? survey.legal_domicile
-            : typeof survey.legal_domicile === 'string'
-              ? JSON.parse(survey.legal_domicile)
-              : [],
-          fund_stage: Array.isArray(survey.fund_stage)
-            ? survey.fund_stage
-            : typeof survey.fund_stage === 'string'
-              ? JSON.parse(survey.fund_stage)
-              : []
-        })) || [];
+        // Combine profiles with their survey data (if any)
+        const combinedData = profilesData?.map(profile => {
+          const survey = surveyMap.get(profile.id);
+          return {
+            id: profile.id,
+            user_id: profile.id,
+            profiles: profile,
+            // Survey data (if available)
+            year: survey?.year || null,
+            vehicle_type: survey?.vehicle_type || 'Not specified',
+            thesis: survey?.thesis || 'No investment thesis available',
+            team_size_min: survey?.team_size_min || null,
+            team_size_max: survey?.team_size_max || null,
+            legal_domicile: survey?.legal_domicile ? 
+              (Array.isArray(survey.legal_domicile) ? survey.legal_domicile : JSON.parse(survey.legal_domicile)) : 
+              [],
+            markets_operated: survey?.markets_operated ? 
+              (typeof survey.markets_operated === 'object' ? survey.markets_operated : JSON.parse(survey.markets_operated)) : 
+              {},
+            ticket_size_min: survey?.ticket_size_min || null,
+            ticket_size_max: survey?.ticket_size_max || null,
+            target_capital: survey?.target_capital || null,
+            capital_raised: survey?.capital_raised || null,
+            fund_stage: survey?.fund_stage ? 
+              (Array.isArray(survey.fund_stage) ? survey.fund_stage : JSON.parse(survey.fund_stage)) : 
+              [],
+            current_status: survey?.current_status || 'Not specified',
+            sectors_allocation: survey?.sectors_allocation ? 
+              (typeof survey.sectors_allocation === 'object' ? survey.sectors_allocation : JSON.parse(survey.sectors_allocation)) : 
+              {},
+            target_return_min: survey?.target_return_min || null,
+            target_return_max: survey?.target_return_max || null,
+            completed_at: survey?.completed_at || null,
+            has_survey: !!survey
+          };
+        }) || [];
 
         setFundManagers(combinedData as FundManager[]);
         setFilteredManagers(combinedData as FundManager[]);
@@ -263,10 +276,10 @@ const Network = () => {
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center text-gray-700 font-medium">
                     <DollarSign className="w-3 h-3 mr-1" />
-                    {formatCurrency(manager.target_capital)}
+                    {manager.has_survey ? formatCurrency(manager.target_capital) : 'No data'}
                   </div>
                   <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
-                    {manager.year}
+                    {manager.has_survey ? manager.year : 'No survey'}
                   </Badge>
                 </div>
 

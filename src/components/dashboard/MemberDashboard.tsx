@@ -142,52 +142,6 @@ const MemberDashboard = () => {
         <p className="text-xl text-gray-600 mb-6">
           You have full access to our fund manager network. Complete your profile to maximize networking opportunities.
         </p>
-        
-        {/* Profile Completion Alert */}
-        {!hasCompletedSurvey && (
-          <Card className="border-yellow-200 bg-yellow-50">
-            <CardHeader className="pb-3">
-              <div className="flex items-center">
-                <FileText className="w-5 h-5 text-yellow-600 mr-2" />
-                <CardTitle className="text-yellow-800">Profile Completion: {surveyCompletion}%</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-yellow-700 mb-4">
-                Complete your survey to unlock advanced networking features and increase your profile visibility.
-              </p>
-              <Button className="bg-yellow-600 hover:bg-yellow-700">
-                <Link to="/survey" className="flex items-center">
-                  Complete Survey
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-        
-        {/* Profile Completed Alert */}
-        {hasCompletedSurvey && (
-          <Card className="border-green-200 bg-green-50">
-            <CardHeader className="pb-3">
-              <div className="flex items-center">
-                <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
-                <CardTitle className="text-green-800">Profile Complete!</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-green-700 mb-4">
-                Your profile is complete and visible in the network. You can update your information anytime.
-              </p>
-              <Button className="bg-green-600 hover:bg-green-700">
-                <Link to="/survey" className="flex items-center">
-                  Update Survey
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-        )}
       </div>
 
       {/* Stats Overview */}
@@ -198,65 +152,6 @@ const MemberDashboard = () => {
             <StatsCard key={index} {...stat} />
           ))}
         </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {quickActions.map((action, index) => (
-            <Card key={index} className="hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <action.icon className="w-8 h-8 text-blue-600" />
-                  {action.status === "incomplete" && (
-                    <div className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
-                  )}
-                  {action.status === "available" && (
-                    <CheckCircle className="w-5 h-5 text-green-500" />
-                  )}
-                </div>
-                <CardTitle className="text-lg">{action.title}</CardTitle>
-                <CardDescription>{action.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  asChild 
-                  className={`w-full ${action.status === 'incomplete' ? 'bg-yellow-600 hover:bg-yellow-700' : ''}`}
-                >
-                  <Link to={action.link}>
-                    {action.action}
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-
-      {/* Recent Activity - Show real survey activity */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Survey Activity</h2>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="space-y-4">
-              {userSurveys > 0 ? (
-                <div className="text-center py-4">
-                  <CheckCircle className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                  <p className="text-gray-900 font-medium">You have completed {userSurveys} survey{userSurveys > 1 ? 's' : ''}</p>
-                  <p className="text-sm text-gray-600">Your profile is visible in the network</p>
-                </div>
-              ) : (
-                <div className="text-center py-4">
-                  <FileText className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-900 font-medium">No surveys completed yet</p>
-                  <p className="text-sm text-gray-600">Complete your first survey to get started</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
