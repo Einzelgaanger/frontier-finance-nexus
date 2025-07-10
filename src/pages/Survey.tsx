@@ -9,6 +9,7 @@ import { Form } from '@/components/ui/form';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -136,6 +137,7 @@ const Survey = () => {
   const [pastSurveys, setPastSurveys] = useState<SurveyFormData[]>([]);
   const [showNewSurvey, setShowNewSurvey] = useState(false);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [showSubmitConfirmation, setShowSubmitConfirmation] = useState(false);
   const { user, userRole } = useAuth();
   const { toast } = useToast();
 
@@ -218,6 +220,9 @@ const Survey = () => {
   const handleNext = () => {
     if (currentSection < totalSections) {
       setCurrentSection(currentSection + 1);
+    } else if (currentSection === totalSections) {
+      // Show confirmation dialog instead of auto-submitting
+      setShowSubmitConfirmation(true);
     }
   };
 
@@ -281,6 +286,8 @@ const Survey = () => {
     if (!user) return;
 
     setIsSubmitting(true);
+    setShowSubmitConfirmation(false);
+    
     try {
       const surveyData = prepareForDb(data, user.id, selectedYear || 0, true);
 
@@ -385,7 +392,12 @@ const Survey = () => {
           </div>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              if (currentSection === totalSections) {
+                setShowSubmitConfirmation(true);
+              }
+            }} className="space-y-8">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
@@ -435,17 +447,44 @@ const Survey = () => {
                   </Button>
                 ) : (
                   <Button 
-                    type="submit" 
-                    disabled={isSubmitting}
+                    type="button" 
+                    onClick={() => setShowSubmitConfirmation(true)}
                     className="bg-green-600 hover:bg-green-700"
                   >
-                    {isSubmitting ? 'Submitting...' : 'Complete Survey'}
+                    Review & Submit
                     <CheckCircle className="w-4 h-4 ml-2" />
                   </Button>
                 )}
               </div>
             </form>
           </Form>
+
+          {/* Confirmation Dialog */}
+          <Dialog open={showSubmitConfirmation} onOpenChange={setShowSubmitConfirmation}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Confirm Survey Submission</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to submit this survey? You won't be able to edit it after submission.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex justify-end space-x-3 mt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowSubmitConfirmation(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={() => form.handleSubmit(onSubmit)()}
+                  disabled={isSubmitting}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {isSubmitting ? 'Submitting...' : 'Submit Survey'}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     );
