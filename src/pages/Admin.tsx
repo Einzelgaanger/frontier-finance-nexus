@@ -560,36 +560,49 @@ const Admin = () => {
 
       console.log('Export data prepared:', { surveyResponses: surveyResponses?.length });
 
-      // Prepare data for export
-      const exportData = surveyResponses?.map(survey => {
+      // Group by vehicle name (fund manager) and organize by survey years
+      const vehicleMap = new Map();
+      
+      surveyResponses?.forEach(survey => {
         const profile = survey.profiles;
-        return {
-          'Fund Manager': `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 'N/A',
-          'Email': profile?.email || 'N/A',
-          'Phone': profile?.phone || 'N/A',
-          'Survey Year': survey.year || 'N/A',
-          'Vehicle Type': survey.vehicle_type || 'N/A',
-          'Thesis': survey.thesis || 'N/A',
-          'Legal Domicile': Array.isArray(survey.legal_domicile) ? survey.legal_domicile.join(', ') : 'N/A',
-          'Team Size': survey.team_size_min && survey.team_size_max ? `${survey.team_size_min}-${survey.team_size_max}` : 'N/A',
-          'Ticket Size Min': survey.ticket_size_min ? `$${survey.ticket_size_min.toLocaleString()}` : 'N/A',
-          'Ticket Size Max': survey.ticket_size_max ? `$${survey.ticket_size_max.toLocaleString()}` : 'N/A',
-          'Target Capital': survey.target_capital ? `$${survey.target_capital.toLocaleString()}` : 'N/A',
-          'Capital Raised': survey.capital_raised ? `$${survey.capital_raised.toLocaleString()}` : 'N/A',
-          'Capital in Market': survey.capital_in_market ? `$${survey.capital_in_market.toLocaleString()}` : 'N/A',
-          'Fund Stage': Array.isArray(survey.fund_stage) ? survey.fund_stage.join(', ') : 'N/A',
-          'Current Status': survey.current_status || 'N/A',
-          'Target Return Min': survey.target_return_min ? `${survey.target_return_min}%` : 'N/A',
-          'Target Return Max': survey.target_return_max ? `${survey.target_return_max}%` : 'N/A',
-          'Equity Investments Made': survey.equity_investments_made || 'N/A',
-          'Equity Investments Exited': survey.equity_investments_exited || 'N/A',
-          'Self-Liquidating Made': survey.self_liquidating_made || 'N/A',
-          'Self-Liquidating Exited': survey.self_liquidating_exited || 'N/A',
-          'Information Sharing': survey.information_sharing || 'N/A',
-          'How Heard About Network': survey.how_heard_about_network || 'N/A',
-          'Completed Date': survey.completed_at ? new Date(survey.completed_at).toLocaleDateString() : 'N/A'
-        };
-      }) || [];
+        const vehicleName = `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 'Unknown';
+        const year = survey.year;
+        
+        if (!vehicleMap.has(vehicleName)) {
+          vehicleMap.set(vehicleName, {
+            'Fund Manager': vehicleName,
+            'Email': profile?.email || 'N/A',
+            'Phone': profile?.phone || 'N/A'
+          });
+        }
+        
+        const vehicle = vehicleMap.get(vehicleName);
+        
+        // Add year-specific data as columns
+        vehicle[`${year}_Vehicle_Type`] = survey.vehicle_type || 'N/A';
+        vehicle[`${year}_Thesis`] = survey.thesis || 'N/A';
+        vehicle[`${year}_Legal_Domicile`] = Array.isArray(survey.legal_domicile) ? survey.legal_domicile.join(', ') : 'N/A';
+        vehicle[`${year}_Team_Size`] = survey.team_size_min && survey.team_size_max ? `${survey.team_size_min}-${survey.team_size_max}` : 'N/A';
+        vehicle[`${year}_Ticket_Size_Min`] = survey.ticket_size_min ? `$${survey.ticket_size_min.toLocaleString()}` : 'N/A';
+        vehicle[`${year}_Ticket_Size_Max`] = survey.ticket_size_max ? `$${survey.ticket_size_max.toLocaleString()}` : 'N/A';
+        vehicle[`${year}_Target_Capital`] = survey.target_capital ? `$${survey.target_capital.toLocaleString()}` : 'N/A';
+        vehicle[`${year}_Capital_Raised`] = survey.capital_raised ? `$${survey.capital_raised.toLocaleString()}` : 'N/A';
+        vehicle[`${year}_Capital_in_Market`] = survey.capital_in_market ? `$${survey.capital_in_market.toLocaleString()}` : 'N/A';
+        vehicle[`${year}_Fund_Stage`] = Array.isArray(survey.fund_stage) ? survey.fund_stage.join(', ') : 'N/A';
+        vehicle[`${year}_Current_Status`] = survey.current_status || 'N/A';
+        vehicle[`${year}_Target_Return_Min`] = survey.target_return_min ? `${survey.target_return_min}%` : 'N/A';
+        vehicle[`${year}_Target_Return_Max`] = survey.target_return_max ? `${survey.target_return_max}%` : 'N/A';
+        vehicle[`${year}_Equity_Investments_Made`] = survey.equity_investments_made || 'N/A';
+        vehicle[`${year}_Equity_Investments_Exited`] = survey.equity_investments_exited || 'N/A';
+        vehicle[`${year}_Self_Liquidating_Made`] = survey.self_liquidating_made || 'N/A';
+        vehicle[`${year}_Self_Liquidating_Exited`] = survey.self_liquidating_exited || 'N/A';
+        vehicle[`${year}_Information_Sharing`] = survey.information_sharing || 'N/A';
+        vehicle[`${year}_How_Heard_About_Network`] = survey.how_heard_about_network || 'N/A';
+        vehicle[`${year}_Completed_Date`] = survey.completed_at ? new Date(survey.completed_at).toLocaleDateString() : 'N/A';
+      });
+
+      // Convert map to array
+      const exportData = Array.from(vehicleMap.values());
 
       // Create CSV content
       const headers = Object.keys(exportData[0] || {});
@@ -611,7 +624,7 @@ const Admin = () => {
 
       toast({
         title: "Export Successful",
-        description: `Survey responses exported for ${selectedDateRange}`,
+        description: `Survey responses exported for ${selectedDateRange} - ${exportData.length} vehicles with ${surveyResponses?.length} total responses`,
       });
     } catch (error) {
       console.error('Error exporting data:', error);

@@ -129,14 +129,16 @@ const Header = ({ showNav = true }: HeaderProps) => {
                         
                         {/* Actions */}
                         <div className="space-y-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full justify-start border-gray-300 hover:bg-gray-50"
-                          >
-                            <Settings className="w-4 h-4 mr-2" />
-                            Settings
-                          </Button>
+                          {userRole === 'member' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full justify-start border-gray-300 hover:bg-gray-50"
+                            >
+                              <Settings className="w-4 h-4 mr-2" />
+                              Settings
+                            </Button>
+                          )}
                           <Button
                             variant="outline"
                             size="sm"

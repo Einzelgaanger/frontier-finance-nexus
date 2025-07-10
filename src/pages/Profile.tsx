@@ -193,9 +193,8 @@ const Profile = () => {
                     <Input
                       id="first_name"
                       value={profile.first_name}
-                      onChange={(e) => setProfile(prev => ({ ...prev, first_name: e.target.value }))}
-                      disabled={userRole !== 'member' || !editMode}
-                      className="border-gray-300"
+                      disabled
+                      className="border-gray-300 bg-gray-50"
                     />
                   </div>
                   <div>
@@ -203,9 +202,8 @@ const Profile = () => {
                     <Input
                       id="last_name"
                       value={profile.last_name}
-                      onChange={(e) => setProfile(prev => ({ ...prev, last_name: e.target.value }))}
-                      disabled={userRole !== 'member' || !editMode}
-                      className="border-gray-300"
+                      disabled
+                      className="border-gray-300 bg-gray-50"
                     />
                   </div>
                 </div>
@@ -221,16 +219,22 @@ const Profile = () => {
                 </div>
                 {userRole === 'member' && (
                   <div>
-                    <Label htmlFor="phone" className="text-black font-medium">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      value={profile.phone || ''}
-                      onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
-                      disabled={!editMode}
-                      placeholder="Enter your phone number"
-                      className="border-gray-300"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Optional - for network communication</p>
+                    <Label htmlFor="profile_picture" className="text-black font-medium">Profile Picture</Label>
+                    <div className="flex items-center space-x-4">
+                      <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center">
+                        <User className="w-8 h-8 text-gray-400" />
+                      </div>
+                      <div className="flex-1">
+                        <Input
+                          id="profile_picture"
+                          type="file"
+                          accept="image/*"
+                          disabled={!editMode}
+                          className="border-gray-300"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Upload a profile picture (optional)</p>
+                      </div>
+                    </div>
                   </div>
                 )}
               </CardContent>
