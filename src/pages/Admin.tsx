@@ -40,6 +40,14 @@ const Admin = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
   const [updatingVisibility, setUpdatingVisibility] = useState<string | null>(null);
+  const [userStats, setUserStats] = useState({
+    viewers: 0,
+    members: 0,
+    admins: 0,
+    activeUsersToday: 0,
+    surveysCompleted: 0,
+    newRegistrations: 0
+  });
 
   const createDefaultDataFieldVisibility = useCallback(async () => {
     try {
@@ -116,6 +124,51 @@ const Admin = () => {
     }
   }, [toast]);
 
+  const fetchUserStats = useCallback(async () => {
+    try {
+      // Fetch user roles
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('role');
+
+      if (rolesError) throw rolesError;
+
+      // Count users by role
+      const viewers = userRoles?.filter(ur => ur.role === 'viewer').length || 0;
+      const members = userRoles?.filter(ur => ur.role === 'member').length || 0;
+      const admins = userRoles?.filter(ur => ur.role === 'admin').length || 0;
+
+      // Fetch completed surveys
+      const { data: surveys, error: surveysError } = await supabase
+        .from('survey_responses')
+        .select('completed_at')
+        .not('completed_at', 'is', null);
+
+      if (surveysError) throw surveysError;
+
+      // Fetch profiles created today
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const { data: newProfiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('created_at')
+        .gte('created_at', today.toISOString());
+
+      if (profilesError) throw profilesError;
+
+      setUserStats({
+        viewers,
+        members,
+        admins,
+        activeUsersToday: 0, // This would need session tracking
+        surveysCompleted: surveys?.length || 0,
+        newRegistrations: newProfiles?.length || 0
+      });
+    } catch (error) {
+      console.error('Error fetching user stats:', error);
+    }
+  }, []);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
@@ -181,6 +234,9 @@ const Admin = () => {
         await createDefaultDataFieldVisibility();
       }
 
+      // Fetch user stats
+      await fetchUserStats();
+
       // Test query to check if we can access the data
       console.log('Testing data access...');
       const testQuery = await supabase
@@ -199,7 +255,7 @@ const Admin = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast, createDefaultDataFieldVisibility]);
+  }, [toast, createDefaultDataFieldVisibility, fetchUserStats]);
 
   useEffect(() => {
     console.log('Admin component mounted, userRole:', userRole, 'user:', user?.id);
@@ -628,6 +684,57 @@ const Admin = () => {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Platform Stats */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
+          <Card className="bg-white border">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center">
+                <Users className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
+                <div className="ml-3 sm:ml-4">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Viewers</p>
+                  <p className="text-xl sm:text-2xl font-bold text-black">{userStats.viewers}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white border">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center">
+                <UserCheck className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
+                <div className="ml-3 sm:ml-4">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Members</p>
+                  <p className="text-xl sm:text-2xl font-bold text-black">{userStats.members}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white border">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center">
+                <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
+                <div className="ml-3 sm:ml-4">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Admins</p>
+                  <p className="text-xl sm:text-2xl font-bold text-black">{userStats.admins}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white border">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center">
+                <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-orange-600" />
+                <div className="ml-3 sm:ml-4">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Surveys</p>
+                  <p className="text-xl sm:text-2xl font-bold text-black">{userStats.surveysCompleted}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Quick Stats */}

@@ -54,15 +54,7 @@ const Network = () => {
   useEffect(() => {
     const fetchFundManagers = async () => {
       try {
-        // Get all profiles first
-        const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, first_name, last_name, email')
-          .order('created_at', { ascending: false });
-
-        if (profilesError) throw profilesError;
-
-        // Get all completed survey responses
+        // Get all completed survey responses first
         const { data: surveyData, error: surveyError } = await supabase
           .from('survey_responses')
           .select('*')
@@ -71,46 +63,57 @@ const Network = () => {
 
         if (surveyError) throw surveyError;
 
-        // Create a map of user_id to survey data
-        const surveyMap = new Map();
-        surveyData?.forEach(survey => {
-          surveyMap.set(survey.user_id, survey);
+        // Get all profiles
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, email')
+          .order('created_at', { ascending: false });
+
+        if (profilesError) throw profilesError;
+
+        // Create a map of user_id to profile data
+        const profilesMap = new Map();
+        profilesData?.forEach(profile => {
+          profilesMap.set(profile.id, profile);
         });
 
-        // Combine profiles with their survey data (if any)
-        const combinedData = profilesData?.map(profile => {
-          const survey = surveyMap.get(profile.id);
+        // Only show fund managers with completed surveys
+        const combinedData = surveyData?.map(survey => {
+          const profile = profilesMap.get(survey.user_id);
           return {
-            id: profile.id,
-            user_id: profile.id,
+            id: survey.id,
+            user_id: survey.user_id,
             profiles: profile,
-            // Survey data (if available)
-            year: survey?.year || null,
-            vehicle_type: survey?.vehicle_type || 'Not specified',
-            thesis: survey?.thesis || 'No investment thesis available',
-            team_size_min: survey?.team_size_min || null,
-            team_size_max: survey?.team_size_max || null,
-            legal_domicile: survey?.legal_domicile ? 
-              (Array.isArray(survey.legal_domicile) ? survey.legal_domicile : JSON.parse(survey.legal_domicile)) : 
+            year: survey.year || null,
+            vehicle_type: survey.vehicle_type || 'Not specified',
+            thesis: survey.thesis || 'No investment thesis available',
+            team_size_min: survey.team_size_min || null,
+            team_size_max: survey.team_size_max || null,
+            legal_domicile: survey.legal_domicile ? 
+              (Array.isArray(survey.legal_domicile) ? survey.legal_domicile : 
+                (typeof survey.legal_domicile === 'string' ? JSON.parse(survey.legal_domicile) : [])) : 
               [],
-            markets_operated: survey?.markets_operated ? 
-              (typeof survey.markets_operated === 'object' ? survey.markets_operated : JSON.parse(survey.markets_operated)) : 
+            markets_operated: survey.markets_operated ? 
+              (typeof survey.markets_operated === 'object' ? survey.markets_operated : 
+                (typeof survey.markets_operated === 'string' ? JSON.parse(survey.markets_operated) : {})) : 
               {},
-            ticket_size_min: survey?.ticket_size_min || null,
-            ticket_size_max: survey?.ticket_size_max || null,
-            target_capital: survey?.target_capital || null,
-            capital_raised: survey?.capital_raised || null,
-            fund_stage: survey?.fund_stage ? 
-              (Array.isArray(survey.fund_stage) ? survey.fund_stage : JSON.parse(survey.fund_stage)) : 
+            ticket_size_min: survey.ticket_size_min || null,
+            ticket_size_max: survey.ticket_size_max || null,
+            target_capital: survey.target_capital || null,
+            capital_raised: survey.capital_raised || null,
+            fund_stage: survey.fund_stage ? 
+              (Array.isArray(survey.fund_stage) ? survey.fund_stage : 
+                (typeof survey.fund_stage === 'string' ? JSON.parse(survey.fund_stage) : [])) : 
               [],
-            current_status: survey?.current_status || 'Not specified',
-            sectors_allocation: survey?.sectors_allocation ? 
-              (typeof survey.sectors_allocation === 'object' ? survey.sectors_allocation : JSON.parse(survey.sectors_allocation)) : 
+            current_status: survey.current_status || 'Not specified',
+            sectors_allocation: survey.sectors_allocation ? 
+              (typeof survey.sectors_allocation === 'object' ? survey.sectors_allocation : 
+                (typeof survey.sectors_allocation === 'string' ? JSON.parse(survey.sectors_allocation) : {})) : 
               {},
-            target_return_min: survey?.target_return_min || null,
-            target_return_max: survey?.target_return_max || null,
-            completed_at: survey?.completed_at || null,
-            has_survey: !!survey
+            target_return_min: survey.target_return_min || null,
+            target_return_max: survey.target_return_max || null,
+            completed_at: survey.completed_at || null,
+            has_survey: true
           };
         }) || [];
 
@@ -276,10 +279,10 @@ const Network = () => {
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center text-gray-700 font-medium">
                     <DollarSign className="w-3 h-3 mr-1" />
-                    {manager.has_survey ? formatCurrency(manager.target_capital) : 'No data'}
+                    {formatCurrency(manager.target_capital)}
                   </div>
                   <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
-                    {manager.has_survey ? manager.year : 'No survey'}
+                    {manager.year}
                   </Badge>
                 </div>
 

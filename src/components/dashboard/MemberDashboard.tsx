@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import StatsCard from "./StatsCard";
-import { Users, Building2, TrendingUp, Globe, ArrowRight, FileText, User, CheckCircle } from "lucide-react";
+import { Users, Building2, TrendingUp, Globe, ArrowRight, FileText, User, CheckCircle, BarChart3, Calendar, Zap, Activity } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from '@/integrations/supabase/client';
@@ -135,23 +135,178 @@ const MemberDashboard = () => {
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
-      <div>
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Welcome Back, Member! 👋
-        </h1>
-        <p className="text-xl text-gray-600 mb-6">
-          You have full access to our fund manager network. Complete your profile to maximize networking opportunities.
-        </p>
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 border border-blue-100">
+        <div className="flex items-center space-x-4 mb-6">
+          <div className="p-3 bg-blue-100 rounded-full">
+            <Users className="w-8 h-8 text-blue-600" />
+          </div>
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900">
+              Welcome Back, Member! 👋
+            </h1>
+            <p className="text-xl text-gray-600 mt-2">
+              You have full access to our fund manager network. Complete your profile to maximize networking opportunities.
+            </p>
+          </div>
+        </div>
+        
+        {/* Status Indicator */}
+        <div className="flex items-center space-x-4">
+          <div className={`flex items-center space-x-2 px-4 py-2 rounded-full ${
+            hasCompletedSurvey 
+              ? 'bg-green-100 text-green-800' 
+              : 'bg-yellow-100 text-yellow-800'
+          }`}>
+            {hasCompletedSurvey ? (
+              <CheckCircle className="w-5 h-5" />
+            ) : (
+              <FileText className="w-5 h-5" />
+            )}
+            <span className="font-medium">
+              {hasCompletedSurvey ? 'Profile Complete' : 'Profile Incomplete'}
+            </span>
+          </div>
+          <div className="flex items-center space-x-2 px-4 py-2 rounded-full bg-blue-100 text-blue-800">
+            <TrendingUp className="w-5 h-5" />
+            <span className="font-medium">{surveyCompletion}% Complete</span>
+          </div>
+        </div>
       </div>
 
       {/* Stats Overview */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Dashboard</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+            <BarChart3 className="w-6 h-6 mr-3 text-blue-600" />
+            Your Dashboard
+          </h2>
+          <Badge variant="outline" className="text-sm">
+            <Calendar className="w-3 h-3 mr-1" />
+            Last updated: {new Date().toLocaleDateString()}
+          </Badge>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat, index) => (
             <StatsCard key={index} {...stat} />
           ))}
         </div>
+      </div>
+
+      {/* Quick Access Cards */}
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+          <Zap className="w-6 h-6 mr-3 text-yellow-600" />
+          Quick Access
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-blue-200 hover:border-blue-300">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="p-3 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                  <Globe className="w-6 h-6 text-blue-600" />
+                </div>
+                <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
+              </div>
+              <CardTitle className="text-lg">Network Directory</CardTitle>
+              <CardDescription>Browse our complete fund manager database</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild className="w-full bg-blue-600 hover:bg-blue-700">
+                <Link to="/network">
+                  Explore Network
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-green-200 hover:border-green-300">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="p-3 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
+                  <FileText className="w-6 h-6 text-green-600" />
+                </div>
+                <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-green-500 group-hover:translate-x-1 transition-all" />
+              </div>
+              <CardTitle className="text-lg">Survey Management</CardTitle>
+              <CardDescription>Update your profile and survey data</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild className="w-full bg-green-600 hover:bg-green-700">
+                <Link to="/survey">
+                  {hasCompletedSurvey ? 'Update Survey' : 'Complete Survey'}
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-purple-200 hover:border-purple-300">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="p-3 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
+                  <User className="w-6 h-6 text-purple-600" />
+                </div>
+                <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-purple-500 group-hover:translate-x-1 transition-all" />
+              </div>
+              <CardTitle className="text-lg">Profile Settings</CardTitle>
+              <CardDescription>Manage your account and preferences</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild className="w-full bg-purple-600 hover:bg-purple-700">
+                <Link to="/profile">
+                  Edit Profile
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Recent Activity */}
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+          <Activity className="w-6 h-6 mr-3 text-orange-600" />
+          Recent Activity
+        </h2>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              {userSurveys > 0 ? (
+                <div className="flex items-center space-x-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                  <div className="p-2 bg-green-100 rounded-full">
+                    <CheckCircle className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-gray-900 font-medium">Survey Completed</p>
+                    <p className="text-sm text-gray-600">You have completed {userSurveys} survey{userSurveys > 1 ? 's' : ''} - your profile is visible in the network</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                  <div className="p-2 bg-yellow-100 rounded-full">
+                    <FileText className="w-6 h-6 text-yellow-600" />
+                  </div>
+                  <div>
+                    <p className="text-gray-900 font-medium">Complete Your Profile</p>
+                    <p className="text-sm text-gray-600">Start your first survey to increase your network visibility</p>
+                  </div>
+                </div>
+              )}
+              
+              <div className="flex items-center space-x-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="p-2 bg-blue-100 rounded-full">
+                  <Users className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-gray-900 font-medium">Network Access</p>
+                  <p className="text-sm text-gray-600">You have full access to {totalFundManagers} fund managers in the network</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
