@@ -199,7 +199,7 @@ const MemberDashboard = () => {
           <Zap className="w-6 h-6 mr-3 text-yellow-600" />
           Quick Access
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
           <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-blue-200 hover:border-blue-300">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
@@ -215,48 +215,6 @@ const MemberDashboard = () => {
               <Button asChild className="w-full bg-blue-600 hover:bg-blue-700">
                 <Link to="/network">
                   Explore Network
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-green-200 hover:border-green-300">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="p-3 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
-                  <FileText className="w-6 h-6 text-green-600" />
-                </div>
-                <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-green-500 group-hover:translate-x-1 transition-all" />
-              </div>
-              <CardTitle className="text-lg">Survey Management</CardTitle>
-              <CardDescription>Update your profile and survey data</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button asChild className="w-full bg-green-600 hover:bg-green-700">
-                <Link to="/survey">
-                  {hasCompletedSurvey ? 'Update Survey' : 'Complete Survey'}
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-purple-200 hover:border-purple-300">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="p-3 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
-                  <User className="w-6 h-6 text-purple-600" />
-                </div>
-                <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-purple-500 group-hover:translate-x-1 transition-all" />
-              </div>
-              <CardTitle className="text-lg">Profile Settings</CardTitle>
-              <CardDescription>Manage your account and preferences</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button asChild className="w-full bg-purple-600 hover:bg-purple-700">
-                <Link to="/profile">
-                  Edit Profile
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Link>
               </Button>
