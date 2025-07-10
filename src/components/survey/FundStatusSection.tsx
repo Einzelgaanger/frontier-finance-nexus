@@ -145,7 +145,7 @@ export function FundStatusSection({ form }: FundStatusSectionProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Not specified</SelectItem>
+                      <SelectItem value="not_specified">Not specified</SelectItem>
                       {months.map((month, index) => (
                         <SelectItem key={month} value={(index + 1).toString()}>{month}</SelectItem>
                       ))}
@@ -191,7 +191,7 @@ export function FundStatusSection({ form }: FundStatusSectionProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Not specified</SelectItem>
+                      <SelectItem value="not_specified">Not specified</SelectItem>
                       {months.map((month, index) => (
                         <SelectItem key={month} value={(index + 1).toString()}>{month}</SelectItem>
                       ))}
@@ -242,7 +242,7 @@ export function FundStatusSection({ form }: FundStatusSectionProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Not specified</SelectItem>
+                      <SelectItem value="not_specified">Not specified</SelectItem>
                       {months.map((month, index) => (
                         <SelectItem key={month} value={(index + 1).toString()}>{month}</SelectItem>
                       ))}
@@ -288,7 +288,7 @@ export function FundStatusSection({ form }: FundStatusSectionProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Not specified</SelectItem>
+                      <SelectItem value="not_specified">Not specified</SelectItem>
                       {months.map((month, index) => (
                         <SelectItem key={month} value={(index + 1).toString()}>{month}</SelectItem>
                       ))}
