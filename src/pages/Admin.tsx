@@ -39,27 +39,88 @@ const Admin = () => {
   const [exportLoading, setExportLoading] = useState(false);
 
   useEffect(() => {
+    console.log('Admin component mounted, userRole:', userRole, 'user:', user?.id);
     if (userRole === 'admin') {
+      console.log('User is admin, fetching data...');
       fetchData();
+    } else {
+      console.log('User is not admin, role:', userRole);
     }
-  }, [userRole, fetchData]);
+  }, [userRole, fetchData, user?.id]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [requestsRes, codesRes, visibilityRes] = await Promise.all([
-        supabase.from('membership_requests').select('*').order('created_at', { ascending: false }),
-        supabase.from('invitation_codes').select('*').order('created_at', { ascending: false }),
-        supabase.from('data_field_visibility').select('*').order('field_name')
-      ]);
+      console.log('Fetching admin data...');
+      
+      // Fetch membership requests
+      const requestsRes = await supabase
+        .from('membership_requests')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      console.log('Membership requests response:', requestsRes);
+      
+      if (requestsRes.error) {
+        console.error('Membership requests error:', requestsRes.error);
+        throw requestsRes.error;
+      }
 
-      if (requestsRes.error) throw requestsRes.error;
-      if (codesRes.error) throw codesRes.error;
-      if (visibilityRes.error) throw visibilityRes.error;
+      // Fetch invitation codes
+      const codesRes = await supabase
+        .from('invitation_codes')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      console.log('Invitation codes response:', codesRes);
+      
+      if (codesRes.error) {
+        console.error('Invitation codes error:', codesRes.error);
+        throw codesRes.error;
+      }
 
-      setMembershipRequests(requestsRes.data || []);
-      setInvitationCodes(codesRes.data || []);
-      setDataFieldVisibility(visibilityRes.data || []);
+      // Fetch data field visibility
+      const visibilityRes = await supabase
+        .from('data_field_visibility')
+        .select('*')
+        .order('field_name');
+      
+      console.log('Data field visibility response:', visibilityRes);
+      
+      if (visibilityRes.error) {
+        console.error('Data field visibility error:', visibilityRes.error);
+        throw visibilityRes.error;
+      }
+
+      // Set the data
+      const requestsData = requestsRes.data || [];
+      const codesData = codesRes.data || [];
+      const visibilityData = visibilityRes.data || [];
+
+      console.log('Setting data:', {
+        requests: requestsData.length,
+        codes: codesData.length,
+        visibility: visibilityData.length
+      });
+
+      setMembershipRequests(requestsData);
+      setInvitationCodes(codesData);
+      setDataFieldVisibility(visibilityData);
+
+      // If no data field visibility entries exist, create them
+      if (visibilityData.length === 0) {
+        console.log('No data field visibility entries found, creating default entries...');
+        await createDefaultDataFieldVisibility();
+      }
+
+      // Test query to check if we can access the data
+      console.log('Testing data access...');
+      const testQuery = await supabase
+        .from('profiles')
+        .select('count')
+        .limit(1);
+      console.log('Test query result:', testQuery);
+
     } catch (error) {
       console.error('Error fetching admin data:', error);
       toast({
@@ -71,6 +132,123 @@ const Admin = () => {
       setLoading(false);
     }
   }, [toast]);
+
+  const createDefaultDataFieldVisibility = async () => {
+    try {
+      const defaultFields = [
+        { field_name: 'vehicle_type', visibility_level: 'public' },
+        { field_name: 'thesis', visibility_level: 'member' },
+        { field_name: 'team_size_min', visibility_level: 'member' },
+        { field_name: 'team_size_max', visibility_level: 'member' },
+        { field_name: 'legal_domicile', visibility_level: 'public' },
+        { field_name: 'target_capital', visibility_level: 'member' },
+        { field_name: 'capital_raised', visibility_level: 'member' },
+        { field_name: 'fund_stage', visibility_level: 'member' },
+        { field_name: 'sectors_allocation', visibility_level: 'member' },
+        { field_name: 'target_return_min', visibility_level: 'member' },
+        { field_name: 'target_return_max', visibility_level: 'member' },
+        { field_name: 'equity_investments_made', visibility_level: 'member' },
+        { field_name: 'equity_investments_exited', visibility_level: 'member' },
+        { field_name: 'self_liquidating_made', visibility_level: 'member' },
+        { field_name: 'self_liquidating_exited', visibility_level: 'member' },
+        { field_name: 'ticket_size_min', visibility_level: 'member' },
+        { field_name: 'ticket_size_max', visibility_level: 'member' },
+        { field_name: 'current_status', visibility_level: 'member' },
+        { field_name: 'team_members', visibility_level: 'member' },
+        { field_name: 'team_description', visibility_level: 'member' },
+        { field_name: 'markets_operated', visibility_level: 'member' },
+        { field_name: 'investment_instruments_priority', visibility_level: 'member' },
+        { field_name: 'information_sharing', visibility_level: 'member' },
+        { field_name: 'expectations', visibility_level: 'member' },
+        { field_name: 'how_heard_about_network', visibility_level: 'member' },
+        { field_name: 'supporting_document_url', visibility_level: 'admin' },
+        { field_name: 'vehicle_websites', visibility_level: 'public' },
+        { field_name: 'vehicle_type_other', visibility_level: 'member' },
+        { field_name: 'legal_entity_date_from', visibility_level: 'member' },
+        { field_name: 'legal_entity_date_to', visibility_level: 'member' },
+        { field_name: 'first_close_date_from', visibility_level: 'member' },
+        { field_name: 'first_close_date_to', visibility_level: 'member' },
+        { field_name: 'legal_entity_month_from', visibility_level: 'member' },
+        { field_name: 'legal_entity_month_to', visibility_level: 'member' },
+        { field_name: 'first_close_month_from', visibility_level: 'member' },
+        { field_name: 'first_close_month_to', visibility_level: 'member' },
+        { field_name: 'ticket_description', visibility_level: 'member' },
+        { field_name: 'capital_in_market', visibility_level: 'member' }
+      ];
+
+      const { error } = await supabase
+        .from('data_field_visibility')
+        .insert(defaultFields);
+
+      if (error) {
+        console.error('Error creating default data field visibility:', error);
+        throw error;
+      }
+
+      console.log('Default data field visibility entries created successfully');
+      
+      // Refresh the data
+      const { data: newVisibilityData, error: refreshError } = await supabase
+        .from('data_field_visibility')
+        .select('*')
+        .order('field_name');
+
+      if (refreshError) {
+        console.error('Error refreshing data field visibility:', refreshError);
+      } else {
+        setDataFieldVisibility(newVisibilityData || []);
+      }
+
+          } catch (error) {
+        console.error('Error in createDefaultDataFieldVisibility:', error);
+      }
+    };
+
+  // Function to create sample data for testing (can be removed in production)
+  const createSampleData = async () => {
+    try {
+      console.log('Creating sample data for testing...');
+      
+      // Create a sample membership request
+      const { error: requestError } = await supabase
+        .from('membership_requests')
+        .insert({
+          user_id: user?.id,
+          vehicle_name: 'Sample Fund I',
+          email: 'sample@example.com',
+          status: 'pending'
+        });
+
+      if (requestError) {
+        console.error('Error creating sample membership request:', requestError);
+      } else {
+        console.log('Sample membership request created');
+      }
+
+      // Create a sample invitation code
+      const { error: codeError } = await supabase
+        .from('invitation_codes')
+        .insert({
+          code: 'SAMPLE123',
+          email: 'sample@example.com',
+          vehicle_name: 'Sample Fund I',
+          created_by: user?.id,
+          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+        });
+
+      if (codeError) {
+        console.error('Error creating sample invitation code:', codeError);
+      } else {
+        console.log('Sample invitation code created');
+      }
+
+      // Refresh data after creating samples
+      fetchData();
+
+    } catch (error) {
+      console.error('Error creating sample data:', error);
+    }
+  };
 
   const approveRequest = async (requestId: string, email: string, vehicleName: string) => {
     try {
@@ -216,6 +394,8 @@ const Admin = () => {
   const exportData = async () => {
     setExportLoading(true);
     try {
+      console.log('Starting data export for period:', selectedDateRange);
+      
       // Fetch fund managers data for the selected time period
       let query = supabase
         .from('profiles')
@@ -253,7 +433,12 @@ const Admin = () => {
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      console.log('Export query result:', { data: data?.length, error });
+
+      if (error) {
+        console.error('Export query error:', error);
+        throw error;
+      }
 
       // Prepare data for export
       const exportData = data?.map(profile => ({
@@ -377,6 +562,16 @@ const Admin = () => {
                 <Download className="w-4 h-4 mr-2" />
                 {exportLoading ? 'Exporting...' : 'Export Data'}
               </Button>
+
+              {/* Sample Data Button (for testing) */}
+              <Button 
+                variant="outline" 
+                onClick={createSampleData}
+                className="flex items-center justify-center sm:w-auto border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create Sample Data
+              </Button>
             </div>
           </div>
 
@@ -452,6 +647,32 @@ const Admin = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Debug Info (only show if no data) */}
+        {(membershipRequests.length === 0 && invitationCodes.length === 0 && dataFieldVisibility.length === 0) && (
+          <Card className="bg-yellow-50 border-yellow-200 mb-6">
+            <CardContent className="p-4">
+              <div className="flex items-start space-x-3">
+                <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-yellow-900 mb-1">No Data Found</h3>
+                  <p className="text-sm text-yellow-700 mb-3">
+                    The admin dashboard is not showing any data. This could be because:
+                  </p>
+                  <ul className="text-sm text-yellow-700 space-y-1 mb-3">
+                    <li>• No membership requests have been submitted yet</li>
+                    <li>• No invitation codes have been generated</li>
+                    <li>• Data field visibility settings haven't been initialized</li>
+                    <li>• There might be a database connection issue</li>
+                  </ul>
+                  <p className="text-sm text-yellow-700">
+                    Check the browser console for detailed error messages. You can also use the "Create Sample Data" button to test the functionality.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Tabs Section */}
         <Tabs defaultValue="requests" className="space-y-4 sm:space-y-6">
