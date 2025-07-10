@@ -56,17 +56,7 @@ const Network = () => {
       try {
         console.log('Fetching fund managers for role:', userRole);
         
-        // Get all completed survey responses first
-        const { data: surveyData, error: surveyError } = await supabase
-          .from('survey_responses')
-          .select('*')
-          .not('completed_at', 'is', null)
-          .order('created_at', { ascending: false });
-
-        if (surveyError) throw surveyError;
-        console.log('Completed surveys found:', surveyData?.length || 0);
-
-        // Get all profiles
+        // Get all profiles first
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
           .select('id, first_name, last_name, email')
@@ -74,6 +64,21 @@ const Network = () => {
 
         if (profilesError) throw profilesError;
         console.log('Profiles found:', profilesData?.length || 0);
+
+        // Get all survey responses
+        const { data: surveyData, error: surveyError } = await supabase
+          .from('survey_responses')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (surveyError) throw surveyError;
+        console.log('Survey responses found:', surveyData?.length || 0);
+
+        // Create a map of user_id to survey data
+        const surveyMap = new Map();
+        surveyData?.forEach(survey => {
+          surveyMap.set(survey.user_id, survey);
+        });
 
         // Create a map of user_id to profile data
         const profilesMap = new Map();
@@ -83,72 +88,118 @@ const Network = () => {
 
         let combinedData: FundManager[] = [];
 
-        if (surveyData && surveyData.length > 0) {
-          // Show fund managers with completed surveys
-          combinedData = surveyData.map(survey => {
-            const profile = profilesMap.get(survey.user_id);
+        // Role-based data access
+        if (userRole === 'admin') {
+          // Admins see everything
+          combinedData = profilesData?.map(profile => {
+            const survey = surveyMap.get(profile.id);
             return {
-              id: survey.id,
-              user_id: survey.user_id,
+              id: profile.id,
+              user_id: profile.id,
               profiles: profile,
-              year: survey.year || null,
-              vehicle_type: survey.vehicle_type || 'Not specified',
-              thesis: survey.thesis || 'No investment thesis available',
-              team_size_min: survey.team_size_min || null,
-              team_size_max: survey.team_size_max || null,
-              legal_domicile: survey.legal_domicile ? 
+              year: survey?.year || null,
+              vehicle_type: survey?.vehicle_type || 'Not specified',
+              thesis: survey?.thesis || 'No investment thesis available',
+              team_size_min: survey?.team_size_min || null,
+              team_size_max: survey?.team_size_max || null,
+              legal_domicile: survey?.legal_domicile ? 
                 (Array.isArray(survey.legal_domicile) ? survey.legal_domicile : 
                   (typeof survey.legal_domicile === 'string' ? JSON.parse(survey.legal_domicile) : [])) : 
                 [],
-              markets_operated: survey.markets_operated ? 
+              markets_operated: survey?.markets_operated ? 
                 (typeof survey.markets_operated === 'object' ? survey.markets_operated : 
                   (typeof survey.markets_operated === 'string' ? JSON.parse(survey.markets_operated) : {})) : 
                 {},
-              ticket_size_min: survey.ticket_size_min || null,
-              ticket_size_max: survey.ticket_size_max || null,
-              target_capital: survey.target_capital || null,
-              capital_raised: survey.capital_raised || null,
-              fund_stage: survey.fund_stage ? 
+              ticket_size_min: survey?.ticket_size_min || null,
+              ticket_size_max: survey?.ticket_size_max || null,
+              target_capital: survey?.target_capital || null,
+              capital_raised: survey?.capital_raised || null,
+              fund_stage: survey?.fund_stage ? 
                 (Array.isArray(survey.fund_stage) ? survey.fund_stage : 
                   (typeof survey.fund_stage === 'string' ? JSON.parse(survey.fund_stage) : [])) : 
                 [],
-              current_status: survey.current_status || 'Not specified',
-              sectors_allocation: survey.sectors_allocation ? 
+              current_status: survey?.current_status || 'Not specified',
+              sectors_allocation: survey?.sectors_allocation ? 
                 (typeof survey.sectors_allocation === 'object' ? survey.sectors_allocation : 
                   (typeof survey.sectors_allocation === 'string' ? JSON.parse(survey.sectors_allocation) : {})) : 
                 {},
-              target_return_min: survey.target_return_min || null,
-              target_return_max: survey.target_return_max || null,
-              completed_at: survey.completed_at || null,
-              has_survey: true
+              target_return_min: survey?.target_return_min || null,
+              target_return_max: survey?.target_return_max || null,
+              completed_at: survey?.completed_at || null,
+              has_survey: !!survey
             };
-          });
+          }) || [];
+        } else if (userRole === 'member') {
+          // Members see significant data but not everything
+          combinedData = profilesData?.map(profile => {
+            const survey = surveyMap.get(profile.id);
+            return {
+              id: profile.id,
+              user_id: profile.id,
+              profiles: profile,
+              year: survey?.year || null,
+              vehicle_type: survey?.vehicle_type || 'Not specified',
+              thesis: survey?.thesis || 'No investment thesis available',
+              team_size_min: survey?.team_size_min || null,
+              team_size_max: survey?.team_size_max || null,
+              legal_domicile: survey?.legal_domicile ? 
+                (Array.isArray(survey.legal_domicile) ? survey.legal_domicile : 
+                  (typeof survey.legal_domicile === 'string' ? JSON.parse(survey.legal_domicile) : [])) : 
+                [],
+              markets_operated: survey?.markets_operated ? 
+                (typeof survey.markets_operated === 'object' ? survey.markets_operated : 
+                  (typeof survey.markets_operated === 'string' ? JSON.parse(survey.markets_operated) : {})) : 
+                {},
+              ticket_size_min: survey?.ticket_size_min || null,
+              ticket_size_max: survey?.ticket_size_max || null,
+              target_capital: survey?.target_capital || null,
+              capital_raised: survey?.capital_raised || null,
+              fund_stage: survey?.fund_stage ? 
+                (Array.isArray(survey.fund_stage) ? survey.fund_stage : 
+                  (typeof survey.fund_stage === 'string' ? JSON.parse(survey.fund_stage) : [])) : 
+                [],
+              current_status: survey?.current_status || 'Not specified',
+              sectors_allocation: survey?.sectors_allocation ? 
+                (typeof survey.sectors_allocation === 'object' ? survey.sectors_allocation : 
+                  (typeof survey.sectors_allocation === 'string' ? JSON.parse(survey.sectors_allocation) : {})) : 
+                {},
+              target_return_min: survey?.target_return_min || null,
+              target_return_max: survey?.target_return_max || null,
+              completed_at: survey?.completed_at || null,
+              has_survey: !!survey
+            };
+          }) || [];
         } else if (userRole === 'viewer') {
-          // For viewers, show all profiles as basic entries if no completed surveys exist
-          console.log('No completed surveys found, showing basic profiles for viewers');
-          combinedData = profilesData?.map(profile => ({
-            id: profile.id,
-            user_id: profile.id,
-            profiles: profile,
-            year: null,
-            vehicle_type: 'Not specified',
-            thesis: 'Profile not completed',
-            team_size_min: null,
-            team_size_max: null,
-            legal_domicile: [],
-            markets_operated: {},
-            ticket_size_min: null,
-            ticket_size_max: null,
-            target_capital: null,
-            capital_raised: null,
-            fund_stage: [],
-            current_status: 'Not specified',
-            sectors_allocation: {},
-            target_return_min: null,
-            target_return_max: null,
-            completed_at: null,
-            has_survey: false
-          })) || [];
+          // Viewers see only basic info
+          combinedData = profilesData?.map(profile => {
+            const survey = surveyMap.get(profile.id);
+            return {
+              id: profile.id,
+              user_id: profile.id,
+              profiles: profile,
+              year: survey?.year || null,
+              vehicle_type: survey?.vehicle_type || 'Not specified',
+              thesis: 'Contact admin for access to detailed information',
+              team_size_min: null,
+              team_size_max: null,
+              legal_domicile: survey?.legal_domicile ? 
+                (Array.isArray(survey.legal_domicile) ? survey.legal_domicile : 
+                  (typeof survey.legal_domicile === 'string' ? JSON.parse(survey.legal_domicile) : [])) : 
+                [],
+              markets_operated: {},
+              ticket_size_min: null,
+              ticket_size_max: null,
+              target_capital: null,
+              capital_raised: null,
+              fund_stage: [],
+              current_status: 'Not specified',
+              sectors_allocation: {},
+              target_return_min: null,
+              target_return_max: null,
+              completed_at: survey?.completed_at || null,
+              has_survey: !!survey
+            };
+          }) || [];
         }
 
         console.log('Combined data prepared:', combinedData.length);
@@ -274,8 +325,12 @@ const Network = () => {
           {filteredManagers.map((manager) => (
             <Card 
               key={manager.id} 
-              className="group hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-2 border-gray-200 hover:border-blue-300 bg-white"
-              onClick={() => handleManagerClick(manager)}
+              className={`group transition-all duration-300 border-gray-200 bg-white ${
+                userRole === 'viewer' 
+                  ? 'cursor-default' 
+                  : 'cursor-pointer hover:shadow-xl hover:-translate-y-2 hover:border-blue-300'
+              }`}
+              onClick={userRole === 'viewer' ? undefined : () => handleManagerClick(manager)}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-center space-x-3">
@@ -300,7 +355,7 @@ const Network = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">
-                  {manager.thesis}
+                  {userRole === 'viewer' ? 'Contact admin for detailed information' : manager.thesis}
                 </p>
                 
                 <div className="flex items-center text-sm text-gray-600">
@@ -314,10 +369,10 @@ const Network = () => {
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center text-gray-700 font-medium">
                     <DollarSign className="w-3 h-3 mr-1" />
-                    {formatCurrency(manager.target_capital)}
+                    {userRole === 'viewer' ? 'Contact for details' : formatCurrency(manager.target_capital)}
                   </div>
                   <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
-                    {manager.year}
+                    {manager.year || 'N/A'}
                   </Badge>
                 </div>
 

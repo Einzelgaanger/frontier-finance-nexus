@@ -484,16 +484,10 @@ const Admin = () => {
     try {
       console.log('Starting data export for period:', selectedDateRange);
       
-      // Fetch fund managers data for the selected time period
+      // Fetch profiles data for the selected time period
       let query = supabase
         .from('profiles')
-        .select(`
-          *,
-          survey_responses (
-            *,
-            year
-          )
-        `);
+        .select('*');
 
       // Apply date filter
       if (selectedDateRange !== 'all') {
@@ -519,26 +513,50 @@ const Admin = () => {
         }
       }
 
-      const { data, error } = await query;
+      const { data: profiles, error: profilesError } = await query;
 
-      console.log('Export query result:', { data: data?.length, error });
-
-      if (error) {
-        console.error('Export query error:', error);
-        throw error;
+      if (profilesError) {
+        console.error('Profiles query error:', profilesError);
+        throw profilesError;
       }
 
+      // Fetch survey responses separately
+      const { data: surveys, error: surveysError } = await supabase
+        .from('survey_responses')
+        .select('user_id, year, completed_at');
+
+      if (surveysError) {
+        console.error('Surveys query error:', surveysError);
+        throw surveysError;
+      }
+
+      // Create a map of user_id to survey data
+      const surveyMap = new Map();
+      surveys?.forEach(survey => {
+        if (!surveyMap.has(survey.user_id)) {
+          surveyMap.set(survey.user_id, []);
+        }
+        surveyMap.get(survey.user_id).push(survey);
+      });
+
+      console.log('Export data prepared:', { profiles: profiles?.length, surveys: surveys?.length });
+
       // Prepare data for export
-      const exportData = data?.map(profile => ({
-        'Fund Manager': `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'N/A',
-        'Email': profile.email || 'N/A',
-        'Created Date': profile.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A',
-        'Role': 'N/A', // Role is stored in user_roles table
-        'Survey Responses': Array.isArray(profile.survey_responses) ? profile.survey_responses.length : 0,
-        'Latest Survey Year': Array.isArray(profile.survey_responses) && profile.survey_responses.length > 0 
-          ? (profile.survey_responses[0] as any)?.year || 'N/A' 
-          : 'N/A'
-      })) || [];
+      const exportData = profiles?.map(profile => {
+        const userSurveys = surveyMap.get(profile.id) || [];
+        const completedSurveys = userSurveys.filter(s => s.completed_at);
+        const latestSurvey = userSurveys.length > 0 ? userSurveys[0] : null;
+        
+        return {
+          'Fund Manager': `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'N/A',
+          'Email': profile.email || 'N/A',
+          'Created Date': profile.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A',
+          'Total Surveys': userSurveys.length,
+          'Completed Surveys': completedSurveys.length,
+          'Latest Survey Year': latestSurvey?.year || 'N/A',
+          'Profile Status': completedSurveys.length > 0 ? 'Complete' : 'Incomplete'
+        };
+      }) || [];
 
       // Create CSV content
       const headers = Object.keys(exportData[0] || {});
@@ -779,10 +797,10 @@ const Admin = () => {
           <Card className="bg-white border">
             <CardContent className="p-4 sm:p-6">
               <div className="flex items-center">
-                <Settings className="w-6 h-6 sm:w-8 sm:h-8 text-orange-600" />
+                <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-orange-600" />
                 <div className="ml-3 sm:ml-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Data Fields</p>
-                  <p className="text-xl sm:text-2xl font-bold text-black">{dataFieldVisibility.length}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total Surveys</p>
+                  <p className="text-xl sm:text-2xl font-bold text-black">{userStats.surveysCompleted}</p>
                 </div>
               </div>
             </CardContent>
@@ -817,7 +835,7 @@ const Admin = () => {
 
         {/* Tabs Section */}
         <Tabs defaultValue="requests" className="space-y-4 sm:space-y-6">
-          <TabsList className="grid w-full grid-cols-3 bg-white h-auto p-1">
+          <TabsList className="grid w-full grid-cols-2 bg-white h-auto p-1">
             <TabsTrigger 
               value="requests" 
               className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs sm:text-sm py-2 px-3"
@@ -829,12 +847,6 @@ const Admin = () => {
               className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs sm:text-sm py-2 px-3"
             >
               Invitation Codes
-            </TabsTrigger>
-            <TabsTrigger 
-              value="visibility" 
-              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs sm:text-sm py-2 px-3"
-            >
-              Data Visibility
             </TabsTrigger>
           </TabsList>
 
@@ -949,68 +961,7 @@ const Admin = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="visibility" className="space-y-4 sm:space-y-6">
-            <Card className="bg-white border">
-              <CardHeader>
-                <CardTitle className="text-black text-lg sm:text-xl">Data Field Visibility</CardTitle>
-                <CardDescription>Configure visibility permissions for survey data fields</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {dataFieldVisibility.length === 0 ? (
-                    <p className="text-center text-gray-500 py-8">No data field visibility settings found</p>
-                  ) : (
-                    dataFieldVisibility.map((field) => (
-                      <div key={field.id} className="flex flex-col lg:flex-row lg:items-center lg:justify-between p-4 border rounded-lg space-y-4 lg:space-y-0">
-                        <div className="flex-1 min-w-0">
-                          <div className="space-y-1">
-                            <p className="font-medium text-black text-sm sm:text-base">{field.field_name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
-                            <p className="text-xs sm:text-sm text-gray-600">Field: {field.field_name}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center lg:flex-shrink-0">
-                          <Select
-                            value={field.visibility_level}
-                            onValueChange={(value) => updateFieldVisibility(field.field_name, value)}
-                            disabled={updatingVisibility === field.field_name}
-                          >
-                            <SelectTrigger className={`w-full sm:w-[120px] text-xs sm:text-sm ${
-                              updatingVisibility === field.field_name ? 'opacity-50 cursor-not-allowed' : ''
-                            }`}>
-                              <SelectValue />
-                              {updatingVisibility === field.field_name && (
-                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 ml-2" />
-                              )}
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="public">
-                                <div className="flex items-center">
-                                  <Eye className="w-4 h-4 mr-2" />
-                                  Public
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="member">
-                                <div className="flex items-center">
-                                  <Users className="w-4 h-4 mr-2" />
-                                  Member
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="admin">
-                                <div className="flex items-center">
-                                  <EyeOff className="w-4 h-4 mr-2" />
-                                  Admin
-                                </div>
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+
         </Tabs>
       </div>
     </div>
