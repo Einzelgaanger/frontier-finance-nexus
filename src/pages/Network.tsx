@@ -54,6 +54,8 @@ const Network = () => {
   useEffect(() => {
     const fetchFundManagers = async () => {
       try {
+        console.log('Fetching fund managers for role:', userRole);
+        
         // Get all completed survey responses first
         const { data: surveyData, error: surveyError } = await supabase
           .from('survey_responses')
@@ -62,6 +64,7 @@ const Network = () => {
           .order('created_at', { ascending: false });
 
         if (surveyError) throw surveyError;
+        console.log('Completed surveys found:', surveyData?.length || 0);
 
         // Get all profiles
         const { data: profilesData, error: profilesError } = await supabase
@@ -70,6 +73,7 @@ const Network = () => {
           .order('created_at', { ascending: false });
 
         if (profilesError) throw profilesError;
+        console.log('Profiles found:', profilesData?.length || 0);
 
         // Create a map of user_id to profile data
         const profilesMap = new Map();
@@ -77,48 +81,79 @@ const Network = () => {
           profilesMap.set(profile.id, profile);
         });
 
-        // Only show fund managers with completed surveys
-        const combinedData = surveyData?.map(survey => {
-          const profile = profilesMap.get(survey.user_id);
-          return {
-            id: survey.id,
-            user_id: survey.user_id,
-            profiles: profile,
-            year: survey.year || null,
-            vehicle_type: survey.vehicle_type || 'Not specified',
-            thesis: survey.thesis || 'No investment thesis available',
-            team_size_min: survey.team_size_min || null,
-            team_size_max: survey.team_size_max || null,
-            legal_domicile: survey.legal_domicile ? 
-              (Array.isArray(survey.legal_domicile) ? survey.legal_domicile : 
-                (typeof survey.legal_domicile === 'string' ? JSON.parse(survey.legal_domicile) : [])) : 
-              [],
-            markets_operated: survey.markets_operated ? 
-              (typeof survey.markets_operated === 'object' ? survey.markets_operated : 
-                (typeof survey.markets_operated === 'string' ? JSON.parse(survey.markets_operated) : {})) : 
-              {},
-            ticket_size_min: survey.ticket_size_min || null,
-            ticket_size_max: survey.ticket_size_max || null,
-            target_capital: survey.target_capital || null,
-            capital_raised: survey.capital_raised || null,
-            fund_stage: survey.fund_stage ? 
-              (Array.isArray(survey.fund_stage) ? survey.fund_stage : 
-                (typeof survey.fund_stage === 'string' ? JSON.parse(survey.fund_stage) : [])) : 
-              [],
-            current_status: survey.current_status || 'Not specified',
-            sectors_allocation: survey.sectors_allocation ? 
-              (typeof survey.sectors_allocation === 'object' ? survey.sectors_allocation : 
-                (typeof survey.sectors_allocation === 'string' ? JSON.parse(survey.sectors_allocation) : {})) : 
-              {},
-            target_return_min: survey.target_return_min || null,
-            target_return_max: survey.target_return_max || null,
-            completed_at: survey.completed_at || null,
-            has_survey: true
-          };
-        }) || [];
+        let combinedData: FundManager[] = [];
 
-        setFundManagers(combinedData as FundManager[]);
-        setFilteredManagers(combinedData as FundManager[]);
+        if (surveyData && surveyData.length > 0) {
+          // Show fund managers with completed surveys
+          combinedData = surveyData.map(survey => {
+            const profile = profilesMap.get(survey.user_id);
+            return {
+              id: survey.id,
+              user_id: survey.user_id,
+              profiles: profile,
+              year: survey.year || null,
+              vehicle_type: survey.vehicle_type || 'Not specified',
+              thesis: survey.thesis || 'No investment thesis available',
+              team_size_min: survey.team_size_min || null,
+              team_size_max: survey.team_size_max || null,
+              legal_domicile: survey.legal_domicile ? 
+                (Array.isArray(survey.legal_domicile) ? survey.legal_domicile : 
+                  (typeof survey.legal_domicile === 'string' ? JSON.parse(survey.legal_domicile) : [])) : 
+                [],
+              markets_operated: survey.markets_operated ? 
+                (typeof survey.markets_operated === 'object' ? survey.markets_operated : 
+                  (typeof survey.markets_operated === 'string' ? JSON.parse(survey.markets_operated) : {})) : 
+                {},
+              ticket_size_min: survey.ticket_size_min || null,
+              ticket_size_max: survey.ticket_size_max || null,
+              target_capital: survey.target_capital || null,
+              capital_raised: survey.capital_raised || null,
+              fund_stage: survey.fund_stage ? 
+                (Array.isArray(survey.fund_stage) ? survey.fund_stage : 
+                  (typeof survey.fund_stage === 'string' ? JSON.parse(survey.fund_stage) : [])) : 
+                [],
+              current_status: survey.current_status || 'Not specified',
+              sectors_allocation: survey.sectors_allocation ? 
+                (typeof survey.sectors_allocation === 'object' ? survey.sectors_allocation : 
+                  (typeof survey.sectors_allocation === 'string' ? JSON.parse(survey.sectors_allocation) : {})) : 
+                {},
+              target_return_min: survey.target_return_min || null,
+              target_return_max: survey.target_return_max || null,
+              completed_at: survey.completed_at || null,
+              has_survey: true
+            };
+          });
+        } else if (userRole === 'viewer') {
+          // For viewers, show all profiles as basic entries if no completed surveys exist
+          console.log('No completed surveys found, showing basic profiles for viewers');
+          combinedData = profilesData?.map(profile => ({
+            id: profile.id,
+            user_id: profile.id,
+            profiles: profile,
+            year: null,
+            vehicle_type: 'Not specified',
+            thesis: 'Profile not completed',
+            team_size_min: null,
+            team_size_max: null,
+            legal_domicile: [],
+            markets_operated: {},
+            ticket_size_min: null,
+            ticket_size_max: null,
+            target_capital: null,
+            capital_raised: null,
+            fund_stage: [],
+            current_status: 'Not specified',
+            sectors_allocation: {},
+            target_return_min: null,
+            target_return_max: null,
+            completed_at: null,
+            has_survey: false
+          })) || [];
+        }
+
+        console.log('Combined data prepared:', combinedData.length);
+        setFundManagers(combinedData);
+        setFilteredManagers(combinedData);
       } catch (error) {
         console.error('Error fetching fund managers:', error);
         toast({
@@ -132,7 +167,7 @@ const Network = () => {
     };
 
     fetchFundManagers();
-  }, [toast]);
+  }, [toast, userRole]);
 
   useEffect(() => {
     const filtered = fundManagers.filter(manager => {
