@@ -13,6 +13,7 @@ import Network from "./pages/Network";
 import FundManagerDetail from "./pages/FundManagerDetail";
 import Survey from "./pages/Survey";
 import Profile from "./pages/Profile";
+import ResetPassword from "./pages/ResetPassword";
 import Admin from "./pages/Admin";
 import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
@@ -54,6 +55,7 @@ const App = () => (
                 <Profile />
               </ProtectedRoute>
             } />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/admin" element={
               <ProtectedRoute requiredRole="admin">
                 <Admin />

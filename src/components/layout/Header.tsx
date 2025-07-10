@@ -130,14 +130,16 @@ const Header = ({ showNav = true }: HeaderProps) => {
                         {/* Actions */}
                         <div className="space-y-2">
                           {userRole === 'member' && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full justify-start border-gray-300 hover:bg-gray-50"
-                            >
-                              <Settings className="w-4 h-4 mr-2" />
-                              Settings
-                            </Button>
+                            <Link to="/profile">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full justify-start border-gray-300 hover:bg-gray-50"
+                              >
+                                <Settings className="w-4 h-4 mr-2" />
+                                Settings
+                              </Button>
+                            </Link>
                           )}
                           <Button
                             variant="outline"

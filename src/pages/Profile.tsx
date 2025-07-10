@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import Header from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { User, Settings, FileText, Eye, Edit, Shield } from 'lucide-react';
+import { User, Settings, FileText, Eye, Edit, Shield, Camera, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -21,8 +21,12 @@ const Profile = () => {
     first_name: '',
     last_name: '',
     email: '',
-    phone: ''
+    phone: '',
+    profile_picture_url: ''
   });
+  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [surveyResponses, setSurveyResponses] = useState([]);
   const [editMode, setEditMode] = useState(false);
 
@@ -67,28 +71,86 @@ const Profile = () => {
     }
   }, [user, fetchProfile, fetchSurveyResponses]);
 
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast({
+          title: "File too large",
+          description: "Please select an image smaller than 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setProfileImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeProfileImage = () => {
+    setProfileImage(null);
+    setImagePreview('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const uploadProfileImage = async (file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${user?.id}-${Date.now()}.${fileExt}`;
+    const filePath = `profile-pictures/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
+
   const updateProfile = async () => {
     try {
+      let profilePictureUrl = profile.profile_picture_url;
+
+      // Upload new image if selected
+      if (profileImage) {
+        profilePictureUrl = await uploadProfileImage(profileImage);
+      }
+
       const { error } = await supabase
         .from('profiles')
         .update({
-          first_name: profile.first_name,
-          last_name: profile.last_name,
-          phone: profile.phone,
+          profile_picture_url: profilePictureUrl,
         })
         .eq('id', user?.id);
 
       if (error) throw error;
 
+      // Update local state
+      setProfile(prev => ({ ...prev, profile_picture_url: profilePictureUrl }));
+      setProfileImage(null);
+      setImagePreview('');
+
       toast({
         title: "Profile Updated",
-        description: "Your profile has been updated successfully.",
+        description: "Your profile picture has been updated successfully.",
       });
       setEditMode(false);
     } catch (error) {
+      console.error('Error updating profile:', error);
       toast({
         title: "Error",
-        description: "Failed to update profile.",
+        description: "Failed to update profile picture.",
         variant: "destructive",
       });
     }
@@ -221,18 +283,42 @@ const Profile = () => {
                   <div>
                     <Label htmlFor="profile_picture" className="text-black font-medium">Profile Picture</Label>
                     <div className="flex items-center space-x-4">
-                      <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center">
-                        <User className="w-8 h-8 text-gray-400" />
+                      <div className="relative">
+                        <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                          {imagePreview || profile.profile_picture_url ? (
+                            <img 
+                              src={imagePreview || profile.profile_picture_url} 
+                              alt="Profile" 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <User className="w-8 h-8 text-gray-400" />
+                          )}
+                        </div>
+                        {editMode && (imagePreview || profile.profile_picture_url) && (
+                          <button
+                            type="button"
+                            onClick={removeProfileImage}
+                            aria-label="Remove profile picture"
+                            className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        )}
                       </div>
-                      <div className="flex-1">
+                      <div className="flex-1 space-y-2">
                         <Input
+                          ref={fileInputRef}
                           id="profile_picture"
                           type="file"
                           accept="image/*"
                           disabled={!editMode}
+                          onChange={handleImageChange}
                           className="border-gray-300"
                         />
-                        <p className="text-xs text-gray-500 mt-1">Upload a profile picture (optional)</p>
+                        <p className="text-xs text-gray-500">
+                          {editMode ? "Click to upload or change profile picture (max 5MB)" : "Profile picture"}
+                        </p>
                       </div>
                     </div>
                   </div>

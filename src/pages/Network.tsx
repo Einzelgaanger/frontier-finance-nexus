@@ -173,7 +173,7 @@ const Network = () => {
             };
           }) || [];
         } else if (userRole === 'viewer') {
-          // Viewers see the same information as everyone else but cannot click cards
+          // Viewers see the same information as members and admins but cannot click cards
           combinedData = profilesData?.map(profile => {
             const survey = surveyMap.get(profile.id);
             return {
