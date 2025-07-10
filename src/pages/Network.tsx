@@ -173,7 +173,7 @@ const Network = () => {
             };
           }) || [];
         } else if (userRole === 'viewer') {
-          // Viewers see the same information as members but cannot click cards
+          // Viewers see the same information as everyone else but cannot click cards
           combinedData = profilesData?.map(profile => {
             const survey = surveyMap.get(profile.id);
             return {
@@ -367,26 +367,38 @@ const Network = () => {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">
-                  {manager.thesis}
-                </p>
+                <div className="min-h-[4.5rem]">
+                  <p className="text-sm text-gray-600 leading-relaxed break-words overflow-hidden" style={{
+                    display: '-webkit-box',
+                    WebkitLineClamp: 3,
+                    WebkitBoxOrient: 'vertical',
+                    wordBreak: 'break-word'
+                  }}>
+                    {manager.thesis}
+                  </p>
+                </div>
                 
-                <div className="flex items-center text-sm text-gray-600">
-                  <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
-                  <span className="truncate">
+                <div className="flex items-start text-sm text-gray-600">
+                  <MapPin className="w-3 h-3 mr-1 flex-shrink-0 mt-0.5" />
+                  <span className="break-words overflow-hidden" style={{
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    wordBreak: 'break-word'
+                  }}>
                     {manager.legal_domicile?.slice(0, 2).join(', ')}
                     {manager.legal_domicile?.length > 2 && ` +${manager.legal_domicile.length - 2}`}
                   </span>
                 </div>
 
                 {manager.vehicle_websites && (
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Globe className="w-3 h-3 mr-1 flex-shrink-0" />
+                  <div className="flex items-start text-sm text-gray-600">
+                    <Globe className="w-3 h-3 mr-1 flex-shrink-0 mt-0.5" />
                     <a 
                       href={manager.vehicle_websites} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 underline truncate"
+                      className="text-blue-600 hover:text-blue-800 underline break-all"
                       onClick={(e) => e.stopPropagation()}
                     >
                       Visit Website
@@ -395,11 +407,11 @@ const Network = () => {
                 )}
 
                 <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center text-gray-700 font-medium">
-                    <DollarSign className="w-3 h-3 mr-1" />
-                    {formatCurrency(manager.target_capital)}
+                  <div className="flex items-center text-gray-700 font-medium min-w-0">
+                    <DollarSign className="w-3 h-3 mr-1 flex-shrink-0" />
+                    <span className="truncate">{formatCurrency(manager.target_capital)}</span>
                   </div>
-                  <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
+                  <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700 flex-shrink-0">
                     {manager.year || 'N/A'}
                   </Badge>
                 </div>
@@ -407,8 +419,8 @@ const Network = () => {
                 {manager.sectors_allocation && (
                   <div className="flex flex-wrap gap-1">
                     {getTopSectors(manager.sectors_allocation).map((sector, index) => (
-                      <Badge key={index} variant="outline" className="text-xs bg-gray-50 text-gray-700 border-gray-200">
-                        {sector.sector}
+                      <Badge key={index} variant="outline" className="text-xs bg-gray-50 text-gray-700 border-gray-200 max-w-full">
+                        <span className="truncate block">{sector.sector}</span>
                       </Badge>
                     ))}
                   </div>

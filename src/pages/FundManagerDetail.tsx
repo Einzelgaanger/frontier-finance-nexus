@@ -273,9 +273,9 @@ const FundManagerDetail = () => {
         </div>
 
         {selectedResponse && (
-          <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-8">
             {/* Main Content - Takes 3 columns */}
-            <div className="xl:col-span-3 space-y-8">
+            <div className="lg:col-span-3 space-y-4 lg:space-y-8">
               {/* Fund Overview Card */}
               <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                 <CardHeader className="pb-4">
@@ -331,7 +331,7 @@ const FundManagerDetail = () => {
                       <Target className="w-5 h-5 mr-2 text-blue-600" />
                       Investment Thesis
                     </h4>
-                    <p className="text-gray-700 leading-relaxed break-words whitespace-pre-wrap max-w-full overflow-hidden">
+                    <p className="text-gray-700 leading-relaxed break-words whitespace-pre-wrap overflow-hidden">
                       {selectedResponse.thesis}
                     </p>
                   </div>
@@ -471,7 +471,7 @@ const FundManagerDetail = () => {
             </div>
 
             {/* Sidebar - Takes 1 column */}
-            <div className="xl:col-span-1 space-y-6">
+            <div className="lg:col-span-1 space-y-4 lg:space-y-6">
               {/* Sector Allocation */}
               <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                 <CardHeader className="pb-4">
@@ -596,7 +596,7 @@ const FundManagerDetail = () => {
                   {selectedResponse.team_description && (
                     <div>
                       <h4 className="font-semibold text-gray-900 mb-2">Team Description</h4>
-                      <p className="text-gray-700">{selectedResponse.team_description}</p>
+                      <p className="text-gray-700 break-words whitespace-pre-wrap leading-relaxed">{selectedResponse.team_description}</p>
                     </div>
                   )}
                   
@@ -657,7 +657,7 @@ const FundManagerDetail = () => {
                   {selectedResponse.ticket_description && (
                     <div>
                       <h4 className="font-semibold text-gray-900 mb-2">Ticket Size Description</h4>
-                      <p className="text-gray-700">{selectedResponse.ticket_description}</p>
+                      <p className="text-gray-700 break-words whitespace-pre-wrap leading-relaxed">{selectedResponse.ticket_description}</p>
                     </div>
                   )}
 
@@ -726,7 +726,7 @@ const FundManagerDetail = () => {
                   {selectedResponse.expectations && (
                     <div>
                       <h4 className="font-semibold text-gray-900 mb-2">Expectations</h4>
-                      <p className="text-gray-700">{selectedResponse.expectations}</p>
+                      <p className="text-gray-700 break-words whitespace-pre-wrap leading-relaxed">{selectedResponse.expectations}</p>
                     </div>
                   )}
                 </CardContent>

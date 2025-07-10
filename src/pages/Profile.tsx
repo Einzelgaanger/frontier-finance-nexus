@@ -168,12 +168,12 @@ const Profile = () => {
                     <Badge className={`${getRoleBadgeColor(userRole)} capitalize`}>
                       {userRole}
                     </Badge>
-                    {!editMode ? (
+                    {userRole === 'member' && !editMode ? (
                       <Button onClick={() => setEditMode(true)} variant="outline" size="sm" className="border-gray-300">
                         <Edit className="w-4 h-4 mr-2" />
                         Edit
                       </Button>
-                    ) : (
+                    ) : userRole === 'member' && editMode ? (
                       <div className="flex space-x-2">
                         <Button onClick={updateProfile} size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
                           Save
@@ -182,7 +182,7 @@ const Profile = () => {
                           Cancel
                         </Button>
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               </CardHeader>
@@ -194,7 +194,7 @@ const Profile = () => {
                       id="first_name"
                       value={profile.first_name}
                       onChange={(e) => setProfile(prev => ({ ...prev, first_name: e.target.value }))}
-                      disabled={!editMode}
+                      disabled={userRole !== 'member' || !editMode}
                       className="border-gray-300"
                     />
                   </div>
@@ -204,7 +204,7 @@ const Profile = () => {
                       id="last_name"
                       value={profile.last_name}
                       onChange={(e) => setProfile(prev => ({ ...prev, last_name: e.target.value }))}
-                      disabled={!editMode}
+                      disabled={userRole !== 'member' || !editMode}
                       className="border-gray-300"
                     />
                   </div>
@@ -219,18 +219,20 @@ const Profile = () => {
                   />
                   <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
                 </div>
-                <div>
-                  <Label htmlFor="phone" className="text-black font-medium">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    value={profile.phone || ''}
-                    onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
-                    disabled={!editMode}
-                    placeholder="Enter your phone number"
-                    className="border-gray-300"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Optional - for network communication</p>
-                </div>
+                {userRole === 'member' && (
+                  <div>
+                    <Label htmlFor="phone" className="text-black font-medium">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      value={profile.phone || ''}
+                      onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
+                      disabled={!editMode}
+                      placeholder="Enter your phone number"
+                      className="border-gray-300"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Optional - for network communication</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
