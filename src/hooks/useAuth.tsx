@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             await Promise.race([
               fetchUserRole(session.user.id),
               new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Timeout')), 5000)
+                setTimeout(() => reject(new Error('Timeout')), 10000)
               )
             ]);
           } catch (error) {
@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           await Promise.race([
             fetchUserRole(session.user.id),
             new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Timeout')), 5000)
+              setTimeout(() => reject(new Error('Timeout')), 10000)
             )
           ]);
         }

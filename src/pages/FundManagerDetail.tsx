@@ -305,7 +305,9 @@ const FundManagerDetail = () => {
                       <Target className="w-5 h-5 mr-2 text-blue-600" />
                       Investment Thesis
                     </h4>
-                    <p className="text-gray-700 leading-relaxed">{selectedResponse.thesis}</p>
+                    <p className="text-gray-700 leading-relaxed break-words whitespace-pre-wrap max-w-full overflow-hidden">
+                      {selectedResponse.thesis}
+                    </p>
                   </div>
                 </CardContent>
               </Card>

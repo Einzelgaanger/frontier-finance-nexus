@@ -22,7 +22,8 @@ import {
   EyeOff,
   Filter,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Plus
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -38,15 +39,80 @@ const Admin = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
 
-  useEffect(() => {
-    console.log('Admin component mounted, userRole:', userRole, 'user:', user?.id);
-    if (userRole === 'admin') {
-      console.log('User is admin, fetching data...');
-      fetchData();
-    } else {
-      console.log('User is not admin, role:', userRole);
+  const createDefaultDataFieldVisibility = useCallback(async () => {
+    try {
+      const defaultFields = [
+        { field_name: 'vehicle_type', visibility_level: 'public' },
+        { field_name: 'thesis', visibility_level: 'member' },
+        { field_name: 'team_size_min', visibility_level: 'member' },
+        { field_name: 'team_size_max', visibility_level: 'member' },
+        { field_name: 'legal_domicile', visibility_level: 'public' },
+        { field_name: 'target_capital', visibility_level: 'member' },
+        { field_name: 'capital_raised', visibility_level: 'member' },
+        { field_name: 'fund_stage', visibility_level: 'member' },
+        { field_name: 'sectors_allocation', visibility_level: 'member' },
+        { field_name: 'target_return_min', visibility_level: 'member' },
+        { field_name: 'target_return_max', visibility_level: 'member' },
+        { field_name: 'equity_investments_made', visibility_level: 'member' },
+        { field_name: 'equity_investments_exited', visibility_level: 'member' },
+        { field_name: 'self_liquidating_made', visibility_level: 'member' },
+        { field_name: 'self_liquidating_exited', visibility_level: 'member' },
+        { field_name: 'ticket_size_min', visibility_level: 'member' },
+        { field_name: 'ticket_size_max', visibility_level: 'member' },
+        { field_name: 'current_status', visibility_level: 'member' },
+        { field_name: 'team_members', visibility_level: 'member' },
+        { field_name: 'team_description', visibility_level: 'member' },
+        { field_name: 'markets_operated', visibility_level: 'member' },
+        { field_name: 'investment_instruments_priority', visibility_level: 'member' },
+        { field_name: 'information_sharing', visibility_level: 'member' },
+        { field_name: 'expectations', visibility_level: 'member' },
+        { field_name: 'how_heard_about_network', visibility_level: 'member' },
+        { field_name: 'supporting_document_url', visibility_level: 'admin' },
+        { field_name: 'vehicle_websites', visibility_level: 'public' },
+        { field_name: 'vehicle_type_other', visibility_level: 'member' },
+        { field_name: 'legal_entity_date_from', visibility_level: 'member' },
+        { field_name: 'legal_entity_date_to', visibility_level: 'member' },
+        { field_name: 'first_close_date_from', visibility_level: 'member' },
+        { field_name: 'first_close_date_to', visibility_level: 'member' },
+        { field_name: 'legal_entity_month_from', visibility_level: 'member' },
+        { field_name: 'legal_entity_month_to', visibility_level: 'member' },
+        { field_name: 'first_close_month_from', visibility_level: 'member' },
+        { field_name: 'first_close_month_to', visibility_level: 'member' },
+        { field_name: 'ticket_description', visibility_level: 'member' },
+        { field_name: 'capital_in_market', visibility_level: 'member' }
+      ];
+
+      const { error } = await supabase
+        .from('data_field_visibility')
+        .insert(defaultFields);
+
+      if (error) {
+        console.error('Error creating default data field visibility:', error);
+        throw error;
+      }
+
+      console.log('Default data field visibility entries created successfully');
+      
+      // Refresh the data
+      const { data: newVisibilityData, error: refreshError } = await supabase
+        .from('data_field_visibility')
+        .select('*')
+        .order('field_name');
+
+      if (refreshError) {
+        console.error('Error refreshing data field visibility:', refreshError);
+      } else {
+        setDataFieldVisibility(newVisibilityData || []);
+      }
+    } catch (error) {
+      console.error('Error creating default data field visibility:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create default data field visibility",
+        variant: "destructive"
+      });
     }
-  }, [userRole, fetchData, user?.id]);
+  }, [toast]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -131,78 +197,17 @@ const Admin = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, createDefaultDataFieldVisibility]);
 
-  const createDefaultDataFieldVisibility = async () => {
-    try {
-      const defaultFields = [
-        { field_name: 'vehicle_type', visibility_level: 'public' },
-        { field_name: 'thesis', visibility_level: 'member' },
-        { field_name: 'team_size_min', visibility_level: 'member' },
-        { field_name: 'team_size_max', visibility_level: 'member' },
-        { field_name: 'legal_domicile', visibility_level: 'public' },
-        { field_name: 'target_capital', visibility_level: 'member' },
-        { field_name: 'capital_raised', visibility_level: 'member' },
-        { field_name: 'fund_stage', visibility_level: 'member' },
-        { field_name: 'sectors_allocation', visibility_level: 'member' },
-        { field_name: 'target_return_min', visibility_level: 'member' },
-        { field_name: 'target_return_max', visibility_level: 'member' },
-        { field_name: 'equity_investments_made', visibility_level: 'member' },
-        { field_name: 'equity_investments_exited', visibility_level: 'member' },
-        { field_name: 'self_liquidating_made', visibility_level: 'member' },
-        { field_name: 'self_liquidating_exited', visibility_level: 'member' },
-        { field_name: 'ticket_size_min', visibility_level: 'member' },
-        { field_name: 'ticket_size_max', visibility_level: 'member' },
-        { field_name: 'current_status', visibility_level: 'member' },
-        { field_name: 'team_members', visibility_level: 'member' },
-        { field_name: 'team_description', visibility_level: 'member' },
-        { field_name: 'markets_operated', visibility_level: 'member' },
-        { field_name: 'investment_instruments_priority', visibility_level: 'member' },
-        { field_name: 'information_sharing', visibility_level: 'member' },
-        { field_name: 'expectations', visibility_level: 'member' },
-        { field_name: 'how_heard_about_network', visibility_level: 'member' },
-        { field_name: 'supporting_document_url', visibility_level: 'admin' },
-        { field_name: 'vehicle_websites', visibility_level: 'public' },
-        { field_name: 'vehicle_type_other', visibility_level: 'member' },
-        { field_name: 'legal_entity_date_from', visibility_level: 'member' },
-        { field_name: 'legal_entity_date_to', visibility_level: 'member' },
-        { field_name: 'first_close_date_from', visibility_level: 'member' },
-        { field_name: 'first_close_date_to', visibility_level: 'member' },
-        { field_name: 'legal_entity_month_from', visibility_level: 'member' },
-        { field_name: 'legal_entity_month_to', visibility_level: 'member' },
-        { field_name: 'first_close_month_from', visibility_level: 'member' },
-        { field_name: 'first_close_month_to', visibility_level: 'member' },
-        { field_name: 'ticket_description', visibility_level: 'member' },
-        { field_name: 'capital_in_market', visibility_level: 'member' }
-      ];
-
-      const { error } = await supabase
-        .from('data_field_visibility')
-        .insert(defaultFields);
-
-      if (error) {
-        console.error('Error creating default data field visibility:', error);
-        throw error;
-      }
-
-      console.log('Default data field visibility entries created successfully');
-      
-      // Refresh the data
-      const { data: newVisibilityData, error: refreshError } = await supabase
-        .from('data_field_visibility')
-        .select('*')
-        .order('field_name');
-
-      if (refreshError) {
-        console.error('Error refreshing data field visibility:', refreshError);
-      } else {
-        setDataFieldVisibility(newVisibilityData || []);
-      }
-
-          } catch (error) {
-        console.error('Error in createDefaultDataFieldVisibility:', error);
-      }
-    };
+  useEffect(() => {
+    console.log('Admin component mounted, userRole:', userRole, 'user:', user?.id);
+    if (userRole === 'admin') {
+      console.log('User is admin, fetching data...');
+      fetchData();
+    } else {
+      console.log('User is not admin, role:', userRole);
+    }
+  }, [userRole, fetchData, user?.id]);
 
   // Function to create sample data for testing (can be removed in production)
   const createSampleData = async () => {
