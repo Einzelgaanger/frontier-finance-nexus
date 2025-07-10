@@ -300,31 +300,31 @@ BEGIN
 END $$;
 
 -- Ensure data_field_visibility table has all necessary fields for admin access
-INSERT INTO data_field_visibility (field_name, visibility_level, created_at, updated_at)
+INSERT INTO data_field_visibility (field_name, visibility_level)
 VALUES 
-  ('supporting_document_url', 'admin', NOW(), NOW()),
-  ('team_members', 'admin', NOW(), NOW()),
-  ('team_description', 'admin', NOW(), NOW()),
-  ('expectations', 'admin', NOW(), NOW()),
-  ('legal_entity_date_from', 'admin', NOW(), NOW()),
-  ('legal_entity_date_to', 'admin', NOW(), NOW()),
-  ('first_close_date_from', 'admin', NOW(), NOW()),
-  ('first_close_date_to', 'admin', NOW(), NOW()),
-  ('legal_entity_month_from', 'admin', NOW(), NOW()),
-  ('legal_entity_month_to', 'admin', NOW(), NOW()),
-  ('first_close_month_from', 'admin', NOW(), NOW()),
-  ('first_close_month_to', 'admin', NOW(), NOW()),
-  ('ticket_description', 'admin', NOW(), NOW()),
-  ('capital_in_market', 'admin', NOW(), NOW()),
-  ('vehicle_type_other', 'admin', NOW(), NOW()),
-  ('vehicle_websites', 'admin', NOW(), NOW()),
-  ('investment_instruments_priority', 'admin', NOW(), NOW()),
-  ('equity_investments_made', 'admin', NOW(), NOW()),
-  ('equity_investments_exited', 'admin', NOW(), NOW()),
-  ('self_liquidating_made', 'admin', NOW(), NOW()),
-  ('self_liquidating_exited', 'admin', NOW(), NOW()),
-  ('how_heard_about_network', 'admin', NOW(), NOW()),
-  ('information_sharing', 'admin', NOW(), NOW())
+  ('supporting_document_url', 'admin'),
+  ('team_members', 'admin'),
+  ('team_description', 'admin'),
+  ('expectations', 'admin'),
+  ('legal_entity_date_from', 'admin'),
+  ('legal_entity_date_to', 'admin'),
+  ('first_close_date_from', 'admin'),
+  ('first_close_date_to', 'admin'),
+  ('legal_entity_month_from', 'admin'),
+  ('legal_entity_month_to', 'admin'),
+  ('first_close_month_from', 'admin'),
+  ('first_close_month_to', 'admin'),
+  ('ticket_description', 'admin'),
+  ('capital_in_market', 'admin'),
+  ('vehicle_type_other', 'admin'),
+  ('vehicle_websites', 'admin'),
+  ('investment_instruments_priority', 'admin'),
+  ('equity_investments_made', 'admin'),
+  ('equity_investments_exited', 'admin'),
+  ('self_liquidating_made', 'admin'),
+  ('self_liquidating_exited', 'admin'),
+  ('how_heard_about_network', 'admin'),
+  ('information_sharing', 'admin')
 ON CONFLICT (field_name) DO NOTHING;
 
 -- Create a function to get accurate user statistics for admin dashboard
