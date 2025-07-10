@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,9 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Mail, Lock, User, Eye, EyeOff, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, AlertCircle, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 // Google SVG Icon
 const GoogleIcon = () => (
@@ -25,6 +25,7 @@ export default function AuthForm() {
   const [showSignInPassword, setShowSignInPassword] = useState(false);
   const [showSignUpPassword, setShowSignUpPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [signInForm, setSignInForm] = useState({ email: '', password: '' });
   const [signUpForm, setSignUpForm] = useState({ 
     email: '', 
@@ -33,10 +34,20 @@ export default function AuthForm() {
     firstName: '', 
     lastName: '' 
   });
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   
   const { signIn, signUp, signInWithGoogle } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Get the correct base URL for redirects
+  const getBaseUrl = () => {
+    // Use your production domain consistently
+    if (window.location.hostname === 'cffdatabase.onrender.com') {
+      return 'https://cffdatabase.onrender.com';
+    }
+    return window.location.origin;
+  };
 
   // Password strength checker
   const checkPasswordStrength = (password: string) => {
@@ -59,19 +70,31 @@ export default function AuthForm() {
     e.preventDefault();
     setIsLoading(true);
 
-    const { error } = await signIn(signInForm.email, signInForm.password);
-    
-    if (error) {
+    try {
+      const { error } = await signIn(signInForm.email, signInForm.password);
+      
+      if (error) {
+        toast({
+          title: "Sign In Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Welcome back!",
+          description: "You have been signed in successfully.",
+        });
+        navigate('/dashboard');
+      }
+    } catch (error: any) {
       toast({
-        title: "Sign In Failed",
-        description: error.message,
+        title: "Sign In Error",
+        description: error.message || "An unexpected error occurred",
         variant: "destructive",
       });
-    } else {
-      navigate('/dashboard');
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -97,44 +120,165 @@ export default function AuthForm() {
 
     setIsLoading(true);
 
-    const { error } = await signUp(
-      signUpForm.email, 
-      signUpForm.password,
-      {
-        first_name: signUpForm.firstName,
-        last_name: signUpForm.lastName,
+    try {
+      const baseUrl = getBaseUrl();
+      const { error } = await signUp(
+        signUpForm.email, 
+        signUpForm.password,
+        {
+          first_name: signUpForm.firstName,
+          last_name: signUpForm.lastName,
+        }
+      );
+      
+      if (error) {
+        if (error.message.includes('already registered')) {
+          toast({
+            title: "Account Already Exists",
+            description: "An account with this email already exists. Please sign in instead.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Sign Up Failed",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
+      } else {
+        toast({
+          title: "Account Created Successfully!",
+          description: "Please check your email to verify your account before signing in.",
+        });
+        // Clear the form
+        setSignUpForm({
+          email: '',
+          password: '',
+          confirmPassword: '',
+          firstName: '',
+          lastName: ''
+        });
       }
-    );
-    
-    if (error) {
+    } catch (error: any) {
       toast({
-        title: "Sign Up Failed",
-        description: error.message,
+        title: "Sign Up Error",
+        description: error.message || "An unexpected error occurred",
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Account Created",
-        description: "Please check your email to verify your account.",
-      });
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
-    const { error } = await signInWithGoogle();
-    
-    if (error) {
+    try {
+      const { error } = await signInWithGoogle();
+      
+      if (error) {
+        toast({
+          title: "Google Sign In Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
       toast({
-        title: "Google Sign In Failed",
-        description: error.message,
+        title: "Google Sign In Error",
+        description: error.message || "An unexpected error occurred",
         variant: "destructive",
       });
+    } finally {
       setIsLoading(false);
     }
   };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const baseUrl = getBaseUrl();
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
+        redirectTo: `${baseUrl}/auth?mode=reset`,
+      });
+
+      if (error) {
+        toast({
+          title: "Password Reset Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Password Reset Email Sent",
+          description: "Please check your email for password reset instructions.",
+        });
+        setShowForgotPassword(false);
+        setForgotPasswordEmail('');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Password Reset Error",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Show forgot password form
+  if (showForgotPassword) {
+    return (
+      <div className="min-h-screen bg-cover bg-center bg-fixed flex items-center justify-center p-4" style={{ backgroundImage: 'url(/auth.jpg)' }}>
+        <Card className="w-full max-w-md border border-blue-600/40 bg-blue-700/30 backdrop-blur-md relative z-10 shadow-2xl">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold text-white">
+              Reset Password
+            </CardTitle>
+            <CardDescription className="text-white/90">
+              Enter your email to receive password reset instructions
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent>
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="forgot-email" className="text-white font-medium">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-100/90 w-4 h-4" />
+                  <Input
+                    id="forgot-email"
+                    type="email"
+                    placeholder="Enter your email"
+                    className="pl-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60"
+                    value={forgotPasswordEmail}
+                    onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+              
+              <Button type="submit" className="w-full bg-blue-600/80 hover:bg-blue-600 text-white backdrop-blur-sm" disabled={isLoading}>
+                {isLoading ? 'Sending...' : 'Send Reset Instructions'}
+              </Button>
+              
+              <Button 
+                type="button" 
+                variant="ghost" 
+                className="w-full text-white hover:bg-blue-700/20"
+                onClick={() => setShowForgotPassword(false)}
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Sign In
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-cover bg-center bg-fixed flex items-center justify-center p-4" style={{ backgroundImage: 'url(/auth.jpg)' }}>
@@ -214,6 +358,16 @@ export default function AuthForm() {
                       {showSignInPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
+                </div>
+                
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    className="text-sm text-blue-100/90 hover:text-blue-100 underline"
+                    onClick={() => setShowForgotPassword(true)}
+                  >
+                    Forgot password?
+                  </button>
                 </div>
                 
                 <Button type="submit" className="w-full bg-blue-600/80 hover:bg-blue-600 text-white backdrop-blur-sm" disabled={isLoading}>

@@ -114,7 +114,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, metadata?: any) => {
-    const redirectUrl = `${window.location.origin}/dashboard`;
+    // Get the correct redirect URL for your domain
+    const getRedirectUrl = () => {
+      if (window.location.hostname === 'cffdatabase.onrender.com') {
+        return 'https://cffdatabase.onrender.com/dashboard';
+      }
+      return `${window.location.origin}/dashboard`;
+    };
+    
+    const redirectUrl = getRedirectUrl();
     
     const { error } = await supabase.auth.signUp({
       email,
@@ -132,10 +140,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signInWithGoogle = async () => {
+    // Get the correct redirect URL for your domain
+    const getRedirectUrl = () => {
+      if (window.location.hostname === 'cffdatabase.onrender.com') {
+        return 'https://cffdatabase.onrender.com/dashboard';
+      }
+      return `${window.location.origin}/dashboard`;
+    };
+    
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/dashboard`
+        redirectTo: getRedirectUrl()
       }
     });
     return { error };
