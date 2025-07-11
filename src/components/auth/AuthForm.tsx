@@ -204,7 +204,7 @@ export default function AuthForm() {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
-        redirectTo: 'https://cffdatabase.onrender.com/auth?mode=reset',
+        redirectTo: `${window.location.origin}/auth?mode=reset`,
       });
 
       if (error) {

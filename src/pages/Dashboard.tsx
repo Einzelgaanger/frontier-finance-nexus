@@ -4,9 +4,15 @@ import Header from '@/components/layout/Header';
 import ViewerDashboard from '@/components/dashboard/ViewerDashboard';
 import MemberDashboard from '@/components/dashboard/MemberDashboard';
 import AdminDashboard from '@/components/dashboard/AdminDashboard';
+import { useEffect } from 'react';
 
 const Dashboard = () => {
-  const { userRole, loading } = useAuth();
+  const { userRole, loading, refreshUserRole } = useAuth();
+
+  // Refresh user role when component mounts to ensure latest role is loaded
+  useEffect(() => {
+    refreshUserRole();
+  }, [refreshUserRole]);
 
   // Show loading while user role is being determined
   if (loading) {

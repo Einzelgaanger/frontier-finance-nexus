@@ -160,7 +160,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email,
         password,
         options: {
-          emailRedirectTo: 'https://cffdatabase.onrender.com/dashboard',
+          emailRedirectTo: `${window.location.origin}/dashboard`,
           data: metadata,
         }
       });
@@ -184,7 +184,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: 'https://cffdatabase.onrender.com/dashboard'
+          redirectTo: `${window.location.origin}/dashboard`
         }
       });
       return { error };

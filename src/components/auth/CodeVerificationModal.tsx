@@ -101,7 +101,6 @@ export function CodeVerificationModal({ open, onClose }: CodeVerificationModalPr
 
       // Refresh the user role in the frontend
       await refreshUserRole();
-      window.location.reload();
 
       toast({
         title: "Verification Successful",
