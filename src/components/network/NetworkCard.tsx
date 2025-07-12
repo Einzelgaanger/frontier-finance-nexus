@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Building2, Globe, Users, Eye, MapPin, Calendar } from 'lucide-react';
+import { Building2, Globe, Users, Eye, MapPin, Calendar, DollarSign, Target, Briefcase } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface NetworkCardProps {
@@ -17,6 +17,10 @@ interface NetworkCardProps {
     team_size?: number;
     typical_check_size?: string;
     completed_at?: string;
+    aum?: string;
+    investment_thesis?: string;
+    sector_focus?: string[];
+    stage_focus?: string[];
     profiles?: {
       first_name: string;
       last_name: string;
@@ -29,6 +33,7 @@ interface NetworkCardProps {
 
 export function NetworkCard({ fund, userRole, showDetails = false }: NetworkCardProps) {
   const canViewDetails = userRole === 'member' || userRole === 'admin';
+  const isAdmin = userRole === 'admin';
 
   return (
     <Card className="hover:shadow-lg transition-shadow">
@@ -76,7 +81,7 @@ export function NetworkCard({ fund, userRole, showDetails = false }: NetworkCard
           </div>
         )}
 
-        {/* Additional Details - Members and Admins only */}
+        {/* Member Details */}
         {canViewDetails && showDetails && (
           <>
             {fund.team_size && (
@@ -87,8 +92,9 @@ export function NetworkCard({ fund, userRole, showDetails = false }: NetworkCard
             )}
 
             {fund.typical_check_size && (
-              <div className="text-sm text-gray-600">
-                <span className="font-medium">Typical Check Size:</span> {fund.typical_check_size}
+              <div className="flex items-center text-sm text-gray-600">
+                <DollarSign className="w-4 h-4 mr-2" />
+                <span>Typical Check: {fund.typical_check_size}</span>
               </div>
             )}
 
@@ -97,6 +103,69 @@ export function NetworkCard({ fund, userRole, showDetails = false }: NetworkCard
                 <Calendar className="w-4 h-4 mr-2" />
                 <span>Founded {fund.year_founded}</span>
               </div>
+            )}
+
+            {fund.sector_focus && fund.sector_focus.length > 0 && (
+              <div className="text-sm text-gray-600">
+                <div className="flex items-center mb-1">
+                  <Target className="w-4 h-4 mr-2" />
+                  <span className="font-medium">Sectors:</span>
+                </div>
+                <div className="flex flex-wrap gap-1 ml-6">
+                  {fund.sector_focus.slice(0, 3).map((sector, index) => (
+                    <Badge key={index} variant="outline" className="text-xs">
+                      {sector}
+                    </Badge>
+                  ))}
+                  {fund.sector_focus.length > 3 && (
+                    <Badge variant="outline" className="text-xs">
+                      +{fund.sector_focus.length - 3} more
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {fund.stage_focus && fund.stage_focus.length > 0 && (
+              <div className="text-sm text-gray-600">
+                <div className="flex items-center mb-1">
+                  <Briefcase className="w-4 h-4 mr-2" />
+                  <span className="font-medium">Stages:</span>
+                </div>
+                <div className="flex flex-wrap gap-1 ml-6">
+                  {fund.stage_focus.slice(0, 3).map((stage, index) => (
+                    <Badge key={index} variant="outline" className="text-xs">
+                      {stage}
+                    </Badge>
+                  ))}
+                  {fund.stage_focus.length > 3 && (
+                    <Badge variant="outline" className="text-xs">
+                      +{fund.stage_focus.length - 3} more
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Admin-only details */}
+            {isAdmin && (
+              <>
+                {fund.aum && (
+                  <div className="flex items-center text-sm text-gray-600">
+                    <DollarSign className="w-4 h-4 mr-2" />
+                    <span>AUM: {fund.aum}</span>
+                  </div>
+                )}
+
+                {fund.investment_thesis && (
+                  <div className="text-sm text-gray-600">
+                    <div className="font-medium mb-1">Investment Thesis:</div>
+                    <div className="text-xs text-gray-500 line-clamp-2">
+                      {fund.investment_thesis}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
             {fund.completed_at && (
@@ -110,10 +179,10 @@ export function NetworkCard({ fund, userRole, showDetails = false }: NetworkCard
         {/* Action Button */}
         <div className="pt-2">
           {canViewDetails ? (
-            <Link to={`/fund-manager/${fund.user_id}`}>
+            <Link to={`/network/fund-manager/${fund.user_id}`}>
               <Button variant="outline" size="sm" className="w-full">
                 <Eye className="w-4 h-4 mr-2" />
-                View Full Profile
+                {isAdmin ? 'View Full Details' : 'View Profile'}
               </Button>
             </Link>
           ) : (

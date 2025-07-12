@@ -5,9 +5,11 @@ import Header from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Building2, Globe, Users, DollarSign, Calendar, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { NetworkCard } from '@/components/network/NetworkCard';
+import { Link } from 'react-router-dom';
 
 interface FundManager {
   id: string;
@@ -20,6 +22,10 @@ interface FundManager {
   team_size?: number;
   typical_check_size?: string;
   completed_at?: string;
+  aum?: string;
+  investment_thesis?: string;
+  sector_focus?: string[];
+  stage_focus?: string[];
   profiles?: {
     first_name: string;
     last_name: string;
@@ -93,6 +99,10 @@ const Network = () => {
           team_size: survey.team_size,
           typical_check_size: survey.typical_check_size,
           completed_at: survey.completed_at,
+          aum: survey.aum,
+          investment_thesis: survey.investment_thesis,
+          sector_focus: survey.sector_focus,
+          stage_focus: survey.stage_focus,
           profiles: profile || undefined
         });
       }
@@ -134,6 +144,16 @@ const Network = () => {
     setFilteredManagers(filtered);
   };
 
+  const getRegions = () => {
+    const regions = [...new Set(fundManagers.map(m => m.primary_investment_region).filter(Boolean))];
+    return regions.sort();
+  };
+
+  const getFundTypes = () => {
+    const types = [...new Set(fundManagers.map(m => m.fund_type).filter(Boolean))];
+    return types.sort();
+  };
+
   if (userRole === 'viewer') {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -144,15 +164,79 @@ const Network = () => {
             <p className="text-gray-600">Discover fund managers in the ESCP Network</p>
           </div>
 
+          {/* Search and Filters */}
+          <div className="mb-6 flex flex-col sm:flex-row gap-4">
+            <div className="flex-1">
+              <Input
+                placeholder="Search fund managers..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <Select value={filterRegion} onValueChange={setFilterRegion}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Filter by region" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Regions</SelectItem>
+                {getRegions().map((region) => (
+                  <SelectItem key={region} value={region}>
+                    {region}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={filterType} onValueChange={setFilterType}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Filter by type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                {getFundTypes().map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {type}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Show limited network view for viewers */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {fundManagers.slice(0, 6).map((manager) => (
-              <NetworkCard 
-                key={manager.id} 
-                fund={manager} 
-                userRole={userRole}
-                showDetails={false}
-              />
+            {filteredManagers.slice(0, 6).map((manager) => (
+              <Card key={manager.id} className="hover:shadow-md transition-shadow">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm font-medium">{manager.fund_name}</CardTitle>
+                    <Badge variant="secondary">Viewer</Badge>
+                  </div>
+                  <CardDescription className="text-xs">
+                    {manager.primary_investment_region || 'Unknown Region'}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4 text-gray-400" />
+                      <span>{manager.fund_type || 'Unknown Type'}</span>
+                    </div>
+                    {manager.website && (
+                      <div className="flex items-center gap-2">
+                        <ExternalLink className="h-4 w-4 text-gray-400" />
+                        <a 
+                          href={manager.website} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline text-xs"
+                        >
+                          Visit Website
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
 
@@ -199,45 +283,88 @@ const Network = () => {
         <div className="mb-6 flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <Input
-              placeholder="Search by fund name, manager, or region..."
+              placeholder="Search fund managers..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full"
             />
           </div>
           <Select value={filterRegion} onValueChange={setFilterRegion}>
-            <SelectTrigger className="w-full sm:w-48">
+            <SelectTrigger className="w-48">
               <SelectValue placeholder="Filter by region" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Regions</SelectItem>
-              <SelectItem value="africa">Africa</SelectItem>
-              <SelectItem value="east africa">East Africa</SelectItem>
-              <SelectItem value="west africa">West Africa</SelectItem>
-              <SelectItem value="southern africa">Southern Africa</SelectItem>
-              <SelectItem value="north africa">North Africa</SelectItem>
-              <SelectItem value="global">Global</SelectItem>
+              {getRegions().map((region) => (
+                <SelectItem key={region} value={region}>
+                  {region}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger className="w-full sm:w-48">
+            <SelectTrigger className="w-48">
               <SelectValue placeholder="Filter by type" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="venture capital">Venture Capital</SelectItem>
-              <SelectItem value="private equity">Private Equity</SelectItem>
-              <SelectItem value="impact fund">Impact Fund</SelectItem>
-              <SelectItem value="angel network">Angel Network</SelectItem>
+              {getFundTypes().map((type) => (
+                <SelectItem key={type} value={type}>
+                  {type}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
 
-        {/* Results Count */}
-        <div className="mb-6">
-          <p className="text-gray-600">
-            Showing {filteredManagers.length} of {fundManagers.length} fund managers
-          </p>
+        {/* Network Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Total Funds</CardTitle>
+              <Building2 className="h-4 w-4 text-gray-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-900">{filteredManagers.length}</div>
+              <p className="text-sm text-gray-500">Active fund managers</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Regions</CardTitle>
+              <Globe className="h-4 w-4 text-gray-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-900">{getRegions().length}</div>
+              <p className="text-sm text-gray-500">Geographic coverage</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Fund Types</CardTitle>
+              <Users className="h-4 w-4 text-gray-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-900">{getFundTypes().length}</div>
+              <p className="text-sm text-gray-500">Investment strategies</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Your Access</CardTitle>
+              <Badge variant={userRole === 'admin' ? 'default' : 'secondary'}>
+                {userRole === 'admin' ? 'Admin' : 'Member'}
+              </Badge>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-500">
+                {userRole === 'admin' ? 'Full access to all data' : 'Enhanced member access'}
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Fund Managers Grid */}
@@ -247,22 +374,19 @@ const Network = () => {
               key={manager.id} 
               fund={manager} 
               userRole={userRole}
-              showDetails={true}
+              showDetails={userRole !== 'viewer'}
             />
           ))}
         </div>
 
-        {filteredManagers.length === 0 && !loading && (
-          <div className="text-center py-12">
-            <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No fund managers found</h3>
-            <p className="text-gray-600">
-              {searchTerm || filterRegion !== 'all' || filterType !== 'all'
-                ? 'Try adjusting your search criteria'
-                : 'No fund managers have completed their profiles yet'
-              }
-            </p>
-          </div>
+        {filteredManagers.length === 0 && (
+          <Card className="text-center py-12">
+            <CardContent>
+              <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No fund managers found</h3>
+              <p className="text-gray-500">Try adjusting your search criteria or filters.</p>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>
