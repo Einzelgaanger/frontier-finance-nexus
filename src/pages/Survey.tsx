@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -139,6 +140,7 @@ const Survey = () => {
   const [showNewSurvey, setShowNewSurvey] = useState(false);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [showSubmitConfirmation, setShowSubmitConfirmation] = useState(false);
+  const [customYear, setCustomYear] = useState<string>('');
   const { user, userRole } = useAuth();
   const { toast } = useToast();
 
@@ -196,7 +198,7 @@ const Survey = () => {
 
   useEffect(() => {
     const loadExistingResponse = async () => {
-      if (!user || !showNewSurvey) return;
+      if (!user || !showNewSurvey || !selectedYear) return;
 
       const { data, error } = await supabase
         .from('survey_responses')
@@ -657,12 +659,6 @@ const Survey = () => {
                         : 'No surveys have been submitted yet.'
                       }
                     </p>
-                    {userRole === 'member' && (
-                      <Button onClick={() => setShowNewSurvey(true)}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Create Your First Survey
-                      </Button>
-                    )}
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -742,7 +738,32 @@ const Survey = () => {
                         ))}
                       </div>
                       <div className="text-xs text-gray-500">
-                        Select the year that best represents your fund's data for this survey period.
+                        Or enter a custom year:
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="number"
+                          placeholder="Enter year (e.g., 2020)"
+                          value={customYear}
+                          onChange={(e) => setCustomYear(e.target.value)}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          min="1900"
+                          max="2100"
+                        />
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            const year = parseInt(customYear);
+                            if (year >= 1900 && year <= 2100) {
+                              setSelectedYear(year);
+                              setShowNewSurvey(true);
+                              setCustomYear('');
+                            }
+                          }}
+                          disabled={!customYear || parseInt(customYear) < 1900 || parseInt(customYear) > 2100}
+                        >
+                          Create Survey
+                        </Button>
                       </div>
                     </div>
                   </div>

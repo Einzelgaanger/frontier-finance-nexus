@@ -54,6 +54,7 @@ const Network = () => {
     try {
       console.log('Fetching fund managers...');
       
+      // First, try to get completed surveys from member_surveys table
       const { data: surveys, error: surveysError } = await supabase
         .from('member_surveys')
         .select('*')
@@ -68,13 +69,100 @@ const Network = () => {
       console.log('Surveys fetched:', surveys);
 
       if (!surveys || surveys.length === 0) {
-        console.log('No completed surveys found');
-        setFundManagers([]);
+        console.log('No completed surveys found in member_surveys');
+        
+        // Fallback: try to get from survey_responses table
+        const { data: responses, error: responsesError } = await supabase
+          .from('survey_responses')
+          .select('*')
+          .not('completed_at', 'is', null)
+          .order('completed_at', { ascending: false });
+
+        if (responsesError) {
+          console.error('Error fetching survey responses:', responsesError);
+          setFundManagers([]);
+          setLoading(false);
+          return;
+        }
+
+        console.log('Survey responses fetched:', responses);
+
+        if (!responses || responses.length === 0) {
+          console.log('No completed survey responses found');
+          setFundManagers([]);
+          setLoading(false);
+          return;
+        }
+
+        // Convert survey_responses to fund managers format
+        const managersWithProfiles: FundManager[] = [];
+        
+        for (const response of responses) {
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('first_name, last_name, email')
+            .eq('id', response.user_id)
+            .single();
+
+          if (profileError) {
+            console.warn('Profile not found for user:', response.user_id);
+          }
+
+          // Parse JSON fields
+          let sectorFocus: string[] = [];
+          let stageFocus: string[] = [];
+          let marketsOperated: any = {};
+
+          try {
+            if (response.sectors_allocation) {
+              sectorFocus = typeof response.sectors_allocation === 'string' 
+                ? Object.keys(JSON.parse(response.sectors_allocation))
+                : Object.keys(response.sectors_allocation || {});
+            }
+            if (response.fund_stage) {
+              stageFocus = typeof response.fund_stage === 'string'
+                ? JSON.parse(response.fund_stage)
+                : response.fund_stage || [];
+            }
+            if (response.markets_operated) {
+              marketsOperated = typeof response.markets_operated === 'string'
+                ? JSON.parse(response.markets_operated)
+                : response.markets_operated || {};
+            }
+          } catch (e) {
+            console.warn('Error parsing JSON fields:', e);
+          }
+
+          managersWithProfiles.push({
+            id: response.id,
+            user_id: response.user_id,
+            fund_name: response.vehicle_name || 'Unknown Fund',
+            website: Array.isArray(response.vehicle_websites) 
+              ? response.vehicle_websites[0] 
+              : typeof response.vehicle_websites === 'string'
+                ? JSON.parse(response.vehicle_websites)[0]
+                : null,
+            primary_investment_region: Object.keys(marketsOperated).join(', ') || null,
+            fund_type: response.vehicle_type || 'Unknown',
+            year_founded: response.legal_entity_date_from || null,
+            team_size: response.team_size_max || null,
+            typical_check_size: `$${response.ticket_size_min?.toLocaleString()} - $${response.ticket_size_max?.toLocaleString()}`,
+            completed_at: response.completed_at,
+            aum: `$${response.capital_raised?.toLocaleString()}`,
+            investment_thesis: response.thesis || null,
+            sector_focus: sectorFocus,
+            stage_focus: stageFocus,
+            profiles: profile || undefined
+          });
+        }
+
+        console.log('Fund managers with profiles (from responses):', managersWithProfiles);
+        setFundManagers(managersWithProfiles);
         setLoading(false);
         return;
       }
 
-      // Get profiles for each user
+      // Get profiles for each user from member_surveys
       const managersWithProfiles: FundManager[] = [];
       
       for (const survey of surveys) {
