@@ -521,8 +521,7 @@ const Admin = () => {
           profiles:user_id (
             first_name,
             last_name,
-            email,
-            phone
+            email
           )
         `)
         .not('completed_at', 'is', null);
@@ -565,38 +564,29 @@ const Admin = () => {
       
       surveyResponses?.forEach(survey => {
         const profile = survey.profiles;
-        const vehicleName = `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 'Unknown';
+        const vehicleName = survey.vehicle_name || 'Unknown';
         const year = survey.year;
         
         if (!vehicleMap.has(vehicleName)) {
           vehicleMap.set(vehicleName, {
             'Fund Manager': vehicleName,
-            'Email': profile?.email || 'N/A',
-            'Phone': profile?.phone || 'N/A'
+            'Email': profile?.email || survey.email || 'N/A',
+            'Contact': profile ? `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() : survey.name
           });
         }
         
         const vehicle = vehicleMap.get(vehicleName);
         
-        // Add year-specific data as columns
-        vehicle[`${year}_Vehicle_Type`] = survey.vehicle_type || 'N/A';
+        // Add year-specific data as columns with proper field names
+        vehicle[`${year}_Vehicle_Name`] = survey.vehicle_name || 'N/A';
         vehicle[`${year}_Thesis`] = survey.thesis || 'N/A';
-        vehicle[`${year}_Legal_Domicile`] = Array.isArray(survey.legal_domicile) ? survey.legal_domicile.join(', ') : 'N/A';
-        vehicle[`${year}_Team_Size`] = survey.team_size_min && survey.team_size_max ? `${survey.team_size_min}-${survey.team_size_max}` : 'N/A';
-        vehicle[`${year}_Ticket_Size_Min`] = survey.ticket_size_min ? `$${survey.ticket_size_min.toLocaleString()}` : 'N/A';
-        vehicle[`${year}_Ticket_Size_Max`] = survey.ticket_size_max ? `$${survey.ticket_size_max.toLocaleString()}` : 'N/A';
-        vehicle[`${year}_Target_Capital`] = survey.target_capital ? `$${survey.target_capital.toLocaleString()}` : 'N/A';
-        vehicle[`${year}_Capital_Raised`] = survey.capital_raised ? `$${survey.capital_raised.toLocaleString()}` : 'N/A';
-        vehicle[`${year}_Capital_in_Market`] = survey.capital_in_market ? `$${survey.capital_in_market.toLocaleString()}` : 'N/A';
-        vehicle[`${year}_Fund_Stage`] = Array.isArray(survey.fund_stage) ? survey.fund_stage.join(', ') : 'N/A';
-        vehicle[`${year}_Current_Status`] = survey.current_status || 'N/A';
-        vehicle[`${year}_Target_Return_Min`] = survey.target_return_min ? `${survey.target_return_min}%` : 'N/A';
-        vehicle[`${year}_Target_Return_Max`] = survey.target_return_max ? `${survey.target_return_max}%` : 'N/A';
-        vehicle[`${year}_Equity_Investments_Made`] = survey.equity_investments_made || 'N/A';
-        vehicle[`${year}_Equity_Investments_Exited`] = survey.equity_investments_exited || 'N/A';
-        vehicle[`${year}_Self_Liquidating_Made`] = survey.self_liquidating_made || 'N/A';
-        vehicle[`${year}_Self_Liquidating_Exited`] = survey.self_liquidating_exited || 'N/A';
-        vehicle[`${year}_Information_Sharing`] = survey.information_sharing || 'N/A';
+        vehicle[`${year}_Location`] = survey.location || 'N/A';
+        vehicle[`${year}_Team_Size`] = survey.team_size_description || 'N/A';
+        vehicle[`${year}_Ticket_Size`] = survey.ticket_size || 'N/A';
+        vehicle[`${year}_Capital_Raised`] = survey.capital_raised_description || 'N/A';
+        vehicle[`${year}_Portfolio_Count`] = survey.portfolio_count || 'N/A';
+        vehicle[`${year}_Information_Sharing`] = Array.isArray(survey.information_sharing_topics) ? survey.information_sharing_topics.join(', ') : 'N/A';
+        vehicle[`${year}_Expectations`] = survey.expectations || 'N/A';
         vehicle[`${year}_How_Heard_About_Network`] = survey.how_heard_about_network || 'N/A';
         vehicle[`${year}_Completed_Date`] = survey.completed_at ? new Date(survey.completed_at).toLocaleDateString() : 'N/A';
       });
@@ -608,7 +598,7 @@ const Admin = () => {
       const headers = Object.keys(exportData[0] || {});
       const csvContent = [
         headers.join(','),
-        ...exportData.map(row => headers.map(header => `"${row[header]}"`).join(','))
+        ...exportData.map(row => headers.map(header => `"${row[header] || ''}"`).join(','))
       ].join('\n');
 
       // Create and download file
