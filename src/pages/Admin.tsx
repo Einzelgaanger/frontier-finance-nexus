@@ -44,12 +44,13 @@ interface FundManager {
   id: string;
   user_id: string;
   fund_name: string;
-  website: string;
-  profiles: {
-    first_name: string;
-    last_name: string;
-    email: string;
-  };
+  website: string | null;
+  // Remove the profiles property since it's not in the member_surveys table
+  // profiles: {
+  //   first_name: string;
+  //   last_name: string;
+  //   email: string;
+  // };
 }
 
 const Admin = () => {
@@ -83,7 +84,7 @@ const Admin = () => {
         .not('completed_at', 'is', null);
 
       if (error) throw error;
-      setFundManagers(data as FundManager[]);
+      setFundManagers(data || []);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching fund managers:', error);
@@ -203,7 +204,7 @@ const Admin = () => {
 
         // Calculate monthly growth (simplified)
         const monthlyGrowth = newFundsThisMonth > 0 
-          ? (newFundsThisMonth / Math.max(totalFunds - newFundsThisMonth, 1)) * 100 
+          ? (newFundsThisMonth / Math.max((totalFunds - newFundsThisMonth), 1)) * 100 
           : 0;
 
         // Generate capital trends (last 6 months)
