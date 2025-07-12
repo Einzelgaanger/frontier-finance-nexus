@@ -40,6 +40,38 @@ export function VehicleInfoSection({ form }: VehicleInfoSectionProps) {
 
   return (
     <div className="space-y-8">
+      {/* Vehicle Name */}
+      <Card className="border-orange-200 bg-orange-50/30">
+        <CardHeader>
+          <CardTitle className="flex items-center text-orange-900">
+            <Building2 className="w-5 h-5 mr-2" />
+            Fund Name
+          </CardTitle>
+          <CardDescription className="text-orange-700">
+            Enter the name of your fund vehicle
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <FormField
+            control={form.control}
+            name="vehicle_name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-orange-800 font-medium">Fund Name *</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="Enter your fund name" 
+                    className="border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </CardContent>
+      </Card>
+
       {/* Vehicle Websites */}
       <Card className="border-blue-200 bg-blue-50/30">
         <CardHeader>

@@ -70,6 +70,7 @@ function mapSupabaseSurveyToFormData(data: Record<string, unknown>): SurveyFormD
 
 const surveySchema = z.object({
   // Section 1: Vehicle Information
+  vehicle_name: z.string().min(1, 'Fund name is required'),
   vehicle_websites: z.array(z.string()).optional(),
   vehicle_type: z.string().optional(),
   vehicle_type_other: z.string().optional(),
@@ -177,6 +178,7 @@ const Survey = () => {
   const form = useForm<SurveyFormData>({
     resolver: zodResolver(surveySchema),
     defaultValues: {
+      vehicle_name: '',
       vehicle_websites: [],
       team_members: [],
       legal_domicile: [],
@@ -229,20 +231,59 @@ const Survey = () => {
 
   const prepareForDb = (formData: SurveyFormData, userId: string, year: number, completed: boolean = false) => {
     const dbData: any = {
-      ...formData,
       user_id: userId,
       year,
       completed_at: completed ? new Date().toISOString() : null,
+      
+      // Section 1: Basic Vehicle Information
+      vehicle_name: formData.vehicle_name || null,
+      vehicle_websites: formData.vehicle_websites || [],
+      vehicle_type: formData.vehicle_type || null,
+      thesis: formData.thesis || null,
+      
+      // Section 2: Team & Leadership
+      team_members: formData.team_members || [],
+      team_size_min: formData.team_size_min || null,
+      team_size_max: formData.team_size_max || null,
+      team_description: formData.team_description || null,
+      
+      // Section 3: Geographic & Market Focus
+      legal_domicile: formData.legal_domicile || [],
+      markets_operated: formData.markets_operated || {},
+      
+      // Section 4: Investment Strategy
+      ticket_size_min: formData.ticket_size_min || null,
+      ticket_size_max: formData.ticket_size_max || null,
+      ticket_description: formData.ticket_description || null,
+      target_capital: formData.target_capital || null,
+      capital_raised: formData.capital_raised || null,
+      capital_in_market: formData.capital_in_market || null,
+      
+      // Section 5: Fund Operations
+      supporting_document_url: formData.supporting_document_url || null,
+      information_sharing: formData.information_sharing || null,
+      expectations: formData.expectations || null,
+      how_heard_about_network: formData.how_heard_about_network || null,
+      
+      // Section 6: Fund Status & Timeline
+      fund_stage: formData.fund_stage || [],
+      current_status: formData.current_status || null,
+      legal_entity_date_from: formData.legal_entity_date_from || null,
       legal_entity_date_to: formData.legal_entity_date_to === 9999 ? 'present' : formData.legal_entity_date_to,
+      first_close_date_from: formData.first_close_date_from || null,
       first_close_date_to: formData.first_close_date_to === 9999 ? 'present' : formData.first_close_date_to,
-      // Ensure JSON fields are properly stringified for database storage
-      team_members: JSON.stringify(formData.team_members || []),
-      vehicle_websites: JSON.stringify(formData.vehicle_websites || []),
-      legal_domicile: JSON.stringify(formData.legal_domicile || []),
-      fund_stage: JSON.stringify(formData.fund_stage || []),
-      markets_operated: JSON.stringify(formData.markets_operated || {}),
-      investment_instruments_priority: JSON.stringify(formData.investment_instruments_priority || {}),
-      sectors_allocation: JSON.stringify(formData.sectors_allocation || {}),
+      
+      // Section 7: Investment Instruments
+      investment_instruments_priority: formData.investment_instruments_priority || {},
+      
+      // Section 8: Sector Focus & Returns
+      sectors_allocation: formData.sectors_allocation || {},
+      target_return_min: formData.target_return_min || null,
+      target_return_max: formData.target_return_max || null,
+      equity_investments_made: formData.equity_investments_made || null,
+      equity_investments_exited: formData.equity_investments_exited || null,
+      self_liquidating_made: formData.self_liquidating_made || null,
+      self_liquidating_exited: formData.self_liquidating_exited || null,
     };
     return dbData;
   };
@@ -321,14 +362,14 @@ const Survey = () => {
         primary_investment_region: Object.keys(data.markets_operated || {}).join(', ') || null,
         year_founded: data.legal_entity_date_from || null,
         team_size: data.team_size_max || null,
-        typical_check_size: `$${data.ticket_size_min?.toLocaleString()} - $${data.ticket_size_max?.toLocaleString()}`,
-        aum: `$${data.capital_raised?.toLocaleString()}`,
+        typical_check_size: data.ticket_size_min && data.ticket_size_max 
+          ? `$${data.ticket_size_min.toLocaleString()} - $${data.ticket_size_max.toLocaleString()}`
+          : null,
+        aum: data.capital_raised ? `$${data.capital_raised.toLocaleString()}` : null,
         investment_thesis: data.thesis || null,
         sector_focus: Object.keys(data.sectors_allocation || {}),
         stage_focus: data.fund_stage || [],
-        completed_at: new Date().toISOString(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        completed_at: new Date().toISOString()
       };
 
       console.log('Member survey data prepared:', memberSurveyData);

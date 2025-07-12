@@ -8,6 +8,7 @@ export interface TeamMember {
 }
 
 export interface SurveyFormData {
+  vehicle_name?: string;
   vehicle_websites?: string[];
   vehicle_type?: string;
   vehicle_type_other?: string;

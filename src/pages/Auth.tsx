@@ -8,6 +8,12 @@ const Auth = () => {
   const location = useLocation();
 
   useEffect(() => {
+    // Clean up the URL by removing any hash fragments
+    if (location.hash) {
+      const cleanUrl = location.pathname + location.search;
+      window.history.replaceState(null, '', cleanUrl);
+    }
+
     const params = new URLSearchParams(location.search);
     const accessToken = params.get('access_token');
     const refreshToken = params.get('refresh_token');

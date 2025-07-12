@@ -34,6 +34,7 @@ interface NetworkCardProps {
 export function NetworkCard({ manager, userRole, showDetails = false }: NetworkCardProps) {
   const canViewDetails = userRole === 'member' || userRole === 'admin';
   const isAdmin = userRole === 'admin';
+  const isViewer = userRole === 'viewer';
 
   return (
     <Card className="hover:shadow-lg transition-shadow">
@@ -42,7 +43,7 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
           <div className="flex-1">
             <CardTitle className="text-lg flex items-center">
               <Building2 className="w-5 h-5 mr-2 text-blue-600" />
-              {manager.fund_name}
+              {manager.fund_name || 'Unknown Fund'}
             </CardTitle>
             {manager.profiles && (
               <p className="text-sm text-gray-600 mt-1">
@@ -81,8 +82,8 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
           </div>
         )}
 
-        {/* Member Details */}
-        {canViewDetails && showDetails && (
+        {/* Member Details - Show for members and admins */}
+        {canViewDetails && (
           <>
             {manager.team_size && (
               <div className="flex items-center text-sm text-gray-600">
@@ -190,7 +191,7 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
           ) : (
             <Button variant="outline" size="sm" className="w-full" disabled>
               <Eye className="w-4 h-4 mr-2" />
-              Member Access Required
+              {isViewer ? 'Member Access Required' : 'Sign in to view details'}
             </Button>
           )}
         </div>
