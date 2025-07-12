@@ -29,7 +29,8 @@ import {
   PieChart,
   Activity,
   Award,
-  MapPin
+  MapPin,
+  UserCog
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -48,10 +49,7 @@ import {
   LineChart,
   Line,
   Area,
-  AreaChart,
-  ScatterChart,
-  Scatter,
-  ComposedChart
+  AreaChart
 } from 'recharts';
 
 const Admin = () => {
@@ -78,13 +76,8 @@ const Admin = () => {
   const [surveys, setSurveys] = useState([]);
   const [selectedSurvey, setSelectedSurvey] = useState(null);
 
-  // Invitation codes
-  const [codes, setCodes] = useState([]);
-  const [newCode, setNewCode] = useState({
-    email: '',
-    vehicle_name: '',
-    expires_at: ''
-  });
+  // User management
+  const [users, setUsers] = useState([]);
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FF6B6B', '#4ECDC4'];
 
@@ -101,7 +94,7 @@ const Admin = () => {
         fetchAnalyticsData(),
         fetchApplications(),
         fetchSurveys(),
-        fetchInvitationCodes()
+        fetchUsers()
       ]);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -139,10 +132,9 @@ const Admin = () => {
 
     const totalFunds = surveyData.length;
     
-    // Parse ticket sizes from the ticket_size field (text format like "$50K - $500K")
+    // Parse ticket sizes from the ticket_size field
     const ticketSizes = surveyData.map(survey => {
       const ticketSize = survey.ticket_size || '';
-      // Extract numbers from text format
       const numbers = ticketSize.match(/\d+/g);
       if (numbers && numbers.length >= 2) {
         const min = parseInt(numbers[0]) * (ticketSize.includes('K') ? 1000 : ticketSize.includes('M') ? 1000000 : 1);
@@ -190,86 +182,59 @@ const Admin = () => {
     try {
       const { data, error } = await supabase
         .from('survey_responses')
-        .select(`
-          *,
-          profiles!inner(first_name, last_name, email)
-        `)
+        .select('*')
         .not('completed_at', 'is', null);
 
       if (error) throw error;
-      
-      // Handle the case where profiles might be an error object
-      const cleanedData = (data || []).map(survey => ({
-        ...survey,
-        profileData: survey.profiles && typeof survey.profiles === 'object' && !survey.profiles.error 
-          ? survey.profiles 
-          : { first_name: 'Unknown', last_name: '', email: survey.email || 'No email' }
-      }));
-      
-      setSurveys(cleanedData);
+      setSurveys(data || []);
     } catch (error) {
       console.error('Error fetching surveys:', error);
       setSurveys([]);
     }
   };
 
-  const fetchInvitationCodes = async () => {
+  const fetchUsers = async () => {
     try {
       const { data, error } = await supabase
-        .from('invitation_codes')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from('user_roles')
+        .select(`
+          *,
+          profiles!inner(first_name, last_name, email)
+        `)
+        .order('assigned_at', { ascending: false });
 
       if (error) throw error;
-      setCodes(data || []);
+      setUsers(data || []);
     } catch (error) {
-      console.error('Error fetching invitation codes:', error);
+      console.error('Error fetching users:', error);
+      setUsers([]);
     }
   };
 
-  const handleApproveApplication = async (application) => {
+  const handleRoleChange = async (userId, newRole) => {
     try {
-      // Create invitation code
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
-
-      const { data: codeData, error: codeError } = await supabase
-        .from('invitation_codes')
-        .insert([{
-          code: generateInvitationCode(),
-          email: application.email,
-          vehicle_name: application.vehicle_name,
-          expires_at: expiresAt.toISOString(),
-          created_by: (await supabase.auth.getUser()).data.user?.id
-        }])
-        .select();
-
-      if (codeError) throw codeError;
-
-      // Update application status
-      const { error: updateError } = await supabase
-        .from('membership_requests')
-        .update({
-          status: 'approved',
-          reviewed_at: new Date().toISOString(),
-          reviewed_by: (await supabase.auth.getUser()).data.user?.id
+      const { error } = await supabase
+        .from('user_roles')
+        .update({ 
+          role: newRole,
+          assigned_at: new Date().toISOString(),
+          assigned_by: (await supabase.auth.getUser()).data.user?.id
         })
-        .eq('id', application.id);
+        .eq('user_id', userId);
 
-      if (updateError) throw updateError;
+      if (error) throw error;
 
       toast({
-        title: "Application Approved",
-        description: `Invitation code created for ${application.email}`,
+        title: "Role Updated",
+        description: `User role has been changed to ${newRole}`,
       });
 
-      fetchApplications();
-      fetchInvitationCodes();
+      fetchUsers();
     } catch (error) {
-      console.error('Error approving application:', error);
+      console.error('Error updating role:', error);
       toast({
         title: "Error",
-        description: "Failed to approve application",
+        description: "Failed to update user role",
         variant: "destructive"
       });
     }
@@ -302,39 +267,6 @@ const Admin = () => {
       toast({
         title: "Error",
         description: "Failed to reject application",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const generateInvitationCode = () => {
-    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-  };
-
-  const createInvitationCode = async () => {
-    try {
-      const { error } = await supabase
-        .from('invitation_codes')
-        .insert([{
-          ...newCode,
-          code: generateInvitationCode(),
-          created_by: (await supabase.auth.getUser()).data.user?.id
-        }]);
-
-      if (error) throw error;
-
-      toast({
-        title: "Invitation Code Created",
-        description: `Code created for ${newCode.email}`,
-      });
-
-      setNewCode({ email: '', vehicle_name: '', expires_at: '' });
-      fetchInvitationCodes();
-    } catch (error) {
-      console.error('Error creating invitation code:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create invitation code",
         variant: "destructive"
       });
     }
@@ -412,15 +344,16 @@ const Admin = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
-          <p className="text-gray-600">Manage applications, surveys, and platform analytics</p>
+          <p className="text-gray-600">Manage applications, surveys, users, and platform analytics</p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="applications">Applications</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="surveys">Surveys</TabsTrigger>
-            <TabsTrigger value="codes">Invitation Codes</TabsTrigger>
+            <TabsTrigger value="profile">Profile</TabsTrigger>
           </TabsList>
 
           {/* Advanced Analytics Dashboard */}
@@ -578,80 +511,179 @@ const Admin = () => {
                             <DialogTrigger asChild>
                               <Button variant="outline" size="sm">
                                 <Eye className="w-4 h-4 mr-2" />
-                                View
+                                View Full Application
                               </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-w-2xl">
+                            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
                               <DialogHeader>
-                                <DialogTitle>Application Details</DialogTitle>
+                                <DialogTitle>Full Application Details</DialogTitle>
+                                <DialogDescription>Complete application submission from {app.applicant_name}</DialogDescription>
                               </DialogHeader>
-                              <div className="space-y-4">
-                                <div>
-                                  <Label>Name</Label>
-                                  <p>{app.applicant_name}</p>
+                              <div className="space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <Label className="font-semibold">Applicant Name</Label>
+                                    <p className="text-sm">{app.applicant_name}</p>
+                                  </div>
+                                  <div>
+                                    <Label className="font-semibold">Email</Label>
+                                    <p className="text-sm">{app.email}</p>
+                                  </div>
+                                  <div>
+                                    <Label className="font-semibold">Vehicle Name</Label>
+                                    <p className="text-sm">{app.vehicle_name}</p>
+                                  </div>
+                                  <div>
+                                    <Label className="font-semibold">Organization Name</Label>
+                                    <p className="text-sm">{app.organization_name || 'Not provided'}</p>
+                                  </div>
+                                  <div>
+                                    <Label className="font-semibold">Website</Label>
+                                    <p className="text-sm">{app.organization_website || 'Not provided'}</p>
+                                  </div>
+                                  <div>
+                                    <Label className="font-semibold">Country of Operation</Label>
+                                    <p className="text-sm">{app.country_of_operation || 'Not provided'}</p>
+                                  </div>
+                                  <div>
+                                    <Label className="font-semibold">Fund Vehicle Type</Label>
+                                    <p className="text-sm">{app.fund_vehicle_type || 'Not provided'}</p>
+                                  </div>
+                                  <div>
+                                    <Label className="font-semibold">AUM</Label>
+                                    <p className="text-sm">{app.aum || 'Not provided'}</p>
+                                  </div>
+                                  <div>
+                                    <Label className="font-semibold">Fundraising Status</Label>
+                                    <p className="text-sm">{app.fundraising_status || 'Not provided'}</p>
+                                  </div>
+                                  <div>
+                                    <Label className="font-semibold">Year Founded</Label>
+                                    <p className="text-sm">{app.year_founded || 'Not provided'}</p>
+                                  </div>
                                 </div>
+                                
                                 <div>
-                                  <Label>Email</Label>
-                                  <p>{app.email}</p>
+                                  <Label className="font-semibold">Investment Focus</Label>
+                                  <p className="text-sm whitespace-pre-wrap">{app.investment_focus || 'Not provided'}</p>
                                 </div>
+                                
                                 <div>
-                                  <Label>Vehicle Name</Label>
-                                  <p>{app.vehicle_name}</p>
+                                  <Label className="font-semibold">Team Overview</Label>
+                                  <p className="text-sm whitespace-pre-wrap">{app.team_overview || 'Not provided'}</p>
                                 </div>
+                                
                                 <div>
-                                  <Label>Organization</Label>
-                                  <p>{app.organization_name}</p>
+                                  <Label className="font-semibold">Notable Investments</Label>
+                                  <p className="text-sm whitespace-pre-wrap">{app.notable_investments || 'Not provided'}</p>
                                 </div>
+                                
                                 <div>
-                                  <Label>Investment Focus</Label>
-                                  <p>{app.investment_focus}</p>
+                                  <Label className="font-semibold">Motivation/Expectations</Label>
+                                  <p className="text-sm whitespace-pre-wrap">{app.motivation || 'Not provided'}</p>
                                 </div>
+                                
                                 <div>
-                                  <Label>Motivation</Label>
-                                  <p>{app.motivation}</p>
+                                  <Label className="font-semibold">Additional Comments</Label>
+                                  <p className="text-sm whitespace-pre-wrap">{app.additional_comments || 'Not provided'}</p>
                                 </div>
+                                
+                                <div>
+                                  <Label className="font-semibold">Application Status</Label>
+                                  <Badge variant={
+                                    app.status === 'pending' ? 'default' :
+                                    app.status === 'approved' ? 'default' : 'destructive'
+                                  }>
+                                    {app.status}
+                                  </Badge>
+                                </div>
+                                
+                                {app.rejection_reason && (
+                                  <div>
+                                    <Label className="font-semibold">Rejection Reason</Label>
+                                    <p className="text-sm text-red-600">{app.rejection_reason}</p>
+                                  </div>
+                                )}
                               </div>
                             </DialogContent>
                           </Dialog>
                           
                           {app.status === 'pending' && (
-                            <>
-                              <Button 
-                                size="sm" 
-                                onClick={() => handleApproveApplication(app)}
-                              >
-                                <CheckCircle className="w-4 h-4 mr-2" />
-                                Approve
-                              </Button>
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button variant="destructive" size="sm">
-                                    <XCircle className="w-4 h-4 mr-2" />
-                                    Reject
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                  <DialogHeader>
-                                    <DialogTitle>Reject Application</DialogTitle>
-                                    <DialogDescription>
-                                      Please provide a reason for rejection
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  <Textarea
-                                    value={rejectionReason}
-                                    onChange={(e) => setRejectionReason(e.target.value)}
-                                    placeholder="Reason for rejection..."
-                                  />
-                                  <Button 
-                                    onClick={() => handleRejectApplication(app)}
-                                    variant="destructive"
-                                  >
-                                    Reject Application
-                                  </Button>
-                                </DialogContent>
-                              </Dialog>
-                            </>
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="destructive" size="sm">
+                                  <XCircle className="w-4 h-4 mr-2" />
+                                  Reject
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Reject Application</DialogTitle>
+                                  <DialogDescription>
+                                    Please provide a reason for rejection
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <Textarea
+                                  value={rejectionReason}
+                                  onChange={(e) => setRejectionReason(e.target.value)}
+                                  placeholder="Reason for rejection..."
+                                />
+                                <Button 
+                                  onClick={() => handleRejectApplication(app)}
+                                  variant="destructive"
+                                >
+                                  Reject Application
+                                </Button>
+                              </DialogContent>
+                            </Dialog>
                           )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* User Management */}
+          <TabsContent value="users" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>User Management</CardTitle>
+                <CardDescription>Manage user roles and permissions</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {users.map((user) => (
+                    <div key={user.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h3 className="font-semibold">
+                            {user.profiles?.first_name} {user.profiles?.last_name}
+                          </h3>
+                          <p className="text-sm text-gray-600">{user.profiles?.email}</p>
+                          <Badge variant={
+                            user.role === 'admin' ? 'default' :
+                            user.role === 'member' ? 'secondary' : 'outline'
+                          }>
+                            {user.role}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Select 
+                            value={user.role} 
+                            onValueChange={(newRole) => handleRoleChange(user.user_id, newRole)}
+                          >
+                            <SelectTrigger className="w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="viewer">Viewer</SelectItem>
+                              <SelectItem value="member">Member</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
                     </div>
@@ -674,10 +706,8 @@ const Admin = () => {
                     <div key={survey.id} className="border rounded-lg p-4">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h3 className="font-semibold">
-                            {survey.profileData?.first_name} {survey.profileData?.last_name}
-                          </h3>
-                          <p className="text-sm text-gray-600">{survey.profileData?.email}</p>
+                          <h3 className="font-semibold">{survey.name}</h3>
+                          <p className="text-sm text-gray-600">{survey.email}</p>
                           <p className="text-sm text-gray-600">{survey.vehicle_name}</p>
                           <p className="text-sm text-gray-600">Year: {survey.year}</p>
                         </div>
@@ -740,78 +770,43 @@ const Admin = () => {
             </Card>
           </TabsContent>
 
-          {/* Invitation Codes */}
-          <TabsContent value="codes" className="space-y-6">
+          {/* Admin Profile */}
+          <TabsContent value="profile" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Create Invitation Code</CardTitle>
-                <CardDescription>Generate new invitation codes for approved members</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                  <div>
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={newCode.email}
-                      onChange={(e) => setNewCode({...newCode, email: e.target.value})}
-                      placeholder="member@example.com"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="vehicle">Vehicle Name</Label>
-                    <Input
-                      id="vehicle"
-                      value={newCode.vehicle_name}
-                      onChange={(e) => setNewCode({...newCode, vehicle_name: e.target.value})}
-                      placeholder="Fund Name"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="expires">Expires At</Label>
-                    <Input
-                      id="expires"
-                      type="datetime-local"
-                      value={newCode.expires_at}
-                      onChange={(e) => setNewCode({...newCode, expires_at: e.target.value})}
-                    />
-                  </div>
-                </div>
-                <Button onClick={createInvitationCode}>
-                  Create Code
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Active Invitation Codes</CardTitle>
-                <CardDescription>Manage existing invitation codes</CardDescription>
+                <CardTitle>Admin Profile</CardTitle>
+                <CardDescription>Manage your admin profile settings</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {codes.map((code) => (
-                    <div key={code.id} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <p className="font-mono font-bold">{code.code}</p>
-                          <p className="text-sm text-gray-600">{code.email}</p>
-                          <p className="text-sm text-gray-600">{code.vehicle_name}</p>
-                          <p className="text-xs text-gray-500">
-                            Expires: {new Date(code.expires_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div>
-                          {code.used_at ? (
-                            <Badge variant="secondary">Used</Badge>
-                          ) : (
-                            <Badge>Active</Badge>
-                          )}
-                        </div>
-                      </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                      <UserCog className="w-8 h-8 text-blue-600" />
                     </div>
-                  ))}
+                    <div>
+                      <h3 className="text-lg font-semibold">Administrator</h3>
+                      <p className="text-gray-600">System Administrator</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Role</Label>
+                      <p className="font-medium">Admin</p>
+                    </div>
+                    <div>
+                      <Label>Access Level</Label>
+                      <p className="font-medium">Full System Access</p>
+                    </div>
+                    <div>
+                      <Label>Last Login</Label>
+                      <p className="font-medium">Current Session</p>
+                    </div>
+                    <div>
+                      <Label>Permissions</Label>
+                      <p className="font-medium">All Features</p>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
