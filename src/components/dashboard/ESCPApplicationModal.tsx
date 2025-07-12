@@ -175,17 +175,21 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
         applicant_name: formData.applicant_name,
         email: formData.email,
         vehicle_name: formData.vehicle_name,
-        organization_website: formData.organization_website,
-        organization_name: formData.vehicle_name,
-        country_of_operation: formData.country_of_operation,
-        fund_vehicle_name: formData.vehicle_name,
-        fund_vehicle_type: formData.fund_vehicle_type,
-        investment_focus: formData.investment_thesis,
-        team_overview: formData.team_overview,
-        notable_investments: formData.notable_investments,
-        fundraising_status: formData.fundraising_status,
-        motivation: formData.expectations_from_network,
-        additional_comments: formData.additional_comments,
+        vehicle_website: formData.organization_website,
+        role_job_title: formData.role_job_title,
+        team_size: formData.team_overview,
+        location: formData.country_of_operation,
+        thesis: formData.investment_thesis,
+        ticket_size: formData.typical_check_size,
+        portfolio_investments: formData.number_of_investments,
+        capital_raised: formData.amount_raised_to_date,
+        supporting_documents: formData.supporting_documents.length > 0 ? 'Documents uploaded' : null,
+        information_sharing: {
+          topics: formData.information_sharing_topics,
+          other: ''
+        },
+        expectations: formData.expectations_from_network,
+        how_heard_about_network: formData.how_heard_about_network,
         status: 'pending'
       };
 

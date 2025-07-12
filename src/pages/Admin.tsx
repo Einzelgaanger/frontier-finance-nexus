@@ -69,29 +69,23 @@ interface MembershipRequest {
   applicant_name: string;
   email: string;
   vehicle_name: string;
-  vehicle_website: string | null;
-  role_job_title: string | null;
-  team_size: string | null;
-  location: string | null;
-  thesis: string | null;
-  ticket_size: string | null;
-  portfolio_investments: string | null;
-  capital_raised: string | null;
-  supporting_documents: string | null;
-  information_sharing: {
-    fundraising_experience: boolean;
-    getting_started_experience: boolean;
-    fund_economics: boolean;
-    due_diligence_expertise: boolean;
-    portfolio_support: boolean;
-    market_data: boolean;
-    local_market_insights: boolean;
-    co_investing_opportunities: boolean;
-    other: boolean;
-    other_text: string;
+  vehicle_website?: string | null;
+  organization_name?: string | null;
+  country_of_operation?: string | null;
+  role_job_title?: string | null;
+  team_size?: string | null;
+  location?: string | null;
+  thesis?: string | null;
+  ticket_size?: string | null;
+  portfolio_investments?: string | null;
+  capital_raised?: string | null;
+  supporting_documents?: string | null;
+  information_sharing?: {
+    topics?: string[];
+    other?: string;
   } | null;
-  expectations: string | null;
-  how_heard_about_network: string | null;
+  expectations?: string | null;
+  how_heard_about_network?: string | null;
   status: string;
   created_at: string | null;
   reviewed_at: string | null;
@@ -290,18 +284,33 @@ const Admin = () => {
           ? (newFundsThisMonth / Math.max(totalFunds - newFundsThisMonth, 1)) * 100 
           : 0;
 
-        // Generate capital trends (last 6 months)
+        // Generate capital trends based on actual survey completion dates
         const capitalTrends = [];
+        const monthlyData: { [key: string]: number } = {};
+        
+        surveys.forEach(survey => {
+          if (survey.created_at) {
+            const date = new Date(survey.created_at);
+            const monthKey = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            
+            if (survey.aum) {
+              const amount = parseFloat(survey.aum.replace(/[^0-9.]/g, ''));
+              if (!isNaN(amount)) {
+                monthlyData[monthKey] = (monthlyData[monthKey] || 0) + amount;
+              }
+            }
+          }
+        });
+        
+        // Fill in missing months with 0
         for (let i = 5; i >= 0; i--) {
           const date = new Date();
           date.setMonth(date.getMonth() - i);
-          const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+          const monthKey = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
           
-          // This is a simplified calculation - in reality you'd track historical data
-          const monthlyAmount = totalCapital * (0.8 + (Math.random() * 0.4));
           capitalTrends.push({
-            month: monthName,
-            amount: Math.round(monthlyAmount / 6)
+            month: date.toLocaleDateString('en-US', { month: 'short' }),
+            amount: Math.round(monthlyData[monthKey] || 0)
           });
         }
 
@@ -861,8 +870,12 @@ const Admin = () => {
                                   <p className="text-gray-600 break-words">{selectedRequest.team_size || 'N/A'}</p>
                                 </div>
                                 <div>
-                                  <p className="font-medium text-gray-700">Location:</p>
-                                  <p className="text-gray-600 break-words">{selectedRequest.location || 'N/A'}</p>
+                                  <p className="font-medium text-gray-700">Organization:</p>
+                                  <p className="text-gray-600 break-words">{selectedRequest.organization_name || 'N/A'}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-gray-700">Country:</p>
+                                  <p className="text-gray-600 break-words">{selectedRequest.country_of_operation || 'N/A'}</p>
                                 </div>
                               </div>
                             </div>
@@ -904,18 +917,13 @@ const Admin = () => {
                                 <h4 className="font-medium text-gray-900">Information Sharing</h4>
                               </div>
                               <div className="space-y-2 text-sm">
-                                {selectedRequest.information_sharing ? (
+                                {selectedRequest.information_sharing?.topics && selectedRequest.information_sharing.topics.length > 0 ? (
                                   <div className="space-y-1">
-                                    {selectedRequest.information_sharing.fundraising_experience && <p>• Fundraising Experience</p>}
-                                    {selectedRequest.information_sharing.getting_started_experience && <p>• Experience of getting started/launching</p>}
-                                    {selectedRequest.information_sharing.fund_economics && <p>• Fund Economics (eg vehicle structuring)</p>}
-                                    {selectedRequest.information_sharing.due_diligence_expertise && <p>• Due Diligence Expertise/Investment Readiness</p>}
-                                    {selectedRequest.information_sharing.portfolio_support && <p>• Portfolio Support/Technical Assistance</p>}
-                                    {selectedRequest.information_sharing.market_data && <p>• Market Data (eg termsheets, valuations)</p>}
-                                    {selectedRequest.information_sharing.local_market_insights && <p>• Local Market Insights (Geographical or sector expertise)</p>}
-                                    {selectedRequest.information_sharing.co_investing_opportunities && <p>• Co-investing Opportunities</p>}
+                                    {selectedRequest.information_sharing.topics.map((topic, index) => (
+                                      <p key={index}>• {topic}</p>
+                                    ))}
                                     {selectedRequest.information_sharing.other && (
-                                      <p>• Other: {selectedRequest.information_sharing.other_text}</p>
+                                      <p>• Other: {selectedRequest.information_sharing.other}</p>
                                     )}
                                   </div>
                                 ) : (

@@ -6,7 +6,7 @@ import { Building2, Globe, Users, Eye, MapPin, Calendar, DollarSign, Target, Bri
 import { Link } from 'react-router-dom';
 
 interface NetworkCardProps {
-  fund: {
+  manager: {
     id: string;
     user_id: string;
     fund_name: string;
@@ -31,7 +31,7 @@ interface NetworkCardProps {
   showDetails?: boolean;
 }
 
-export function NetworkCard({ fund, userRole, showDetails = false }: NetworkCardProps) {
+export function NetworkCard({ manager, userRole, showDetails = false }: NetworkCardProps) {
   const canViewDetails = userRole === 'member' || userRole === 'admin';
   const isAdmin = userRole === 'admin';
 
@@ -42,17 +42,17 @@ export function NetworkCard({ fund, userRole, showDetails = false }: NetworkCard
           <div className="flex-1">
             <CardTitle className="text-lg flex items-center">
               <Building2 className="w-5 h-5 mr-2 text-blue-600" />
-              {fund.fund_name}
+              {manager.fund_name}
             </CardTitle>
-            {fund.profiles && (
+            {manager.profiles && (
               <p className="text-sm text-gray-600 mt-1">
-                {fund.profiles.first_name} {fund.profiles.last_name}
+                {manager.profiles.first_name} {manager.profiles.last_name}
               </p>
             )}
           </div>
-          {fund.fund_type && (
+          {manager.fund_type && (
             <Badge variant="secondary" className="ml-2">
-              {fund.fund_type}
+              {manager.fund_type}
             </Badge>
           )}
         </div>
@@ -60,89 +60,91 @@ export function NetworkCard({ fund, userRole, showDetails = false }: NetworkCard
       
       <CardContent className="space-y-3">
         {/* Basic Info - Visible to all */}
-        {fund.website && (
+        {manager.website && (
           <div className="flex items-center text-sm text-gray-600">
             <Globe className="w-4 h-4 mr-2" />
             <a 
-              href={fund.website.startsWith('http') ? fund.website : `https://${fund.website}`}
+              href={manager.website.startsWith('http') ? manager.website : `https://${manager.website}`}
               target="_blank" 
               rel="noopener noreferrer"
               className="text-blue-600 hover:underline truncate"
             >
-              {fund.website}
+              {manager.website}
             </a>
           </div>
         )}
 
-        {fund.primary_investment_region && (
+        {manager.primary_investment_region && (
           <div className="flex items-center text-sm text-gray-600">
             <MapPin className="w-4 h-4 mr-2" />
-            <span>{fund.primary_investment_region}</span>
+            <span>{manager.primary_investment_region}</span>
           </div>
         )}
 
         {/* Member Details */}
         {canViewDetails && showDetails && (
           <>
-            {fund.team_size && (
+            {manager.team_size && (
               <div className="flex items-center text-sm text-gray-600">
                 <Users className="w-4 h-4 mr-2" />
-                <span>{fund.team_size} team members</span>
+                <span>{manager.team_size} team members</span>
               </div>
             )}
 
-            {fund.typical_check_size && (
+            {manager.typical_check_size && (
               <div className="flex items-center text-sm text-gray-600">
                 <DollarSign className="w-4 h-4 mr-2" />
-                <span>Typical Check: {fund.typical_check_size}</span>
+                <span>Typical Check: {manager.typical_check_size}</span>
               </div>
             )}
 
-            {fund.year_founded && (
+            {manager.year_founded && (
               <div className="flex items-center text-sm text-gray-600">
                 <Calendar className="w-4 h-4 mr-2" />
-                <span>Founded {fund.year_founded}</span>
+                <span>Founded {manager.year_founded}</span>
               </div>
             )}
 
-            {fund.sector_focus && fund.sector_focus.length > 0 && (
+            {manager.sector_focus && manager.sector_focus.length > 0 && (
               <div className="text-sm text-gray-600">
                 <div className="flex items-center mb-1">
                   <Target className="w-4 h-4 mr-2" />
                   <span className="font-medium">Sectors:</span>
                 </div>
                 <div className="flex flex-wrap gap-1 ml-6">
-                  {fund.sector_focus.slice(0, 3).map((sector, index) => (
+                  {manager.sector_focus.slice(0, 3).map((sector, index) => (
                     <Badge key={index} variant="outline" className="text-xs">
                       {sector}
                     </Badge>
                   ))}
-                  {fund.sector_focus.length > 3 && (
+                  {manager.sector_focus.length > 3 && (
                     <Badge variant="outline" className="text-xs">
-                      +{fund.sector_focus.length - 3} more
+                      +{manager.sector_focus.length - 3} more
                     </Badge>
                   )}
                 </div>
               </div>
             )}
 
-            {fund.stage_focus && fund.stage_focus.length > 0 && (
+            {manager.stage_focus && manager.stage_focus.length > 0 && (
               <div className="text-sm text-gray-600">
-                <div className="flex items-center mb-1">
-                  <Briefcase className="w-4 h-4 mr-2" />
-                  <span className="font-medium">Stages:</span>
-                </div>
-                <div className="flex flex-wrap gap-1 ml-6">
-                  {fund.stage_focus.slice(0, 3).map((stage, index) => (
-                    <Badge key={index} variant="outline" className="text-xs">
-                      {stage}
-                    </Badge>
-                  ))}
-                  {fund.stage_focus.length > 3 && (
-                    <Badge variant="outline" className="text-xs">
-                      +{fund.stage_focus.length - 3} more
-                    </Badge>
-                  )}
+                <div className="text-sm text-gray-600">
+                  <div className="flex items-center mb-1">
+                    <Briefcase className="w-4 h-4 mr-2" />
+                    <span className="font-medium">Stages:</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1 ml-6">
+                    {manager.stage_focus.slice(0, 3).map((stage, index) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {stage}
+                      </Badge>
+                    ))}
+                    {manager.stage_focus.length > 3 && (
+                      <Badge variant="outline" className="text-xs">
+                        +{manager.stage_focus.length - 3} more
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
@@ -150,27 +152,27 @@ export function NetworkCard({ fund, userRole, showDetails = false }: NetworkCard
             {/* Admin-only details */}
             {isAdmin && (
               <>
-                {fund.aum && (
+                {manager.aum && (
                   <div className="flex items-center text-sm text-gray-600">
                     <DollarSign className="w-4 h-4 mr-2" />
-                    <span>AUM: {fund.aum}</span>
+                    <span>AUM: {manager.aum}</span>
                   </div>
                 )}
 
-                {fund.investment_thesis && (
+                {manager.investment_thesis && (
                   <div className="text-sm text-gray-600">
                     <div className="font-medium mb-1">Investment Thesis:</div>
                     <div className="text-xs text-gray-500 line-clamp-2">
-                      {fund.investment_thesis}
+                      {manager.investment_thesis}
                     </div>
                   </div>
                 )}
               </>
             )}
 
-            {fund.completed_at && (
+            {manager.completed_at && (
               <div className="text-xs text-gray-500">
-                Profile completed: {new Date(fund.completed_at).toLocaleDateString()}
+                Profile completed: {new Date(manager.completed_at).toLocaleDateString()}
               </div>
             )}
           </>
@@ -179,7 +181,7 @@ export function NetworkCard({ fund, userRole, showDetails = false }: NetworkCard
         {/* Action Button */}
         <div className="pt-2">
           {canViewDetails ? (
-            <Link to={`/network/fund-manager/${fund.user_id}`}>
+            <Link to={`/network/fund-manager/${manager.user_id}`}>
               <Button variant="outline" size="sm" className="w-full">
                 <Eye className="w-4 h-4 mr-2" />
                 {isAdmin ? 'View Full Details' : 'View Profile'}

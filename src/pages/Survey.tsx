@@ -71,9 +71,9 @@ function mapSupabaseSurveyToFormData(data: Record<string, unknown>): SurveyFormD
 const surveySchema = z.object({
   // Section 1: Vehicle Information
   vehicle_websites: z.array(z.string()).optional(),
-  vehicle_type: z.string().min(1, "Vehicle type is required"),
+  vehicle_type: z.string().optional(),
   vehicle_type_other: z.string().optional(),
-  thesis: z.string().min(10, "Thesis must be at least 10 characters"),
+  thesis: z.string().optional(),
 
   // Section 2: Team & Leadership
   team_members: z.array(z.object({
@@ -83,39 +83,40 @@ const surveySchema = z.object({
     role: z.string().min(1, 'Role is required'),
     experience: z.string().optional(),
   })).optional(),
-  team_size_min: z.number().min(1, "Minimum team size is required"),
-  team_size_max: z.number().min(1, "Maximum team size is required"),
-  team_description: z.string().min(10, "Team description is required"),
+  team_size_min: z.number().optional(),
+  team_size_max: z.number().optional(),
+  team_description: z.string().optional(),
 
   // Section 3: Geographic & Market Focus
-  legal_domicile: z.array(z.string()).min(1, "At least one legal domicile is required"),
+  legal_domicile: z.array(z.string()).optional(),
   legal_domicile_other: z.string().optional(),
   markets_operated: z.record(z.number()).optional(),
   markets_operated_other: z.string().optional(),
 
   // Section 4: Investment Strategy
-  ticket_size_min: z.number().min(0, "Minimum ticket size is required"),
-  ticket_size_max: z.number().min(0, "Maximum ticket size is required"),
+  ticket_size_min: z.number().optional(),
+  ticket_size_max: z.number().optional(),
   ticket_description: z.string().optional(),
-  target_capital: z.number().min(0, "Target capital is required"),
-  capital_raised: z.number().min(0, "Capital raised is required"),
-  capital_in_market: z.number().min(0, "Capital in market is required"),
+  target_capital: z.number().optional(),
+  capital_raised: z.number().optional(),
+  capital_in_market: z.number().optional(),
 
   // Section 5: Fund Operations
   supporting_document_url: z.string().optional(),
-  information_sharing: z.string().min(1, "Information sharing preference is required"),
-  expectations: z.string().min(10, "Expectations are required"),
-  how_heard_about_network: z.string().min(1, "How you heard about us is required"),
+  information_sharing: z.string().optional(),
+  expectations: z.string().optional(),
+  how_heard_about_network: z.string().optional(),
 
   // Section 6: Fund Status & Timeline
-  fund_stage: z.array(z.string()).min(1, "At least one fund stage is required"),
-  current_status: z.string().min(1, "Current status is required"),
+  fund_stage: z.array(z.string()).optional(),
+  current_status: z.string().optional(),
+  current_status_other: z.string().optional(),
   legal_entity_date_from: z.number().optional(),
-  legal_entity_date_to: z.number().optional(),
+  legal_entity_date_to: z.union([z.number(), z.literal('present')]).optional(),
   legal_entity_month_from: z.number().optional(),
   legal_entity_month_to: z.number().optional(),
   first_close_date_from: z.number().optional(),
-  first_close_date_to: z.number().optional(),
+  first_close_date_to: z.union([z.number(), z.literal('present')]).optional(),
   first_close_month_from: z.number().optional(),
   first_close_month_to: z.number().optional(),
 
@@ -124,12 +125,18 @@ const surveySchema = z.object({
 
   // Section 8: Sector Focus & Returns
   sectors_allocation: z.record(z.number()).optional(),
-  target_return_min: z.number().min(0, "Minimum target return is required"),
-  target_return_max: z.number().min(0, "Maximum target return is required"),
-  equity_investments_made: z.number().min(0, "Equity investments made is required"),
-  equity_investments_exited: z.number().min(0, "Equity investments exited is required"),
-  self_liquidating_made: z.number().min(0, "Self-liquidating investments made is required"),
-  self_liquidating_exited: z.number().min(0, "Self-liquidating investments exited is required"),
+  target_return_min: z.number().optional(),
+  target_return_max: z.number().optional(),
+  equity_investments_made: z.number().optional(),
+  equity_investments_exited: z.number().optional(),
+  self_liquidating_made: z.number().optional(),
+  self_liquidating_exited: z.number().optional(),
+  
+  // Metadata
+  id: z.string().optional(),
+  year: z.number().optional(),
+  created_at: z.string().optional(),
+  completed_at: z.string().optional(),
 });
 
 const Survey = () => {
@@ -205,7 +212,7 @@ const Survey = () => {
         .select('*')
         .eq('user_id', user.id)
         .eq('year', selectedYear)
-        .single();
+        .maybeSingle();
 
       if (data && !error) {
         const mapped = mapSupabaseSurveyToFormData(data);
@@ -242,6 +249,8 @@ const Survey = () => {
 
   const onSubmit = async (data: SurveyFormData) => {
     console.log('Submitting survey with data:', data);
+    console.log('Form is valid:', form.formState.isValid);
+    console.log('Form errors:', form.formState.errors);
     
     if (!user) {
       toast({
@@ -563,14 +572,27 @@ const Survey = () => {
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 ) : (
-                  <Button 
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    {isSubmitting ? 'Submitting...' : 'Review & Submit'}
-                    <CheckCircle className="w-4 h-4 ml-2" />
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {isSubmitting ? 'Submitting...' : 'Review & Submit'}
+                      <CheckCircle className="w-4 h-4 ml-2" />
+                    </Button>
+                    <Button 
+                      type="button"
+                      onClick={() => {
+                        console.log('Direct submit clicked');
+                        form.handleSubmit(onSubmit)();
+                      }}
+                      disabled={isSubmitting}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      Direct Submit
+                    </Button>
+                  </div>
                 )}
               </div>
             </form>
@@ -593,7 +615,10 @@ const Survey = () => {
                   Cancel
                 </Button>
                 <Button 
-                  onClick={() => form.handleSubmit(onSubmit)()}
+                  onClick={() => {
+                    console.log('Confirmation dialog submit clicked');
+                    form.handleSubmit(onSubmit)();
+                  }}
                   disabled={isSubmitting}
                   className="bg-green-600 hover:bg-green-700"
                 >

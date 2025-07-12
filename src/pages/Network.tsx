@@ -290,52 +290,29 @@ const Network = () => {
             </Select>
           </div>
 
-          {/* Show limited network view for viewers */}
+          {/* Show all fund managers for all roles */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredManagers.slice(0, 6).map((manager) => (
-              <Card key={manager.id} className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium">{manager.fund_name}</CardTitle>
-                    <Badge variant="secondary">Viewer</Badge>
-                  </div>
-                  <CardDescription className="text-xs">
-                    {manager.primary_investment_region || 'Unknown Region'}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Building2 className="h-4 w-4 text-gray-400" />
-                      <span>{manager.fund_type || 'Unknown Type'}</span>
-                    </div>
-                    {manager.website && (
-                      <div className="flex items-center gap-2">
-                        <ExternalLink className="h-4 w-4 text-gray-400" />
-                        <a 
-                          href={manager.website} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline text-xs"
-                        >
-                          Visit Website
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+            {filteredManagers.map((manager) => (
+              <NetworkCard 
+                key={manager.id} 
+                manager={manager} 
+                userRole={userRole}
+              />
             ))}
           </div>
 
-          {fundManagers.length > 6 && (
-            <Card className="mt-8 border-amber-200 bg-amber-50">
-              <CardHeader>
-                <CardTitle className="text-amber-800">Unlock Full Network Access</CardTitle>
-                <CardDescription className="text-amber-700">
-                  Become a member to view detailed profiles and connect with all {fundManagers.length} fund managers in our network.
-                </CardDescription>
-              </CardHeader>
+          {filteredManagers.length === 0 && (
+            <Card className="text-center py-12">
+              <CardContent>
+                <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No fund managers found</h3>
+                <p className="text-gray-600">
+                  {searchTerm || filterRegion !== 'all' || filterType !== 'all' 
+                    ? 'Try adjusting your search or filters.'
+                    : 'No fund managers have completed surveys yet.'
+                  }
+                </p>
+              </CardContent>
             </Card>
           )}
         </div>
