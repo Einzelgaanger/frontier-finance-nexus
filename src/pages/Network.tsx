@@ -136,7 +136,7 @@ const Network = () => {
           managersWithProfiles.push({
             id: response.id,
             user_id: response.user_id,
-            fund_name: response.vehicle_name || 'Unknown Fund',
+            fund_name: response.vehicle_name || response.vehicle_name || 'Unknown Fund',
             website: Array.isArray(response.vehicle_websites) 
               ? response.vehicle_websites[0] 
               : typeof response.vehicle_websites === 'string'
@@ -146,9 +146,11 @@ const Network = () => {
             fund_type: response.vehicle_type || 'Unknown',
             year_founded: response.legal_entity_date_from || null,
             team_size: response.team_size_max || null,
-            typical_check_size: `$${response.ticket_size_min?.toLocaleString()} - $${response.ticket_size_max?.toLocaleString()}`,
+            typical_check_size: response.ticket_size_min && response.ticket_size_max
+              ? `$${response.ticket_size_min.toLocaleString()} - $${response.ticket_size_max.toLocaleString()}`
+              : null,
             completed_at: response.completed_at,
-            aum: `$${response.capital_raised?.toLocaleString()}`,
+            aum: response.capital_raised ? `$${response.capital_raised.toLocaleString()}` : null,
             investment_thesis: response.thesis || null,
             sector_focus: sectorFocus,
             stage_focus: stageFocus,

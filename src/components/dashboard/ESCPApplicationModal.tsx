@@ -29,6 +29,7 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
     email: user?.email || '',
     vehicle_name: '',
     organization_website: '',
+    domicile_country: '',
     
     // Team Information
     role_job_title: '',
@@ -120,7 +121,7 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
   const validateSection = (section: number): boolean => {
     switch (section) {
       case 1:
-        return !!(formData.applicant_name && formData.email && formData.vehicle_name && formData.organization_website);
+        return !!(formData.applicant_name && formData.email && formData.vehicle_name && formData.organization_website && formData.domicile_country);
       case 2:
         return !!(formData.role_job_title && formData.team_overview && formData.country_of_operation);
       case 3:
@@ -176,6 +177,7 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
         email: formData.email,
         vehicle_name: formData.vehicle_name,
         vehicle_website: formData.organization_website,
+        domicile_country: formData.domicile_country,
         role_job_title: formData.role_job_title,
         team_size: formData.team_overview,
         location: formData.country_of_operation,
@@ -296,6 +298,16 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
                   value={formData.organization_website}
                   onChange={(e) => handleInputChange('organization_website', e.target.value)}
                   placeholder="https://www.yourfund.com"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="domicile_country">Domicile Country *</Label>
+                <Input
+                  id="domicile_country"
+                  value={formData.domicile_country}
+                  onChange={(e) => handleInputChange('domicile_country', e.target.value)}
+                  placeholder="e.g., United States, United Kingdom, Singapore"
                 />
               </div>
             </div>

@@ -70,6 +70,7 @@ interface MembershipRequest {
   email: string;
   vehicle_name: string;
   vehicle_website?: string | null;
+  domicile_country?: string | null;
   organization_name?: string | null;
   country_of_operation?: string | null;
   role_job_title?: string | null;
