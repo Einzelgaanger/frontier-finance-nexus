@@ -27,10 +27,23 @@ const ResetPassword = () => {
   const refreshToken = searchParams.get('refresh_token');
   const type = searchParams.get('type');
 
+  console.log('ResetPassword component - URL params:', { 
+    hasAccessToken: !!accessToken, 
+    hasRefreshToken: !!refreshToken, 
+    type 
+  });
+
   useEffect(() => {
     const handlePasswordReset = async () => {
+      console.log('ResetPassword useEffect - checking tokens:', { 
+        hasAccessToken: !!accessToken, 
+        hasRefreshToken: !!refreshToken, 
+        type 
+      });
+
       if (accessToken && refreshToken && type === 'recovery') {
         try {
+          console.log('Setting session with tokens...');
           // Set session with the tokens from the URL
           const { error: sessionError } = await supabase.auth.setSession({
             access_token: accessToken,
@@ -40,12 +53,15 @@ const ResetPassword = () => {
           if (sessionError) {
             console.error('Session error:', sessionError);
             setError('Invalid or expired reset link. Please request a new password reset.');
+          } else {
+            console.log('Session set successfully');
           }
         } catch (error) {
           console.error('Error setting session:', error);
           setError('Invalid or expired reset link. Please request a new password reset.');
         }
-      } else if (!accessToken || type !== 'recovery') {
+      } else if (!accessToken || !refreshToken || type !== 'recovery') {
+        console.log('Missing required tokens or wrong type');
         setError('Invalid or missing reset token. Please request a new password reset.');
       }
     };
