@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { FileText, Upload, Building2, Users, Globe, Target } from 'lucide-react';
+import { FileText, Upload, Building2, Users, Globe, Target, CheckCircle, XCircle } from 'lucide-react';
 
 interface ESCPApplicationModalProps {
   open: boolean;
@@ -34,7 +34,6 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
     // Team Information
     role_job_title: '',
     team_overview: '',
-    country_of_operation: '',
     
     // Vehicle Information
     investment_thesis: '',
@@ -83,7 +82,7 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     if (files.length > 5) {
       toast({
@@ -109,6 +108,36 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
     setFormData(prev => ({ ...prev, supporting_documents: validFiles }));
   };
 
+  const uploadDocuments = async (): Promise<string[]> => {
+    if (formData.supporting_documents.length === 0) return [];
+    
+    const uploadedUrls: string[] = [];
+    
+    for (const file of formData.supporting_documents) {
+      try {
+        const fileName = `${Date.now()}-${file.name}`;
+        const { data, error } = await supabase.storage
+          .from('supporting-documents')
+          .upload(fileName, file);
+        
+        if (error) {
+          console.error('Error uploading file:', error);
+          continue;
+        }
+        
+        const { data: urlData } = supabase.storage
+          .from('supporting-documents')
+          .getPublicUrl(fileName);
+        
+        uploadedUrls.push(urlData.publicUrl);
+      } catch (error) {
+        console.error('Error uploading document:', error);
+      }
+    }
+    
+    return uploadedUrls;
+  };
+
   const handleTopicToggle = (topic: string) => {
     setFormData(prev => ({
       ...prev,
@@ -123,7 +152,7 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
       case 1:
         return !!(formData.applicant_name && formData.email && formData.vehicle_name && formData.organization_website && formData.domicile_country);
       case 2:
-        return !!(formData.role_job_title && formData.team_overview && formData.country_of_operation);
+        return !!(formData.role_job_title && formData.team_overview);
       case 3:
         return !!(formData.investment_thesis && formData.typical_check_size && formData.number_of_investments && formData.amount_raised_to_date);
       case 4:
@@ -171,6 +200,9 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
     setLoading(true);
     
     try {
+      // Upload documents first
+      const documentUrls = await uploadDocuments();
+      
       const applicationData = {
         user_id: user.id,
         applicant_name: formData.applicant_name,
@@ -180,18 +212,20 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
         domicile_country: formData.domicile_country,
         role_job_title: formData.role_job_title,
         team_size: formData.team_overview,
-        location: formData.country_of_operation,
+        location: formData.domicile_country, // Use domicile_country as location
         thesis: formData.investment_thesis,
         ticket_size: formData.typical_check_size,
         portfolio_investments: formData.number_of_investments,
         capital_raised: formData.amount_raised_to_date,
-        supporting_documents: formData.supporting_documents.length > 0 ? 'Documents uploaded' : null,
+        supporting_documents: documentUrls.length > 0 ? JSON.stringify(documentUrls) : null,
         information_sharing: {
           topics: formData.information_sharing_topics,
-          other: ''
+          other: formData.how_heard_other // Include the "other" details
         },
         expectations: formData.expectations_from_network,
-        how_heard_about_network: formData.how_heard_about_network,
+        how_heard_about_network: formData.how_heard_about_network === 'Other' 
+          ? `Other: ${formData.how_heard_other}` 
+          : formData.how_heard_about_network,
         status: 'pending'
       };
 
@@ -202,8 +236,16 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
       if (error) throw error;
 
       toast({
-        title: "Application Submitted",
-        description: "Your ESCP Network application has been submitted successfully. You'll receive an email notification once reviewed.",
+        title: "Application Submitted Successfully!",
+        description: "Your ESCP Network application has been submitted for review. We'll get back to you once the review is completed.",
+        duration: 5000,
+        className: "bg-green-50 border-green-200 text-green-800",
+        action: (
+          <div className="flex items-center gap-2">
+            <CheckCircle className="w-5 h-5 text-green-600 animate-pulse" />
+            <span className="text-green-700 font-medium">Success!</span>
+          </div>
+        ),
       });
 
       onClose();
@@ -213,9 +255,9 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
         email: user?.email || '',
         vehicle_name: '',
         organization_website: '',
+        domicile_country: '',
         role_job_title: '',
         team_overview: '',
-        country_of_operation: '',
         investment_thesis: '',
         typical_check_size: '',
         number_of_investments: '',
@@ -231,12 +273,20 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
         additional_comments: ''
       });
 
-    } catch (error) {
-      console.error('Error submitting application:', error);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to submit application. Please try again.";
       toast({
-        title: "Submission Error",
-        description: "Failed to submit application. Please try again.",
-        variant: "destructive"
+        title: "Submission Failed",
+        description: errorMessage,
+        variant: "destructive",
+        duration: 5000,
+        className: "bg-red-50 border-red-200 text-red-800",
+        action: (
+          <div className="flex items-center gap-2">
+            <XCircle className="w-5 h-5 text-red-600" />
+            <span className="text-red-700 font-medium">Error</span>
+          </div>
+        ),
       });
     } finally {
       setLoading(false);
@@ -347,17 +397,6 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
                   onChange={(e) => handleInputChange('team_overview', e.target.value)}
                   placeholder="Describe your team size, key co-founders, and their backgrounds..."
                   rows={4}
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="country_of_operation">Team Location & Relocation Plans *</Label>
-                <Textarea
-                  id="country_of_operation"
-                  value={formData.country_of_operation}
-                  onChange={(e) => handleInputChange('country_of_operation', e.target.value)}
-                  placeholder="Where is your team based? Any plans to relocate or expand geographically?"
-                  rows={2}
                 />
               </div>
             </div>
@@ -501,19 +540,19 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
                     ))}
                   </SelectContent>
                 </Select>
+                
+                {formData.how_heard_about_network === 'Other' && (
+                  <div>
+                    <Label htmlFor="how_heard_other">Please specify</Label>
+                    <Input
+                      id="how_heard_other"
+                      value={formData.how_heard_other}
+                      onChange={(e) => handleInputChange('how_heard_other', e.target.value)}
+                      placeholder="Please tell us how you heard about the network"
+                    />
+                  </div>
+                )}
               </div>
-              
-              {formData.how_heard_about_network === 'Other' && (
-                <div>
-                  <Label htmlFor="how_heard_other">Please specify</Label>
-                  <Input
-                    id="how_heard_other"
-                    value={formData.how_heard_other}
-                    onChange={(e) => handleInputChange('how_heard_other', e.target.value)}
-                    placeholder="Please tell us how you heard about the network"
-                  />
-                </div>
-              )}
             </div>
           </div>
         );

@@ -34,7 +34,8 @@ import {
   Target,
   Award,
   MessageSquare,
-  User
+  User,
+  Mail
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Link as RouterLink } from 'react-router-dom';
@@ -721,7 +722,7 @@ const Admin = () => {
                 <Card key={request.id} className="hover:shadow-lg transition-all duration-200 cursor-pointer" onClick={() => handleViewApplication(request)}>
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm font-medium">{request.applicant_name}</CardTitle>
+                      <CardTitle className="text-sm font-medium truncate">{request.applicant_name}</CardTitle>
                       <Badge 
                         variant={request.status === 'pending' ? 'secondary' : request.status === 'approved' ? 'default' : 'destructive'}
                         className={request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : request.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}
@@ -729,17 +730,17 @@ const Admin = () => {
                         {request.status === 'pending' ? 'Pending' : request.status === 'approved' ? 'Approved' : 'Rejected'}
                       </Badge>
                     </div>
-                    <CardDescription className="text-xs">{request.email}</CardDescription>
+                    <CardDescription className="text-xs truncate">{request.email}</CardDescription>
                   </CardHeader>
                   <CardContent className="pt-0">
                     <div className="space-y-2 text-xs text-gray-600">
                       <div className="flex items-center gap-2">
-                        <Building2 className="w-3 h-3" />
+                        <Building2 className="w-3 h-3 flex-shrink-0" />
                         <span className="truncate">{request.vehicle_name}</span>
                       </div>
                       {request.vehicle_website && (
                         <div className="flex items-center gap-2">
-                          <Globe className="w-3 h-3" />
+                          <Globe className="w-3 h-3 flex-shrink-0" />
                           <a 
                             href={request.vehicle_website.startsWith('http') ? request.vehicle_website : `https://${request.vehicle_website}`}
                             target="_blank" 
@@ -752,12 +753,8 @@ const Admin = () => {
                         </div>
                       )}
                       <div className="flex items-center gap-2">
-                        <MapPin className="w-3 h-3" />
-                        <span>{request.location || 'N/A'}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-3 h-3" />
-                        <span>{request.created_at ? new Date(request.created_at).toLocaleDateString() : 'N/A'}</span>
+                        <Calendar className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">{request.created_at ? new Date(request.created_at).toLocaleDateString() : 'N/A'}</span>
                       </div>
                     </div>
                   </CardContent>
@@ -776,20 +773,20 @@ const Admin = () => {
                 <Card key={request.id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-green-500">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm font-medium">{request.applicant_name}</CardTitle>
+                      <CardTitle className="text-sm font-medium truncate">{request.applicant_name}</CardTitle>
                       <Badge variant="default" className="bg-green-100 text-green-800">Member</Badge>
                     </div>
-                    <CardDescription className="text-xs">{request.email}</CardDescription>
+                    <CardDescription className="text-xs truncate">{request.email}</CardDescription>
                   </CardHeader>
                   <CardContent className="pt-0">
                     <div className="space-y-2 text-xs text-gray-600">
                       <div className="flex items-center gap-2">
-                        <Building2 className="w-3 h-3" />
+                        <Building2 className="w-3 h-3 flex-shrink-0" />
                         <span className="truncate">{request.vehicle_name}</span>
                       </div>
                       {request.vehicle_website && (
                         <div className="flex items-center gap-2">
-                          <Globe className="w-3 h-3" />
+                          <Globe className="w-3 h-3 flex-shrink-0" />
                           <a 
                             href={request.vehicle_website.startsWith('http') ? request.vehicle_website : `https://${request.vehicle_website}`}
                             target="_blank" 
@@ -801,16 +798,12 @@ const Admin = () => {
                         </div>
                       )}
                       <div className="flex items-center gap-2">
-                        <MapPin className="w-3 h-3" />
-                        <span>{request.location || 'N/A'}</span>
+                        <Users className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">{request.team_size || 'N/A'}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Users className="w-3 h-3" />
-                        <span>{request.team_size || 'N/A'}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <DollarSign className="w-3 h-3" />
-                        <span>{request.ticket_size || 'N/A'}</span>
+                        <DollarSign className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">{request.ticket_size || 'N/A'}</span>
                       </div>
                     </div>
                   </CardContent>
@@ -870,169 +863,255 @@ const Admin = () => {
           <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
               <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-                <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+                <div className="absolute inset-0 bg-gray-900 opacity-75"></div>
               </div>
 
               <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-              <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+              <div className="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl sm:w-full border-0">
+                <div className="bg-blue-600 px-6 pt-6 pb-4 sm:p-8 sm:pb-6">
                   <div className="sm:flex sm:items-start">
-                    <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                    <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-white sm:mx-0 sm:h-12 sm:w-12">
                       <UserCheck className="h-6 w-6 text-blue-600" aria-hidden="true" />
                     </div>
                     <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                      <h3 className="text-lg leading-6 font-medium text-gray-900">
+                      <h3 className="text-xl leading-6 font-bold text-white">
                         Application Details - {selectedRequest.applicant_name}
                       </h3>
-                      <div className="mt-4 max-h-96 overflow-y-auto">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="space-y-4">
-                            <div className="bg-white p-4 rounded-lg border">
-                              <div className="flex items-center gap-2 mb-2">
-                                <MessageSquare className="h-4 w-4 text-blue-600" />
-                                <h4 className="font-medium text-gray-900">Background Information</h4>
-                              </div>
-                              <div className="space-y-2 text-sm">
-                                <div>
-                                  <p className="font-medium text-gray-700">Name:</p>
-                                  <p className="text-gray-600 break-words">{selectedRequest.applicant_name}</p>
-                                </div>
-                                <div>
-                                  <p className="font-medium text-gray-700">Email:</p>
-                                  <p className="text-gray-600 break-all">{selectedRequest.email}</p>
-                                </div>
-                                <div>
-                                  <p className="font-medium text-gray-700">Vehicle Name:</p>
-                                  <p className="text-gray-600 break-words">{selectedRequest.vehicle_name}</p>
-                                </div>
-                                <div>
-                                  <p className="font-medium text-gray-700">Vehicle Website:</p>
-                                  {selectedRequest.vehicle_website ? (
-                                    <a 
-                                      href={selectedRequest.vehicle_website.startsWith('http') ? selectedRequest.vehicle_website : `https://${selectedRequest.vehicle_website}`}
-                                      target="_blank" 
-                                      rel="noopener noreferrer"
-                                      className="text-blue-600 hover:underline break-all"
-                                    >
-                                      {selectedRequest.vehicle_website}
-                                    </a>
-                                  ) : (
-                                    <p className="text-gray-600">N/A</p>
-                                  )}
-                                </div>
-                                <div>
-                                  <p className="font-medium text-gray-700">Country:</p>
-                                  <p className="text-gray-600 break-words">{selectedRequest.domicile_country || 'N/A'}</p>
-                                </div>
-                              </div>
+                      <p className="text-blue-100 mt-2">Review application information and supporting documents</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-gray-50 px-6 py-6 sm:px-8">
+                  <div className="max-h-96 overflow-y-auto">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                              <MessageSquare className="h-4 w-4 text-blue-600" />
                             </div>
-
-                            <div className="bg-white p-4 rounded-lg border">
-                              <div className="flex items-center gap-2 mb-2">
-                                <Users className="h-4 w-4 text-green-600" />
-                                <h4 className="font-medium text-gray-900">Team Information</h4>
-                              </div>
-                              <div className="space-y-2 text-sm">
-                                <div>
-                                  <p className="font-medium text-gray-700">Role/Job Title:</p>
-                                  <p className="text-gray-600 break-words">{selectedRequest.role_job_title || 'N/A'}</p>
-                                </div>
-                                <div>
-                                  <p className="font-medium text-gray-700">Team Size:</p>
-                                  <p className="text-gray-600 break-words">{selectedRequest.team_size || 'N/A'}</p>
-                                </div>
-                                <div>
-                                  <p className="font-medium text-gray-700">Location:</p>
-                                  <p className="text-gray-600 break-words">{selectedRequest.location || 'N/A'}</p>
-                                </div>
-                                <div>
-                                  <p className="font-medium text-gray-700">Country of Operation:</p>
-                                  <p className="text-gray-600 break-words">{selectedRequest.country_of_operation || 'N/A'}</p>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="bg-white p-4 rounded-lg border">
-                              <div className="flex items-center gap-2 mb-2">
-                                <Building2 className="h-4 w-4 text-purple-600" />
-                                <h4 className="font-medium text-gray-900">Vehicle Information</h4>
-                              </div>
-                              <div className="space-y-2 text-sm">
-                                <div>
-                                  <p className="font-medium text-gray-700">Thesis:</p>
-                                  <p className="text-gray-600 break-words">{selectedRequest.thesis || 'N/A'}</p>
-                                </div>
-                                <div>
-                                  <p className="font-medium text-gray-700">Ticket Size:</p>
-                                  <p className="text-gray-600 break-words">{selectedRequest.ticket_size || 'N/A'}</p>
-                                </div>
-                                <div>
-                                  <p className="font-medium text-gray-700">Portfolio Investments:</p>
-                                  <p className="text-gray-600 break-words">{selectedRequest.portfolio_investments || 'N/A'}</p>
-                                </div>
-                                <div>
-                                  <p className="font-medium text-gray-700">Capital Raised:</p>
-                                  <p className="text-gray-600 break-words">{selectedRequest.capital_raised || 'N/A'}</p>
-                                </div>
-                                <div>
-                                  <p className="font-medium text-gray-700">Supporting Documents:</p>
-                                  {selectedRequest.supporting_documents ? (
-                                    <div className="flex items-center gap-2">
-                                      <File className="w-4 h-4 text-blue-600" />
-                                      <a 
-                                        href={selectedRequest.supporting_documents}
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                        className="text-blue-600 hover:underline"
-                                      >
-                                        View Documents
-                                      </a>
-                                    </div>
-                                  ) : (
-                                    <p className="text-gray-600">No documents uploaded</p>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
+                            <h4 className="font-semibold text-gray-900 text-lg">Background Information</h4>
                           </div>
-
-                          <div className="space-y-4">
-                            <div className="bg-white p-4 rounded-lg border">
-                              <div className="flex items-center gap-2 mb-2">
-                                <MessageSquare className="h-4 w-4 text-orange-600" />
-                                <h4 className="font-medium text-gray-900">Information Sharing</h4>
+                          <div className="space-y-3 text-sm">
+                            <div className="flex items-start gap-3">
+                              <User className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="font-medium text-gray-700">Name</p>
+                                <p className="text-gray-600 break-words">{selectedRequest.applicant_name}</p>
                               </div>
-                              <div className="space-y-2 text-sm">
-                                {selectedRequest.information_sharing?.topics && selectedRequest.information_sharing.topics.length > 0 ? (
-                                  <div className="space-y-1">
-                                    {selectedRequest.information_sharing.topics.map((topic, index) => (
-                                      <p key={index}>• {topic}</p>
-                                    ))}
-                                    {selectedRequest.information_sharing.other && (
-                                      <p>• Other: {selectedRequest.information_sharing.other}</p>
-                                    )}
-                                  </div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                              <Mail className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="font-medium text-gray-700">Email</p>
+                                <p className="text-gray-600 break-all">{selectedRequest.email}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                              <Building2 className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="font-medium text-gray-700">Vehicle Name</p>
+                                <p className="text-gray-600 break-words">{selectedRequest.vehicle_name}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                              <Globe className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="font-medium text-gray-700">Vehicle Website</p>
+                                {selectedRequest.vehicle_website ? (
+                                  <a 
+                                    href={selectedRequest.vehicle_website.startsWith('http') ? selectedRequest.vehicle_website : `https://${selectedRequest.vehicle_website}`}
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 hover:underline break-all"
+                                  >
+                                    {selectedRequest.vehicle_website}
+                                  </a>
                                 ) : (
-                                  <p className="text-gray-500">No information sharing preferences specified</p>
+                                  <p className="text-gray-600">N/A</p>
                                 )}
                               </div>
                             </div>
-
-                            <div className="bg-white p-4 rounded-lg border">
-                              <div className="flex items-center gap-2 mb-2">
-                                <Target className="h-4 w-4 text-yellow-600" />
-                                <h4 className="font-medium text-gray-900">ESCP Network Expectations</h4>
+                            <div className="flex items-start gap-3">
+                              <MapPin className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="font-medium text-gray-700">Country</p>
+                                <p className="text-gray-600 break-words">{selectedRequest.domicile_country || 'N/A'}</p>
                               </div>
-                              <div className="space-y-2 text-sm">
-                                <div>
-                                  <p className="font-medium text-gray-700">Expectations:</p>
-                                  <p className="text-gray-600 break-words">{selectedRequest.expectations || 'N/A'}</p>
-                                </div>
-                                <div>
-                                  <p className="font-medium text-gray-700">How heard about network:</p>
-                                  <p className="text-gray-600 break-words">{selectedRequest.how_heard_about_network || 'N/A'}</p>
-                                </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                              <Users className="h-4 w-4 text-green-600" />
+                            </div>
+                            <h4 className="font-semibold text-gray-900 text-lg">Team Information</h4>
+                          </div>
+                          <div className="space-y-3 text-sm">
+                            <div className="flex items-start gap-3">
+                              <Briefcase className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="font-medium text-gray-700">Role/Job Title</p>
+                                <p className="text-gray-600 break-words">{selectedRequest.role_job_title || 'N/A'}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                              <Users className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="font-medium text-gray-700">Team Size</p>
+                                <p className="text-gray-600 break-words">{selectedRequest.team_size || 'N/A'}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                              <MapPin className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="font-medium text-gray-700">Location</p>
+                                <p className="text-gray-600 break-words">{selectedRequest.location || 'N/A'}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                              <Building2 className="h-4 w-4 text-purple-600" />
+                            </div>
+                            <h4 className="font-semibold text-gray-900 text-lg">Vehicle Information</h4>
+                          </div>
+                          <div className="space-y-3 text-sm">
+                            <div className="flex items-start gap-3">
+                              <Target className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="font-medium text-gray-700">Thesis</p>
+                                <p className="text-gray-600 break-words">{selectedRequest.thesis || 'N/A'}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                              <DollarSign className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="font-medium text-gray-700">Ticket Size</p>
+                                <p className="text-gray-600 break-words">{selectedRequest.ticket_size || 'N/A'}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                              <TrendingUp className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="font-medium text-gray-700">Portfolio Investments</p>
+                                <p className="text-gray-600 break-words">{selectedRequest.portfolio_investments || 'N/A'}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                              <Award className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="font-medium text-gray-700">Capital Raised</p>
+                                <p className="text-gray-600 break-words">{selectedRequest.capital_raised || 'N/A'}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                              <File className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="font-medium text-gray-700">Supporting Documents</p>
+                                {selectedRequest.supporting_documents ? (
+                                  <div className="flex items-center gap-2">
+                                    {(() => {
+                                      try {
+                                        const urls = JSON.parse(selectedRequest.supporting_documents);
+                                        if (Array.isArray(urls)) {
+                                          return (
+                                            <div className="space-y-1">
+                                              {urls.map((url, index) => (
+                                                <a 
+                                                  key={index}
+                                                  href={url}
+                                                  target="_blank" 
+                                                  rel="noopener noreferrer"
+                                                  className="text-blue-600 hover:underline block"
+                                                >
+                                                  Document {index + 1}
+                                                </a>
+                                              ))}
+                                            </div>
+                                          );
+                                        }
+                                      } catch (e) {
+                                        // If it's not JSON, treat as single URL
+                                        return (
+                                          <a 
+                                            href={selectedRequest.supporting_documents}
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="text-blue-600 hover:underline"
+                                          >
+                                            View Documents
+                                          </a>
+                                        );
+                                      }
+                                    })()}
+                                  </div>
+                                ) : (
+                                  <p className="text-gray-600">No documents uploaded</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                              <MessageSquare className="h-4 w-4 text-orange-600" />
+                            </div>
+                            <h4 className="font-semibold text-gray-900 text-lg">Information Sharing</h4>
+                          </div>
+                          <div className="space-y-3 text-sm">
+                            {selectedRequest.information_sharing?.topics && selectedRequest.information_sharing.topics.length > 0 ? (
+                              <div className="space-y-2">
+                                {selectedRequest.information_sharing.topics.map((topic, index) => (
+                                  <div key={index} className="flex items-center gap-2">
+                                    <CheckCircle className="w-4 h-4 text-green-500" />
+                                    <span className="text-gray-700">{topic}</span>
+                                  </div>
+                                ))}
+                                {selectedRequest.information_sharing.other && (
+                                  <div className="flex items-center gap-2">
+                                    <CheckCircle className="w-4 h-4 text-green-500" />
+                                    <span className="text-gray-700">Other: {selectedRequest.information_sharing.other}</span>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <p className="text-gray-500">No information sharing preferences specified</p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                              <Target className="h-4 w-4 text-yellow-600" />
+                            </div>
+                            <h4 className="font-semibold text-gray-900 text-lg">ESCP Network Expectations</h4>
+                          </div>
+                          <div className="space-y-3 text-sm">
+                            <div className="flex items-start gap-3">
+                              <MessageSquare className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="font-medium text-gray-700">Expectations</p>
+                                <p className="text-gray-600 break-words">{selectedRequest.expectations || 'N/A'}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                              <Globe className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="font-medium text-gray-700">How heard about network</p>
+                                <p className="text-gray-600 break-words">{selectedRequest.how_heard_about_network || 'N/A'}</p>
                               </div>
                             </div>
                           </div>
@@ -1041,14 +1120,15 @@ const Admin = () => {
                     </div>
                   </div>
                 </div>
-                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                
+                <div className="bg-gray-100 px-6 py-4 sm:px-8 sm:flex sm:flex-row-reverse">
                   {selectedRequest.status === 'pending' && (
                     <Select
                       value=""
                       onValueChange={(value) => handleRoleChange(selectedRequest.id, value as 'viewer' | 'member')}
                       disabled={isUpdating}
                     >
-                      <SelectTrigger className="w-40">
+                      <SelectTrigger className="w-40 bg-white">
                         <SelectValue placeholder="Change Role" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1068,8 +1148,8 @@ const Admin = () => {
                     </Select>
                   )}
                   <Button
-                    variant="ghost"
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"
+                    variant="outline"
+                    className="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:w-auto sm:text-sm"
                     onClick={() => setSelectedRequest(null)}
                   >
                     Close

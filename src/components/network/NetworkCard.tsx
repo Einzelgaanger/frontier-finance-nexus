@@ -32,6 +32,12 @@ interface NetworkCardProps {
 }
 
 export function NetworkCard({ manager, userRole, showDetails = false }: NetworkCardProps) {
+  // Validate manager data
+  if (!manager || !manager.fund_name || !manager.user_id) {
+    console.warn('Invalid manager data:', manager);
+    return null;
+  }
+
   const canViewDetails = userRole === 'member' || userRole === 'admin';
   const isAdmin = userRole === 'admin';
   const isViewer = userRole === 'viewer';
