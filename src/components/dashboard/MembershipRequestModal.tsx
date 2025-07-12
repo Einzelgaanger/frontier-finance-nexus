@@ -220,7 +220,7 @@ export function MembershipRequestModal({ open, onClose }: MembershipRequestModal
                 />
               </div>
               
-              <div className="space-y-2">
+            <div className="space-y-2">
                 <Label htmlFor="email">2. Email Address *</Label>
                 <Input
                   id="email"
@@ -241,9 +241,9 @@ export function MembershipRequestModal({ open, onClose }: MembershipRequestModal
                   onChange={(e) => handleInputChange('vehicle_name', e.target.value)}
                   required
                 />
-              </div>
-              
-              <div className="space-y-2">
+            </div>
+
+            <div className="space-y-2">
                 <Label htmlFor="vehicle_website">4. Vehicle Website *</Label>
                 <Input
                   id="vehicle_website"

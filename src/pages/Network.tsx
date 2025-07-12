@@ -68,131 +68,132 @@ const Network = () => {
 
       console.log('Surveys fetched:', surveys);
 
-      if (!surveys || surveys.length === 0) {
-        console.log('No completed surveys found in member_surveys');
-        
-        // Fallback: try to get from survey_responses table
-        const { data: responses, error: responsesError } = await supabase
-          .from('survey_responses')
-          .select('*')
-          .not('completed_at', 'is', null)
-          .order('completed_at', { ascending: false });
+      // Always try to get from survey_responses table as well
+      const { data: responses, error: responsesError } = await supabase
+        .from('survey_responses')
+        .select('*')
+        .not('completed_at', 'is', null)
+        .order('completed_at', { ascending: false });
 
-        if (responsesError) {
-          console.error('Error fetching survey responses:', responsesError);
-          setFundManagers([]);
-          setLoading(false);
-          return;
-        }
+      if (responsesError) {
+        console.error('Error fetching survey responses:', responsesError);
+      }
 
-        console.log('Survey responses fetched:', responses);
+      console.log('Survey responses fetched:', responses);
 
-        if (!responses || responses.length === 0) {
-          console.log('No completed survey responses found');
-          setFundManagers([]);
-          setLoading(false);
-          return;
-        }
-
-        // Convert survey_responses to fund managers format
-        const managersWithProfiles: FundManager[] = [];
-        
-        for (const response of responses) {
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('first_name, last_name, email')
-            .eq('id', response.user_id)
-            .single();
-
-          if (profileError) {
-            console.warn('Profile not found for user:', response.user_id);
-          }
-
-          // Parse JSON fields
-          let sectorFocus: string[] = [];
-          let stageFocus: string[] = [];
-          let marketsOperated: any = {};
-
-          try {
-            if (response.sectors_allocation) {
-              sectorFocus = typeof response.sectors_allocation === 'string' 
-                ? Object.keys(JSON.parse(response.sectors_allocation))
-                : Object.keys(response.sectors_allocation || {});
-            }
-            if (response.fund_stage) {
-              stageFocus = typeof response.fund_stage === 'string'
-                ? JSON.parse(response.fund_stage)
-                : response.fund_stage || [];
-            }
-            if (response.markets_operated) {
-              marketsOperated = typeof response.markets_operated === 'string'
-                ? JSON.parse(response.markets_operated)
-                : response.markets_operated || {};
-            }
-          } catch (e) {
-            console.warn('Error parsing JSON fields:', e);
-          }
-
-          managersWithProfiles.push({
-            id: response.id,
-            user_id: response.user_id,
-            fund_name: response.vehicle_name || response.vehicle_name || 'Unknown Fund',
-            website: Array.isArray(response.vehicle_websites) 
-              ? response.vehicle_websites[0] 
-              : typeof response.vehicle_websites === 'string'
-                ? JSON.parse(response.vehicle_websites)[0]
-                : null,
-            primary_investment_region: Object.keys(marketsOperated).join(', ') || null,
-            fund_type: response.vehicle_type || 'Unknown',
-            year_founded: response.legal_entity_date_from || null,
-            team_size: response.team_size_max || null,
-            typical_check_size: response.ticket_size_min && response.ticket_size_max
-              ? `$${response.ticket_size_min.toLocaleString()} - $${response.ticket_size_max.toLocaleString()}`
-              : null,
-            completed_at: response.completed_at,
-            aum: response.capital_raised ? `$${response.capital_raised.toLocaleString()}` : null,
-            investment_thesis: response.thesis || null,
-            sector_focus: sectorFocus,
-            stage_focus: stageFocus,
-            profiles: profile || undefined
-          });
-        }
-
-        console.log('Fund managers with profiles (from responses):', managersWithProfiles);
-        setFundManagers(managersWithProfiles);
+      // Use member_surveys if available, otherwise use survey_responses
+      let dataToProcess = surveys && surveys.length > 0 ? surveys : responses;
+      
+      if (!dataToProcess || dataToProcess.length === 0) {
+        console.log('No completed surveys found');
+        setFundManagers([]);
         setLoading(false);
         return;
       }
 
-      // Get profiles for each user from member_surveys
+      // Convert to fund managers format
       const managersWithProfiles: FundManager[] = [];
       
-      for (const survey of surveys) {
+      for (const item of dataToProcess) {
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('first_name, last_name, email')
-          .eq('id', survey.user_id)
+          .eq('id', item.user_id)
           .single();
 
         if (profileError) {
-          console.warn('Profile not found for user:', survey.user_id);
+          console.warn('Profile not found for user:', item.user_id);
+        }
+
+        // Parse JSON fields
+        let sectorFocus: string[] = [];
+        let stageFocus: string[] = [];
+        let marketsOperated: any = {};
+
+        try {
+          // Handle different data structures
+          if (item.sectors_allocation) {
+            sectorFocus = typeof item.sectors_allocation === 'string' 
+              ? Object.keys(JSON.parse(item.sectors_allocation))
+              : Object.keys(item.sectors_allocation || {});
+          } else if (item.sector_focus) {
+            sectorFocus = typeof item.sector_focus === 'string'
+              ? JSON.parse(item.sector_focus)
+              : item.sector_focus || [];
+          }
+          
+          if (item.fund_stage) {
+            stageFocus = typeof item.fund_stage === 'string'
+              ? JSON.parse(item.fund_stage)
+              : item.fund_stage || [];
+          } else if (item.stage_focus) {
+            stageFocus = typeof item.stage_focus === 'string'
+              ? JSON.parse(item.stage_focus)
+              : item.stage_focus || [];
+          }
+          
+          if (item.markets_operated) {
+            marketsOperated = typeof item.markets_operated === 'string'
+              ? JSON.parse(item.markets_operated)
+              : item.markets_operated || {};
+          }
+        } catch (e) {
+          console.warn('Error parsing JSON fields:', e);
+        }
+
+        // Determine fund name
+        const fundName = item.fund_name || item.vehicle_name || 'Unknown Fund';
+        
+        // Determine website
+        let website = item.website;
+        if (!website && item.vehicle_websites) {
+          if (Array.isArray(item.vehicle_websites)) {
+            website = item.vehicle_websites[0];
+          } else if (typeof item.vehicle_websites === 'string') {
+            try {
+              const parsed = JSON.parse(item.vehicle_websites);
+              website = Array.isArray(parsed) ? parsed[0] : null;
+            } catch (e) {
+              website = item.vehicle_websites;
+            }
+          }
+        }
+
+        // Determine investment region
+        let investmentRegion = item.primary_investment_region;
+        if (!investmentRegion && marketsOperated) {
+          investmentRegion = Object.keys(marketsOperated).join(', ');
+        }
+
+        // Determine ticket size
+        let ticketSize = item.typical_check_size;
+        if (!ticketSize && item.ticket_size_min && item.ticket_size_max) {
+          ticketSize = `$${item.ticket_size_min.toLocaleString()} - $${item.ticket_size_max.toLocaleString()}`;
+        } else if (!ticketSize && item.ticket_size) {
+          ticketSize = item.ticket_size;
+        }
+
+        // Determine AUM
+        let aum = item.aum;
+        if (!aum && item.capital_raised) {
+          aum = `$${item.capital_raised.toLocaleString()}`;
         }
 
         managersWithProfiles.push({
-          id: survey.id,
-          user_id: survey.user_id,
-          fund_name: survey.fund_name || 'Unknown Fund',
-          website: survey.website,
-          primary_investment_region: survey.primary_investment_region,
-          fund_type: survey.fund_type,
-          year_founded: survey.year_founded,
-          team_size: survey.team_size,
-          typical_check_size: survey.typical_check_size,
-          completed_at: survey.completed_at,
-          aum: survey.aum,
-          investment_thesis: survey.investment_thesis,
-          sector_focus: survey.sector_focus,
-          stage_focus: survey.stage_focus,
+          id: item.id,
+          user_id: item.user_id,
+          fund_name: fundName,
+          website: website,
+          primary_investment_region: investmentRegion,
+          fund_type: item.fund_type || item.vehicle_type || 'Unknown',
+          year_founded: item.year_founded || item.legal_entity_date_from || null,
+          team_size: item.team_size || item.team_size_max || null,
+          typical_check_size: ticketSize,
+          completed_at: item.completed_at,
+          aum: aum,
+          investment_thesis: item.investment_thesis || item.thesis || null,
+          sector_focus: sectorFocus,
+          stage_focus: stageFocus,
           profiles: profile || undefined
         });
       }

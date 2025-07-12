@@ -33,11 +33,13 @@ import {
   Link,
   Target,
   Award,
-  MessageSquare
+  MessageSquare,
+  User
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Link as RouterLink } from 'react-router-dom';
 import { Json } from '@/integrations/supabase/types';
+import { populateMemberSurveys } from '@/utils/populateMemberSurveys';
 import {
   ResponsiveContainer,
   BarChart,
@@ -67,7 +69,7 @@ interface MembershipRequest {
   id: string;
   user_id: string;
   applicant_name: string;
-  email: string;
+    email: string;
   vehicle_name: string;
   vehicle_website?: string | null;
   domicile_country?: string | null;
@@ -117,7 +119,7 @@ const Admin = () => {
   const [selectedRequest, setSelectedRequest] = useState<MembershipRequest | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('applications');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingRoleChange, setPendingRoleChange] = useState<{requestId: string, newRole: 'viewer' | 'member'} | null>(null);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
@@ -384,20 +386,12 @@ const Admin = () => {
       if (roleError) throw roleError;
 
       // Log the activity
-      const { error: logError } = await supabase
-        .from('activity_logs')
-        .insert({
-          user_id: user?.id,
-          action: 'role_changed',
-          details: {
-            applicant_name: request.applicant_name,
-            old_role: 'viewer',
-            new_role: pendingRoleChange.newRole,
-            target_user_id: request.user_id
-          }
-        });
-
-      if (logError) console.error('Error logging activity:', logError);
+      await logActivity('role_changed', {
+        applicant_name: request.applicant_name,
+        old_role: 'viewer',
+        new_role: pendingRoleChange.newRole,
+        target_user_id: request.user_id
+      });
 
       // Refresh data
       await fetchMembershipRequests();
@@ -409,6 +403,134 @@ const Admin = () => {
       console.error('Error updating role:', error);
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handlePopulateMemberSurveys = async () => {
+    try {
+      await populateMemberSurveys();
+      // Refresh data after population
+      await fetchFundManagers();
+      await fetchMembershipRequests();
+      
+      // Log the activity
+      await logActivity('network_data_populated', {
+        applicant_name: 'Admin',
+        target_user_id: user?.id
+      });
+    } catch (error) {
+      console.error('Error populating member surveys:', error);
+    }
+  };
+
+  const logActivity = async (action: string, details: ActivityLogDetails) => {
+    try {
+      const { error } = await supabase
+        .from('activity_logs')
+        .insert({
+          user_id: user?.id,
+          action,
+          details,
+          user_agent: navigator.userAgent
+        });
+
+      if (error) {
+        console.error('Error logging activity:', error);
+      }
+    } catch (error) {
+      console.error('Error logging activity:', error);
+    }
+  };
+
+  const handleViewApplication = async (request: MembershipRequest) => {
+    setSelectedRequest(request);
+    await logActivity('application_viewed', {
+      applicant_name: request.applicant_name,
+      target_user_id: request.user_id
+    });
+  };
+
+  const getActivityIcon = (action: string) => {
+    switch (action.toLowerCase()) {
+      case 'role_changed':
+        return <UserCog className="h-4 w-4 text-blue-600" />;
+      case 'application_submitted':
+        return <FileText className="h-4 w-4 text-green-600" />;
+      case 'application_approved':
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case 'application_rejected':
+        return <XCircle className="h-4 w-4 text-red-600" />;
+      case 'application_viewed':
+        return <Eye className="h-4 w-4 text-blue-600" />;
+      case 'survey_completed':
+        return <Building2 className="h-4 w-4 text-purple-600" />;
+      case 'profile_updated':
+        return <User className="h-4 w-4 text-orange-600" />;
+      case 'network_data_populated':
+        return <Building2 className="h-4 w-4 text-indigo-600" />;
+      case 'login':
+        return <Eye className="h-4 w-4 text-blue-600" />;
+      case 'logout':
+        return <UserX className="h-4 w-4 text-gray-600" />;
+      default:
+        return <Activity className="h-4 w-4 text-gray-600" />;
+    }
+  };
+
+  const getActivityColor = (action: string) => {
+    switch (action.toLowerCase()) {
+      case 'role_changed':
+        return 'bg-blue-50 border-blue-200';
+      case 'application_submitted':
+        return 'bg-green-50 border-green-200';
+      case 'application_approved':
+        return 'bg-green-50 border-green-200';
+      case 'application_rejected':
+        return 'bg-red-50 border-red-200';
+      case 'application_viewed':
+        return 'bg-blue-50 border-blue-200';
+      case 'survey_completed':
+        return 'bg-purple-50 border-purple-200';
+      case 'profile_updated':
+        return 'bg-orange-50 border-orange-200';
+      case 'network_data_populated':
+        return 'bg-indigo-50 border-indigo-200';
+      case 'login':
+        return 'bg-blue-50 border-blue-200';
+      case 'logout':
+        return 'bg-gray-50 border-gray-200';
+      default:
+        return 'bg-gray-50 border-gray-200';
+    }
+  };
+
+  const formatActivityDetails = (log: ActivityLog) => {
+    const details = log.details as ActivityLogDetails;
+    const action = log.action.toLowerCase();
+    
+    switch (action) {
+      case 'role_changed':
+        return `${details.applicant_name || 'User'} role changed from ${details.old_role} to ${details.new_role}`;
+      case 'application_submitted':
+        return `Application submitted by ${details.applicant_name || 'User'}`;
+      case 'application_approved':
+        return `Application approved for ${details.applicant_name || 'User'}`;
+      case 'application_rejected':
+        return `Application rejected for ${details.applicant_name || 'User'}`;
+      case 'application_viewed':
+        return `Application viewed for ${details.applicant_name || 'User'}`;
+      case 'survey_completed':
+        return `Survey completed by ${details.applicant_name || 'User'}`;
+      case 'profile_updated':
+        return `Profile updated by ${details.applicant_name || 'User'}`;
+      case 'network_data_populated':
+        return `Network data populated by admin`;
+      case 'login':
+        return `User logged in`;
+      case 'logout':
+        return `User logged out`;
+      default:
+        return log.action;
     }
   };
 
@@ -563,71 +685,25 @@ const Admin = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="applications">Applications</TabsTrigger>
             <TabsTrigger value="members">Members</TabsTrigger>
             <TabsTrigger value="activity">Activity Logs</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-6">
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium">Pending Applications</CardTitle>
-                  <UserPlus className="h-4 w-4" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {membershipRequests.filter(r => r.status === 'pending').length}
-                  </div>
-                  <p className="text-sm opacity-90">Awaiting review</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium">Total Members</CardTitle>
-                  <Users className="h-4 w-4" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{fundManagers.length}</div>
-                  <p className="text-sm opacity-90">Active fund managers</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium">Analytics Year</CardTitle>
-                  <Calendar className="h-4 w-4" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{selectedYear}</div>
-                  <p className="text-sm opacity-90">Selected period</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium">Quick Actions</CardTitle>
-                  <LayoutDashboard className="h-4 w-4" />
-                </CardHeader>
-                <CardContent>
-                  <Button variant="secondary" size="sm" asChild>
-                    <RouterLink to="/analytics">View Analytics</RouterLink>
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-
-            {renderAnalytics()}
-          </TabsContent>
-
           <TabsContent value="applications" className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-900">Membership Applications</h2>
               <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handlePopulateMemberSurveys}
+                  className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                >
+                  <Building2 className="w-4 h-4 mr-2" />
+                  Populate Network Data
+                </Button>
                 <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
                   Pending: {membershipRequests.filter(r => r.status === 'pending').length}
                 </Badge>
@@ -642,66 +718,47 @@ const Admin = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {membershipRequests.map((request) => (
-                <Card key={request.id} className="hover:shadow-lg transition-all duration-200 border-l-4" style={{
-                  borderLeftColor: request.status === 'pending' ? '#f59e0b' : 
-                                 request.status === 'approved' ? '#10b981' : '#ef4444'
-                }}>
+                <Card key={request.id} className="hover:shadow-lg transition-all duration-200 cursor-pointer" onClick={() => handleViewApplication(request)}>
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-sm font-medium">{request.applicant_name}</CardTitle>
                       <Badge 
-                        variant={request.status === 'pending' ? 'secondary' : 
-                                request.status === 'approved' ? 'default' : 'destructive'}
-                        className={request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                 request.status === 'approved' ? 'bg-green-100 text-green-800' :
-                                 'bg-red-100 text-red-800'}
+                        variant={request.status === 'pending' ? 'secondary' : request.status === 'approved' ? 'default' : 'destructive'}
+                        className={request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : request.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}
                       >
-                        {request.status === 'pending' ? 'Pending' : 
-                         request.status === 'approved' ? 'Approved' : 'Rejected'}
+                        {request.status === 'pending' ? 'Pending' : request.status === 'approved' ? 'Approved' : 'Rejected'}
                       </Badge>
                     </div>
                     <CardDescription className="text-xs">{request.email}</CardDescription>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <div className="space-y-2 text-sm">
+                    <div className="space-y-2 text-xs text-gray-600">
                       <div className="flex items-center gap-2">
-                        <Briefcase className="h-4 w-4 text-gray-400" />
-                        <span className="font-medium">Vehicle:</span> {request.vehicle_name}
+                        <Building2 className="w-3 h-3" />
+                        <span className="truncate">{request.vehicle_name}</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Building2 className="h-4 w-4 text-gray-400" />
-                        <span className="font-medium">Organization:</span> {request.organization_name || 'N/A'}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-gray-400" />
-                        <span className="font-medium">Country:</span> {request.country_of_operation || 'N/A'}
-                      </div>
-                    </div>
-                    <div className="flex gap-2 mt-4">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setSelectedRequest(request)}
-                        className="flex-1"
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        View Details
-                      </Button>
-                      {request.status === 'pending' && (
-                        <Select
-                          value=""
-                          onValueChange={(value) => handleRoleChange(request.id, value as 'viewer' | 'member')}
-                          disabled={isUpdating}
-                        >
-                          <SelectTrigger className="w-32">
-                            <SelectValue placeholder="Action" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="member">Make Member</SelectItem>
-                            <SelectItem value="viewer">Keep Viewer</SelectItem>
-                          </SelectContent>
-                        </Select>
+                      {request.vehicle_website && (
+                        <div className="flex items-center gap-2">
+                          <Globe className="w-3 h-3" />
+                          <a 
+                            href={request.vehicle_website.startsWith('http') ? request.vehicle_website : `https://${request.vehicle_website}`}
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline truncate"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {request.vehicle_website}
+                          </a>
+                        </div>
                       )}
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-3 h-3" />
+                        <span>{request.location || 'N/A'}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-3 h-3" />
+                        <span>{request.created_at ? new Date(request.created_at).toLocaleDateString() : 'N/A'}</span>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -725,43 +782,36 @@ const Admin = () => {
                     <CardDescription className="text-xs">{request.email}</CardDescription>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <div className="space-y-2 text-sm">
+                    <div className="space-y-2 text-xs text-gray-600">
                       <div className="flex items-center gap-2">
-                        <Briefcase className="h-4 w-4 text-gray-400" />
-                        <span className="font-medium">Vehicle:</span> {request.vehicle_name}
+                        <Building2 className="w-3 h-3" />
+                        <span className="truncate">{request.vehicle_name}</span>
+                      </div>
+                      {request.vehicle_website && (
+                        <div className="flex items-center gap-2">
+                          <Globe className="w-3 h-3" />
+                          <a 
+                            href={request.vehicle_website.startsWith('http') ? request.vehicle_website : `https://${request.vehicle_website}`}
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline truncate"
+                          >
+                            {request.vehicle_website}
+                          </a>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-3 h-3" />
+                        <span>{request.location || 'N/A'}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Building2 className="h-4 w-4 text-gray-400" />
-                        <span className="font-medium">Organization:</span> {request.organization_name || 'N/A'}
+                        <Users className="w-3 h-3" />
+                        <span>{request.team_size || 'N/A'}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-gray-400" />
-                        <span className="font-medium">Country:</span> {request.country_of_operation || 'N/A'}
+                        <DollarSign className="w-3 h-3" />
+                        <span>{request.ticket_size || 'N/A'}</span>
                       </div>
-                    </div>
-                    <div className="flex gap-2 mt-4">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setSelectedRequest(request)}
-                        className="flex-1"
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        View Details
-                      </Button>
-                      <Select
-                        value=""
-                        onValueChange={(value) => handleRoleChange(request.id, value as 'viewer' | 'member')}
-                        disabled={isUpdating}
-                      >
-                        <SelectTrigger className="w-32">
-                          <SelectValue placeholder="Change Role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="member">Keep Member</SelectItem>
-                          <SelectItem value="viewer">Make Viewer</SelectItem>
-                        </SelectContent>
-                      </Select>
                     </div>
                   </CardContent>
                 </Card>
@@ -772,34 +822,41 @@ const Admin = () => {
           <TabsContent value="activity" className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-900">Activity Logs</h2>
+              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                Total: {activityLogs.length}
+              </Badge>
             </div>
 
             <div className="space-y-4">
               {activityLogs.map((log) => (
-                <Card key={log.id} className="hover:shadow-md transition-shadow">
+                <Card key={log.id} className={`hover:shadow-md transition-shadow ${getActivityColor(log.action)}`}>
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                          <Activity className="h-4 w-4 text-blue-600" />
+                        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm">
+                          {getActivityIcon(log.action)}
                         </div>
-                        <div>
-                          <p className="font-medium text-gray-900">{log.action}</p>
-                          <p className="text-sm text-gray-500">
-                            {new Date(log.created_at).toLocaleString()}
-                          </p>
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">{formatActivityDetails(log)}</p>
+                          <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {new Date(log.created_at).toLocaleString()}
+                            </span>
+                            {log.user_agent && (
+                              <span className="flex items-center gap-1">
+                                <Globe className="w-3 h-3" />
+                                {log.user_agent.includes('Mobile') ? 'Mobile' : 'Desktop'}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
-                      {log.details && (
-                        <div className="text-sm text-gray-600">
-                          {(log.details as ActivityLogDetails)?.applicant_name && (
-                            <p>User: {(log.details as ActivityLogDetails).applicant_name}</p>
-                          )}
-                          {(log.details as ActivityLogDetails)?.old_role && (log.details as ActivityLogDetails)?.new_role && (
-                            <p>Role: {(log.details as ActivityLogDetails).old_role} → {(log.details as ActivityLogDetails).new_role}</p>
-                          )}
-                        </div>
-                      )}
+                      <div className="text-right">
+                        <Badge variant="outline" className="text-xs">
+                          {log.action.replace('_', ' ').toUpperCase()}
+                        </Badge>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -851,7 +908,22 @@ const Admin = () => {
                                 </div>
                                 <div>
                                   <p className="font-medium text-gray-700">Vehicle Website:</p>
-                                  <p className="text-gray-600 break-all">{selectedRequest.vehicle_website || 'N/A'}</p>
+                                  {selectedRequest.vehicle_website ? (
+                                    <a 
+                                      href={selectedRequest.vehicle_website.startsWith('http') ? selectedRequest.vehicle_website : `https://${selectedRequest.vehicle_website}`}
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="text-blue-600 hover:underline break-all"
+                                    >
+                                      {selectedRequest.vehicle_website}
+                                    </a>
+                                  ) : (
+                                    <p className="text-gray-600">N/A</p>
+                                  )}
+                                </div>
+                                <div>
+                                  <p className="font-medium text-gray-700">Country:</p>
+                                  <p className="text-gray-600 break-words">{selectedRequest.domicile_country || 'N/A'}</p>
                                 </div>
                               </div>
                             </div>
@@ -871,11 +943,11 @@ const Admin = () => {
                                   <p className="text-gray-600 break-words">{selectedRequest.team_size || 'N/A'}</p>
                                 </div>
                                 <div>
-                                  <p className="font-medium text-gray-700">Organization:</p>
-                                  <p className="text-gray-600 break-words">{selectedRequest.organization_name || 'N/A'}</p>
+                                  <p className="font-medium text-gray-700">Location:</p>
+                                  <p className="text-gray-600 break-words">{selectedRequest.location || 'N/A'}</p>
                                 </div>
                                 <div>
-                                  <p className="font-medium text-gray-700">Country:</p>
+                                  <p className="font-medium text-gray-700">Country of Operation:</p>
                                   <p className="text-gray-600 break-words">{selectedRequest.country_of_operation || 'N/A'}</p>
                                 </div>
                               </div>
@@ -905,7 +977,21 @@ const Admin = () => {
                                 </div>
                                 <div>
                                   <p className="font-medium text-gray-700">Supporting Documents:</p>
-                                  <p className="text-gray-600 break-words">{selectedRequest.supporting_documents || 'N/A'}</p>
+                                  {selectedRequest.supporting_documents ? (
+                                    <div className="flex items-center gap-2">
+                                      <File className="w-4 h-4 text-blue-600" />
+                                      <a 
+                                        href={selectedRequest.supporting_documents}
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:underline"
+                                      >
+                                        View Documents
+                                      </a>
+                                    </div>
+                                  ) : (
+                                    <p className="text-gray-600">No documents uploaded</p>
+                                  )}
                                 </div>
                               </div>
                             </div>

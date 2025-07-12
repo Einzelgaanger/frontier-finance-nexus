@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Building2, Globe, Users, Eye, MapPin, Calendar, DollarSign, Target, Briefcase } from 'lucide-react';
+import { Building2, Globe, Users, Eye, MapPin, Calendar, DollarSign, Target, Briefcase, Award, TrendingUp, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface NetworkCardProps {
@@ -106,6 +106,7 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
               </div>
             )}
 
+            {/* Survey Data - Show more detailed information */}
             {manager.sector_focus && manager.sector_focus.length > 0 && (
               <div className="text-sm text-gray-600">
                 <div className="flex items-center mb-1">
@@ -129,23 +130,21 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
 
             {manager.stage_focus && manager.stage_focus.length > 0 && (
               <div className="text-sm text-gray-600">
-                <div className="text-sm text-gray-600">
-                  <div className="flex items-center mb-1">
-                    <Briefcase className="w-4 h-4 mr-2" />
-                    <span className="font-medium">Stages:</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1 ml-6">
-                    {manager.stage_focus.slice(0, 3).map((stage, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">
-                        {stage}
-                      </Badge>
-                    ))}
-                    {manager.stage_focus.length > 3 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{manager.stage_focus.length - 3} more
-                      </Badge>
-                    )}
-                  </div>
+                <div className="flex items-center mb-1">
+                  <Briefcase className="w-4 h-4 mr-2" />
+                  <span className="font-medium">Stages:</span>
+                </div>
+                <div className="flex flex-wrap gap-1 ml-6">
+                  {manager.stage_focus.slice(0, 3).map((stage, index) => (
+                    <Badge key={index} variant="outline" className="text-xs">
+                      {stage}
+                    </Badge>
+                  ))}
+                  {manager.stage_focus.length > 3 && (
+                    <Badge variant="outline" className="text-xs">
+                      +{manager.stage_focus.length - 3} more
+                    </Badge>
+                  )}
                 </div>
               </div>
             )}
@@ -155,15 +154,18 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
               <>
                 {manager.aum && (
                   <div className="flex items-center text-sm text-gray-600">
-                    <DollarSign className="w-4 h-4 mr-2" />
+                    <TrendingUp className="w-4 h-4 mr-2" />
                     <span>AUM: {manager.aum}</span>
                   </div>
                 )}
 
                 {manager.investment_thesis && (
                   <div className="text-sm text-gray-600">
-                    <div className="font-medium mb-1">Investment Thesis:</div>
-                    <div className="text-xs text-gray-500 line-clamp-2">
+                    <div className="font-medium mb-1 flex items-center">
+                      <Award className="w-4 h-4 mr-2" />
+                      Investment Thesis:
+                    </div>
+                    <div className="text-xs text-gray-500 line-clamp-2 ml-6">
                       {manager.investment_thesis}
                     </div>
                   </div>
@@ -172,7 +174,8 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
             )}
 
             {manager.completed_at && (
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-gray-500 flex items-center">
+                <FileText className="w-3 h-3 mr-1" />
                 Profile completed: {new Date(manager.completed_at).toLocaleDateString()}
               </div>
             )}
