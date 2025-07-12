@@ -10,7 +10,10 @@ const Auth = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const accessToken = params.get('access_token');
-    if (accessToken) {
+    const type = params.get('type');
+    
+    // Handle password reset redirect
+    if (accessToken && type === 'recovery') {
       navigate(`/reset-password${location.search}`);
     }
   }, [location, navigate]);

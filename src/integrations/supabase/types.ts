@@ -104,36 +104,192 @@ export type Database = {
         }
         Relationships: []
       }
+      member_surveys: {
+        Row: {
+          amount_raised_to_date: string | null
+          aum: string | null
+          completed_at: string | null
+          contact_information: Json | null
+          created_at: string | null
+          current_fund_status: string | null
+          diversity_metrics: Json | null
+          fund_name: string
+          fund_structure: string | null
+          fund_type: string
+          fundraising_target: string | null
+          historical_returns: Json | null
+          id: string
+          investment_instruments: string[] | null
+          investment_thesis: string | null
+          key_team_members: Json | null
+          legal_entity_name: string | null
+          notable_exits: string | null
+          number_of_investments: number | null
+          primary_investment_region: string | null
+          regional_allocation: Json | null
+          regulatory_jurisdiction: string | null
+          secondary_regions: string[] | null
+          sector_focus: string[] | null
+          social_media_links: Json | null
+          stage_focus: string[] | null
+          team_size: number | null
+          typical_check_size: string | null
+          typical_ownership_sought: string | null
+          updated_at: string | null
+          user_id: string
+          value_add_services: string | null
+          website: string | null
+          year_founded: number | null
+        }
+        Insert: {
+          amount_raised_to_date?: string | null
+          aum?: string | null
+          completed_at?: string | null
+          contact_information?: Json | null
+          created_at?: string | null
+          current_fund_status?: string | null
+          diversity_metrics?: Json | null
+          fund_name?: string
+          fund_structure?: string | null
+          fund_type?: string
+          fundraising_target?: string | null
+          historical_returns?: Json | null
+          id?: string
+          investment_instruments?: string[] | null
+          investment_thesis?: string | null
+          key_team_members?: Json | null
+          legal_entity_name?: string | null
+          notable_exits?: string | null
+          number_of_investments?: number | null
+          primary_investment_region?: string | null
+          regional_allocation?: Json | null
+          regulatory_jurisdiction?: string | null
+          secondary_regions?: string[] | null
+          sector_focus?: string[] | null
+          social_media_links?: Json | null
+          stage_focus?: string[] | null
+          team_size?: number | null
+          typical_check_size?: string | null
+          typical_ownership_sought?: string | null
+          updated_at?: string | null
+          user_id: string
+          value_add_services?: string | null
+          website?: string | null
+          year_founded?: number | null
+        }
+        Update: {
+          amount_raised_to_date?: string | null
+          aum?: string | null
+          completed_at?: string | null
+          contact_information?: Json | null
+          created_at?: string | null
+          current_fund_status?: string | null
+          diversity_metrics?: Json | null
+          fund_name?: string
+          fund_structure?: string | null
+          fund_type?: string
+          fundraising_target?: string | null
+          historical_returns?: Json | null
+          id?: string
+          investment_instruments?: string[] | null
+          investment_thesis?: string | null
+          key_team_members?: Json | null
+          legal_entity_name?: string | null
+          notable_exits?: string | null
+          number_of_investments?: number | null
+          primary_investment_region?: string | null
+          regional_allocation?: Json | null
+          regulatory_jurisdiction?: string | null
+          secondary_regions?: string[] | null
+          sector_focus?: string[] | null
+          social_media_links?: Json | null
+          stage_focus?: string[] | null
+          team_size?: number | null
+          typical_check_size?: string | null
+          typical_ownership_sought?: string | null
+          updated_at?: string | null
+          user_id?: string
+          value_add_services?: string | null
+          website?: string | null
+          year_founded?: number | null
+        }
+        Relationships: []
+      }
       membership_requests: {
         Row: {
+          additional_comments: string | null
+          applicant_name: string
+          aum: string | null
+          country_of_operation: string | null
           created_at: string | null
           email: string
+          fund_vehicle_name: string | null
+          fund_vehicle_type: string | null
+          fundraising_status: string | null
           id: string
+          investment_focus: string | null
+          motivation: string | null
+          notable_investments: string | null
+          organization_name: string | null
+          organization_website: string | null
+          rejection_reason: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           status: string
+          team_overview: string | null
           user_id: string
           vehicle_name: string
+          year_founded: number | null
         }
         Insert: {
+          additional_comments?: string | null
+          applicant_name?: string
+          aum?: string | null
+          country_of_operation?: string | null
           created_at?: string | null
           email: string
+          fund_vehicle_name?: string | null
+          fund_vehicle_type?: string | null
+          fundraising_status?: string | null
           id?: string
+          investment_focus?: string | null
+          motivation?: string | null
+          notable_investments?: string | null
+          organization_name?: string | null
+          organization_website?: string | null
+          rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string
+          team_overview?: string | null
           user_id: string
           vehicle_name: string
+          year_founded?: number | null
         }
         Update: {
+          additional_comments?: string | null
+          applicant_name?: string
+          aum?: string | null
+          country_of_operation?: string | null
           created_at?: string | null
           email?: string
+          fund_vehicle_name?: string | null
+          fund_vehicle_type?: string | null
+          fundraising_status?: string | null
           id?: string
+          investment_focus?: string | null
+          motivation?: string | null
+          notable_investments?: string | null
+          organization_name?: string | null
+          organization_website?: string | null
+          rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string
+          team_overview?: string | null
           user_id?: string
           vehicle_name?: string
+          year_founded?: number | null
         }
         Relationships: []
       }
@@ -144,6 +300,7 @@ export type Database = {
           first_name: string | null
           id: string
           last_name: string | null
+          profile_picture_url: string | null
           updated_at: string | null
         }
         Insert: {
@@ -152,6 +309,7 @@ export type Database = {
           first_name?: string | null
           id: string
           last_name?: string | null
+          profile_picture_url?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -160,147 +318,94 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
+          profile_picture_url?: string | null
           updated_at?: string | null
         }
         Relationships: []
       }
       survey_responses: {
         Row: {
-          capital_in_market: number | null
-          capital_raised: number | null
+          capital_raised_description: string
           completed_at: string | null
           created_at: string | null
-          current_status: string | null
-          equity_investments_exited: number | null
-          equity_investments_made: number | null
-          expectations: string | null
-          first_close_date_from: number | null
-          first_close_date_to: number | null
+          email: string
+          expectations: string
           first_close_month_from: number | null
           first_close_month_to: number | null
-          fund_stage: string[] | null
-          how_heard_about_network: string | null
+          how_heard_about_network: string
           id: string
-          information_sharing: string | null
-          investment_instruments_priority: Json | null
-          legal_domicile: string[] | null
-          legal_entity_date_from: number | null
-          legal_entity_date_to: number | null
+          information_sharing_topics: string[] | null
           legal_entity_month_from: number | null
           legal_entity_month_to: number | null
-          markets_operated: Json | null
-          sectors_allocation: Json | null
-          self_liquidating_exited: number | null
-          self_liquidating_made: number | null
-          supporting_document_url: string | null
-          target_capital: number | null
-          target_return_max: number | null
-          target_return_min: number | null
-          team_description: string | null
-          team_members: Json | null
-          team_size_max: number | null
-          team_size_min: number | null
-          thesis: string | null
-          ticket_description: string | null
-          ticket_size_max: number | null
-          ticket_size_min: number | null
+          location: string
+          name: string
+          portfolio_count: number
+          role_job_title: string
+          supporting_document_urls: string[] | null
+          team_size_description: string
+          thesis: string
+          ticket_size: string
           updated_at: string | null
           user_id: string
-          vehicle_type: string | null
+          vehicle_name: string
           vehicle_type_other: string | null
-          vehicle_websites: string[] | null
+          vehicle_website: string | null
           year: number
         }
         Insert: {
-          capital_in_market?: number | null
-          capital_raised?: number | null
+          capital_raised_description?: string
           completed_at?: string | null
           created_at?: string | null
-          current_status?: string | null
-          equity_investments_exited?: number | null
-          equity_investments_made?: number | null
-          expectations?: string | null
-          first_close_date_from?: number | null
-          first_close_date_to?: number | null
+          email?: string
+          expectations?: string
           first_close_month_from?: number | null
           first_close_month_to?: number | null
-          fund_stage?: string[] | null
-          how_heard_about_network?: string | null
+          how_heard_about_network?: string
           id?: string
-          information_sharing?: string | null
-          investment_instruments_priority?: Json | null
-          legal_domicile?: string[] | null
-          legal_entity_date_from?: number | null
-          legal_entity_date_to?: number | null
+          information_sharing_topics?: string[] | null
           legal_entity_month_from?: number | null
           legal_entity_month_to?: number | null
-          markets_operated?: Json | null
-          sectors_allocation?: Json | null
-          self_liquidating_exited?: number | null
-          self_liquidating_made?: number | null
-          supporting_document_url?: string | null
-          target_capital?: number | null
-          target_return_max?: number | null
-          target_return_min?: number | null
-          team_description?: string | null
-          team_members?: Json | null
-          team_size_max?: number | null
-          team_size_min?: number | null
-          thesis?: string | null
-          ticket_description?: string | null
-          ticket_size_max?: number | null
-          ticket_size_min?: number | null
+          location?: string
+          name?: string
+          portfolio_count?: number
+          role_job_title?: string
+          supporting_document_urls?: string[] | null
+          team_size_description?: string
+          thesis?: string
+          ticket_size?: string
           updated_at?: string | null
           user_id: string
-          vehicle_type?: string | null
+          vehicle_name?: string
           vehicle_type_other?: string | null
-          vehicle_websites?: string[] | null
+          vehicle_website?: string | null
           year: number
         }
         Update: {
-          capital_in_market?: number | null
-          capital_raised?: number | null
+          capital_raised_description?: string
           completed_at?: string | null
           created_at?: string | null
-          current_status?: string | null
-          equity_investments_exited?: number | null
-          equity_investments_made?: number | null
-          expectations?: string | null
-          first_close_date_from?: number | null
-          first_close_date_to?: number | null
+          email?: string
+          expectations?: string
           first_close_month_from?: number | null
           first_close_month_to?: number | null
-          fund_stage?: string[] | null
-          how_heard_about_network?: string | null
+          how_heard_about_network?: string
           id?: string
-          information_sharing?: string | null
-          investment_instruments_priority?: Json | null
-          legal_domicile?: string[] | null
-          legal_entity_date_from?: number | null
-          legal_entity_date_to?: number | null
+          information_sharing_topics?: string[] | null
           legal_entity_month_from?: number | null
           legal_entity_month_to?: number | null
-          markets_operated?: Json | null
-          sectors_allocation?: Json | null
-          self_liquidating_exited?: number | null
-          self_liquidating_made?: number | null
-          supporting_document_url?: string | null
-          target_capital?: number | null
-          target_return_max?: number | null
-          target_return_min?: number | null
-          team_description?: string | null
-          team_members?: Json | null
-          team_size_max?: number | null
-          team_size_min?: number | null
-          thesis?: string | null
-          ticket_description?: string | null
-          ticket_size_max?: number | null
-          ticket_size_min?: number | null
+          location?: string
+          name?: string
+          portfolio_count?: number
+          role_job_title?: string
+          supporting_document_urls?: string[] | null
+          team_size_description?: string
+          thesis?: string
+          ticket_size?: string
           updated_at?: string | null
           user_id?: string
-          vehicle_type?: string | null
+          vehicle_name?: string
           vehicle_type_other?: string | null
-          vehicle_websites?: string[] | null
+          vehicle_website?: string | null
           year?: number
         }
         Relationships: []
@@ -334,6 +439,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_admin_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          viewers_count: number
+          members_count: number
+          admins_count: number
+          surveys_completed: number
+          new_registrations_today: number
+          active_users_today: number
+        }[]
+      }
       get_user_role: {
         Args: { user_uuid: string }
         Returns: string

@@ -5,8 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Search, Building2, Globe, Users, TrendingUp, MapPin, DollarSign, Target, Calendar, Award, ArrowRight, Eye, Lock, AlertCircle } from 'lucide-react';
+import { Search, Building2, Globe, Users, MapPin, ArrowRight, Eye, Lock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -16,25 +15,8 @@ import { useNavigate } from 'react-router-dom';
 interface FundManager {
   id: string;
   user_id: string;
-  year: number | null;
-  vehicle_type: string;
-  thesis: string;
-  team_size_min: number | null;
-  team_size_max: number | null;
-  legal_domicile: string[];
-  markets_operated: Record<string, number>;
-  ticket_size_min: number | null;
-  ticket_size_max: number | null;
-  target_capital: number | null;
-  capital_raised: number | null;
-  fund_stage: string[];
-  current_status: string;
-  sectors_allocation: Record<string, number>;
-  target_return_min: number | null;
-  target_return_max: number | null;
-  completed_at: string | null;
-  has_survey: boolean;
-  vehicle_websites?: string | null;
+  fund_name: string;
+  website: string;
   profiles?: {
     first_name: string;
     last_name: string;
@@ -46,7 +28,6 @@ const Network = () => {
   const [fundManagers, setFundManagers] = useState<FundManager[]>([]);
   const [filteredManagers, setFilteredManagers] = useState<FundManager[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedManager, setSelectedManager] = useState<FundManager | null>(null);
   const [loading, setLoading] = useState(true);
   const { userRole } = useAuth();
   const { toast } = useToast();
@@ -57,80 +38,65 @@ const Network = () => {
       try {
         console.log('Fetching fund managers for role:', userRole);
         
-        // Get all profiles first
-        const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, first_name, last_name, email')
-          .order('created_at', { ascending: false });
+        if (userRole === 'viewer') {
+          // Viewers only see basic info: fund name and website from completed surveys
+          const { data: surveyData, error: surveyError } = await supabase
+            .from('member_surveys')
+            .select(`
+              user_id,
+              fund_name,
+              website,
+              profiles!inner(first_name, last_name, email)
+            `)
+            .not('completed_at', 'is', null);
 
-        if (profilesError) throw profilesError;
-        console.log('Profiles found:', profilesData?.length || 0);
+          if (surveyError) throw surveyError;
 
-        // Get all survey responses
-        const { data: surveyData, error: surveyError } = await supabase
-          .from('survey_responses')
-          .select('*')
-          .order('created_at', { ascending: false });
+          const viewerData: FundManager[] = surveyData?.map(survey => ({
+            id: survey.user_id,
+            user_id: survey.user_id,
+            fund_name: survey.fund_name || 'Fund Name Not Available',
+            website: survey.website || '',
+            profiles: survey.profiles
+          })) || [];
 
-        if (surveyError) throw surveyError;
-        console.log('Survey responses found:', surveyData?.length || 0);
+          setFundManagers(viewerData);
+          setFilteredManagers(viewerData);
+        } else {
+          // Members and admins see full data
+          const { data: profilesData, error: profilesError } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name, email')
+            .order('created_at', { ascending: false });
 
-        // Create a map of user_id to survey data
-        const surveyMap = new Map();
-        surveyData?.forEach(survey => {
-          surveyMap.set(survey.user_id, survey);
-        });
+          if (profilesError) throw profilesError;
 
-        // Create a map of user_id to profile data
-        const profilesMap = new Map();
-        profilesData?.forEach(profile => {
-          profilesMap.set(profile.id, profile);
-        });
+          const { data: surveyData, error: surveyError } = await supabase
+            .from('member_surveys')
+            .select('*')
+            .order('created_at', { ascending: false });
 
-        // All roles see the same data - unified approach
-        const combinedData: FundManager[] = profilesData?.map(profile => {
-          const survey = surveyMap.get(profile.id);
-          return {
-            id: profile.id,
-            user_id: profile.id,
-            profiles: profile,
-            year: survey?.year || null,
-            vehicle_type: survey?.vehicle_type || 'Not specified',
-            thesis: survey?.thesis || 'No investment thesis available',
-            team_size_min: survey?.team_size_min || null,
-            team_size_max: survey?.team_size_max || null,
-            legal_domicile: survey?.legal_domicile ? 
-              (Array.isArray(survey.legal_domicile) ? survey.legal_domicile : 
-                (typeof survey.legal_domicile === 'string' ? JSON.parse(survey.legal_domicile) : [])) : 
-              [],
-            markets_operated: survey?.markets_operated ? 
-              (typeof survey.markets_operated === 'object' ? survey.markets_operated : 
-                (typeof survey.markets_operated === 'string' ? JSON.parse(survey.markets_operated) : {})) : 
-              {},
-            ticket_size_min: survey?.ticket_size_min || null,
-            ticket_size_max: survey?.ticket_size_max || null,
-            target_capital: survey?.target_capital || null,
-            capital_raised: survey?.capital_raised || null,
-            fund_stage: survey?.fund_stage ? 
-              (Array.isArray(survey.fund_stage) ? survey.fund_stage : 
-                (typeof survey.fund_stage === 'string' ? JSON.parse(survey.fund_stage) : [])) : 
-              [],
-            current_status: survey?.current_status || 'Not specified',
-            sectors_allocation: survey?.sectors_allocation ? 
-              (typeof survey.sectors_allocation === 'object' ? survey.sectors_allocation : 
-                (typeof survey.sectors_allocation === 'string' ? JSON.parse(survey.sectors_allocation) : {})) : 
-              {},
-            target_return_min: survey?.target_return_min || null,
-            target_return_max: survey?.target_return_max || null,
-            completed_at: survey?.completed_at || null,
-            has_survey: !!survey,
-            vehicle_websites: survey?.vehicle_websites || null
-          };
-        }) || [];
+          if (surveyError) throw surveyError;
 
-        console.log('Combined data prepared:', combinedData.length);
-        setFundManagers(combinedData);
-        setFilteredManagers(combinedData);
+          const surveyMap = new Map();
+          surveyData?.forEach(survey => {
+            surveyMap.set(survey.user_id, survey);
+          });
+
+          const combinedData: FundManager[] = profilesData?.map(profile => {
+            const survey = surveyMap.get(profile.id);
+            return {
+              id: profile.id,
+              user_id: profile.id,
+              fund_name: survey?.fund_name || 'Fund Name Not Available',
+              website: survey?.website || '',
+              profiles: profile
+            };
+          }) || [];
+
+          setFundManagers(combinedData);
+          setFilteredManagers(combinedData);
+        }
       } catch (error) {
         console.error('Error fetching fund managers:', error);
         toast({
@@ -152,39 +118,25 @@ const Network = () => {
       return (
         manager.profiles?.first_name?.toLowerCase().includes(searchLower) ||
         manager.profiles?.last_name?.toLowerCase().includes(searchLower) ||
-        manager.vehicle_type?.toLowerCase().includes(searchLower) ||
-        manager.thesis?.toLowerCase().includes(searchLower) ||
-        manager.legal_domicile?.some(d => d.toLowerCase().includes(searchLower))
+        manager.fund_name?.toLowerCase().includes(searchLower)
       );
     });
     setFilteredManagers(filtered);
   }, [searchTerm, fundManagers]);
 
-  const formatCurrency = (amount: number) => {
-    if (!amount) return 'N/A';
-    if (amount >= 1000000) {
-      return `$${(amount / 1000000).toFixed(1)}M`;
-    }
-    if (amount >= 1000) {
-      return `$${(amount / 1000).toFixed(0)}K`;
-    }
-    return `$${amount}`;
-  };
-
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
   };
 
-  const getTopSectors = (sectors: Record<string, number>) => {
-    if (!sectors) return [];
-    return Object.entries(sectors)
-      .sort(([,a], [,b]) => b - a)
-      .slice(0, 3)
-      .map(([sector, percentage]) => ({ sector, percentage }));
-  };
-
   const handleManagerClick = (manager: FundManager) => {
-    // Navigate to a detailed view with year selection
+    if (userRole === 'viewer') {
+      toast({
+        title: "Access Restricted",
+        description: "Apply for membership to view full fund manager profiles.",
+        variant: "destructive",
+      });
+      return;
+    }
     navigate(`/network/fund-manager/${manager.user_id}`, { 
       state: { 
         managerName: `${manager.profiles?.first_name} ${manager.profiles?.last_name}`,
@@ -207,16 +159,24 @@ const Network = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4 flex items-center">
-            <Globe className="w-8 h-8 mr-3 text-blue-600" />
-            Fund Manager Network
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 sm:mb-4 flex items-center">
+            <Globe className="w-6 sm:w-8 h-6 sm:h-8 mr-2 sm:mr-3 text-blue-600" />
+            ESCP Network Directory
           </h1>
-          <p className="text-gray-600 mb-6">
-            Connect with {fundManagers.length} fund managers across emerging markets
-          </p>
+          <div className="flex items-center gap-2 mb-4 sm:mb-6">
+            <p className="text-sm sm:text-base text-gray-600">
+              {userRole === 'viewer' ? 'Limited view - ' : ''}{fundManagers.length} fund managers in the network
+            </p>
+            {userRole === 'viewer' && (
+              <Badge variant="outline" className="text-xs">
+                <Eye className="w-3 h-3 mr-1" />
+                Viewer Access
+              </Badge>
+            )}
+          </div>
           
           {/* Search */}
           <div className="relative max-w-md">
@@ -230,68 +190,81 @@ const Network = () => {
           </div>
         </div>
 
+        {/* Access Notice for Viewers */}
+        {userRole === 'viewer' && (
+          <Card className="mb-6 border-orange-200 bg-orange-50">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <Lock className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h3 className="font-semibold text-orange-900 mb-1">Limited Access</h3>
+                  <p className="text-sm text-orange-800 mb-3">
+                    As a visitor, you can only view fund names and websites. Apply for membership to access full profiles, investment details, and analytics.
+                  </p>
+                  <Button 
+                    size="sm" 
+                    className="bg-orange-600 hover:bg-orange-700 text-white"
+                    onClick={() => navigate('/dashboard')}
+                  >
+                    Apply for Membership
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Fund Managers Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {filteredManagers.map((manager) => (
             <Card 
               key={manager.id} 
-              className="group transition-all duration-300 border-gray-200 bg-white cursor-pointer hover:shadow-xl hover:-translate-y-2 hover:border-blue-300"
+              className={`group transition-all duration-300 border-gray-200 bg-white shadow-sm hover:shadow-md ${
+                userRole !== 'viewer' ? 'cursor-pointer hover:-translate-y-1 hover:border-blue-300' : ''
+              }`}
               onClick={() => handleManagerClick(manager)}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-center space-x-3">
-                  <Avatar className="w-12 h-12 ring-2 ring-blue-100 group-hover:ring-blue-200 transition-all">
-                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-semibold">
+                  <Avatar className="w-10 h-10 sm:w-12 sm:h-12 ring-2 ring-blue-100 group-hover:ring-blue-200 transition-all">
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-semibold text-sm">
                       {getInitials(manager.profiles?.first_name || '', manager.profiles?.last_name || '')}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <CardTitle className="text-lg font-semibold text-gray-900 truncate">
+                    <CardTitle className="text-base sm:text-lg font-semibold text-gray-900 truncate">
                       {manager.profiles?.first_name} {manager.profiles?.last_name}
                     </CardTitle>
                     <CardDescription className="flex items-center text-sm">
                       <Building2 className="w-3 h-3 mr-1 flex-shrink-0" />
-                      <span className="truncate">
-                        {manager.vehicle_type?.replace('_', ' ').toUpperCase()}
-                      </span>
+                      <span className="truncate">Fund Manager</span>
                     </CardDescription>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
+                  {userRole !== 'viewer' && (
+                    <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all flex-shrink-0" />
+                  )}
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="min-h-[4.5rem]">
-                  <p className="text-sm text-gray-600 leading-relaxed break-words overflow-hidden" style={{
-                    display: '-webkit-box',
-                    WebkitLineClamp: 3,
-                    WebkitBoxOrient: 'vertical',
-                    wordBreak: 'break-word'
-                  }}>
-                    {manager.thesis}
-                  </p>
+              <CardContent className="space-y-3 sm:space-y-4">
+                <div>
+                  <h4 className="font-medium text-gray-900 text-sm sm:text-base mb-1">
+                    {manager.fund_name}
+                  </h4>
+                  {userRole === 'viewer' && (
+                    <p className="text-xs text-gray-500 mb-2">
+                      Apply for membership to view full details
+                    </p>
+                  )}
                 </div>
                 
-                <div className="flex items-start text-sm text-gray-600">
-                  <MapPin className="w-3 h-3 mr-1 flex-shrink-0 mt-0.5" />
-                  <span className="break-words overflow-hidden" style={{
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    wordBreak: 'break-word'
-                  }}>
-                    {manager.legal_domicile?.slice(0, 2).join(', ')}
-                    {manager.legal_domicile?.length > 2 && ` +${manager.legal_domicile.length - 2}`}
-                  </span>
-                </div>
-
-                {manager.vehicle_websites && (
+                {manager.website && (
                   <div className="flex items-start text-sm text-gray-600">
                     <Globe className="w-3 h-3 mr-1 flex-shrink-0 mt-0.5" />
                     <a 
-                      href={manager.vehicle_websites} 
+                      href={manager.website.startsWith('http') ? manager.website : `https://${manager.website}`}
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 underline break-all"
+                      className="text-blue-600 hover:text-blue-800 underline break-all text-xs sm:text-sm"
                       onClick={(e) => e.stopPropagation()}
                     >
                       Visit Website
@@ -299,23 +272,12 @@ const Network = () => {
                   </div>
                 )}
 
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center text-gray-700 font-medium min-w-0">
-                    <DollarSign className="w-3 h-3 mr-1 flex-shrink-0" />
-                    <span className="truncate">{formatCurrency(manager.target_capital)}</span>
-                  </div>
-                  <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700 flex-shrink-0">
-                    {manager.year || 'N/A'}
-                  </Badge>
-                </div>
-
-                {manager.sectors_allocation && (
-                  <div className="flex flex-wrap gap-1">
-                    {getTopSectors(manager.sectors_allocation).map((sector, index) => (
-                      <Badge key={index} variant="outline" className="text-xs bg-gray-50 text-gray-700 border-gray-200 max-w-full">
-                        <span className="truncate block">{sector.sector}</span>
-                      </Badge>
-                    ))}
+                {userRole === 'viewer' && (
+                  <div className="pt-2 border-t border-gray-100">
+                    <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-600">
+                      <Lock className="w-3 h-3 mr-1" />
+                      Limited View
+                    </Badge>
                   </div>
                 )}
               </CardContent>

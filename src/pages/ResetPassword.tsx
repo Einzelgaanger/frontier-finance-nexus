@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,15 +22,36 @@ const ResetPassword = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  // Get access token from URL
+  // Get tokens from URL
   const accessToken = searchParams.get('access_token');
   const refreshToken = searchParams.get('refresh_token');
+  const type = searchParams.get('type');
 
   useEffect(() => {
-    if (!accessToken) {
-      setError('Invalid or missing reset token. Please request a new password reset.');
-    }
-  }, [accessToken]);
+    const handlePasswordReset = async () => {
+      if (accessToken && refreshToken && type === 'recovery') {
+        try {
+          // Set session with the tokens from the URL
+          const { error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          });
+
+          if (sessionError) {
+            console.error('Session error:', sessionError);
+            setError('Invalid or expired reset link. Please request a new password reset.');
+          }
+        } catch (error) {
+          console.error('Error setting session:', error);
+          setError('Invalid or expired reset link. Please request a new password reset.');
+        }
+      } else if (!accessToken || type !== 'recovery') {
+        setError('Invalid or missing reset token. Please request a new password reset.');
+      }
+    };
+
+    handlePasswordReset();
+  }, [accessToken, refreshToken, type]);
 
   const validatePassword = (password: string) => {
     const minLength = 8;
@@ -65,7 +87,7 @@ const ResetPassword = () => {
       return;
     }
 
-    if (!accessToken) {
+    if (!accessToken || type !== 'recovery') {
       setError('Invalid reset token');
       return;
     }
@@ -93,12 +115,16 @@ const ResetPassword = () => {
         navigate('/auth');
       }, 3000);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+      let message = 'Failed to update password. Please try again.';
+      if (error && typeof error === 'object' && 'message' in error && typeof (error as { message?: unknown }).message === 'string') {
+        message = (error as { message?: string }).message!;
+      }
       console.error('Error updating password:', error);
-      setError(error.message || 'Failed to update password. Please try again.');
+      setError(message);
       toast({
         title: "Error",
-        description: "Failed to update password. Please try again.",
+        description: message,
         variant: "destructive"
       });
     } finally {
@@ -166,7 +192,7 @@ const ResetPassword = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your new password"
                   className="pr-10 border-gray-300 focus:border-blue-400 focus:ring-blue-200"
-                  disabled={loading || !accessToken}
+                  disabled={loading || !accessToken || type !== 'recovery'}
                 />
                 <button
                   type="button"
@@ -194,7 +220,7 @@ const ResetPassword = () => {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm your new password"
                   className="pr-10 border-gray-300 focus:border-blue-400 focus:ring-blue-200"
-                  disabled={loading || !accessToken}
+                  disabled={loading || !accessToken || type !== 'recovery'}
                 />
                 <button
                   type="button"
@@ -210,7 +236,7 @@ const ResetPassword = () => {
             <Button
               type="submit"
               className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
-              disabled={loading || !accessToken || !password || !confirmPassword}
+              disabled={loading || !accessToken || type !== 'recovery' || !password || !confirmPassword}
             >
               {loading ? (
                 <div className="flex items-center space-x-2">
@@ -239,4 +265,4 @@ const ResetPassword = () => {
   );
 };
 
-export default ResetPassword; 
+export default ResetPassword;

@@ -22,8 +22,8 @@ const GoogleIcon = () => (
 );
 
 const getErrorMessage = (error: unknown): string => {
-  if (error && typeof error === 'object' && 'message' in error) {
-    return error.message as string;
+  if (error && typeof error === 'object' && 'message' in error && typeof (error as any).message === 'string') {
+    return (error as any).message;
   }
   return 'An unexpected error occurred';
 };
@@ -84,7 +84,6 @@ export default function AuthForm() {
           title: "Welcome back!",
           description: "You have been signed in successfully.",
         });
-        // Don't navigate here, let the auth context handle it
       }
     } catch (error: unknown) {
       const errorMessage = getErrorMessage(error);
@@ -186,7 +185,6 @@ export default function AuthForm() {
         });
         setIsLoading(false);
       }
-      // Don't set loading false on success, redirect will happen
     } catch (error: unknown) {
       const errorMessage = getErrorMessage(error);
       toast({
@@ -204,7 +202,7 @@ export default function AuthForm() {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
-        redirectTo: `${window.location.origin}/auth?mode=reset`,
+        redirectTo: `${window.location.origin}/auth?type=recovery`,
       });
 
       if (error) {
