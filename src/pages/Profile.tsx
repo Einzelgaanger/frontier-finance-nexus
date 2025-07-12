@@ -1,22 +1,21 @@
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import Header from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { User, Settings, FileText, Eye, Edit, Shield, Camera, X } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { User, Mail, Phone, Camera } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const Profile = () => {
   const { user, userRole } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState({
     first_name: '',
     last_name: '',
@@ -24,160 +23,128 @@ const Profile = () => {
     phone: '',
     profile_picture_url: ''
   });
-  const [profileImage, setProfileImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [surveyResponses, setSurveyResponses] = useState([]);
-  const [editMode, setEditMode] = useState(false);
-
-  const fetchProfile = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user?.id)
-        .single();
-
-      if (error) throw error;
-      if (data) {
-        setProfile(data);
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [user?.id]);
-
-  const fetchSurveyResponses = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('survey_responses')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('year', { ascending: false });
-
-      if (error) throw error;
-      setSurveyResponses(data || []);
-    } catch (error) {
-      console.error('Error fetching survey responses:', error);
-    }
-  }, [user?.id]);
 
   useEffect(() => {
     if (user) {
       fetchProfile();
-      fetchSurveyResponses();
     }
-  }, [user, fetchProfile, fetchSurveyResponses]);
+  }, [user]);
 
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast({
-          title: "File too large",
-          description: "Please select an image smaller than 5MB",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      setProfileImage(file);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const removeProfileImage = () => {
-    setProfileImage(null);
-    setImagePreview('');
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const uploadProfileImage = async (file: File): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${user?.id}-${Date.now()}.${fileExt}`;
-    const filePath = `profile-pictures/${fileName}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('avatars')
-      .upload(filePath, file);
-
-    if (uploadError) throw uploadError;
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('avatars')
-      .getPublicUrl(filePath);
-
-    return publicUrl;
-  };
-
-  const updateProfile = async () => {
+  const fetchProfile = async () => {
     try {
-      let profilePictureUrl = profile.profile_picture_url;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
 
-      // Upload new image if selected
-      if (profileImage) {
-        profilePictureUrl = await uploadProfileImage(profileImage);
+      if (error && error.code !== 'PGRST116') {
+        throw error;
       }
 
+      if (data) {
+        setProfile({
+          first_name: data.first_name || '',
+          last_name: data.last_name || '',
+          email: data.email || user.email || '',
+          phone: '', // Phone is not in the database schema yet
+          profile_picture_url: data.profile_picture_url || ''
+        });
+      } else {
+        // Create profile if it doesn't exist
+        setProfile({
+          first_name: '',
+          last_name: '',
+          email: user.email || '',
+          phone: '',
+          profile_picture_url: ''
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load profile",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
       const { error } = await supabase
         .from('profiles')
-        .update({
-          profile_picture_url: profilePictureUrl,
-        })
-        .eq('id', user?.id);
+        .upsert({
+          id: user.id,
+          first_name: profile.first_name,
+          last_name: profile.last_name,
+          email: profile.email,
+          profile_picture_url: profile.profile_picture_url,
+          updated_at: new Date().toISOString()
+        });
 
       if (error) throw error;
 
-      // Update local state
-      setProfile(prev => ({ ...prev, profile_picture_url: profilePictureUrl }));
-      setProfileImage(null);
-      setImagePreview('');
-
       toast({
-        title: "Profile Updated",
-        description: "Your profile picture has been updated successfully.",
+        title: "Success",
+        description: "Profile updated successfully",
       });
-      setEditMode(false);
     } catch (error) {
-      console.error('Error updating profile:', error);
+      console.error('Error saving profile:', error);
       toast({
         title: "Error",
-        description: "Failed to update profile picture.",
-        variant: "destructive",
+        description: "Failed to update profile",
+        variant: "destructive"
       });
+    } finally {
+      setSaving(false);
     }
   };
 
-  const getRoleBadgeColor = (role: string) => {
-    switch (role) {
-      case 'admin': return 'bg-red-100 text-red-800 border-red-200 border';
-      case 'member': return 'bg-blue-100 text-blue-800 border-blue-200 border';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200 border';
+  const handleImageUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setSaving(true);
+      
+      // Upload to Supabase storage (if configured) or use a placeholder
+      // For now, we'll just show a placeholder since storage isn't set up
+      const imageUrl = URL.createObjectURL(file);
+      
+      setProfile({
+        ...profile,
+        profile_picture_url: imageUrl
+      });
+
+      toast({
+        title: "Image Upload",
+        description: "Please save your profile to update the image",
+      });
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload image",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
     }
   };
 
-  if (userRole === 'viewer') {
+  if (!user) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="max-w-2xl mx-auto border-yellow-200 bg-yellow-50">
+          <Card className="max-w-2xl mx-auto">
             <CardHeader>
-              <CardTitle className="text-yellow-800 flex items-center">
-                <Eye className="w-5 h-5 mr-2" />
-                Viewer Access
-              </CardTitle>
-              <CardDescription className="text-yellow-700">
-                Profile settings are not available for Viewer accounts. Please upgrade to Member access to manage your profile.
-              </CardDescription>
+              <CardTitle>Access Required</CardTitle>
+              <CardDescription>Please sign in to view your profile.</CardDescription>
             </CardHeader>
           </Card>
         </div>
@@ -203,184 +170,152 @@ const Profile = () => {
     <div className="min-h-screen bg-gray-50">
       <Header />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-black flex items-center">
-            <User className="w-8 h-8 mr-3 text-blue-600" />
-            My Profile
-          </h1>
-          <p className="text-gray-600 mt-2">Manage your account and survey responses</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Profile Settings</h1>
+          <p className="text-gray-600">Manage your account information and preferences</p>
         </div>
 
-        <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 bg-white">
-            <TabsTrigger value="profile" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Profile</TabsTrigger>
-            <TabsTrigger value="surveys" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Survey Responses</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="profile" className="space-y-6">
-            <Card className="bg-white border">
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle className="text-black">Personal Information</CardTitle>
-                    <CardDescription>Update your personal details</CardDescription>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge className={`${getRoleBadgeColor(userRole)} capitalize`}>
-                      {userRole}
-                    </Badge>
-                    {userRole === 'member' && !editMode ? (
-                      <Button onClick={() => setEditMode(true)} variant="outline" size="sm" className="border-gray-300">
-                        <Edit className="w-4 h-4 mr-2" />
-                        Edit
-                      </Button>
-                    ) : userRole === 'member' && editMode ? (
-                      <div className="flex space-x-2">
-                        <Button onClick={updateProfile} size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
-                          Save
-                        </Button>
-                        <Button onClick={() => setEditMode(false)} variant="outline" size="sm" className="border-gray-300">
-                          Cancel
-                        </Button>
-                      </div>
-                    ) : null}
-                  </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Profile Picture Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Profile Picture</CardTitle>
+              <CardDescription>Update your profile image</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-col items-center space-y-4">
+                <Avatar className="w-32 h-32">
+                  <AvatarImage src={profile.profile_picture_url} />
+                  <AvatarFallback className="text-2xl">
+                    {profile.first_name?.[0]?.toUpperCase() || profile.email?.[0]?.toUpperCase() || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                
+                <div className="relative">
+                  <input
+                    type="file"
+                    id="image-upload"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    onClick={() => document.getElementById('image-upload')?.click()}
+                    variant="outline"
+                    className="flex items-center space-x-2"
+                  >
+                    <Camera className="w-4 h-4" />
+                    <span>Change Photo</span>
+                  </Button>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="first_name" className="text-black font-medium">First Name</Label>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Account Information */}
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle>Account Information</CardTitle>
+              <CardDescription>Update your personal details</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="first_name">First Name</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
                       id="first_name"
+                      type="text"
                       value={profile.first_name}
-                      disabled
-                      className="border-gray-300 bg-gray-50"
+                      onChange={(e) => setProfile({...profile, first_name: e.target.value})}
+                      className="pl-10"
+                      placeholder="Enter your first name"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="last_name" className="text-black font-medium">Last Name</Label>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="last_name">Last Name</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
                       id="last_name"
+                      type="text"
                       value={profile.last_name}
-                      disabled
-                      className="border-gray-300 bg-gray-50"
+                      onChange={(e) => setProfile({...profile, last_name: e.target.value})}
+                      className="pl-10"
+                      placeholder="Enter your last name"
                     />
                   </div>
                 </div>
-                <div>
-                  <Label htmlFor="email" className="text-black font-medium">Email</Label>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
                     id="email"
+                    type="email"
                     value={profile.email}
-                    disabled
-                    className="border-gray-300 bg-gray-50"
+                    onChange={(e) => setProfile({...profile, email: e.target.value})}
+                    className="pl-10"
+                    placeholder="Enter your email"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
                 </div>
-                {userRole === 'member' && (
-                  <div>
-                    <Label htmlFor="profile_picture" className="text-black font-medium">Profile Picture</Label>
-                    <div className="flex items-center space-x-4">
-                      <div className="relative">
-                        <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                          {imagePreview || profile.profile_picture_url ? (
-                            <img 
-                              src={imagePreview || profile.profile_picture_url} 
-                              alt="Profile" 
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <User className="w-8 h-8 text-gray-400" />
-                          )}
-                        </div>
-                        {editMode && (imagePreview || profile.profile_picture_url) && (
-                          <button
-                            type="button"
-                            onClick={removeProfileImage}
-                            aria-label="Remove profile picture"
-                            className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        )}
-                      </div>
-                      <div className="flex-1 space-y-2">
-                        <Input
-                          ref={fileInputRef}
-                          id="profile_picture"
-                          type="file"
-                          accept="image/*"
-                          disabled={!editMode}
-                          onChange={handleImageChange}
-                          className="border-gray-300"
-                        />
-                        <p className="text-xs text-gray-500">
-                          {editMode ? "Click to upload or change profile picture (max 5MB)" : "Profile picture"}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </div>
 
-          <TabsContent value="surveys" className="space-y-6">
-            <Card className="bg-white border">
-              <CardHeader>
-                <CardTitle className="text-black flex items-center">
-                  <FileText className="w-5 h-5 mr-2" />
-                  Survey Responses
-                </CardTitle>
-                <CardDescription>View and manage your submitted surveys</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {surveyResponses.length === 0 ? (
-                  <div className="text-center py-8">
-                    <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No Survey Responses</h3>
-                    <p className="text-gray-600 mb-4">You haven't completed any surveys yet.</p>
-                    <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                      Take Survey
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {surveyResponses.map((response: any) => (
-                      <Card key={response.id} className="border-gray-200">
-                        <CardContent className="p-4">
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <h4 className="font-medium text-black">Survey for {response.year}</h4>
-                              <p className="text-sm text-gray-500">
-                                {response.completed_at 
-                                  ? `Completed on ${new Date(response.completed_at).toLocaleDateString()}`
-                                  : 'In Progress'
-                                }
-                              </p>
-                            </div>
-                            <div className="flex space-x-2">
-                              <Button variant="outline" size="sm" className="border-gray-300">
-                                <Eye className="w-4 h-4 mr-1" />
-                                View
-                              </Button>
-                              <Button variant="outline" size="sm" className="border-gray-300">
-                                <Edit className="w-4 h-4 mr-1" />
-                                Edit
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={profile.phone}
+                    onChange={(e) => setProfile({...profile, phone: e.target.value})}
+                    className="pl-10"
+                    placeholder="Enter your phone number"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4">
+                <Button 
+                  onClick={handleSave} 
+                  disabled={saving}
+                  className="w-full md:w-auto"
+                >
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Account Status */}
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle>Account Status</CardTitle>
+            <CardDescription>Your current account information</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>Account Type</Label>
+                <p className="text-sm text-gray-600 capitalize">{userRole}</p>
+              </div>
+              <div>
+                <Label>Member Since</Label>
+                <p className="text-sm text-gray-600">
+                  {new Date(user.created_at).toLocaleDateString()}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

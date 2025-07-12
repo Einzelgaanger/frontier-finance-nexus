@@ -1,631 +1,374 @@
-import { useState, useEffect, useCallback } from 'react';
+
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import Header from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { 
   Users, 
   UserCheck, 
-  UserX, 
-  Key, 
-  Shield,
+  Building2, 
+  TrendingUp, 
+  Eye, 
+  CheckCircle, 
+  XCircle, 
+  Clock,
+  Mail,
   Calendar,
-  Download,
-  Settings,
-  Eye,
-  EyeOff,
-  Filter,
-  ChevronDown,
-  ChevronUp,
-  Plus,
-  AlertCircle,
-  FileText
+  Globe,
+  DollarSign,
+  Target,
+  BarChart3,
+  PieChart,
+  Activity,
+  Award,
+  MapPin
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer,
+  PieChart as RechartsPieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+  Area,
+  AreaChart,
+  ScatterChart,
+  Scatter,
+  ComposedChart
+} from 'recharts';
 
 const Admin = () => {
-  const { userRole, user } = useAuth();
+  const { userRole } = useAuth();
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState('analytics');
   const [loading, setLoading] = useState(true);
-  const [membershipRequests, setMembershipRequests] = useState([]);
-  const [invitationCodes, setInvitationCodes] = useState([]);
-  const [dataFieldVisibility, setDataFieldVisibility] = useState([]);
-  const [selectedDateRange, setSelectedDateRange] = useState('all');
-  const [showFilters, setShowFilters] = useState(false);
-  const [exportLoading, setExportLoading] = useState(false);
-  const [updatingVisibility, setUpdatingVisibility] = useState<string | null>(null);
-  const [userStats, setUserStats] = useState({
-    viewers: 0,
-    members: 0,
-    admins: 0,
-    activeUsersToday: 0,
-    surveysCompleted: 0,
-    newRegistrations: 0
+  
+  // Analytics data
+  const [analyticsData, setAnalyticsData] = useState({
+    totalFunds: 0,
+    totalCapital: 0,
+    averageTicketSize: 0,
+    activeMarkets: 0,
+    surveyResponses: []
   });
 
-  const createDefaultDataFieldVisibility = useCallback(async () => {
-    try {
-      const defaultFields = [
-        { field_name: 'vehicle_type', visibility_level: 'public' },
-        { field_name: 'thesis', visibility_level: 'member' },
-        { field_name: 'team_size_min', visibility_level: 'member' },
-        { field_name: 'team_size_max', visibility_level: 'member' },
-        { field_name: 'legal_domicile', visibility_level: 'public' },
-        { field_name: 'target_capital', visibility_level: 'member' },
-        { field_name: 'capital_raised', visibility_level: 'member' },
-        { field_name: 'fund_stage', visibility_level: 'member' },
-        { field_name: 'sectors_allocation', visibility_level: 'member' },
-        { field_name: 'target_return_min', visibility_level: 'member' },
-        { field_name: 'target_return_max', visibility_level: 'member' },
-        { field_name: 'equity_investments_made', visibility_level: 'member' },
-        { field_name: 'equity_investments_exited', visibility_level: 'member' },
-        { field_name: 'self_liquidating_made', visibility_level: 'member' },
-        { field_name: 'self_liquidating_exited', visibility_level: 'member' },
-        { field_name: 'ticket_size_min', visibility_level: 'member' },
-        { field_name: 'ticket_size_max', visibility_level: 'member' },
-        { field_name: 'current_status', visibility_level: 'member' },
-        { field_name: 'team_members', visibility_level: 'member' },
-        { field_name: 'team_description', visibility_level: 'member' },
-        { field_name: 'markets_operated', visibility_level: 'member' },
-        { field_name: 'investment_instruments_priority', visibility_level: 'member' },
-        { field_name: 'information_sharing', visibility_level: 'member' },
-        { field_name: 'expectations', visibility_level: 'member' },
-        { field_name: 'how_heard_about_network', visibility_level: 'member' },
-        { field_name: 'supporting_document_url', visibility_level: 'admin' },
-        { field_name: 'vehicle_websites', visibility_level: 'public' },
-        { field_name: 'vehicle_type_other', visibility_level: 'member' },
-        { field_name: 'legal_entity_date_from', visibility_level: 'member' },
-        { field_name: 'legal_entity_date_to', visibility_level: 'member' },
-        { field_name: 'first_close_date_from', visibility_level: 'member' },
-        { field_name: 'first_close_date_to', visibility_level: 'member' },
-        { field_name: 'legal_entity_month_from', visibility_level: 'member' },
-        { field_name: 'legal_entity_month_to', visibility_level: 'member' },
-        { field_name: 'first_close_month_from', visibility_level: 'member' },
-        { field_name: 'first_close_month_to', visibility_level: 'member' },
-        { field_name: 'ticket_description', visibility_level: 'member' },
-        { field_name: 'capital_in_market', visibility_level: 'member' }
-      ];
+  // Application management
+  const [applications, setApplications] = useState([]);
+  const [selectedApplication, setSelectedApplication] = useState(null);
+  const [rejectionReason, setRejectionReason] = useState('');
 
-      const { error } = await supabase
-        .from('data_field_visibility')
-        .insert(defaultFields);
+  // Survey management
+  const [surveys, setSurveys] = useState([]);
+  const [selectedSurvey, setSelectedSurvey] = useState(null);
 
-      if (error) {
-        console.error('Error creating default data field visibility:', error);
-        throw error;
-      }
+  // Invitation codes
+  const [codes, setCodes] = useState([]);
+  const [newCode, setNewCode] = useState({
+    email: '',
+    vehicle_name: '',
+    expires_at: ''
+  });
 
-      console.log('Default data field visibility entries created successfully');
-      
-      // Refresh the data
-      const { data: newVisibilityData, error: refreshError } = await supabase
-        .from('data_field_visibility')
-        .select('*')
-        .order('field_name');
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FF6B6B', '#4ECDC4'];
 
-      if (refreshError) {
-        console.error('Error refreshing data field visibility:', refreshError);
-      } else {
-        setDataFieldVisibility(newVisibilityData || []);
-      }
-    } catch (error) {
-      console.error('Error creating default data field visibility:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create default data field visibility",
-        variant: "destructive"
-      });
+  useEffect(() => {
+    if (userRole === 'admin') {
+      fetchAllData();
     }
-  }, [toast]);
+  }, [userRole]);
 
-  const fetchUserStats = useCallback(async () => {
-    try {
-      console.log('Fetching user stats...');
-      
-      // Fetch user roles with proper counting
-      const { data: userRoles, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('role');
-
-      if (rolesError) throw rolesError;
-
-      console.log('User roles data:', userRoles);
-
-      // Count users by role (handle potential duplicates)
-      const roleCounts = userRoles?.reduce((acc, ur) => {
-        acc[ur.role] = (acc[ur.role] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>) || {};
-
-      const viewers = roleCounts.viewer || 0;
-      const members = roleCounts.member || 0;
-      const admins = roleCounts.admin || 0;
-
-      console.log('Role counts:', { viewers, members, admins });
-
-      // Fetch completed surveys
-      const { data: surveys, error: surveysError } = await supabase
-        .from('survey_responses')
-        .select('completed_at')
-        .not('completed_at', 'is', null);
-
-      if (surveysError) throw surveysError;
-
-      console.log('Completed surveys:', surveys?.length || 0);
-
-      // Fetch profiles created today
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const { data: newProfiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('created_at')
-        .gte('created_at', today.toISOString());
-
-      if (profilesError) throw profilesError;
-
-      console.log('New registrations today:', newProfiles?.length || 0);
-
-      // Calculate active users today (simplified - count users with recent activity)
-      const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
-      const { data: recentActivity, error: activityError } = await supabase
-        .from('survey_responses')
-        .select('user_id')
-        .gte('updated_at', yesterday.toISOString());
-
-      if (activityError) {
-        console.error('Error fetching recent activity:', activityError);
-      }
-
-      const activeUsersToday = recentActivity ? new Set(recentActivity.map(a => a.user_id)).size : 0;
-
-      console.log('Active users today:', activeUsersToday);
-
-      setUserStats({
-        viewers,
-        members,
-        admins,
-        activeUsersToday,
-        surveysCompleted: surveys?.length || 0,
-        newRegistrations: newProfiles?.length || 0
-      });
-    } catch (error) {
-      console.error('Error fetching user stats:', error);
-    }
-  }, []);
-
-  const fetchData = useCallback(async () => {
+  const fetchAllData = async () => {
     setLoading(true);
     try {
-      console.log('Fetching admin data...');
-      
-      // Fetch membership requests
-      const requestsRes = await supabase
-        .from('membership_requests')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      console.log('Membership requests response:', requestsRes);
-      
-      if (requestsRes.error) {
-        console.error('Membership requests error:', requestsRes.error);
-        throw requestsRes.error;
-      }
-
-      // Fetch invitation codes
-      const codesRes = await supabase
-        .from('invitation_codes')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      console.log('Invitation codes response:', codesRes);
-      
-      if (codesRes.error) {
-        console.error('Invitation codes error:', codesRes.error);
-        throw codesRes.error;
-      }
-
-      // Fetch data field visibility
-      const visibilityRes = await supabase
-        .from('data_field_visibility')
-        .select('*')
-        .order('field_name');
-      
-      console.log('Data field visibility response:', visibilityRes);
-      
-      if (visibilityRes.error) {
-        console.error('Data field visibility error:', visibilityRes.error);
-        throw visibilityRes.error;
-      }
-
-      // Set the data
-      const requestsData = requestsRes.data || [];
-      const codesData = codesRes.data || [];
-      const visibilityData = visibilityRes.data || [];
-
-      console.log('Setting data:', {
-        requests: requestsData.length,
-        codes: codesData.length,
-        visibility: visibilityData.length
-      });
-
-      setMembershipRequests(requestsData);
-      setInvitationCodes(codesData);
-      setDataFieldVisibility(visibilityData);
-
-      // If no data field visibility entries exist, create them
-      if (visibilityData.length === 0) {
-        console.log('No data field visibility entries found, creating default entries...');
-        await createDefaultDataFieldVisibility();
-      }
-
-      // Fetch user stats
-      await fetchUserStats();
-
-      // Test query to check if we can access the data
-      console.log('Testing data access...');
-      const testQuery = await supabase
-        .from('profiles')
-        .select('count')
-        .limit(1);
-      console.log('Test query result:', testQuery);
-
+      await Promise.all([
+        fetchAnalyticsData(),
+        fetchApplications(),
+        fetchSurveys(),
+        fetchInvitationCodes()
+      ]);
     } catch (error) {
-      console.error('Error fetching admin data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch admin data",
-        variant: "destructive"
-      });
+      console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
-  }, [toast, createDefaultDataFieldVisibility, fetchUserStats]);
+  };
 
-  useEffect(() => {
-    console.log('Admin component mounted, userRole:', userRole, 'user:', user?.id);
-    if (userRole === 'admin') {
-      console.log('User is admin, fetching data...');
-      fetchData();
-    } else {
-      console.log('User is not admin, role:', userRole);
-    }
-  }, [userRole, fetchData, user?.id]);
-
-  // Function to create sample data for testing (can be removed in production)
-  const createSampleData = async () => {
+  const fetchAnalyticsData = async () => {
     try {
-      console.log('Creating sample data for testing...');
-      
-      // Create a sample membership request
-      const { error: requestError } = await supabase
-        .from('membership_requests')
-        .insert({
-          user_id: user?.id,
-          vehicle_name: 'Sample Fund I',
-          email: 'sample@example.com',
-          status: 'pending'
-        });
+      const { data: surveyData, error } = await supabase
+        .from('survey_responses')
+        .select('*')
+        .not('completed_at', 'is', null);
 
-      if (requestError) {
-        console.error('Error creating sample membership request:', requestError);
-      } else {
-        console.log('Sample membership request created');
-      }
+      if (error) throw error;
 
-      // Create a sample invitation code
-      const { error: codeError } = await supabase
-        .from('invitation_codes')
-        .insert({
-          code: 'SAMPLE123',
-          email: 'sample@example.com',
-          vehicle_name: 'Sample Fund I',
-          created_by: user?.id,
-          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-        });
-
-      if (codeError) {
-        console.error('Error creating sample invitation code:', codeError);
-      } else {
-        console.log('Sample invitation code created');
-      }
-
-      // Refresh data after creating samples
-      fetchData();
-
+      const metrics = calculateMetrics(surveyData || []);
+      setAnalyticsData({
+        ...metrics,
+        surveyResponses: surveyData || []
+      });
     } catch (error) {
-      console.error('Error creating sample data:', error);
+      console.error('Error fetching analytics:', error);
     }
   };
 
-  const approveRequest = async (requestId: string, email: string, vehicleName: string) => {
+  const calculateMetrics = (surveyData) => {
+    if (!surveyData.length) return {
+      totalFunds: 0,
+      totalCapital: 0,
+      averageTicketSize: 0,
+      activeMarkets: 0
+    };
+
+    const totalFunds = surveyData.length;
+    
+    // Parse ticket sizes from the ticket_size field (text format like "$50K - $500K")
+    const ticketSizes = surveyData.map(survey => {
+      const ticketSize = survey.ticket_size || '';
+      // Extract numbers from text format
+      const numbers = ticketSize.match(/\d+/g);
+      if (numbers && numbers.length >= 2) {
+        const min = parseInt(numbers[0]) * (ticketSize.includes('K') ? 1000 : ticketSize.includes('M') ? 1000000 : 1);
+        const max = parseInt(numbers[1]) * (ticketSize.includes('K') ? 1000 : ticketSize.includes('M') ? 1000000 : 1);
+        return (min + max) / 2;
+      }
+      return 0;
+    }).filter(size => size > 0);
+
+    const averageTicketSize = ticketSizes.length > 0 
+      ? ticketSizes.reduce((sum, size) => sum + size, 0) / ticketSizes.length 
+      : 0;
+
+    // Count unique locations
+    const locations = new Set();
+    surveyData.forEach(survey => {
+      if (survey.location) {
+        locations.add(survey.location);
+      }
+    });
+
+    return {
+      totalFunds,
+      totalCapital: totalFunds * 5000000, // Estimated
+      averageTicketSize,
+      activeMarkets: locations.size
+    };
+  };
+
+  const fetchApplications = async () => {
     try {
-      // Check if user is authenticated
-      if (!user?.id) {
-        toast({
-          title: "Authentication Error",
-          description: "Please log in again to perform this action",
-          variant: "destructive"
-        });
-        return;
-      }
+      const { data, error } = await supabase
+        .from('membership_requests')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      // Generate invitation code
-      const invitationCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      if (error) throw error;
+      setApplications(data || []);
+    } catch (error) {
+      console.error('Error fetching applications:', error);
+    }
+  };
+
+  const fetchSurveys = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('survey_responses')
+        .select(`
+          *,
+          profiles!inner(first_name, last_name, email)
+        `)
+        .not('completed_at', 'is', null);
+
+      if (error) throw error;
       
-      console.log('Creating invitation code:', { code: invitationCode, email, vehicleName, created_by: user.id });
+      // Handle the case where profiles might be an error object
+      const cleanedData = (data || []).map(survey => ({
+        ...survey,
+        profileData: survey.profiles && typeof survey.profiles === 'object' && !survey.profiles.error 
+          ? survey.profiles 
+          : { first_name: 'Unknown', last_name: '', email: survey.email || 'No email' }
+      }));
       
-      const { error: codeError } = await supabase
+      setSurveys(cleanedData);
+    } catch (error) {
+      console.error('Error fetching surveys:', error);
+      setSurveys([]);
+    }
+  };
+
+  const fetchInvitationCodes = async () => {
+    try {
+      const { data, error } = await supabase
         .from('invitation_codes')
-        .insert({
-          code: invitationCode,
-          email: email,
-          vehicle_name: vehicleName,
-          created_by: user.id,
-          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours from now
-        });
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      if (codeError) {
-        console.error('Error creating invitation code:', codeError);
-        throw codeError;
-      }
+      if (error) throw error;
+      setCodes(data || []);
+    } catch (error) {
+      console.error('Error fetching invitation codes:', error);
+    }
+  };
 
-      // Update membership request status
+  const handleApproveApplication = async (application) => {
+    try {
+      // Create invitation code
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
+
+      const { data: codeData, error: codeError } = await supabase
+        .from('invitation_codes')
+        .insert([{
+          code: generateInvitationCode(),
+          email: application.email,
+          vehicle_name: application.vehicle_name,
+          expires_at: expiresAt.toISOString(),
+          created_by: (await supabase.auth.getUser()).data.user?.id
+        }])
+        .select();
+
+      if (codeError) throw codeError;
+
+      // Update application status
       const { error: updateError } = await supabase
         .from('membership_requests')
-        .update({ 
+        .update({
           status: 'approved',
           reviewed_at: new Date().toISOString(),
-          reviewed_by: user.id
+          reviewed_by: (await supabase.auth.getUser()).data.user?.id
         })
-        .eq('id', requestId);
+        .eq('id', application.id);
 
-      if (updateError) {
-        console.error('Error approving request:', updateError);
-        throw updateError;
-      }
+      if (updateError) throw updateError;
 
       toast({
-        title: "Request Approved",
-        description: `Invitation code ${invitationCode} generated for ${email}`,
+        title: "Application Approved",
+        description: `Invitation code created for ${application.email}`,
       });
 
-      fetchData(); // Refresh the data
+      fetchApplications();
+      fetchInvitationCodes();
     } catch (error) {
-      console.error('Error approving request:', error);
+      console.error('Error approving application:', error);
       toast({
         title: "Error",
-        description: "Failed to approve request",
+        description: "Failed to approve application",
         variant: "destructive"
       });
     }
   };
 
-  const rejectRequest = async (requestId: string) => {
+  const handleRejectApplication = async (application) => {
     try {
-      // Check if user is authenticated
-      if (!user?.id) {
-        toast({
-          title: "Authentication Error",
-          description: "Please log in again to perform this action",
-          variant: "destructive"
-        });
-        return;
-      }
-
       const { error } = await supabase
         .from('membership_requests')
-        .update({ 
+        .update({
           status: 'rejected',
+          rejection_reason: rejectionReason,
           reviewed_at: new Date().toISOString(),
-          reviewed_by: user.id
+          reviewed_by: (await supabase.auth.getUser()).data.user?.id
         })
-        .eq('id', requestId);
+        .eq('id', application.id);
 
       if (error) throw error;
 
       toast({
-        title: "Request Rejected",
-        description: "Membership request has been rejected",
+        title: "Application Rejected",
+        description: `Application from ${application.email} has been rejected`,
       });
 
-      fetchData();
+      setRejectionReason('');
+      setSelectedApplication(null);
+      fetchApplications();
     } catch (error) {
-      console.error('Error rejecting request:', error);
+      console.error('Error rejecting application:', error);
       toast({
         title: "Error",
-        description: "Failed to reject request",
+        description: "Failed to reject application",
         variant: "destructive"
       });
     }
   };
 
-  const updateFieldVisibility = async (fieldName: string, visibilityLevel: string) => {
-    // Prevent multiple simultaneous updates
-    if (updatingVisibility === fieldName) return;
-    
+  const generateInvitationCode = () => {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  };
+
+  const createInvitationCode = async () => {
     try {
-      setUpdatingVisibility(fieldName);
-      
-      // Check if user is authenticated
-      if (!user?.id) {
-        toast({
-          title: "Authentication Error",
-          description: "Please log in again to perform this action",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Optimistically update the local state first
-      setDataFieldVisibility(prev => 
-        prev.map(field => 
-          field.field_name === fieldName 
-            ? { ...field, visibility_level: visibilityLevel }
-            : field
-        )
-      );
-
       const { error } = await supabase
-        .from('data_field_visibility')
-        .update({ 
-          visibility_level: visibilityLevel,
-          updated_at: new Date().toISOString(),
-          updated_by: user.id
-        })
-        .eq('field_name', fieldName);
+        .from('invitation_codes')
+        .insert([{
+          ...newCode,
+          code: generateInvitationCode(),
+          created_by: (await supabase.auth.getUser()).data.user?.id
+        }]);
 
-      if (error) {
-        // Revert the optimistic update if there's an error
-        setDataFieldVisibility(prev => 
-          prev.map(field => 
-            field.field_name === fieldName 
-              ? { ...field, visibility_level: field.visibility_level }
-              : field
-          )
-        );
-        throw error;
-      }
+      if (error) throw error;
 
       toast({
-        title: "Visibility Updated",
-        description: `${fieldName} visibility set to ${visibilityLevel}`,
+        title: "Invitation Code Created",
+        description: `Code created for ${newCode.email}`,
       });
+
+      setNewCode({ email: '', vehicle_name: '', expires_at: '' });
+      fetchInvitationCodes();
     } catch (error) {
-      console.error('Error updating field visibility:', error);
+      console.error('Error creating invitation code:', error);
       toast({
         title: "Error",
-        description: "Failed to update field visibility",
+        description: "Failed to create invitation code",
         variant: "destructive"
       });
-    } finally {
-      setUpdatingVisibility(null);
     }
   };
 
-  const exportData = async () => {
-    setExportLoading(true);
-    try {
-      console.log('Starting survey responses export for period:', selectedDateRange);
-      
-      // Fetch survey responses data for the selected time period
-      let query = supabase
-        .from('survey_responses')
-        .select(`
-          *,
-          profiles:user_id (
-            first_name,
-            last_name,
-            email
-          )
-        `)
-        .not('completed_at', 'is', null);
+  const prepareChartData = () => {
+    const data = analyticsData.surveyResponses;
+    
+    // Vehicle types distribution
+    const vehicleTypes = {};
+    data.forEach(survey => {
+      const type = survey.vehicle_name || 'Unknown';
+      vehicleTypes[type] = (vehicleTypes[type] || 0) + 1;
+    });
 
-      // Apply date filter
-      if (selectedDateRange !== 'all') {
-        const now = new Date();
-        let startDate;
-        
-        switch (selectedDateRange) {
-          case 'today':
-            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            break;
-          case 'week':
-            startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-            break;
-          case 'month':
-            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-            break;
-          default:
-            startDate = null;
-        }
+    // Geographic distribution
+    const locations = {};
+    data.forEach(survey => {
+      const location = survey.location || 'Unknown';
+      locations[location] = (locations[location] || 0) + 1;
+    });
 
-        if (startDate) {
-          query = query.gte('completed_at', startDate.toISOString());
-        }
-      }
+    // Year over year growth
+    const yearData = {};
+    data.forEach(survey => {
+      const year = survey.year || new Date().getFullYear();
+      yearData[year] = (yearData[year] || 0) + 1;
+    });
 
-      const { data: surveyResponses, error: surveyError } = await query;
-
-      if (surveyError) {
-        console.error('Survey responses query error:', surveyError);
-        throw surveyError;
-      }
-
-      console.log('Export data prepared:', { surveyResponses: surveyResponses?.length });
-
-      // Group by vehicle name (fund manager) and organize by survey years
-      const vehicleMap = new Map();
-      
-      surveyResponses?.forEach(survey => {
-        const profile = survey.profiles;
-        const vehicleName = survey.vehicle_name || 'Unknown';
-        const year = survey.year;
-        
-        if (!vehicleMap.has(vehicleName)) {
-          vehicleMap.set(vehicleName, {
-            'Fund Manager': vehicleName,
-            'Email': profile?.email || survey.email || 'N/A',
-            'Contact': profile ? `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() : survey.name
-          });
-        }
-        
-        const vehicle = vehicleMap.get(vehicleName);
-        
-        // Add year-specific data as columns with proper field names
-        vehicle[`${year}_Vehicle_Name`] = survey.vehicle_name || 'N/A';
-        vehicle[`${year}_Thesis`] = survey.thesis || 'N/A';
-        vehicle[`${year}_Location`] = survey.location || 'N/A';
-        vehicle[`${year}_Team_Size`] = survey.team_size_description || 'N/A';
-        vehicle[`${year}_Ticket_Size`] = survey.ticket_size || 'N/A';
-        vehicle[`${year}_Capital_Raised`] = survey.capital_raised_description || 'N/A';
-        vehicle[`${year}_Portfolio_Count`] = survey.portfolio_count || 'N/A';
-        vehicle[`${year}_Information_Sharing`] = Array.isArray(survey.information_sharing_topics) ? survey.information_sharing_topics.join(', ') : 'N/A';
-        vehicle[`${year}_Expectations`] = survey.expectations || 'N/A';
-        vehicle[`${year}_How_Heard_About_Network`] = survey.how_heard_about_network || 'N/A';
-        vehicle[`${year}_Completed_Date`] = survey.completed_at ? new Date(survey.completed_at).toLocaleDateString() : 'N/A';
-      });
-
-      // Convert map to array
-      const exportData = Array.from(vehicleMap.values());
-
-      // Create CSV content
-      const headers = Object.keys(exportData[0] || {});
-      const csvContent = [
-        headers.join(','),
-        ...exportData.map(row => headers.map(header => `"${row[header] || ''}"`).join(','))
-      ].join('\n');
-
-      // Create and download file
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `survey_responses_${selectedDateRange}_${new Date().toISOString().split('T')[0]}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      toast({
-        title: "Export Successful",
-        description: `Survey responses exported for ${selectedDateRange} - ${exportData.length} vehicles with ${surveyResponses?.length} total responses`,
-      });
-    } catch (error) {
-      console.error('Error exporting data:', error);
-      toast({
-        title: "Export Failed",
-        description: "Failed to export survey responses",
-        variant: "destructive"
-      });
-    } finally {
-      setExportLoading(false);
-    }
+    return {
+      vehicleTypes: Object.entries(vehicleTypes).map(([name, value]) => ({ name, value })),
+      locations: Object.entries(locations).map(([name, value]) => ({ name, value })),
+      yearData: Object.entries(yearData).map(([name, value]) => ({ name: parseInt(name), value }))
+    };
   };
 
   if (userRole !== 'admin') {
@@ -635,12 +378,9 @@ const Admin = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Card className="max-w-2xl mx-auto border-red-200 bg-red-50">
             <CardHeader>
-              <CardTitle className="text-red-800 flex items-center">
-                <Shield className="w-5 h-5 mr-2" />
-                Admin Access Required
-              </CardTitle>
+              <CardTitle className="text-red-800">Access Denied</CardTitle>
               <CardDescription className="text-red-700">
-                You need Administrator privileges to access this page.
+                Admin access required to view this page.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -656,342 +396,422 @@ const Admin = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading admin panel...</p>
+            <p className="mt-4 text-gray-600">Loading admin dashboard...</p>
           </div>
         </div>
       </div>
     );
   }
 
-  const pendingRequests = membershipRequests.filter(req => req.status === 'pending');
-  const approvedRequests = membershipRequests.filter(req => req.status === 'approved');
-  const activeInvitationCodes = invitationCodes.filter(code => !code.used_at && new Date(code.expires_at) > new Date());
+  const chartData = prepareChartData();
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-        {/* Header Section */}
-        <div className="mb-6 sm:mb-8">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-black flex items-center">
-                <Shield className="w-6 h-6 sm:w-8 sm:h-8 mr-2 sm:mr-3 text-blue-600" />
-                Admin Dashboard
-              </h1>
-              <p className="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">Manage membership requests, invitation codes, and data visibility</p>
-            </div>
-            
-            {/* Filters and Export Section */}
-            <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
-              {/* Filter Toggle Button */}
-              <Button
-                variant="outline"
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center justify-center sm:w-auto border-gray-300 bg-white"
-              >
-                <Filter className="w-4 h-4 mr-2" />
-                Filters
-                {showFilters ? <ChevronUp className="w-4 h-4 ml-2" /> : <ChevronDown className="w-4 h-4 ml-2" />}
-              </Button>
-              
-              {/* Export Button */}
-              <Button 
-                variant="outline" 
-                onClick={exportData} 
-                disabled={exportLoading}
-                className="flex items-center justify-center sm:w-auto border-gray-300 bg-white"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                {exportLoading ? 'Exporting...' : 'Export Data'}
-              </Button>
-
-              {/* Sample Data Button (for testing) */}
-              <Button 
-                variant="outline" 
-                onClick={createSampleData}
-                className="flex items-center justify-center sm:w-auto border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Create Sample Data
-              </Button>
-            </div>
-          </div>
-
-          {/* Collapsible Filters */}
-          {showFilters && (
-            <div className="mt-4 p-4 bg-white rounded-lg border border-gray-200">
-              <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
-                <Label className="text-sm font-medium text-gray-700">Time Period:</Label>
-                <Select value={selectedDateRange} onValueChange={setSelectedDateRange}>
-                  <SelectTrigger className="w-full sm:w-[180px] border-gray-300 bg-white">
-                    <Calendar className="w-4 h-4 mr-2" />
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="today">Today</SelectItem>
-                    <SelectItem value="week">This Week</SelectItem>
-                    <SelectItem value="month">This Month</SelectItem>
-                    <SelectItem value="all">All Time</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          )}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
+          <p className="text-gray-600">Manage applications, surveys, and platform analytics</p>
         </div>
 
-        {/* Platform Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
-          <Card className="bg-white border">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
-                <Users className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
-                <div className="ml-3 sm:ml-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Viewers</p>
-                  <p className="text-xl sm:text-2xl font-bold text-black">{userStats.viewers}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white border">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
-                <UserCheck className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
-                <div className="ml-3 sm:ml-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Members</p>
-                  <p className="text-xl sm:text-2xl font-bold text-black">{userStats.members}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white border">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
-                <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
-                <div className="ml-3 sm:ml-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Admins</p>
-                  <p className="text-xl sm:text-2xl font-bold text-black">{userStats.admins}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white border">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
-                <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-orange-600" />
-                <div className="ml-3 sm:ml-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Surveys</p>
-                  <p className="text-xl sm:text-2xl font-bold text-black">{userStats.surveysCompleted}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <Card className="bg-white border">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
-                <Users className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
-                <div className="ml-3 sm:ml-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Pending</p>
-                  <p className="text-xl sm:text-2xl font-bold text-black">{pendingRequests.length}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white border">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
-                <UserCheck className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
-                <div className="ml-3 sm:ml-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Approved</p>
-                  <p className="text-xl sm:text-2xl font-bold text-black">{approvedRequests.length}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white border">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
-                <Key className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
-                <div className="ml-3 sm:ml-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Active Codes</p>
-                  <p className="text-xl sm:text-2xl font-bold text-black">{activeInvitationCodes.length}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white border">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
-                <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-orange-600" />
-                <div className="ml-3 sm:ml-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total Surveys</p>
-                  <p className="text-xl sm:text-2xl font-bold text-black">{userStats.surveysCompleted}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Debug Info (only show if no data) */}
-        {(membershipRequests.length === 0 && invitationCodes.length === 0 && dataFieldVisibility.length === 0) && (
-          <Card className="bg-yellow-50 border-yellow-200 mb-6">
-            <CardContent className="p-4">
-              <div className="flex items-start space-x-3">
-                <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
-                <div className="flex-1">
-                  <h3 className="text-sm font-medium text-yellow-900 mb-1">No Data Found</h3>
-                  <p className="text-sm text-yellow-700 mb-3">
-                    The admin dashboard is not showing any data. This could be because:
-                  </p>
-                  <ul className="text-sm text-yellow-700 space-y-1 mb-3">
-                    <li>• No membership requests have been submitted yet</li>
-                    <li>• No invitation codes have been generated</li>
-                    <li>• Data field visibility settings haven't been initialized</li>
-                    <li>• There might be a database connection issue</li>
-                  </ul>
-                  <p className="text-sm text-yellow-700">
-                    Check the browser console for detailed error messages. You can also use the "Create Sample Data" button to test the functionality.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Tabs Section */}
-        <Tabs defaultValue="requests" className="space-y-4 sm:space-y-6">
-          <TabsList className="grid w-full grid-cols-2 bg-white h-auto p-1">
-            <TabsTrigger 
-              value="requests" 
-              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs sm:text-sm py-2 px-3"
-            >
-              Membership Requests
-            </TabsTrigger>
-            <TabsTrigger 
-              value="codes" 
-              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs sm:text-sm py-2 px-3"
-            >
-              Invitation Codes
-            </TabsTrigger>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="applications">Applications</TabsTrigger>
+            <TabsTrigger value="surveys">Surveys</TabsTrigger>
+            <TabsTrigger value="codes">Invitation Codes</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="requests" className="space-y-4 sm:space-y-6">
-            <Card className="bg-white border">
+          {/* Advanced Analytics Dashboard */}
+          <TabsContent value="analytics" className="space-y-6">
+            {/* Key Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <Building2 className="w-8 h-8 text-blue-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">Total Funds</p>
+                      <p className="text-2xl font-bold text-gray-900">{analyticsData.totalFunds}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <DollarSign className="w-8 h-8 text-green-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">Total Capital</p>
+                      <p className="text-2xl font-bold text-gray-900">${(analyticsData.totalCapital / 1000000).toFixed(1)}M</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <Target className="w-8 h-8 text-purple-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">Avg Ticket</p>
+                      <p className="text-2xl font-bold text-gray-900">${(analyticsData.averageTicketSize / 1000).toFixed(0)}K</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <Globe className="w-8 h-8 text-orange-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">Markets</p>
+                      <p className="text-2xl font-bold text-gray-900">{analyticsData.activeMarkets}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Fund Distribution</CardTitle>
+                  <CardDescription>Distribution of fund types</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div style={{ width: '100%', height: 300 }}>
+                    <ResponsiveContainer>
+                      <RechartsPieChart>
+                        <Pie
+                          data={chartData.vehicleTypes}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {chartData.vehicleTypes.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </RechartsPieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Geographic Distribution</CardTitle>
+                  <CardDescription>Fund managers by location</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div style={{ width: '100%', height: 300 }}>
+                    <ResponsiveContainer>
+                      <BarChart data={chartData.locations}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar dataKey="value" fill="#8884d8" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
               <CardHeader>
-                <CardTitle className="text-black text-lg sm:text-xl">Membership Requests</CardTitle>
-                <CardDescription>Review and manage membership applications</CardDescription>
+                <CardTitle>Growth Trends</CardTitle>
+                <CardDescription>Fund registration over time</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {membershipRequests.length === 0 ? (
-                    <p className="text-center text-gray-500 py-8">No membership requests found</p>
-                  ) : (
-                    membershipRequests.map((request) => (
-                      <div key={request.id} className="flex flex-col lg:flex-row lg:items-center lg:justify-between p-4 border rounded-lg space-y-4 lg:space-y-0">
-                        <div className="flex-1 min-w-0">
-                          <div className="space-y-1">
-                            <p className="font-medium text-black text-sm sm:text-base truncate">{request.email}</p>
-                            <p className="text-xs sm:text-sm text-gray-600 truncate">{request.vehicle_name}</p>
-                            <p className="text-xs text-gray-400">
-                              Requested: {new Date(request.created_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 lg:flex-shrink-0">
-                          <Badge 
-                            variant={
-                              request.status === 'approved' ? 'default' : 
-                              request.status === 'rejected' ? 'destructive' : 
-                              'secondary'
-                            }
-                            className="w-fit text-xs"
-                          >
-                            {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-                          </Badge>
-                          {request.status === 'pending' && (
-                            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                              <Button
-                                size="sm"
-                                onClick={() => approveRequest(request.id, request.email, request.vehicle_name)}
-                                className="bg-green-600 hover:bg-green-700 text-white text-xs whitespace-nowrap"
-                              >
-                                <UserCheck className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                                Approve
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => rejectRequest(request.id)}
-                                className="border-red-300 text-red-600 hover:bg-red-50 text-xs whitespace-nowrap"
-                              >
-                                <UserX className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                                Reject
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))
-                  )}
+                <div style={{ width: '100%', height: 400 }}>
+                  <ResponsiveContainer>
+                    <AreaChart data={chartData.yearData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Area type="monotone" dataKey="value" stroke="#8884d8" fill="#8884d8" />
+                    </AreaChart>
+                  </ResponsiveContainer>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="codes" className="space-y-4 sm:space-y-6">
-            <Card className="bg-white border">
+          {/* Applications Management */}
+          <TabsContent value="applications" className="space-y-6">
+            <Card>
               <CardHeader>
-                <CardTitle className="text-black text-lg sm:text-xl">Invitation Codes</CardTitle>
-                <CardDescription>Manage generated invitation codes</CardDescription>
+                <CardTitle>Membership Applications</CardTitle>
+                <CardDescription>Review and manage membership requests</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {invitationCodes.length === 0 ? (
-                    <p className="text-center text-gray-500 py-8">No invitation codes found</p>
-                  ) : (
-                    invitationCodes.map((code) => (
-                      <div key={code.id} className="flex flex-col lg:flex-row lg:items-center lg:justify-between p-4 border rounded-lg space-y-4 lg:space-y-0">
-                        <div className="flex-1 min-w-0">
-                          <div className="space-y-1">
-                            <p className="font-mono font-bold text-base sm:text-lg text-black break-all">{code.code}</p>
-                            <p className="text-xs sm:text-sm text-gray-600 truncate">{code.email} - {code.vehicle_name}</p>
-                            <p className="text-xs text-gray-400">
-                              Created: {new Date(code.created_at).toLocaleDateString()} | 
-                              Expires: {new Date(code.expires_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 lg:flex-shrink-0">
-                          <Badge 
-                            variant={
-                              code.used_at ? 'default' : 
-                              new Date(code.expires_at) < new Date() ? 'destructive' : 
-                              'secondary'
-                            }
-                            className="w-fit text-xs"
-                          >
-                            {code.used_at ? 'Used' : new Date(code.expires_at) < new Date() ? 'Expired' : 'Active'}
+                  {applications.map((app) => (
+                    <div key={app.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-semibold">{app.applicant_name}</h3>
+                          <p className="text-sm text-gray-600">{app.email}</p>
+                          <p className="text-sm text-gray-600">{app.vehicle_name}</p>
+                          <Badge variant={
+                            app.status === 'pending' ? 'default' :
+                            app.status === 'approved' ? 'default' : 'destructive'
+                          }>
+                            {app.status}
                           </Badge>
-                          {code.used_at && (
-                            <p className="text-xs text-gray-500">
-                              Used: {new Date(code.used_at).toLocaleDateString()}
-                            </p>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="outline" size="sm">
+                                <Eye className="w-4 h-4 mr-2" />
+                                View
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl">
+                              <DialogHeader>
+                                <DialogTitle>Application Details</DialogTitle>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <div>
+                                  <Label>Name</Label>
+                                  <p>{app.applicant_name}</p>
+                                </div>
+                                <div>
+                                  <Label>Email</Label>
+                                  <p>{app.email}</p>
+                                </div>
+                                <div>
+                                  <Label>Vehicle Name</Label>
+                                  <p>{app.vehicle_name}</p>
+                                </div>
+                                <div>
+                                  <Label>Organization</Label>
+                                  <p>{app.organization_name}</p>
+                                </div>
+                                <div>
+                                  <Label>Investment Focus</Label>
+                                  <p>{app.investment_focus}</p>
+                                </div>
+                                <div>
+                                  <Label>Motivation</Label>
+                                  <p>{app.motivation}</p>
+                                </div>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                          
+                          {app.status === 'pending' && (
+                            <>
+                              <Button 
+                                size="sm" 
+                                onClick={() => handleApproveApplication(app)}
+                              >
+                                <CheckCircle className="w-4 h-4 mr-2" />
+                                Approve
+                              </Button>
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button variant="destructive" size="sm">
+                                    <XCircle className="w-4 h-4 mr-2" />
+                                    Reject
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                  <DialogHeader>
+                                    <DialogTitle>Reject Application</DialogTitle>
+                                    <DialogDescription>
+                                      Please provide a reason for rejection
+                                    </DialogDescription>
+                                  </DialogHeader>
+                                  <Textarea
+                                    value={rejectionReason}
+                                    onChange={(e) => setRejectionReason(e.target.value)}
+                                    placeholder="Reason for rejection..."
+                                  />
+                                  <Button 
+                                    onClick={() => handleRejectApplication(app)}
+                                    variant="destructive"
+                                  >
+                                    Reject Application
+                                  </Button>
+                                </DialogContent>
+                              </Dialog>
+                            </>
                           )}
                         </div>
                       </div>
-                    ))
-                  )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Surveys Management */}
+          <TabsContent value="surveys" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Survey Responses</CardTitle>
+                <CardDescription>View and manage completed surveys</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {surveys.map((survey) => (
+                    <div key={survey.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-semibold">
+                            {survey.profileData?.first_name} {survey.profileData?.last_name}
+                          </h3>
+                          <p className="text-sm text-gray-600">{survey.profileData?.email}</p>
+                          <p className="text-sm text-gray-600">{survey.vehicle_name}</p>
+                          <p className="text-sm text-gray-600">Year: {survey.year}</p>
+                        </div>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              <Eye className="w-4 h-4 mr-2" />
+                              View Survey
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                            <DialogHeader>
+                              <DialogTitle>Survey Response - {survey.year}</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4">
+                              <div>
+                                <Label>Vehicle Name</Label>
+                                <p>{survey.vehicle_name}</p>
+                              </div>
+                              <div>
+                                <Label>Investment Thesis</Label>
+                                <p>{survey.thesis}</p>
+                              </div>
+                              <div>
+                                <Label>Ticket Size</Label>
+                                <p>{survey.ticket_size}</p>
+                              </div>
+                              <div>
+                                <Label>Location</Label>
+                                <p>{survey.location}</p>
+                              </div>
+                              <div>
+                                <Label>Team Size</Label>
+                                <p>{survey.team_size_description}</p>
+                              </div>
+                              <div>
+                                <Label>Portfolio Count</Label>
+                                <p>{survey.portfolio_count}</p>
+                              </div>
+                              <div>
+                                <Label>Capital Raised</Label>
+                                <p>{survey.capital_raised_description}</p>
+                              </div>
+                              <div>
+                                <Label>Expectations</Label>
+                                <p>{survey.expectations}</p>
+                              </div>
+                              <div>
+                                <Label>How They Heard About Network</Label>
+                                <p>{survey.how_heard_about_network}</p>
+                              </div>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Invitation Codes */}
+          <TabsContent value="codes" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Create Invitation Code</CardTitle>
+                <CardDescription>Generate new invitation codes for approved members</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div>
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={newCode.email}
+                      onChange={(e) => setNewCode({...newCode, email: e.target.value})}
+                      placeholder="member@example.com"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="vehicle">Vehicle Name</Label>
+                    <Input
+                      id="vehicle"
+                      value={newCode.vehicle_name}
+                      onChange={(e) => setNewCode({...newCode, vehicle_name: e.target.value})}
+                      placeholder="Fund Name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="expires">Expires At</Label>
+                    <Input
+                      id="expires"
+                      type="datetime-local"
+                      value={newCode.expires_at}
+                      onChange={(e) => setNewCode({...newCode, expires_at: e.target.value})}
+                    />
+                  </div>
+                </div>
+                <Button onClick={createInvitationCode}>
+                  Create Code
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Active Invitation Codes</CardTitle>
+                <CardDescription>Manage existing invitation codes</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {codes.map((code) => (
+                    <div key={code.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="font-mono font-bold">{code.code}</p>
+                          <p className="text-sm text-gray-600">{code.email}</p>
+                          <p className="text-sm text-gray-600">{code.vehicle_name}</p>
+                          <p className="text-xs text-gray-500">
+                            Expires: {new Date(code.expires_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div>
+                          {code.used_at ? (
+                            <Badge variant="secondary">Used</Badge>
+                          ) : (
+                            <Badge>Active</Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
