@@ -239,6 +239,8 @@ const Survey = () => {
   };
 
   const onSubmit = async (data: SurveyFormData) => {
+    console.log('Submitting survey with data:', data);
+    
     if (!user) {
       toast({
         title: "Authentication Required",
@@ -272,16 +274,21 @@ const Survey = () => {
     setShowSubmitConfirmation(false);
     
     try {
+      console.log('Preparing data for database...');
       const surveyData = prepareForDb(data, user.id, selectedYear, true);
+      console.log('Survey data prepared:', surveyData);
 
+      // First, save to survey_responses table
       let result;
       if (existingResponse?.id) {
+        console.log('Updating existing survey response...');
         result = await supabase
           .from('survey_responses')
           .update(surveyData)
           .eq('id', existingResponse.id)
           .eq('user_id', user.id);
       } else {
+        console.log('Creating new survey response...');
         result = await supabase
           .from('survey_responses')
           .insert([surveyData]);
@@ -292,9 +299,68 @@ const Survey = () => {
         throw result.error;
       }
 
+      console.log('Survey response saved successfully');
+
+      // Then, create/update entry in member_surveys table for network visibility
+      const memberSurveyData = {
+        user_id: user.id,
+        fund_name: data.vehicle_name || 'Unknown Fund',
+        website: data.vehicle_websites?.[0] || null,
+        fund_type: data.vehicle_type || 'Unknown',
+        primary_investment_region: Object.keys(data.markets_operated || {}).join(', ') || null,
+        year_founded: data.legal_entity_date_from || null,
+        team_size: data.team_size_max || null,
+        typical_check_size: `$${data.ticket_size_min?.toLocaleString()} - $${data.ticket_size_max?.toLocaleString()}`,
+        aum: `$${data.capital_raised?.toLocaleString()}`,
+        investment_thesis: data.thesis || null,
+        sector_focus: Object.keys(data.sectors_allocation || {}),
+        stage_focus: data.fund_stage || [],
+        completed_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      console.log('Member survey data prepared:', memberSurveyData);
+
+      // Check if member survey already exists
+      const { data: existingMemberSurvey } = await supabase
+        .from('member_surveys')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (existingMemberSurvey) {
+        console.log('Updating existing member survey...');
+        // Update existing member survey
+        const { error: memberSurveyError } = await supabase
+          .from('member_surveys')
+          .update(memberSurveyData)
+          .eq('user_id', user.id);
+
+        if (memberSurveyError) {
+          console.error('Error updating member survey:', memberSurveyError);
+          // Don't throw here as the main survey was saved successfully
+        } else {
+          console.log('Member survey updated successfully');
+        }
+      } else {
+        console.log('Creating new member survey...');
+        // Create new member survey
+        const { error: memberSurveyError } = await supabase
+          .from('member_surveys')
+          .insert([memberSurveyData]);
+
+        if (memberSurveyError) {
+          console.error('Error creating member survey:', memberSurveyError);
+          // Don't throw here as the main survey was saved successfully
+        } else {
+          console.log('Member survey created successfully');
+        }
+      }
+
       toast({
         title: "Survey Submitted Successfully!",
-        description: `Your ${selectedYear} survey has been completed and submitted.`,
+        description: `Your ${selectedYear} survey has been completed and submitted. You are now visible in the network!`,
       });
 
       // Refresh past surveys and reset form
@@ -446,12 +512,7 @@ const Survey = () => {
           </div>
 
           <Form {...form}>
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              if (currentSection === totalSections) {
-                setShowSubmitConfirmation(true);
-              }
-            }} className="space-y-8">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
@@ -501,11 +562,11 @@ const Survey = () => {
                   </Button>
                 ) : (
                   <Button 
-                    type="button" 
-                    onClick={() => setShowSubmitConfirmation(true)}
+                    type="submit"
+                    disabled={isSubmitting}
                     className="bg-green-600 hover:bg-green-700"
                   >
-                    Review & Submit
+                    {isSubmitting ? 'Submitting...' : 'Review & Submit'}
                     <CheckCircle className="w-4 h-4 ml-2" />
                   </Button>
                 )}
