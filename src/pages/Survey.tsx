@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -89,7 +88,9 @@ const surveySchema = z.object({
 
   // Section 3: Geographic & Market Focus
   legal_domicile: z.array(z.string()).min(1, "At least one legal domicile is required"),
+  legal_domicile_other: z.string().optional(),
   markets_operated: z.record(z.number()).optional(),
+  markets_operated_other: z.string().optional(),
 
   // Section 4: Investment Strategy
   ticket_size_min: z.number().min(0, "Minimum ticket size is required"),
@@ -217,11 +218,122 @@ const Survey = () => {
     loadExistingResponse();
   }, [user, form, showNewSurvey, selectedYear]);
 
+  const prepareForDb = (formData: SurveyFormData, userId: string, year: number, completed: boolean = false) => {
+    const dbData: any = {
+      ...formData,
+      user_id: userId,
+      year,
+      completed_at: completed ? new Date().toISOString() : null,
+      legal_entity_date_to: formData.legal_entity_date_to === 9999 ? 'present' : formData.legal_entity_date_to,
+      first_close_date_to: formData.first_close_date_to === 9999 ? 'present' : formData.first_close_date_to,
+      // Ensure JSON fields are properly stringified for database storage
+      team_members: JSON.stringify(formData.team_members || []),
+      vehicle_websites: JSON.stringify(formData.vehicle_websites || []),
+      legal_domicile: JSON.stringify(formData.legal_domicile || []),
+      fund_stage: JSON.stringify(formData.fund_stage || []),
+      markets_operated: JSON.stringify(formData.markets_operated || {}),
+      investment_instruments_priority: JSON.stringify(formData.investment_instruments_priority || {}),
+      sectors_allocation: JSON.stringify(formData.sectors_allocation || {}),
+    };
+    return dbData;
+  };
+
+  const onSubmit = async (data: SurveyFormData) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to submit your survey.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!selectedYear) {
+      toast({
+        title: "Year Required",
+        description: "Please select a year for this survey.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate market allocation doesn't exceed 100%
+    const totalMarketAllocation = Object.values(data.markets_operated || {}).reduce((sum, val) => sum + val, 0);
+    if (totalMarketAllocation > 100) {
+      toast({
+        title: "Invalid Market Allocation",
+        description: "Total market allocation cannot exceed 100%.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setShowSubmitConfirmation(false);
+    
+    try {
+      const surveyData = prepareForDb(data, user.id, selectedYear, true);
+
+      let result;
+      if (existingResponse?.id) {
+        result = await supabase
+          .from('survey_responses')
+          .update(surveyData)
+          .eq('id', existingResponse.id)
+          .eq('user_id', user.id);
+      } else {
+        result = await supabase
+          .from('survey_responses')
+          .insert([surveyData]);
+      }
+
+      if (result.error) {
+        console.error('Supabase error:', result.error);
+        throw result.error;
+      }
+
+      toast({
+        title: "Survey Submitted Successfully!",
+        description: `Your ${selectedYear} survey has been completed and submitted.`,
+      });
+
+      // Refresh past surveys and reset form
+      await fetchPastSurveys();
+      setShowNewSurvey(false);
+      setCurrentSection(1);
+      form.reset();
+
+    } catch (error) {
+      console.error('Submit error:', error);
+      toast({
+        title: "Submission Failed",
+        description: error?.message || "Failed to submit survey. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleNext = () => {
+    const currentValues = form.getValues();
+    
+    // Validate current section before proceeding
+    if (currentSection === 3) {
+      const totalMarketAllocation = Object.values(currentValues.markets_operated || {}).reduce((sum, val) => sum + val, 0);
+      if (totalMarketAllocation > 100) {
+        toast({
+          title: "Invalid Market Allocation",
+          description: "Total market allocation cannot exceed 100%. Please adjust your allocations.",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
     if (currentSection < totalSections) {
       setCurrentSection(currentSection + 1);
     } else if (currentSection === totalSections) {
-      // Show confirmation dialog instead of auto-submitting
       setShowSubmitConfirmation(true);
     }
   };
@@ -264,64 +376,6 @@ const Survey = () => {
         title: "Error",
         description: "Failed to save draft. Please try again.",
         variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const prepareForDb = (formData: SurveyFormData, userId: string, year: number, completed: boolean = false) => {
-    const dbData: any = {
-      ...formData,
-      user_id: userId,
-      year,
-      completed_at: completed ? new Date().toISOString() : null,
-      legal_entity_date_to: formData.legal_entity_date_to === 9999 ? 'present' : formData.legal_entity_date_to,
-      first_close_date_to: formData.first_close_date_to === 9999 ? 'present' : formData.first_close_date_to,
-    };
-    return dbData;
-  };
-
-  const onSubmit = async (data: SurveyFormData) => {
-    if (!user) return;
-
-    setIsSubmitting(true);
-    setShowSubmitConfirmation(false);
-    
-    try {
-      const surveyData = prepareForDb(data, user.id, selectedYear || 0, true);
-
-      if (existingResponse) {
-        const { error } = await supabase
-          .from('survey_responses')
-          .update(surveyData)
-          .eq('id', existingResponse.id);
-
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('survey_responses')
-          .insert(surveyData);
-
-        if (error) throw error;
-      }
-
-      toast({
-        title: "Survey Completed!",
-        description: "Thank you for completing the survey.",
-      });
-
-      // Refresh past surveys and reset form
-      fetchPastSurveys();
-      setShowNewSurvey(false);
-      setCurrentSection(1);
-
-    } catch (error) {
-      console.error('Submit error:', error);
-      toast({
-        title: "Submission Failed",
-        description: "Failed to submit survey. Please try again.",
-        variant: "destructive"
       });
     } finally {
       setIsSubmitting(false);

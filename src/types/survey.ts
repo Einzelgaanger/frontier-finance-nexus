@@ -17,7 +17,9 @@ export interface SurveyFormData {
   team_size_max?: number;
   team_description?: string;
   legal_domicile?: string[];
+  legal_domicile_other?: string;
   markets_operated?: Record<string, number>;
+  markets_operated_other?: string;
   ticket_size_min?: number;
   ticket_size_max?: number;
   ticket_description?: string;
@@ -52,4 +54,4 @@ export interface SurveyFormData {
   year?: number;
   created_at?: string;
   completed_at?: string;
-} 
+}

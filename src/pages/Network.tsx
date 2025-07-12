@@ -5,18 +5,22 @@ import Header from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Building2, MapPin, Users, Globe, Eye } from 'lucide-react';
+import { Building2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { Link } from 'react-router-dom';
+import { NetworkCard } from '@/components/network/NetworkCard';
 
 interface FundManager {
   id: string;
   user_id: string;
   fund_name: string;
-  website: string;
-  profiles: {
+  website?: string;
+  primary_investment_region?: string;
+  fund_type?: string;
+  year_founded?: number;
+  team_size?: number;
+  typical_check_size?: string;
+  completed_at?: string;
+  profiles?: {
     first_name: string;
     last_name: string;
     email: string;
@@ -30,55 +34,70 @@ const Network = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRegion, setFilterRegion] = useState('all');
-  const [filterSector, setFilterSector] = useState('all');
+  const [filterType, setFilterType] = useState('all');
 
   useEffect(() => {
-    if (userRole === 'member' || userRole === 'admin') {
-      fetchFundManagers();
-    }
-  }, [userRole]);
+    fetchFundManagers();
+  }, []);
 
   useEffect(() => {
     filterManagers();
-  }, [fundManagers, searchTerm, filterRegion, filterSector]);
+  }, [fundManagers, searchTerm, filterRegion, filterType]);
 
   const fetchFundManagers = async () => {
     try {
       console.log('Fetching fund managers...');
       
-      // First get member surveys with proper join
       const { data: surveys, error: surveysError } = await supabase
         .from('member_surveys')
         .select('*')
-        .not('completed_at', 'is', null);
+        .not('completed_at', 'is', null)
+        .order('completed_at', { ascending: false });
 
       if (surveysError) {
         console.error('Error fetching surveys:', surveysError);
         throw surveysError;
       }
 
-      // Then get profiles for each user
-      const managersWithProfiles = [];
+      console.log('Surveys fetched:', surveys);
+
+      if (!surveys || surveys.length === 0) {
+        console.log('No completed surveys found');
+        setFundManagers([]);
+        setLoading(false);
+        return;
+      }
+
+      // Get profiles for each user
+      const managersWithProfiles: FundManager[] = [];
       
-      for (const survey of surveys || []) {
+      for (const survey of surveys) {
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('first_name, last_name, email')
           .eq('id', survey.user_id)
           .single();
 
-        if (!profileError && profile) {
-          managersWithProfiles.push({
-            id: survey.id,
-            user_id: survey.user_id,
-            fund_name: survey.fund_name || 'Unknown Fund',
-            website: survey.website || '',
-            profiles: profile
-          });
+        if (profileError) {
+          console.warn('Profile not found for user:', survey.user_id);
         }
+
+        managersWithProfiles.push({
+          id: survey.id,
+          user_id: survey.user_id,
+          fund_name: survey.fund_name || 'Unknown Fund',
+          website: survey.website,
+          primary_investment_region: survey.primary_investment_region,
+          fund_type: survey.fund_type,
+          year_founded: survey.year_founded,
+          team_size: survey.team_size,
+          typical_check_size: survey.typical_check_size,
+          completed_at: survey.completed_at,
+          profiles: profile || undefined
+        });
       }
 
-      console.log('Fund managers fetched:', managersWithProfiles);
+      console.log('Fund managers with profiles:', managersWithProfiles);
       setFundManagers(managersWithProfiles);
     } catch (error) {
       console.error('Error fetching fund managers:', error);
@@ -95,7 +114,20 @@ const Network = () => {
       filtered = filtered.filter(manager =>
         manager.fund_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (manager.profiles?.first_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (manager.profiles?.last_name || '').toLowerCase().includes(searchTerm.toLowerCase())
+        (manager.profiles?.last_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (manager.primary_investment_region || '').toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (filterRegion !== 'all') {
+      filtered = filtered.filter(manager =>
+        (manager.primary_investment_region || '').toLowerCase().includes(filterRegion.toLowerCase())
+      );
+    }
+
+    if (filterType !== 'all') {
+      filtered = filtered.filter(manager =>
+        (manager.fund_type || '').toLowerCase().includes(filterType.toLowerCase())
       );
     }
 
@@ -107,14 +139,33 @@ const Network = () => {
       <div className="min-h-screen bg-gray-50">
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="max-w-2xl mx-auto border-amber-200 bg-amber-50">
-            <CardHeader>
-              <CardTitle className="text-amber-800">Member Access Required</CardTitle>
-              <CardDescription className="text-amber-700">
-                You need to be an approved member to access the network directory.
-              </CardDescription>
-            </CardHeader>
-          </Card>
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Network Directory</h1>
+            <p className="text-gray-600">Discover fund managers in the ESCP Network</p>
+          </div>
+
+          {/* Show limited network view for viewers */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {fundManagers.slice(0, 6).map((manager) => (
+              <NetworkCard 
+                key={manager.id} 
+                fund={manager} 
+                userRole={userRole}
+                showDetails={false}
+              />
+            ))}
+          </div>
+
+          {fundManagers.length > 6 && (
+            <Card className="mt-8 border-amber-200 bg-amber-50">
+              <CardHeader>
+                <CardTitle className="text-amber-800">Unlock Full Network Access</CardTitle>
+                <CardDescription className="text-amber-700">
+                  Become a member to view detailed profiles and connect with all {fundManagers.length} fund managers in our network.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          )}
         </div>
       </div>
     );
@@ -148,7 +199,7 @@ const Network = () => {
         <div className="mb-6 flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <Input
-              placeholder="Search by fund name or manager..."
+              placeholder="Search by fund name, manager, or region..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full"
@@ -161,23 +212,23 @@ const Network = () => {
             <SelectContent>
               <SelectItem value="all">All Regions</SelectItem>
               <SelectItem value="africa">Africa</SelectItem>
-              <SelectItem value="asia">Asia</SelectItem>
-              <SelectItem value="europe">Europe</SelectItem>
-              <SelectItem value="north-america">North America</SelectItem>
-              <SelectItem value="south-america">South America</SelectItem>
+              <SelectItem value="east africa">East Africa</SelectItem>
+              <SelectItem value="west africa">West Africa</SelectItem>
+              <SelectItem value="southern africa">Southern Africa</SelectItem>
+              <SelectItem value="north africa">North Africa</SelectItem>
+              <SelectItem value="global">Global</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={filterSector} onValueChange={setFilterSector}>
+          <Select value={filterType} onValueChange={setFilterType}>
             <SelectTrigger className="w-full sm:w-48">
-              <SelectValue placeholder="Filter by sector" />
+              <SelectValue placeholder="Filter by type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Sectors</SelectItem>
-              <SelectItem value="technology">Technology</SelectItem>
-              <SelectItem value="healthcare">Healthcare</SelectItem>
-              <SelectItem value="finance">Finance</SelectItem>
-              <SelectItem value="energy">Energy</SelectItem>
-              <SelectItem value="agriculture">Agriculture</SelectItem>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="venture capital">Venture Capital</SelectItem>
+              <SelectItem value="private equity">Private Equity</SelectItem>
+              <SelectItem value="impact fund">Impact Fund</SelectItem>
+              <SelectItem value="angel network">Angel Network</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -192,50 +243,12 @@ const Network = () => {
         {/* Fund Managers Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredManagers.map((manager) => (
-            <Card key={manager.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg">{manager.fund_name}</CardTitle>
-                    <CardDescription>
-                      {manager.profiles?.first_name} {manager.profiles?.last_name}
-                    </CardDescription>
-                  </div>
-                  <Building2 className="w-6 h-6 text-blue-600" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Users className="w-4 h-4 mr-2" />
-                    <span>{manager.profiles?.email}</span>
-                  </div>
-                  
-                  {manager.website && (
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Globe className="w-4 h-4 mr-2" />
-                      <a 
-                        href={manager.website} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline truncate"
-                      >
-                        {manager.website}
-                      </a>
-                    </div>
-                  )}
-                  
-                  <div className="pt-2">
-                    <Link to={`/fund-manager/${manager.user_id}`}>
-                      <Button variant="outline" size="sm" className="w-full">
-                        <Eye className="w-4 h-4 mr-2" />
-                        View Profile
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <NetworkCard 
+              key={manager.id} 
+              fund={manager} 
+              userRole={userRole}
+              showDetails={true}
+            />
           ))}
         </div>
 
@@ -244,7 +257,7 @@ const Network = () => {
             <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No fund managers found</h3>
             <p className="text-gray-600">
-              {searchTerm || filterRegion !== 'all' || filterSector !== 'all'
+              {searchTerm || filterRegion !== 'all' || filterType !== 'all'
                 ? 'Try adjusting your search criteria'
                 : 'No fund managers have completed their profiles yet'
               }
