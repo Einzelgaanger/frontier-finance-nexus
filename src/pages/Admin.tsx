@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Building2,
   FileText,
@@ -20,10 +21,17 @@ import {
   Calendar,
   Eye,
   CheckCircle,
-  XCircle
+  XCircle,
+  File,
+  Clock,
+  Activity,
+  Archive,
+  UserX,
+  UserCog
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
+import { Json } from '@/integrations/supabase/types';
 import {
   ResponsiveContainer,
   BarChart,
@@ -70,6 +78,24 @@ interface MembershipRequest {
   additional_comments: string | null;
   status: string;
   created_at: string | null;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
+}
+
+interface ActivityLogDetails {
+  applicant_name?: string;
+  old_role?: string;
+  new_role?: string;
+  target_user_id?: string;
+}
+
+interface ActivityLog {
+  id: string;
+  user_id: string | null;
+  action: string;
+  details: ActivityLogDetails;
+  created_at: string;
+  user_agent: string | null;
 }
 
 const Admin = () => {
@@ -80,6 +106,10 @@ const Admin = () => {
   const [selectedRequest, setSelectedRequest] = useState<MembershipRequest | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [activeTab, setActiveTab] = useState('overview');
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingRoleChange, setPendingRoleChange] = useState<{requestId: string, newRole: 'viewer' | 'member'} | null>(null);
+  const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [analyticsData, setAnalyticsData] = useState({
     totalFunds: 0,
     totalCapital: 0,
@@ -125,12 +155,28 @@ const Admin = () => {
     }
   }, []);
 
+  const fetchActivityLogs = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('activity_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      setActivityLogs(data || []);
+    } catch (error) {
+      console.error('Error fetching activity logs:', error);
+    }
+  }, []);
+
   useEffect(() => {
     if (userRole === 'admin') {
       fetchFundManagers();
       fetchMembershipRequests();
+      fetchActivityLogs();
     }
-  }, [userRole, fetchFundManagers, fetchMembershipRequests]);
+  }, [userRole, fetchFundManagers, fetchMembershipRequests, fetchActivityLogs]);
 
   useEffect(() => {
     if (userRole === 'admin') {
@@ -225,7 +271,7 @@ const Admin = () => {
 
         // Calculate monthly growth (simplified)
         const monthlyGrowth = newFundsThisMonth > 0 
-          ? (newFundsThisMonth / Math.max((totalFunds - newFundsThisMonth), 1)) * 100 
+          ? (newFundsThisMonth / Math.max(totalFunds - newFundsThisMonth, 1)) * 100 
           : 0;
 
         // Generate capital trends (last 6 months)
@@ -280,9 +326,16 @@ const Admin = () => {
   };
 
   const handleRoleChange = async (requestId: string, newRole: 'viewer' | 'member') => {
+    setPendingRoleChange({ requestId, newRole });
+    setShowConfirmDialog(true);
+  };
+
+  const confirmRoleChange = async () => {
+    if (!pendingRoleChange) return;
+    
     setIsUpdating(true);
     try {
-      // Get the membership request to find the user_id
+      const { requestId, newRole } = pendingRoleChange;
       const request = membershipRequests.find(r => r.id === requestId);
       if (!request) return;
 
@@ -306,13 +359,30 @@ const Admin = () => {
 
       if (requestError) throw requestError;
 
+      // Log the activity
+      await supabase
+        .from('activity_logs')
+        .insert({
+          user_id: user?.id,
+          action: 'role_changed',
+          details: {
+            target_user_id: request.user_id,
+            old_role: request.status === 'approved' ? 'member' : 'viewer',
+            new_role: newRole,
+            applicant_name: request.applicant_name
+          }
+        });
+
       // Refresh the data
       fetchMembershipRequests();
+      fetchActivityLogs();
     } catch (error) {
       console.error('Error updating user role:', error);
     } finally {
       setIsUpdating(false);
       setSelectedRequest(null);
+      setShowConfirmDialog(false);
+      setPendingRoleChange(null);
     }
   };
 
@@ -523,105 +593,215 @@ const Admin = () => {
           <p className="text-gray-600">Manage network members and view analytics</p>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Pending Applications</CardTitle>
-              <UserPlus className="h-4 w-4 text-gray-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
-                {membershipRequests.filter(r => r.status === 'pending').length}
-              </div>
-              <p className="text-sm text-gray-500">Awaiting review</p>
-            </CardContent>
-          </Card>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="applications">Applications</TabsTrigger>
+            <TabsTrigger value="members">Members</TabsTrigger>
+            <TabsTrigger value="activity">Activity Logs</TabsTrigger>
+          </TabsList>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total Members</CardTitle>
-              <Users className="h-4 w-4 text-gray-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{fundManagers.length}</div>
-              <p className="text-sm text-gray-500">Active fund managers</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Analytics Year</CardTitle>
-              <Calendar className="h-4 w-4 text-gray-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{selectedYear}</div>
-              <p className="text-sm text-gray-500">Selected period</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Quick Actions</CardTitle>
-              <LayoutDashboard className="h-4 w-4 text-gray-500" />
-            </CardHeader>
-            <CardContent>
-              <Button variant="secondary" size="sm" asChild>
-                <Link to="/analytics">View Analytics</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Membership Applications */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Membership Applications</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {membershipRequests.filter(r => r.status === 'pending').map((request) => (
-              <Card key={request.id} className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium">{request.applicant_name}</CardTitle>
-                    <Badge variant="secondary">Pending</Badge>
-                  </div>
-                  <CardDescription className="text-xs">{request.email}</CardDescription>
+          <TabsContent value="overview" className="space-y-6">
+            {/* Quick Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium">Pending Applications</CardTitle>
+                  <UserPlus className="h-4 w-4 text-gray-500" />
                 </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-2 text-sm">
-                    <p><span className="font-medium">Vehicle:</span> {request.vehicle_name}</p>
-                    <p><span className="font-medium">Organization:</span> {request.organization_name || 'N/A'}</p>
-                    <p><span className="font-medium">Country:</span> {request.country_of_operation || 'N/A'}</p>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900">
+                    {membershipRequests.filter(r => r.status === 'pending').length}
                   </div>
-                  <div className="flex gap-2 mt-4">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setSelectedRequest(request)}
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      View Details
-                    </Button>
-                    <Select
-                      value=""
-                      onValueChange={(value) => handleRoleChange(request.id, value as 'viewer' | 'member')}
-                      disabled={isUpdating}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue placeholder="Action" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="member">Approve</SelectItem>
-                        <SelectItem value="viewer">Reject</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <p className="text-sm text-gray-500">Awaiting review</p>
                 </CardContent>
               </Card>
-            ))}
-          </div>
-        </div>
 
-        {renderAnalytics()}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium">Total Members</CardTitle>
+                  <Users className="h-4 w-4 text-gray-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900">{fundManagers.length}</div>
+                  <p className="text-sm text-gray-500">Active fund managers</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium">Analytics Year</CardTitle>
+                  <Calendar className="h-4 w-4 text-gray-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900">{selectedYear}</div>
+                  <p className="text-sm text-gray-500">Selected period</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium">Quick Actions</CardTitle>
+                  <LayoutDashboard className="h-4 w-4 text-gray-500" />
+                </CardHeader>
+                <CardContent>
+                  <Button variant="secondary" size="sm" asChild>
+                    <Link to="/analytics">View Analytics</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+
+            {renderAnalytics()}
+          </TabsContent>
+
+          <TabsContent value="applications" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">Membership Applications</h2>
+              <div className="flex gap-2">
+                <Badge variant="outline">
+                  Pending: {membershipRequests.filter(r => r.status === 'pending').length}
+                </Badge>
+                <Badge variant="outline">
+                  Approved: {membershipRequests.filter(r => r.status === 'approved').length}
+                </Badge>
+                <Badge variant="outline">
+                  Rejected: {membershipRequests.filter(r => r.status === 'rejected').length}
+                </Badge>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {membershipRequests.filter(r => r.status === 'pending').map((request) => (
+                <Card key={request.id} className="hover:shadow-md transition-shadow">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm font-medium">{request.applicant_name}</CardTitle>
+                      <Badge variant="secondary">Pending</Badge>
+                    </div>
+                    <CardDescription className="text-xs">{request.email}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="space-y-2 text-sm">
+                      <p><span className="font-medium">Vehicle:</span> {request.vehicle_name}</p>
+                      <p><span className="font-medium">Organization:</span> {request.organization_name || 'N/A'}</p>
+                      <p><span className="font-medium">Country:</span> {request.country_of_operation || 'N/A'}</p>
+                    </div>
+                    <div className="flex gap-2 mt-4">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setSelectedRequest(request)}
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        View Details
+                      </Button>
+                      <Select
+                        value=""
+                        onValueChange={(value) => handleRoleChange(request.id, value as 'viewer' | 'member')}
+                        disabled={isUpdating}
+                      >
+                        <SelectTrigger className="w-32">
+                          <SelectValue placeholder="Action" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="member">Make Member</SelectItem>
+                          <SelectItem value="viewer">Keep Viewer</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="members" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">Member Management</h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {membershipRequests.filter(r => r.status === 'approved').map((request) => (
+                <Card key={request.id} className="hover:shadow-md transition-shadow">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm font-medium">{request.applicant_name}</CardTitle>
+                      <Badge variant="default">Member</Badge>
+                    </div>
+                    <CardDescription className="text-xs">{request.email}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="space-y-2 text-sm">
+                      <p><span className="font-medium">Vehicle:</span> {request.vehicle_name}</p>
+                      <p><span className="font-medium">Organization:</span> {request.organization_name || 'N/A'}</p>
+                      <p><span className="font-medium">Country:</span> {request.country_of_operation || 'N/A'}</p>
+                    </div>
+                    <div className="flex gap-2 mt-4">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setSelectedRequest(request)}
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        View Details
+                      </Button>
+                      <Select
+                        value=""
+                        onValueChange={(value) => handleRoleChange(request.id, value as 'viewer' | 'member')}
+                        disabled={isUpdating}
+                      >
+                        <SelectTrigger className="w-32">
+                          <SelectValue placeholder="Change Role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="member">Keep Member</SelectItem>
+                          <SelectItem value="viewer">Make Viewer</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="activity" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">Activity Logs</h2>
+            </div>
+
+            <div className="space-y-4">
+              {activityLogs.map((log) => (
+                <Card key={log.id}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Activity className="h-5 w-5 text-blue-600" />
+                        <div>
+                          <p className="font-medium text-gray-900">{log.action}</p>
+                          <p className="text-sm text-gray-500">
+                            {new Date(log.created_at).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                      {log.details && (
+                        <div className="text-sm text-gray-600">
+                          {(log.details as any)?.applicant_name && (
+                            <p>User: {(log.details as any).applicant_name}</p>
+                          )}
+                          {(log.details as any)?.old_role && (log.details as any)?.new_role && (
+                            <p>Role: {(log.details as any).old_role} → {(log.details as any).new_role}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+        </Tabs>
 
         {/* Application Details Modal */}
         {selectedRequest && (
@@ -643,25 +823,72 @@ const Admin = () => {
                       <h3 className="text-lg leading-6 font-medium text-gray-900">
                         Application Details - {selectedRequest.applicant_name}
                       </h3>
-                      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        <div className="space-y-2">
-                          <p><span className="font-medium">Email:</span> {selectedRequest.email}</p>
-                          <p><span className="font-medium">Vehicle Name:</span> {selectedRequest.vehicle_name}</p>
-                          <p><span className="font-medium">Organization:</span> {selectedRequest.organization_name || 'N/A'}</p>
-                          <p><span className="font-medium">Organization Website:</span> {selectedRequest.organization_website || 'N/A'}</p>
-                          <p><span className="font-medium">Fund Vehicle Name:</span> {selectedRequest.fund_vehicle_name || 'N/A'}</p>
-                          <p><span className="font-medium">Fund Vehicle Type:</span> {selectedRequest.fund_vehicle_type || 'N/A'}</p>
-                          <p><span className="font-medium">Year Founded:</span> {selectedRequest.year_founded || 'N/A'}</p>
-                          <p><span className="font-medium">Country of Operation:</span> {selectedRequest.country_of_operation || 'N/A'}</p>
-                        </div>
-                        <div className="space-y-2">
-                          <p><span className="font-medium">AUM:</span> {selectedRequest.aum || 'N/A'}</p>
-                          <p><span className="font-medium">Fundraising Status:</span> {selectedRequest.fundraising_status || 'N/A'}</p>
-                          <p><span className="font-medium">Investment Focus:</span> {selectedRequest.investment_focus || 'N/A'}</p>
-                          <p><span className="font-medium">Team Overview:</span> {selectedRequest.team_overview || 'N/A'}</p>
-                          <p><span className="font-medium">Notable Investments:</span> {selectedRequest.notable_investments || 'N/A'}</p>
-                          <p><span className="font-medium">Motivation:</span> {selectedRequest.motivation || 'N/A'}</p>
-                          <p><span className="font-medium">Additional Comments:</span> {selectedRequest.additional_comments || 'N/A'}</p>
+                      <div className="mt-4 max-h-96 overflow-y-auto">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                          <div className="space-y-3">
+                            <div>
+                              <p className="font-medium text-gray-700">Email:</p>
+                              <p className="text-gray-600 break-all">{selectedRequest.email}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-700">Vehicle Name:</p>
+                              <p className="text-gray-600 break-words">{selectedRequest.vehicle_name}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-700">Organization:</p>
+                              <p className="text-gray-600 break-words">{selectedRequest.organization_name || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-700">Organization Website:</p>
+                              <p className="text-gray-600 break-all">{selectedRequest.organization_website || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-700">Fund Vehicle Name:</p>
+                              <p className="text-gray-600 break-words">{selectedRequest.fund_vehicle_name || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-700">Fund Vehicle Type:</p>
+                              <p className="text-gray-600 break-words">{selectedRequest.fund_vehicle_type || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-700">Year Founded:</p>
+                              <p className="text-gray-600">{selectedRequest.year_founded || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-700">Country of Operation:</p>
+                              <p className="text-gray-600 break-words">{selectedRequest.country_of_operation || 'N/A'}</p>
+                            </div>
+                          </div>
+                          <div className="space-y-3">
+                            <div>
+                              <p className="font-medium text-gray-700">AUM:</p>
+                              <p className="text-gray-600 break-words">{selectedRequest.aum || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-700">Fundraising Status:</p>
+                              <p className="text-gray-600 break-words">{selectedRequest.fundraising_status || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-700">Investment Focus:</p>
+                              <p className="text-gray-600 break-words">{selectedRequest.investment_focus || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-700">Team Overview:</p>
+                              <p className="text-gray-600 break-words">{selectedRequest.team_overview || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-700">Notable Investments:</p>
+                              <p className="text-gray-600 break-words">{selectedRequest.notable_investments || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-700">Motivation:</p>
+                              <p className="text-gray-600 break-words">{selectedRequest.motivation || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-700">Additional Comments:</p>
+                              <p className="text-gray-600 break-words">{selectedRequest.additional_comments || 'N/A'}</p>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -673,20 +900,20 @@ const Admin = () => {
                     onValueChange={(value) => handleRoleChange(selectedRequest.id, value as 'viewer' | 'member')}
                     disabled={isUpdating}
                   >
-                    <SelectTrigger className="w-32">
-                      <SelectValue placeholder="Action" />
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Change Role" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="member">
                         <div className="flex items-center">
                           <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
-                          Approve
+                          Make Member
                         </div>
                       </SelectItem>
                       <SelectItem value="viewer">
                         <div className="flex items-center">
                           <XCircle className="h-4 w-4 mr-2 text-red-600" />
-                          Reject
+                          Keep as Viewer
                         </div>
                       </SelectItem>
                     </SelectContent>
@@ -697,6 +924,59 @@ const Admin = () => {
                     onClick={() => setSelectedRequest(null)}
                   >
                     Close
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Confirmation Dialog */}
+        {showConfirmDialog && pendingRoleChange && (
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              <div className="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+              </div>
+
+              <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+              <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                  <div className="sm:flex sm:items-start">
+                    <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 sm:mx-0 sm:h-10 sm:w-10">
+                      <AlertTriangle className="h-6 w-6 text-yellow-600" aria-hidden="true" />
+                    </div>
+                    <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                      <h3 className="text-lg leading-6 font-medium text-gray-900">
+                        Confirm Role Change
+                      </h3>
+                      <div className="mt-2">
+                        <p className="text-sm text-gray-500">
+                          Are you sure you want to change this user's role to <strong>{pendingRoleChange.newRole}</strong>?
+                          This action cannot be undone.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                  <Button
+                    onClick={confirmRoleChange}
+                    disabled={isUpdating}
+                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
+                  >
+                    {isUpdating ? 'Updating...' : 'Confirm'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowConfirmDialog(false);
+                      setPendingRoleChange(null);
+                    }}
+                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"
+                  >
+                    Cancel
                   </Button>
                 </div>
               </div>
