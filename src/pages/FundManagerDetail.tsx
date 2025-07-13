@@ -359,13 +359,18 @@ const FundManagerDetail = () => {
           <TabsContent value="details" className="space-y-6">
             {activeSurvey && (
               <>
-                {/* For admin, show all fields. For member, show only general info. */}
                 {userRole === 'admin' ? (
                   <div className="space-y-4">
                     <Card>
                       <CardHeader><CardTitle>Full Survey Data</CardTitle></CardHeader>
                       <CardContent>
-                        <pre className="text-xs bg-gray-100 p-2 rounded overflow-x-auto">{JSON.stringify(activeSurvey, null, 2)}</pre>
+                        <ul className="list-disc pl-6 text-gray-700 space-y-1">
+                          {Object.entries(activeSurvey).map(([key, value]) => (
+                            value !== null && value !== undefined && value !== '' && (
+                              <li key={key}><b>{key.replace(/_/g, ' ')}:</b> {typeof value === 'object' ? JSON.stringify(value) : value}</li>
+                            )
+                          ))}
+                        </ul>
                       </CardContent>
                     </Card>
                   </div>
@@ -375,12 +380,12 @@ const FundManagerDetail = () => {
                       <CardHeader><CardTitle>General Survey Information</CardTitle></CardHeader>
                       <CardContent>
                         <ul className="list-disc pl-6 text-gray-700 space-y-1">
-                          <li><b>Thesis:</b> {activeSurvey.thesis}</li>
-                          <li><b>Ticket Size:</b> {activeSurvey.ticket_size}</li>
-                          <li><b>Team Size:</b> {activeSurvey.team_size_description}</li>
-                          <li><b>Year:</b> {activeSurvey.year}</li>
-                          <li><b>Expectations:</b> {activeSurvey.expectations}</li>
-                          <li><b>Website:</b> {activeSurvey.vehicle_website}</li>
+                          {activeSurvey.thesis && <li><b>Thesis:</b> {activeSurvey.thesis}</li>}
+                          {activeSurvey.ticket_size && <li><b>Ticket Size:</b> {activeSurvey.ticket_size}</li>}
+                          {activeSurvey.team_size_description && <li><b>Team Size:</b> {activeSurvey.team_size_description}</li>}
+                          {activeSurvey.year && <li><b>Year:</b> {activeSurvey.year}</li>}
+                          {activeSurvey.expectations && <li><b>Expectations:</b> {activeSurvey.expectations}</li>}
+                          {activeSurvey.vehicle_website && <li><b>Website:</b> {activeSurvey.vehicle_website}</li>}
                         </ul>
                       </CardContent>
                     </Card>
