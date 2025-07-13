@@ -34,22 +34,22 @@ const ViewerDashboard = () => {
           <CardContent>
             <div className="space-y-4">
               <div className="bg-white p-4 rounded-lg border border-green-200">
-                <h4 className="font-semibold text-green-900 mb-2 text-sm">Application Process:</h4>
-                <ul className="space-y-1 text-xs text-green-800">
+                <h4 className="font-bold text-green-900 mb-2 text-xl">Application Process:</h4>
+                <ul className="space-y-2 text-base text-green-800">
                   <li className="flex items-center">
-                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-2"></span>
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
                     Complete detailed application form (15 questions)
                   </li>
                   <li className="flex items-center">
-                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-2"></span>
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
                     Admin review and approval process
                   </li>
                   <li className="flex items-center">
-                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-2"></span>
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
                     Account upgrade to member status
                   </li>
                   <li className="flex items-center">
-                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-2"></span>
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
                     Complete member survey for full access
                   </li>
                 </ul>
@@ -124,11 +124,11 @@ const ViewerDashboard = () => {
         {/* Platform Info */}
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
-            <CardTitle className="text-black flex items-center text-base">
+            <CardTitle className="text-black flex items-center text-xl">
               <Users className="w-4 h-4 mr-2 text-purple-600" />
               Platform Benefits
             </CardTitle>
-            <CardDescription className="text-sm">
+            <CardDescription className="text-lg">
               Learn about our network advantages
             </CardDescription>
           </CardHeader>
@@ -154,36 +154,36 @@ const ViewerDashboard = () => {
       {/* Platform Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="text-center">
-          <CardContent className="p-4">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-              <Building2 className="w-5 h-5 text-blue-600" />
+          <CardContent className="p-6">
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+              <Building2 className="w-6 h-6 text-blue-600" />
             </div>
-            <h3 className="font-semibold text-black mb-2 text-sm">Fund Directory</h3>
-            <p className="text-xs text-gray-600">
+            <h3 className="font-bold text-black mb-2 text-lg">Fund Directory</h3>
+            <p className="text-base text-gray-600">
               Access to emerging market fund managers across different regions and sectors.
             </p>
           </CardContent>
         </Card>
 
         <Card className="text-center">
-          <CardContent className="p-4">
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-              <UserPlus className="w-5 h-5 text-green-600" />
+          <CardContent className="p-6">
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+              <UserPlus className="w-6 h-6 text-green-600" />
             </div>
-            <h3 className="font-semibold text-black mb-2 text-sm">Member Benefits</h3>
-            <p className="text-xs text-gray-600">
+            <h3 className="font-bold text-black mb-2 text-lg">Member Benefits</h3>
+            <p className="text-base text-gray-600">
               Complete surveys, access detailed analytics, and view comprehensive fund data.
             </p>
           </CardContent>
         </Card>
 
         <Card className="text-center">
-          <CardContent className="p-4">
-            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-              <Eye className="w-5 h-5 text-purple-600" />
+          <CardContent className="p-6">
+            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+              <Eye className="w-6 h-6 text-purple-600" />
             </div>
-            <h3 className="font-semibold text-black mb-2 text-sm">Secure Platform</h3>
-            <p className="text-xs text-gray-600">
+            <h3 className="font-bold text-black mb-2 text-lg">Secure Platform</h3>
+            <p className="text-base text-gray-600">
               Application-based access ensures quality membership and platform security.
             </p>
           </CardContent>

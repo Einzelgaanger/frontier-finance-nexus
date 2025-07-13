@@ -48,7 +48,11 @@ const Network = () => {
   }, []);
 
   useEffect(() => {
-    filterManagers();
+    if (userRole === 'viewer') {
+      setFilteredManagers(fundManagers);
+    } else {
+      filterManagers();
+    }
   }, [fundManagers, searchTerm, filterRegion, filterType]);
 
   const fetchFundManagers = async () => {
@@ -68,48 +72,8 @@ const Network = () => {
           throw applicationsError;
         }
 
-        console.log('Approved applications fetched:', approvedApplications);
-
-        // Convert approved applications to fund manager format for viewers
-        const managersWithProfiles: FundManager[] = [];
-        
-        for (const app of approvedApplications) {
-          try {
-            const { data: profile, error: profileError } = await supabase
-              .from('profiles')
-              .select('first_name, last_name, email')
-              .eq('id', app.user_id)
-              .single();
-
-            if (profileError) {
-              console.warn('Profile not found for user:', app.user_id);
-            }
-
-            const manager: FundManager = {
-              id: app.id,
-              user_id: app.user_id,
-              fund_name: app.vehicle_name || 'Unknown Fund',
-              website: app.vehicle_website,
-              primary_investment_region: app.domicile_country,
-              fund_type: 'Approved Member',
-              year_founded: null,
-              team_size: null,
-              typical_check_size: app.ticket_size,
-              completed_at: app.created_at,
-              aum: app.capital_raised,
-              investment_thesis: app.thesis,
-              sector_focus: [],
-              stage_focus: [],
-              profiles: profile || null
-            };
-
-            managersWithProfiles.push(manager);
-          } catch (error) {
-            console.warn('Error processing approved application:', app.id, error);
-          }
-        }
-
-        setFundManagers(managersWithProfiles);
+        // Use the same card layout/details as admin
+        setFundManagers(approvedApplications);
         setLoading(false);
         return;
       }
@@ -282,47 +246,41 @@ const Network = () => {
       <Header />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Network Directory</h1>
-          <p className="text-gray-600">Connect with fund managers in the ESCP Network</p>
-        </div>
-
-        {/* Search and Filters */}
-        <div className="mb-6 flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <Input
-              placeholder="Search fund managers..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full"
-            />
-          </div>
-          <Select value={filterRegion} onValueChange={setFilterRegion}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Filter by region" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Regions</SelectItem>
-              {getRegions().map((region) => (
-                <SelectItem key={region} value={region}>
-                  {region}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Filter by type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              {getFundTypes().map((type) => (
-                <SelectItem key={type} value={type}>
-                  {type}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <h1 className="text-3xl font-bold text-gray-900">Network Directory</h1>
+          {userRole !== 'viewer' && (
+            <div className="flex flex-col md:flex-row gap-2 md:gap-4 items-start md:items-center">
+              <Input
+                type="text"
+                placeholder="Search by name, region, or type..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="w-full md:w-64"
+              />
+              <Select value={filterRegion} onValueChange={setFilterRegion}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Filter by Region" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Regions</SelectItem>
+                  {getRegions().map(region => (
+                    <SelectItem key={region} value={region}>{region}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={filterType} onValueChange={setFilterType}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Filter by Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  {getFundTypes().map(type => (
+                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
 
         {/* Debug Info - Only show for admins */}
