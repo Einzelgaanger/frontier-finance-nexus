@@ -286,7 +286,7 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
         });
         // Optionally redirect after submission
         window.location.href = '/dashboard';
-      }, 1000); // Close after 1 second
+      }, 5000); // Close after 5 seconds
 
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Failed to submit application. Please try again.";

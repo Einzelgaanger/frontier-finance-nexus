@@ -369,6 +369,32 @@ export function MembershipRequestModal({ open, onClose }: MembershipRequestModal
                   rows={3}
                 />
               </div>
+              {formData.supporting_documents && (() => {
+                let files: string[] = [];
+                try {
+                  files = JSON.parse(formData.supporting_documents);
+                  if (!Array.isArray(files)) files = [];
+                } catch {
+                  // Not JSON, treat as plain text
+                  files = [];
+                }
+                if (files.length > 0) {
+                  return (
+                    <div className="space-y-1 mt-2">
+                      <Label>Uploaded Files:</Label>
+                      {files.map((url, idx) => (
+                        <div key={idx} className="flex items-center gap-2 text-sm">
+                          <FileText className="w-4 h-4 text-blue-600" />
+                          <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:underline break-all">
+                            {url.split('/').pop() || `Document ${idx + 1}`}
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                }
+                return null;
+              })()}
             </div>
           </div>
 
