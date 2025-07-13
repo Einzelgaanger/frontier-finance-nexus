@@ -154,7 +154,7 @@ const FundManagerDetail = () => {
     );
   }
 
-  if (!profile || surveys.length === 0) {
+  if (!profile && surveys.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
@@ -164,6 +164,24 @@ const FundManagerDetail = () => {
               <CardTitle>Fund Manager Not Found</CardTitle>
               <CardDescription>
                 This fund manager profile is not available or has not completed any surveys.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (surveys.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Card className="max-w-2xl mx-auto">
+            <CardHeader>
+              <CardTitle>Fund Manager Not Found</CardTitle>
+              <CardDescription>
+                This fund manager has not completed any surveys.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -182,16 +200,16 @@ const FundManagerDetail = () => {
           <CardContent className="p-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
               <Avatar className="w-20 h-20">
-                <AvatarImage src={profile.profile_picture_url} />
+                <AvatarImage src={profile?.profile_picture_url} />
                 <AvatarFallback className="text-2xl bg-blue-100 text-blue-600">
-                  {profile.first_name?.[0]?.toUpperCase() || 'U'}
-                  {profile.last_name?.[0]?.toUpperCase() || ''}
+                  {profile?.first_name?.[0]?.toUpperCase() || 'U'}
+                  {profile?.last_name?.[0]?.toUpperCase() || ''}
                 </AvatarFallback>
               </Avatar>
               
               <div className="flex-1">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  {profile.first_name} {profile.last_name}
+                  {profile ? `${profile.first_name} ${profile.last_name}` : 'Unknown Fund Manager'}
                 </h1>
                 <p className="text-lg text-gray-600 mb-4">
                   {activeSurvey?.vehicle_name}
@@ -200,7 +218,7 @@ const FundManagerDetail = () => {
                 <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                   <div className="flex items-center space-x-2">
                     <Mail className="w-4 h-4" />
-                    <span>{profile.email}</span>
+                    <span>{profile?.email || 'Unknown'}</span>
                   </div>
                   {activeSurvey?.location && (
                     <div className="flex items-center space-x-2">
@@ -223,6 +241,11 @@ const FundManagerDetail = () => {
                     </div>
                   )}
                 </div>
+                {!profile && (
+                  <div className="mt-2 text-sm text-yellow-700 bg-yellow-50 border border-yellow-200 rounded p-2">
+                    Profile information is not available, but survey data is shown below.
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
