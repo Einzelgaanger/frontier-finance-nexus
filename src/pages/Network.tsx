@@ -42,9 +42,13 @@ const Network = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRegion, setFilterRegion] = useState('all');
   const [filterType, setFilterType] = useState('all');
+  const [approvedMembers, setApprovedMembers] = useState<any[]>([]); // For viewer
 
   useEffect(() => {
     fetchFundManagers();
+    if (userRole === 'viewer') {
+      fetchApprovedMembers();
+    }
   }, []);
 
   useEffect(() => {
@@ -136,6 +140,32 @@ const Network = () => {
     }
   };
 
+  const fetchApprovedMembers = async () => {
+    setLoading(true);
+    const { data: approved, error } = await supabase
+      .from('membership_requests')
+      .select('*')
+      .eq('status', 'approved');
+    if (!approved) {
+      setApprovedMembers([]);
+      setLoading(false);
+      return;
+    }
+    // Fetch profiles for each approved member
+    const membersWithProfiles = await Promise.all(
+      approved.map(async (item: any) => {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('first_name, last_name, email')
+          .eq('id', item.user_id)
+          .single();
+        return { ...item, profile };
+      })
+    );
+    setApprovedMembers(membersWithProfiles);
+    setLoading(false);
+  };
+
   const filterManagers = () => {
     let filtered = fundManagers;
 
@@ -190,8 +220,6 @@ const Network = () => {
   }
 
   if (userRole === 'viewer') {
-    // Fetch approved membership requests for viewer
-    const approvedRequests = fundManagers.filter(r => r.status === 'approved');
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
@@ -199,18 +227,20 @@ const Network = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-8">Network Directory</h1>
           <div className="flex flex-wrap gap-2 mb-6">
             <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-              Approved: {approvedRequests.length}
+              Approved: {approvedMembers.length}
             </Badge>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {approvedRequests.map((request) => (
+            {approvedMembers.map((request) => (
               <Card key={request.id} className="hover:shadow-lg transition-all duration-200">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between gap-2">
-                    <CardTitle className="text-sm font-medium truncate flex-1">{request.applicant_name}</CardTitle>
+                    <CardTitle className="text-sm font-medium truncate flex-1">
+                      {request.profile?.first_name || ''} {request.profile?.last_name || ''}
+                    </CardTitle>
                     <Badge variant="default" className="bg-green-100 text-green-800 flex-shrink-0">Approved</Badge>
                   </div>
-                  <CardDescription className="text-xs truncate">{request.email}</CardDescription>
+                  <CardDescription className="text-xs truncate">{request.profile?.email || request.email}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2 text-xs text-gray-600">
