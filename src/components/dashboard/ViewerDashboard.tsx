@@ -66,7 +66,7 @@ const ViewerDashboard = () => {
         </Card>
 
         {/* Access Level Info */}
-        <Card className="border-blue-200 bg-blue-50">
+        <Card className="border-blue-200 bg-blue-50 flex flex-col justify-between">
           <CardHeader>
             <CardTitle className="text-blue-900 flex items-center text-lg">
               <Eye className="w-5 h-5 mr-2" />
@@ -77,7 +77,7 @@ const ViewerDashboard = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
+            <div className="space-y-2 mb-4">
               <div className="flex items-center text-blue-800 text-sm">
                 <span className="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
                 Browse limited fund manager directory
@@ -91,28 +91,8 @@ const ViewerDashboard = () => {
                 Access full network after approval
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Secondary Action Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Browse Directory */}
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <CardTitle className="text-black flex items-center text-base">
-              <Building2 className="w-4 h-4 mr-2 text-blue-600" />
-              Browse Network Directory
-            </CardTitle>
-            <CardDescription className="text-sm">
-              View available fund managers (limited information)
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
             <Button 
-              variant="outline"
-              size="sm"
-              className="w-full border-blue-600 text-blue-600 hover:bg-blue-50"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2"
               onClick={() => window.location.href = '/network'}
             >
               <Globe className="w-4 h-4 mr-2" />
@@ -120,38 +100,7 @@ const ViewerDashboard = () => {
             </Button>
           </CardContent>
         </Card>
-
-        {/* Platform Info */}
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <CardTitle className="text-black flex items-center text-2xl">
-              <Users className="w-4 h-4 mr-2 text-purple-600" />
-              Platform Benefits
-            </CardTitle>
-            <CardDescription className="text-xl font-semibold">
-              Learn about our network advantages
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3 text-lg text-gray-700 font-medium">
-              <div className="flex items-center">
-                <span className="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
-                Access emerging market funds
-              </div>
-              <div className="flex items-center">
-                <span className="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
-                Network with fund managers
-              </div>
-              <div className="flex items-center">
-                <span className="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
-                Share investment insights
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
-
-      {/* Platform Overview removed for viewers */}
 
       {/* Application Modal */}
       <ESCPApplicationModal 
