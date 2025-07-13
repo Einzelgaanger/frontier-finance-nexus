@@ -432,85 +432,64 @@ const Network = () => {
         </div>
 
         {/* Fund Managers Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredManagers.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredManagers.map((manager) => (
-                <Card
-                  key={manager.id}
-                  className="hover:shadow-lg transition-all duration-200 bg-white/80 min-h-[180px] flex flex-col justify-between cursor-pointer"
-                  onClick={() => navigate(`/network/fund-manager/${manager.user_id}`)}
-                >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <CardTitle className="text-lg font-semibold truncate flex-1">{manager.fund_name}</CardTitle>
-                      <Badge variant="default" className="bg-green-100 text-green-800 flex-shrink-0">Member</Badge>
-                    </div>
-                    <CardDescription className="text-base truncate">{manager.profiles?.email}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2 text-base text-gray-600">
-                      <div className="flex items-center gap-2">
-                        <Building2 className="w-4 h-4 flex-shrink-0" />
-                        <span className="truncate">{manager.fund_name}</span>
-                      </div>
-                      {manager.website && (
-                        <div className="flex items-center gap-2">
-                          <Globe className="w-4 h-4 flex-shrink-0" />
-                          <a
-                            href={manager.website.startsWith('http') ? manager.website : `https://${manager.website}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline truncate block"
-                            onClick={e => e.stopPropagation()}
-                          >
-                            {manager.website}
-                          </a>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4 flex-shrink-0" />
-                        <span className="truncate">{manager.team_size || 'N/A'}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <DollarSign className="w-4 h-4 flex-shrink-0" />
-                        <span className="truncate">{manager.typical_check_size || 'N/A'}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <Card className="text-center py-12 col-span-full bg-white/80">
-              <CardContent>
-                <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No fund managers found</h3>
-                <p className="text-base text-gray-500 mb-4">
-                  {fundManagers.length === 0 
-                    ? "No fund managers have completed their surveys yet. Check back later or contact an admin to populate network data."
-                    : "Try adjusting your search criteria or filters."
-                  }
-                </p>
-                {userRole === 'admin' && fundManagers.length === 0 && (
-                  <div className="mt-4">
-                    <p className="text-sm text-gray-600 mb-2">
-                      As an admin, you can populate network data from existing survey responses.
-                    </p>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => window.location.href = '/admin'}
-                      className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
-                    >
-                      <Building2 className="w-4 h-4 mr-2" />
-                      Go to Admin Panel
-                    </Button>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredManagers.map((manager) => (
+            <Card
+              key={manager.id}
+              className="group bg-white/90 border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-200 min-h-[220px] flex flex-col justify-between cursor-pointer p-5"
+              onClick={() => navigate(`/network/fund-manager/${manager.user_id}`)}
+            >
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <CardTitle className="text-xl font-bold truncate flex-1 text-gray-900 group-hover:text-blue-700">{manager.fund_name || 'Unknown Fund'}</CardTitle>
+                  <Badge variant="default" className="bg-green-100 text-green-800 flex-shrink-0">Member</Badge>
+                </div>
+                <CardDescription className="text-sm text-gray-500 truncate">{manager.profiles?.email || 'Unknown'}</CardDescription>
+              </CardHeader>
+              <CardContent className="flex-1 flex flex-col justify-between gap-2 pt-2">
+                <div className="space-y-2 text-base text-gray-700">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-4 h-4 flex-shrink-0 text-gray-400" />
+                    <span className="truncate">{manager.primary_investment_region || 'Unknown Region'}</span>
                   </div>
-                )}
+                  {manager.website && (
+                    <div className="flex items-center gap-2">
+                      <Globe className="w-4 h-4 flex-shrink-0 text-gray-400" />
+                      <a
+                        href={manager.website.startsWith('http') ? manager.website : `https://${manager.website}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline truncate block"
+                        onClick={e => e.stopPropagation()}
+                      >
+                        {manager.website}
+                      </a>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 flex-shrink-0 text-gray-400" />
+                    <span className="truncate">{manager.team_size || 'N/A'} <span className="text-xs text-gray-400 ml-1">Team</span></span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 flex-shrink-0 text-gray-400" />
+                    <span className="truncate">{manager.typical_check_size || 'N/A'} <span className="text-xs text-gray-400 ml-1">Ticket</span></span>
+                  </div>
+                  {userRole === 'admin' && (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <Target className="w-4 h-4 flex-shrink-0 text-gray-400" />
+                        <span className="truncate">AUM: {manager.aum || 'N/A'}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 flex-shrink-0 text-gray-400" />
+                        <span className="truncate">Thesis: {manager.investment_thesis || 'N/A'}</span>
+                      </div>
+                    </>
+                  )}
+                </div>
               </CardContent>
             </Card>
-          )}
+          ))}
         </div>
       </div>
     </div>
