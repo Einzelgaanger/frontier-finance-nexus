@@ -124,26 +124,26 @@ const ViewerDashboard = () => {
         {/* Platform Info */}
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
-            <CardTitle className="text-black flex items-center text-xl">
+            <CardTitle className="text-black flex items-center text-2xl">
               <Users className="w-4 h-4 mr-2 text-purple-600" />
               Platform Benefits
             </CardTitle>
-            <CardDescription className="text-lg">
+            <CardDescription className="text-xl font-semibold">
               Learn about our network advantages
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-1 text-xs text-gray-600">
+            <div className="space-y-3 text-lg text-gray-700 font-medium">
               <div className="flex items-center">
-                <span className="w-1.5 h-1.5 bg-purple-500 rounded-full mr-2"></span>
+                <span className="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
                 Access emerging market funds
               </div>
               <div className="flex items-center">
-                <span className="w-1.5 h-1.5 bg-purple-500 rounded-full mr-2"></span>
+                <span className="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
                 Network with fund managers
               </div>
               <div className="flex items-center">
-                <span className="w-1.5 h-1.5 bg-purple-500 rounded-full mr-2"></span>
+                <span className="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
                 Share investment insights
               </div>
             </div>
@@ -151,44 +151,7 @@ const ViewerDashboard = () => {
         </Card>
       </div>
 
-      {/* Platform Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="text-center">
-          <CardContent className="p-6">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <Building2 className="w-6 h-6 text-blue-600" />
-            </div>
-            <h3 className="font-bold text-black mb-2 text-lg">Fund Directory</h3>
-            <p className="text-base text-gray-600">
-              Access to emerging market fund managers across different regions and sectors.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="text-center">
-          <CardContent className="p-6">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <UserPlus className="w-6 h-6 text-green-600" />
-            </div>
-            <h3 className="font-bold text-black mb-2 text-lg">Member Benefits</h3>
-            <p className="text-base text-gray-600">
-              Complete surveys, access detailed analytics, and view comprehensive fund data.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="text-center">
-          <CardContent className="p-6">
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <Eye className="w-6 h-6 text-purple-600" />
-            </div>
-            <h3 className="font-bold text-black mb-2 text-lg">Secure Platform</h3>
-            <p className="text-base text-gray-600">
-              Application-based access ensures quality membership and platform security.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Platform Overview removed for viewers */}
 
       {/* Application Modal */}
       <ESCPApplicationModal 

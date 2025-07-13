@@ -94,20 +94,18 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
       });
       return;
     }
-    
     const validFiles = files.filter(file => {
-      if (file.size > 10 * 1024 * 1024) {
+      if (file.size > 50 * 1024 * 1024) {
         toast({
           title: "File too large",
-          description: `${file.name} exceeds 10MB limit`,
+          description: `${file.name} exceeds 50MB limit`,
           variant: "destructive"
         });
         return false;
       }
-      // Accept any file type - images, PDFs, documents, etc.
+      // Accept any file type
       return true;
     });
-    
     setFormData(prev => ({ ...prev, supporting_documents: validFiles }));
   };
 
