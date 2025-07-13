@@ -238,7 +238,7 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
         ticket_size: formData.typical_check_size,
         portfolio_investments: formData.number_of_investments,
         capital_raised: formData.amount_raised_to_date,
-        supporting_documents: documentUrls.length > 0 ? JSON.stringify(documentUrls) : null,
+        supporting_documents: documentUrls.length > 0 ? JSON.stringify(documentUrls) : null, // Attach file URLs as JSON array
         information_sharing: {
           topics: formData.information_sharing_topics,
           other: formData.how_heard_other // Include the "other" details
@@ -256,10 +256,8 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
 
       if (error) throw error;
 
-      // Show success message with animation
+      // Show success message and close popup immediately
       setShowSuccessMessage(true);
-      
-      // Hide success message after 5 seconds
       setTimeout(() => {
         setShowSuccessMessage(false);
         onClose();
@@ -286,7 +284,9 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
           notable_investments: '',
           additional_comments: ''
         });
-      }, 5000);
+        // Optionally redirect after submission
+        window.location.href = '/dashboard';
+      }, 1000); // Close after 1 second
 
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Failed to submit application. Please try again.";

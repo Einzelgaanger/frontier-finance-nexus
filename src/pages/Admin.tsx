@@ -1103,19 +1103,18 @@ const Admin = () => {
                                             </div>
                                           );
                                         }
-                                      } catch (e) {
-                                        // If it's not JSON, treat as single URL
-                                        return (
-                                          <a 
-                                            href={selectedRequest.supporting_documents}
-                                            target="_blank" 
-                                            rel="noopener noreferrer"
-                                            className="text-blue-600 hover:underline break-all"
-                                          >
-                                            View Documents
-                                          </a>
-                                        );
-                                      }
+                                      } catch (e) { return null; }
+                                      // If it's not JSON, treat as single URL
+                                      return (
+                                        <a 
+                                          href={selectedRequest.supporting_documents}
+                                          target="_blank" 
+                                          rel="noopener noreferrer"
+                                          className="text-blue-600 hover:underline break-all"
+                                        >
+                                          View Document
+                                        </a>
+                                      );
                                     })()}
                                   </div>
                                 ) : (
