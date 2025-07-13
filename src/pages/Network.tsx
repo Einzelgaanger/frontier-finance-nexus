@@ -57,80 +57,35 @@ const Network = () => {
 
   const fetchFundManagers = async () => {
     try {
-      console.log('Fetching fund managers...');
-      
-      // For viewers, show approved applications from membership_requests
-      if (userRole === 'viewer') {
-        const { data: approvedApplications, error: applicationsError } = await supabase
-          .from('membership_requests')
-          .select('*')
-          .eq('status', 'approved')
-          .order('created_at', { ascending: false });
-
-        if (applicationsError) {
-          console.error('Error fetching approved applications:', applicationsError);
-          throw applicationsError;
-        }
-
-        // Use the same card layout/details as admin
-        setFundManagers(approvedApplications);
-        setLoading(false);
-        return;
-      }
-
-      // For members and admins, fetch from survey_responses table
-      const { data: responses, error: responsesError } = await supabase
+      setLoading(true);
+      // Fetch approved members with completed surveys for all roles
+      const { data, error } = await supabase
         .from('survey_responses')
-        .select('*')
+        .select('*, membership_requests!inner(status)')
+        .eq('membership_requests.status', 'approved')
         .not('completed_at', 'is', null)
         .order('completed_at', { ascending: false });
 
-      if (responsesError) {
-        console.error('Error fetching survey responses:', responsesError);
-      }
-
-      console.log('Survey responses fetched:', responses);
-
-      if (!responses || responses.length === 0) {
-        console.log('No completed surveys found');
+      if (error) {
+        console.error('Error fetching approved members:', error);
         setFundManagers([]);
         setLoading(false);
         return;
       }
 
-      // Log the first item to see its structure
-      if (responses.length > 0) {
-        console.log('First survey response structure:', responses[0]);
-        console.log('Available fields:', Object.keys(responses[0]));
-      }
-
-      // Convert survey responses to fund managers format
+      // Map to FundManager format
       const managersWithProfiles: FundManager[] = [];
-      
-      for (const item of responses) {
+      for (const item of data) {
         try {
-          // Validate required fields
-          if (!item || !item.user_id) {
-            console.warn('Skipping item with missing user_id:', item);
-            continue;
-          }
-
-          const { data: profile, error: profileError } = await supabase
+          if (!item || !item.user_id) continue;
+          const { data: profile } = await supabase
             .from('profiles')
             .select('first_name, last_name, email')
             .eq('id', item.user_id)
             .single();
-
-          if (profileError) {
-            console.warn('Profile not found for user:', item.user_id);
-          }
-
-          // Parse JSON fields with better error handling
           let sectorFocus: string[] = [];
           let stageFocus: string[] = [];
-
           try {
-            // Handle different data structures
             if (item.sectors_allocation) {
               sectorFocus = typeof item.sectors_allocation === 'string' 
                 ? Object.keys(JSON.parse(item.sectors_allocation))
@@ -140,7 +95,6 @@ const Network = () => {
                 ? JSON.parse(item.sector_focus)
                 : item.sector_focus || [];
             }
-            
             if (item.fund_stage) {
               stageFocus = typeof item.fund_stage === 'string'
                 ? JSON.parse(item.fund_stage)
@@ -150,10 +104,7 @@ const Network = () => {
                 ? JSON.parse(item.stage_focus)
                 : item.stage_focus || [];
             }
-          } catch (parseError) {
-            console.warn('Error parsing JSON fields for item:', item.id, parseError);
-          }
-
+          } catch {}
           const manager: FundManager = {
             id: item.id,
             user_id: item.user_id,
@@ -173,17 +124,16 @@ const Network = () => {
             stage_focus: stageFocus,
             profiles: profile || null
           };
-
           managersWithProfiles.push(manager);
         } catch (error) {
           console.warn('Error processing item:', item.id, error);
         }
       }
-
       setFundManagers(managersWithProfiles);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching fund managers:', error);
+      setFundManagers([]);
       setLoading(false);
     }
   };
