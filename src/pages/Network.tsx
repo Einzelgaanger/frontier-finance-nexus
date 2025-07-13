@@ -237,79 +237,85 @@ const Network = () => {
   if (userRole === 'viewer') {
     const approvedMembers = membershipRequests.filter((r: any) => r.status === 'approved');
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-3xl font-bold text-gray-900">Member Management</h2>
-            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-              Total Members: {approvedMembers.length}
-            </Badge>
-          </div>
-          {viewerError && (
-            <div className="mb-4 text-red-600 bg-red-50 border border-red-200 rounded p-2">
-              {viewerError}
+      <div className="relative min-h-screen">
+        {/* Static background image */}
+        <div className="fixed inset-0 z-0">
+          <img src="/CFF.jpg" alt="Background" className="w-full h-full object-cover" />
+        </div>
+        <div className="relative z-10 min-h-screen">
+          <Header />
+          <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-6 sm:py-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-3xl font-bold text-gray-900">Member Management</h2>
+              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                Total Members: {approvedMembers.length}
+              </Badge>
             </div>
-          )}
-          {viewerLoading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading members...</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {approvedMembers.length === 0 ? (
-                <Card className="text-center py-12 col-span-full">
-                  <CardContent>
-                    <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No approved members found</h3>
-                    <p className="text-gray-500 mb-4">No approved members are available yet. Check back later.</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                approvedMembers.map((request: any) => (
-                  <Card key={request.id} className="hover:shadow-lg transition-all duration-200">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <CardTitle className="text-sm font-medium truncate flex-1">{request.applicant_name}</CardTitle>
-                        <Badge variant="default" className="bg-green-100 text-green-800 flex-shrink-0">Member</Badge>
-                      </div>
-                      <CardDescription className="text-xs truncate">{request.email}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="space-y-2 text-xs text-gray-600">
-                        <div className="flex items-center gap-2">
-                          <Building2 className="w-3 h-3 flex-shrink-0" />
-                          <span className="truncate">{request.vehicle_name}</span>
-                        </div>
-                        {request.vehicle_website && (
-                          <div className="flex items-center gap-2">
-                            <Globe className="w-3 h-3 flex-shrink-0" />
-                            <a
-                              href={request.vehicle_website.startsWith('http') ? request.vehicle_website : `https://${request.vehicle_website}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:underline truncate block"
-                            >
-                              {request.vehicle_website}
-                            </a>
-                          </div>
-                        )}
-                        <div className="flex items-center gap-2">
-                          <Users className="w-3 h-3 flex-shrink-0" />
-                          <span className="truncate">{request.team_size || 'N/A'}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <DollarSign className="w-3 h-3 flex-shrink-0" />
-                          <span className="truncate">{request.ticket_size || 'N/A'}</span>
-                        </div>
-                      </div>
+            {viewerError && (
+              <div className="mb-4 text-red-600 bg-red-50 border border-red-200 rounded p-2">
+                {viewerError}
+              </div>
+            )}
+            {viewerLoading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading members...</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {approvedMembers.length === 0 ? (
+                  <Card className="text-center py-12 col-span-full bg-white/80">
+                    <CardContent>
+                      <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">No approved members found</h3>
+                      <p className="text-base text-gray-500 mb-4">No approved members are available yet. Check back later.</p>
                     </CardContent>
                   </Card>
-                ))
-              )}
-            </div>
-          )}
+                ) : (
+                  approvedMembers.map((request: any) => (
+                    <Card key={request.id} className="hover:shadow-lg transition-all duration-200 bg-white/80 min-h-[180px] flex flex-col justify-between">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <CardTitle className="text-lg font-semibold truncate flex-1">{request.applicant_name}</CardTitle>
+                          <Badge variant="default" className="bg-green-100 text-green-800 flex-shrink-0">Member</Badge>
+                        </div>
+                        <CardDescription className="text-base truncate">{request.email}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="space-y-2 text-base text-gray-600">
+                          <div className="flex items-center gap-2">
+                            <Building2 className="w-4 h-4 flex-shrink-0" />
+                            <span className="truncate">{request.vehicle_name}</span>
+                          </div>
+                          {request.vehicle_website && (
+                            <div className="flex items-center gap-2">
+                              <Globe className="w-4 h-4 flex-shrink-0" />
+                              <a
+                                href={request.vehicle_website.startsWith('http') ? request.vehicle_website : `https://${request.vehicle_website}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline truncate block"
+                              >
+                                {request.vehicle_website}
+                              </a>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2">
+                            <Users className="w-4 h-4 flex-shrink-0" />
+                            <span className="truncate">{request.team_size || 'N/A'}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <DollarSign className="w-4 h-4 flex-shrink-0" />
+                            <span className="truncate">{request.ticket_size || 'N/A'}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -319,7 +325,7 @@ const Network = () => {
     <div className="min-h-screen bg-gray-50">
       <Header />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-6 sm:py-8">
         <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <h1 className="text-3xl font-bold text-gray-900">Network Directory</h1>
           {userRole !== 'viewer' && (
@@ -425,47 +431,79 @@ const Network = () => {
         </div>
 
         {/* Fund Managers Grid */}
-        {filteredManagers.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredManagers.map((manager) => (
-              <NetworkCard 
-                key={manager.id} 
-                fund={manager} 
-                userRole={userRole}
-                showDetails={userRole !== 'viewer'}
-              />
-            ))}
-          </div>
-        ) : (
-          <Card className="text-center py-12">
-            <CardContent>
-              <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No fund managers found</h3>
-              <p className="text-gray-500 mb-4">
-                {fundManagers.length === 0 
-                  ? "No fund managers have completed their surveys yet. Check back later or contact an admin to populate network data."
-                  : "Try adjusting your search criteria or filters."
-                }
-              </p>
-              {userRole === 'admin' && fundManagers.length === 0 && (
-                <div className="mt-4">
-                  <p className="text-sm text-gray-600 mb-2">
-                    As an admin, you can populate network data from existing survey responses.
-                  </p>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => window.location.href = '/admin'}
-                    className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
-                  >
-                    <Building2 className="w-4 h-4 mr-2" />
-                    Go to Admin Panel
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredManagers.length > 0 ? (
+            filteredManagers.map((manager) => (
+              <Card key={manager.id} className="hover:shadow-lg transition-all duration-200 bg-white/80 min-h-[180px] flex flex-col justify-between">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <CardTitle className="text-lg font-semibold truncate flex-1">{manager.fund_name}</CardTitle>
+                    <Badge variant="default" className="bg-green-100 text-green-800 flex-shrink-0">Member</Badge>
+                  </div>
+                  <CardDescription className="text-base truncate">{manager.profiles?.email}</CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="space-y-2 text-base text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">{manager.fund_name}</span>
+                    </div>
+                    {manager.website && (
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 flex-shrink-0" />
+                        <a
+                          href={manager.website.startsWith('http') ? manager.website : `https://${manager.website}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline truncate block"
+                        >
+                          {manager.website}
+                        </a>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">{manager.team_size || 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">{manager.typical_check_size || 'N/A'}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <Card className="text-center py-12 col-span-full bg-white/80">
+              <CardContent>
+                <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No fund managers found</h3>
+                <p className="text-base text-gray-500 mb-4">
+                  {fundManagers.length === 0 
+                    ? "No fund managers have completed their surveys yet. Check back later or contact an admin to populate network data."
+                    : "Try adjusting your search criteria or filters."
+                  }
+                </p>
+                {userRole === 'admin' && fundManagers.length === 0 && (
+                  <div className="mt-4">
+                    <p className="text-sm text-gray-600 mb-2">
+                      As an admin, you can populate network data from existing survey responses.
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => window.location.href = '/admin'}
+                      className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                    >
+                      <Building2 className="w-4 h-4 mr-2" />
+                      Go to Admin Panel
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     </div>
   );
