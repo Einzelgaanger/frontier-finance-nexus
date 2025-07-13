@@ -439,7 +439,7 @@ const Network = () => {
                 <Card
                   key={manager.id}
                   className="hover:shadow-lg transition-all duration-200 bg-white/80 min-h-[180px] flex flex-col justify-between cursor-pointer"
-                  onClick={() => navigate(`/fund-manager/${manager.user_id}`)}
+                  onClick={() => navigate(`/network/fund-manager/${manager.user_id}`)}
                 >
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between gap-2">
