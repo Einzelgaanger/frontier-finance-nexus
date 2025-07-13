@@ -1090,15 +1090,26 @@ const Admin = () => {
                                           return (
                                             <div className="space-y-1">
                                               {urls.map((url, index) => (
-                                                <a 
-                                                  key={index}
-                                                  href={url}
-                                                  target="_blank" 
-                                                  rel="noopener noreferrer"
-                                                  className="text-blue-600 hover:underline block break-all"
-                                                >
-                                                  Document {index + 1}
-                                                </a>
+                                                url.startsWith('data:') ? (
+                                                  <a
+                                                    key={index}
+                                                    href={url}
+                                                    download={`Document_${index + 1}`}
+                                                    className="text-blue-600 hover:underline block break-all"
+                                                  >
+                                                    Download Document {index + 1}
+                                                  </a>
+                                                ) : (
+                                                  <a
+                                                    key={index}
+                                                    href={url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 hover:underline block break-all"
+                                                  >
+                                                    Document {index + 1}
+                                                  </a>
+                                                )
                                               ))}
                                             </div>
                                           );
@@ -1106,14 +1117,24 @@ const Admin = () => {
                                       } catch (e) { return null; }
                                       // If it's not JSON, treat as single URL
                                       return (
-                                        <a 
-                                          href={selectedRequest.supporting_documents}
-                                          target="_blank" 
-                                          rel="noopener noreferrer"
-                                          className="text-blue-600 hover:underline break-all"
-                                        >
-                                          View Document
-                                        </a>
+                                        selectedRequest.supporting_documents.startsWith('data:') ? (
+                                          <a
+                                            href={selectedRequest.supporting_documents}
+                                            download="Document"
+                                            className="text-blue-600 hover:underline break-all"
+                                          >
+                                            Download Document
+                                          </a>
+                                        ) : (
+                                          <a
+                                            href={selectedRequest.supporting_documents}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-600 hover:underline break-all"
+                                          >
+                                            View Document
+                                          </a>
+                                        )
                                       );
                                     })()}
                                   </div>
