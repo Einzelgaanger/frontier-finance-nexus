@@ -249,11 +249,11 @@ const Network = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-8">Network Directory</h1>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {fundManagers.filter(r => r.status === 'approved').map((request) => (
-              <Card key={request.id} className="hover:shadow-lg transition-all duration-200 cursor-default">
+              <Card key={request.id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-green-500 cursor-default">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between gap-2">
                     <CardTitle className="text-sm font-medium truncate flex-1">{request.applicant_name}</CardTitle>
-                    <Badge variant="default" className="bg-green-100 text-green-800 flex-shrink-0">Approved</Badge>
+                    <Badge variant="default" className="bg-green-100 text-green-800 flex-shrink-0">Member</Badge>
                   </div>
                   <CardDescription className="text-xs truncate">{request.email}</CardDescription>
                 </CardHeader>
@@ -278,8 +278,12 @@ const Network = () => {
                       </div>
                     )}
                     <div className="flex items-center gap-2">
-                      <Calendar className="w-3 h-3 flex-shrink-0" />
-                      <span className="truncate">{request.created_at ? new Date(request.created_at).toLocaleDateString() : 'N/A'}</span>
+                      <Users className="w-3 h-3 flex-shrink-0" />
+                      <span className="truncate">{request.team_size || 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="w-3 h-3 flex-shrink-0" />
+                      <span className="truncate">{request.ticket_size || 'N/A'}</span>
                     </div>
                   </div>
                 </CardContent>
