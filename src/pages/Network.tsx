@@ -46,7 +46,6 @@ const Network = () => {
   const [viewerError, setViewerError] = useState<string | null>(null);
   const [membershipRequests, setMembershipRequests] = useState<any[]>([]);
   const [viewerLoading, setViewerLoading] = useState(true);
-  const [viewerError, setViewerError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchFundManagers();
