@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Building2, Globe, Users, DollarSign, Calendar, ExternalLink, Target, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { NetworkCard } from '@/components/network/NetworkCard';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
 interface FundManager {
@@ -46,6 +46,7 @@ const Network = () => {
   const [viewerError, setViewerError] = useState<string | null>(null);
   const [membershipRequests, setMembershipRequests] = useState<any[]>([]);
   const [viewerLoading, setViewerLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchFundManagers();
@@ -433,46 +434,53 @@ const Network = () => {
         {/* Fund Managers Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredManagers.length > 0 ? (
-            filteredManagers.map((manager) => (
-              <Card key={manager.id} className="hover:shadow-lg transition-all duration-200 bg-white/80 min-h-[180px] flex flex-col justify-between">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <CardTitle className="text-lg font-semibold truncate flex-1">{manager.fund_name}</CardTitle>
-                    <Badge variant="default" className="bg-green-100 text-green-800 flex-shrink-0">Member</Badge>
-                  </div>
-                  <CardDescription className="text-base truncate">{manager.profiles?.email}</CardDescription>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-2 text-base text-gray-600">
-                    <div className="flex items-center gap-2">
-                      <Building2 className="w-4 h-4 flex-shrink-0" />
-                      <span className="truncate">{manager.fund_name}</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredManagers.map((manager) => (
+                <Card
+                  key={manager.id}
+                  className="hover:shadow-lg transition-all duration-200 bg-white/80 min-h-[180px] flex flex-col justify-between cursor-pointer"
+                  onClick={() => navigate(`/fund-manager/${manager.user_id}`)}
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <CardTitle className="text-lg font-semibold truncate flex-1">{manager.fund_name}</CardTitle>
+                      <Badge variant="default" className="bg-green-100 text-green-800 flex-shrink-0">Member</Badge>
                     </div>
-                    {manager.website && (
+                    <CardDescription className="text-base truncate">{manager.profiles?.email}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 text-base text-gray-600">
                       <div className="flex items-center gap-2">
-                        <Globe className="w-4 h-4 flex-shrink-0" />
-                        <a
-                          href={manager.website.startsWith('http') ? manager.website : `https://${manager.website}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline truncate block"
-                        >
-                          {manager.website}
-                        </a>
+                        <Building2 className="w-4 h-4 flex-shrink-0" />
+                        <span className="truncate">{manager.fund_name}</span>
                       </div>
-                    )}
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4 flex-shrink-0" />
-                      <span className="truncate">{manager.team_size || 'N/A'}</span>
+                      {manager.website && (
+                        <div className="flex items-center gap-2">
+                          <Globe className="w-4 h-4 flex-shrink-0" />
+                          <a
+                            href={manager.website.startsWith('http') ? manager.website : `https://${manager.website}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline truncate block"
+                            onClick={e => e.stopPropagation()}
+                          >
+                            {manager.website}
+                          </a>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <Users className="w-4 h-4 flex-shrink-0" />
+                        <span className="truncate">{manager.team_size || 'N/A'}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="w-4 h-4 flex-shrink-0" />
+                        <span className="truncate">{manager.typical_check_size || 'N/A'}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="w-4 h-4 flex-shrink-0" />
-                      <span className="truncate">{manager.typical_check_size || 'N/A'}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           ) : (
             <Card className="text-center py-12 col-span-full bg-white/80">
               <CardContent>

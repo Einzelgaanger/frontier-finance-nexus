@@ -228,8 +228,29 @@ const FundManagerDetail = () => {
           </CardContent>
         </Card>
 
+        {/* Add a year selector if multiple surveys exist */}
+        {surveys.length > 1 && (
+          <div className="mb-6 flex items-center gap-2">
+            <label htmlFor="survey-year" className="text-sm font-medium text-gray-700">Select Year:</label>
+            <select
+              id="survey-year"
+              className="border rounded px-2 py-1 text-base"
+              value={activeSurvey?.year || ''}
+              onChange={e => {
+                const year = Number(e.target.value);
+                const found = surveys.find(s => s.year === year);
+                if (found) setActiveSurvey(found);
+              }}
+            >
+              {surveys.map(s => (
+                <option key={s.id} value={s.year}>{s.year}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {/* Survey Data */}
-        <Tabs defaultValue="overview" className="space-y-6">
+        <Tabs defaultValue="overview" className="mb-8">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="details">Details</TabsTrigger>
@@ -314,58 +335,71 @@ const FundManagerDetail = () => {
 
           <TabsContent value="details" className="space-y-6">
             {activeSurvey && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Network Expectations</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">What they expect from the network:</h4>
-                    <p className="text-gray-700 leading-relaxed">{activeSurvey.expectations}</p>
+              <>
+                {/* For admin, show all fields. For member, show only general info. */}
+                {userRole === 'admin' ? (
+                  <div className="space-y-4">
+                    <Card>
+                      <CardHeader><CardTitle>Full Survey Data</CardTitle></CardHeader>
+                      <CardContent>
+                        <pre className="text-xs bg-gray-100 p-2 rounded overflow-x-auto">{JSON.stringify(activeSurvey, null, 2)}</pre>
+                      </CardContent>
+                    </Card>
                   </div>
-                  
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">How they heard about us:</h4>
-                    <Badge variant="secondary">{activeSurvey.how_heard_about_network}</Badge>
+                ) : (
+                  <div className="space-y-4">
+                    <Card>
+                      <CardHeader><CardTitle>General Survey Information</CardTitle></CardHeader>
+                      <CardContent>
+                        <ul className="list-disc pl-6 text-gray-700 space-y-1">
+                          <li><b>Thesis:</b> {activeSurvey.thesis}</li>
+                          <li><b>Ticket Size:</b> {activeSurvey.ticket_size}</li>
+                          <li><b>Team Size:</b> {activeSurvey.team_size_description}</li>
+                          <li><b>Year:</b> {activeSurvey.year}</li>
+                          <li><b>Expectations:</b> {activeSurvey.expectations}</li>
+                          <li><b>Website:</b> {activeSurvey.vehicle_website}</li>
+                        </ul>
+                      </CardContent>
+                    </Card>
                   </div>
-                </CardContent>
-              </Card>
+                )}
+              </>
             )}
           </TabsContent>
 
           <TabsContent value="history" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Survey History</CardTitle>
-                <CardDescription>All submitted surveys by this fund manager</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {surveys.map((survey) => (
-                    <div 
-                      key={survey.id} 
-                      className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                        activeSurvey?.id === survey.id ? 'border-blue-500 bg-blue-50' : 'hover:bg-gray-50'
-                      }`}
-                      onClick={() => setActiveSurvey(survey)}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-semibold">{survey.vehicle_name}</h3>
-                          <p className="text-sm text-gray-600">Year: {survey.year}</p>
-                          <p className="text-sm text-gray-600">
-                            Submitted: {new Date(survey.completed_at).toLocaleDateString()}
-                          </p>
+            {activeSurvey && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Survey History</CardTitle>
+                  <CardDescription>All submitted surveys by this fund manager</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {surveys.map((survey) => (
+                      <div 
+                        key={survey.id} 
+                        className={`border rounded-lg p-4 cursor-pointer transition-colors ${activeSurvey?.id === survey.id ? 'border-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}
+                        onClick={() => setActiveSurvey(survey)}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-semibold">{survey.vehicle_name}</h3>
+                            <p className="text-sm text-gray-600">Year: {survey.year}</p>
+                            <p className="text-sm text-gray-600">
+                              Submitted: {new Date(survey.completed_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <Badge variant={activeSurvey?.id === survey.id ? "default" : "secondary"}>
+                            {activeSurvey?.id === survey.id ? "Active" : "View"}
+                          </Badge>
                         </div>
-                        <Badge variant={activeSurvey?.id === survey.id ? "default" : "secondary"}>
-                          {activeSurvey?.id === survey.id ? "Active" : "View"}
-                        </Badge>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
         </Tabs>
       </div>
