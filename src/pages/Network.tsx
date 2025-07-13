@@ -58,25 +58,18 @@ const Network = () => {
   const fetchFundManagers = async () => {
     try {
       setLoading(true);
-      // Fetch approved members with completed surveys for all roles
-      const { data, error } = await supabase
-        .from('survey_responses')
-        .select('*, membership_requests!inner(status)')
-        .eq('membership_requests.status', 'approved')
-        .not('completed_at', 'is', null)
-        .order('completed_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching approved members:', error);
-        setFundManagers([]);
-        setLoading(false);
-        return;
-      }
-
-      // Map to FundManager format
-      const managersWithProfiles: FundManager[] = [];
-      for (const item of data) {
-        try {
+      // Try join query first
+      let managersWithProfiles: FundManager[] = [];
+      let joinError = false;
+      try {
+        const { data, error } = await supabase
+          .from('survey_responses')
+          .select('*, membership_requests!inner(status)')
+          .eq('membership_requests.status', 'approved')
+          .not('completed_at', 'is', null)
+          .order('completed_at', { ascending: false });
+        if (error) throw error;
+        for (const item of data) {
           if (!item || !item.user_id) continue;
           const { data: profile } = await supabase
             .from('profiles')
@@ -125,8 +118,76 @@ const Network = () => {
             profiles: profile || null
           };
           managersWithProfiles.push(manager);
-        } catch (error) {
-          console.warn('Error processing item:', item.id, error);
+        }
+      } catch (err) {
+        joinError = true;
+      }
+      // Fallback: fetch all completed surveys and approved membership_requests, filter in JS
+      if (joinError || managersWithProfiles.length === 0) {
+        const { data: surveys, error: surveysError } = await supabase
+          .from('survey_responses')
+          .select('*')
+          .not('completed_at', 'is', null)
+          .order('completed_at', { ascending: false });
+        const { data: approved, error: approvedError } = await supabase
+          .from('membership_requests')
+          .select('user_id')
+          .eq('status', 'approved');
+        if (!surveys || !approved) {
+          setFundManagers([]);
+          setLoading(false);
+          return;
+        }
+        const approvedIds = new Set(approved.map(r => r.user_id));
+        for (const item of surveys) {
+          if (!item || !item.user_id || !approvedIds.has(item.user_id)) continue;
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name, email')
+            .eq('id', item.user_id)
+            .single();
+          let sectorFocus: string[] = [];
+          let stageFocus: string[] = [];
+          try {
+            if (item.sectors_allocation) {
+              sectorFocus = typeof item.sectors_allocation === 'string' 
+                ? Object.keys(JSON.parse(item.sectors_allocation))
+                : Object.keys(item.sectors_allocation || {});
+            } else if (item.sector_focus) {
+              sectorFocus = typeof item.sector_focus === 'string'
+                ? JSON.parse(item.sector_focus)
+                : item.sector_focus || [];
+            }
+            if (item.fund_stage) {
+              stageFocus = typeof item.fund_stage === 'string'
+                ? JSON.parse(item.fund_stage)
+                : item.fund_stage || [];
+            } else if (item.stage_focus) {
+              stageFocus = typeof item.stage_focus === 'string'
+                ? JSON.parse(item.stage_focus)
+                : item.stage_focus || [];
+            }
+          } catch {}
+          const manager: FundManager = {
+            id: item.id,
+            user_id: item.user_id,
+            fund_name: item.vehicle_name || 'Unknown Fund',
+            website: item.vehicle_websites?.[0] || null,
+            primary_investment_region: item.legal_domicile?.join(', ') || 'Unknown',
+            fund_type: item.vehicle_type || 'Unknown',
+            year_founded: item.legal_entity_date_from || null,
+            team_size: item.team_size_max || null,
+            typical_check_size: item.ticket_size_min && item.ticket_size_max 
+              ? `$${item.ticket_size_min.toLocaleString()} - $${item.ticket_size_max.toLocaleString()}`
+              : null,
+            completed_at: item.completed_at,
+            aum: item.capital_raised ? `$${item.capital_raised.toLocaleString()}` : null,
+            investment_thesis: item.thesis || null,
+            sector_focus: sectorFocus,
+            stage_focus: stageFocus,
+            profiles: profile || null
+          };
+          managersWithProfiles.push(manager);
         }
       }
       setFundManagers(managersWithProfiles);
