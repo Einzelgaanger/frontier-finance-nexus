@@ -145,14 +145,14 @@ const Network = () => {
     setLoading(true);
     setViewerError(null);
     try {
-      const { data: approved, error } = await supabase
+      const { data, error } = await supabase
         .from('membership_requests')
         .select('*')
         .eq('status', 'approved')
         .order('created_at', { ascending: false });
       if (error) throw error;
-      setApprovedMembers(approved || []);
-    } catch (err: any) {
+      setApprovedMembers(data || []);
+    } catch (err) {
       setViewerError('Failed to load approved members. Please try again.');
       setApprovedMembers([]);
     } finally {
@@ -250,7 +250,7 @@ const Network = () => {
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between gap-2">
                         <CardTitle className="text-sm font-medium truncate flex-1">{request.applicant_name}</CardTitle>
-                        <Badge variant="default" className="bg-green-100 text-green-800 flex-shrink-0">Approved</Badge>
+                        <Badge variant="default" className="bg-green-100 text-green-800 flex-shrink-0">Member</Badge>
                       </div>
                       <CardDescription className="text-xs truncate">{request.email}</CardDescription>
                     </CardHeader>
@@ -273,6 +273,14 @@ const Network = () => {
                             </a>
                           </div>
                         )}
+                        <div className="flex items-center gap-2">
+                          <Users className="w-3 h-3 flex-shrink-0" />
+                          <span className="truncate">{request.team_size || 'N/A'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <DollarSign className="w-3 h-3 flex-shrink-0" />
+                          <span className="truncate">{request.ticket_size || 'N/A'}</span>
+                        </div>
                         <div className="flex items-center gap-2">
                           <Calendar className="w-3 h-3 flex-shrink-0" />
                           <span className="truncate">{request.created_at ? new Date(request.created_at).toLocaleDateString() : 'N/A'}</span>
