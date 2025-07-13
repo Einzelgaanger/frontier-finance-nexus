@@ -71,20 +71,39 @@ const MemberDashboard = () => {
         const completionPercentage = completedSurveys.length > 0 ? 100 : 0;
         setSurveyCompletion(completionPercentage);
 
-        // Fetch total fund managers in network
+        // Fetch total fund managers in network (unique users with completed surveys)
         const { data: fundManagers, error: networkError } = await supabase
           .from('survey_responses')
           .select('user_id')
           .not('completed_at', 'is', null);
 
         if (networkError) throw networkError;
-        setTotalFundManagers(fundManagers?.length || 0);
+        
+        // Count unique fund managers
+        const uniqueFundManagers = new Set(fundManagers?.map(fm => fm.user_id) || []);
+        const totalFundManagersCount = uniqueFundManagers.size;
+        setTotalFundManagers(totalFundManagersCount);
 
-        // Update stats
+        // Fetch member_surveys count as well for more accurate data
+        const { data: memberSurveys, error: memberSurveysError } = await supabase
+          .from('member_surveys')
+          .select('user_id')
+          .not('completed_at', 'is', null);
+
+        if (!memberSurveysError && memberSurveys) {
+          const uniqueMemberSurveys = new Set(memberSurveys.map(ms => ms.user_id));
+          const totalFromMemberSurveys = uniqueMemberSurveys.size;
+          
+          // Use the higher count for better representation
+          const finalCount = Math.max(totalFundManagersCount, totalFromMemberSurveys);
+          setTotalFundManagers(finalCount);
+        }
+
+        // Update stats with accurate data
         setStats([
           { title: "Network Access", value: "Full", icon: Users, description: "Complete fund directory" },
           { title: "Survey Status", value: `${completionPercentage}%`, icon: FileText, description: "Profile completion" },
-          { title: "Total Fund Managers", value: String(fundManagers?.length || 0), icon: Building2, description: "In network" },
+          { title: "Total Fund Managers", value: String(totalFundManagersCount), icon: Building2, description: "In network" },
           { title: "Your Surveys", value: String(completedSurveys.length), icon: TrendingUp, description: "Completed" },
         ]);
 

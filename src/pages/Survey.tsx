@@ -748,17 +748,6 @@ const Survey = () => {
                           >
                             {survey.completed_at ? "Completed" : "Draft"}
                           </Badge>
-                          {userRole === 'member' && !survey.completed_at && (
-                            <Button 
-                              size="sm" 
-                              onClick={() => {
-                                setSelectedYear(survey.year);
-                                setShowNewSurvey(true);
-                              }}
-                            >
-                              Continue
-                            </Button>
-                          )}
                         </div>
                       </div>
                     ))}
@@ -788,7 +777,7 @@ const Survey = () => {
                     </p>
                     <div className="space-y-3">
                       <div className="flex flex-wrap gap-2">
-                        {[new Date().getFullYear(), new Date().getFullYear() - 1, new Date().getFullYear() - 2].map((year) => (
+                        {Array.from({ length: 11 }, (_, i) => 2020 + i).map((year) => (
                           <Button
                             key={year}
                             variant="outline"
@@ -813,20 +802,20 @@ const Survey = () => {
                           value={customYear}
                           onChange={(e) => setCustomYear(e.target.value)}
                           className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          min="1900"
-                          max="2100"
+                          min="2020"
+                          max="2030"
                         />
                         <Button
                           variant="outline"
                           onClick={() => {
                             const year = parseInt(customYear);
-                            if (year >= 1900 && year <= 2100) {
+                            if (year >= 2020 && year <= 2030) {
                               setSelectedYear(year);
                               setShowNewSurvey(true);
                               setCustomYear('');
                             }
                           }}
-                          disabled={!customYear || parseInt(customYear) < 1900 || parseInt(customYear) > 2100}
+                          disabled={!customYear || parseInt(customYear) < 2020 || parseInt(customYear) > 2030}
                         >
                           Create Survey
                         </Button>

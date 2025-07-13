@@ -114,20 +114,7 @@ const Network = () => {
         return;
       }
 
-      // For members and admins, fetch from both member_surveys and survey_responses
-      const { data: surveys, error: surveysError } = await supabase
-        .from('member_surveys')
-        .select('*')
-        .not('completed_at', 'is', null)
-        .order('completed_at', { ascending: false });
-
-      if (surveysError) {
-        console.error('Error fetching surveys:', surveysError);
-      }
-
-      console.log('Surveys fetched:', surveys);
-
-      // Always try to get from survey_responses table as well
+      // For members and admins, fetch from survey_responses table
       const { data: responses, error: responsesError } = await supabase
         .from('survey_responses')
         .select('*')
@@ -140,10 +127,7 @@ const Network = () => {
 
       console.log('Survey responses fetched:', responses);
 
-      // Use member_surveys if available, otherwise use survey_responses
-      let dataToProcess = surveys && surveys.length > 0 ? surveys : responses;
-      
-      if (!dataToProcess || dataToProcess.length === 0) {
+      if (!responses || responses.length === 0) {
         console.log('No completed surveys found');
         setFundManagers([]);
         setLoading(false);
@@ -151,15 +135,15 @@ const Network = () => {
       }
 
       // Log the first item to see its structure
-      if (dataToProcess.length > 0) {
-        console.log('First data item structure:', dataToProcess[0]);
-        console.log('Available fields:', Object.keys(dataToProcess[0]));
+      if (responses.length > 0) {
+        console.log('First survey response structure:', responses[0]);
+        console.log('Available fields:', Object.keys(responses[0]));
       }
 
-      // Convert to fund managers format
+      // Convert survey responses to fund managers format
       const managersWithProfiles: FundManager[] = [];
       
-      for (const item of dataToProcess) {
+      for (const item of responses) {
         try {
           // Validate required fields
           if (!item || !item.user_id) {
@@ -209,16 +193,18 @@ const Network = () => {
           const manager: FundManager = {
             id: item.id,
             user_id: item.user_id,
-            fund_name: item.fund_name || item.vehicle_name || 'Unknown Fund',
-            website: item.website || item.vehicle_website,
-            primary_investment_region: item.primary_investment_region || item.domicile_country,
-            fund_type: item.fund_type || 'Unknown',
-            year_founded: item.year_founded || null,
-            team_size: item.team_size || null,
-            typical_check_size: item.typical_check_size || item.ticket_size,
+            fund_name: item.vehicle_name || 'Unknown Fund',
+            website: item.vehicle_websites?.[0] || null,
+            primary_investment_region: item.legal_domicile?.join(', ') || 'Unknown',
+            fund_type: item.vehicle_type || 'Unknown',
+            year_founded: item.legal_entity_date_from || null,
+            team_size: item.team_size_max || null,
+            typical_check_size: item.ticket_size_min && item.ticket_size_max 
+              ? `$${item.ticket_size_min.toLocaleString()} - $${item.ticket_size_max.toLocaleString()}`
+              : null,
             completed_at: item.completed_at,
-            aum: item.aum || item.capital_raised,
-            investment_thesis: item.investment_thesis || item.thesis,
+            aum: item.capital_raised ? `$${item.capital_raised.toLocaleString()}` : null,
+            investment_thesis: item.thesis || null,
             sector_focus: sectorFocus,
             stage_focus: stageFocus,
             profiles: profile || null

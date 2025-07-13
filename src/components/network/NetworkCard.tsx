@@ -129,73 +129,100 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
         {/* Member Details - Show for members and admins */}
         {!isViewer && (
           <>
-            {manager.team_size && (
-              <div className="flex items-center text-sm text-gray-600">
-                <Users className="w-4 h-4 mr-2" />
-                <span>{manager.team_size} team members</span>
-              </div>
-            )}
-
-            {manager.typical_check_size && (
-              <div className="flex items-center text-sm text-gray-600">
-                <DollarSign className="w-4 h-4 mr-2" />
-                <span>Typical Check: {manager.typical_check_size}</span>
-              </div>
-            )}
-
-            {manager.year_founded && (
-              <div className="flex items-center text-sm text-gray-600">
-                <Calendar className="w-4 h-4 mr-2" />
-                <span>Founded {manager.year_founded}</span>
-              </div>
-            )}
-
-            {/* Survey Data - Show more detailed information */}
-            {manager.sector_focus && manager.sector_focus.length > 0 && (
-              <div className="text-sm text-gray-600">
-                <div className="flex items-center mb-1">
-                  <Target className="w-4 h-4 mr-2" />
-                  <span className="font-medium">Sectors:</span>
-                </div>
-                <div className="flex flex-wrap gap-1 ml-6">
-                  {manager.sector_focus.slice(0, 3).map((sector, index) => (
-                    <Badge key={index} variant="outline" className="text-xs">
-                      {sector}
-                    </Badge>
-                  ))}
-                  {manager.sector_focus.length > 3 && (
-                    <Badge variant="outline" className="text-xs">
-                      +{manager.sector_focus.length - 3} more
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {manager.stage_focus && manager.stage_focus.length > 0 && (
-              <div className="text-sm text-gray-600">
-                <div className="flex items-center mb-1">
-                  <Briefcase className="w-4 h-4 mr-2" />
-                  <span className="font-medium">Stages:</span>
-                </div>
-                <div className="flex flex-wrap gap-1 ml-6">
-                  {manager.stage_focus.slice(0, 3).map((stage, index) => (
-                    <Badge key={index} variant="outline" className="text-xs">
-                      {stage}
-                    </Badge>
-                  ))}
-                  {manager.stage_focus.length > 3 && (
-                    <Badge variant="outline" className="text-xs">
-                      +{manager.stage_focus.length - 3} more
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Admin-only details */}
-            {isAdmin && (
+            {/* For members, show only basic info */}
+            {userRole === 'member' && (
               <>
+                {manager.website && (
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Globe className="w-4 h-4 mr-2" />
+                    <a 
+                      href={manager.website.startsWith('http') ? manager.website : `https://${manager.website}`}
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline truncate"
+                    >
+                      {manager.website}
+                    </a>
+                  </div>
+                )}
+
+                {manager.primary_investment_region && (
+                  <div className="flex items-center text-sm text-gray-600">
+                    <MapPin className="w-4 h-4 mr-2" />
+                    <span>Legal Domicile: {manager.primary_investment_region}</span>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* For admins, show full details */}
+            {userRole === 'admin' && (
+              <>
+                {manager.team_size && (
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Users className="w-4 h-4 mr-2" />
+                    <span>{manager.team_size} team members</span>
+                  </div>
+                )}
+
+                {manager.typical_check_size && (
+                  <div className="flex items-center text-sm text-gray-600">
+                    <DollarSign className="w-4 h-4 mr-2" />
+                    <span>Typical Check: {manager.typical_check_size}</span>
+                  </div>
+                )}
+
+                {manager.year_founded && (
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Calendar className="w-4 h-4 mr-2" />
+                    <span>Founded {manager.year_founded}</span>
+                  </div>
+                )}
+
+                {/* Survey Data - Show more detailed information */}
+                {manager.sector_focus && manager.sector_focus.length > 0 && (
+                  <div className="text-sm text-gray-600">
+                    <div className="flex items-center mb-1">
+                      <Target className="w-4 h-4 mr-2" />
+                      <span className="font-medium">Sectors:</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1 ml-6">
+                      {manager.sector_focus.slice(0, 3).map((sector, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {sector}
+                        </Badge>
+                      ))}
+                      {manager.sector_focus.length > 3 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{manager.sector_focus.length - 3} more
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {manager.stage_focus && manager.stage_focus.length > 0 && (
+                  <div className="text-sm text-gray-600">
+                    <div className="flex items-center mb-1">
+                      <Briefcase className="w-4 h-4 mr-2" />
+                      <span className="font-medium">Stages:</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1 ml-6">
+                      {manager.stage_focus.slice(0, 3).map((stage, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {stage}
+                        </Badge>
+                      ))}
+                      {manager.stage_focus.length > 3 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{manager.stage_focus.length - 3} more
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Admin-only details */}
                 {manager.aum && (
                   <div className="flex items-center text-sm text-gray-600">
                     <TrendingUp className="w-4 h-4 mr-2" />
@@ -214,14 +241,14 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
                     </div>
                   </div>
                 )}
-              </>
-            )}
 
-            {manager.completed_at && (
-              <div className="text-xs text-gray-500 flex items-center">
-                <FileText className="w-3 h-3 mr-1" />
-                Profile completed: {new Date(manager.completed_at).toLocaleDateString()}
-              </div>
+                {manager.completed_at && (
+                  <div className="text-xs text-gray-500 flex items-center">
+                    <FileText className="w-3 h-3 mr-1" />
+                    Profile completed: {new Date(manager.completed_at).toLocaleDateString()}
+                  </div>
+                )}
+              </>
             )}
           </>
         )}
@@ -232,7 +259,7 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
             <Link to={`/network/fund-manager/${manager.user_id}`}>
               <Button variant="outline" size="sm" className="w-full">
                 <Eye className="w-4 h-4 mr-2" />
-                {isAdmin ? 'View Full Details' : 'View Profile'}
+                {userRole === 'admin' ? 'View Full Details' : 'View Profile'}
               </Button>
             </Link>
           ) : (
