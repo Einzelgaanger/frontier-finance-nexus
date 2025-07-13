@@ -55,7 +55,66 @@ const Network = () => {
     try {
       console.log('Fetching fund managers...');
       
-      // First, try to get completed surveys from member_surveys table
+      // For viewers, show approved applications from membership_requests
+      if (userRole === 'viewer') {
+        const { data: approvedApplications, error: applicationsError } = await supabase
+          .from('membership_requests')
+          .select('*')
+          .eq('status', 'approved')
+          .order('created_at', { ascending: false });
+
+        if (applicationsError) {
+          console.error('Error fetching approved applications:', applicationsError);
+          throw applicationsError;
+        }
+
+        console.log('Approved applications fetched:', approvedApplications);
+
+        // Convert approved applications to fund manager format for viewers
+        const managersWithProfiles: FundManager[] = [];
+        
+        for (const app of approvedApplications) {
+          try {
+            const { data: profile, error: profileError } = await supabase
+              .from('profiles')
+              .select('first_name, last_name, email')
+              .eq('id', app.user_id)
+              .single();
+
+            if (profileError) {
+              console.warn('Profile not found for user:', app.user_id);
+            }
+
+            const manager: FundManager = {
+              id: app.id,
+              user_id: app.user_id,
+              fund_name: app.vehicle_name || 'Unknown Fund',
+              website: app.vehicle_website,
+              primary_investment_region: app.domicile_country,
+              fund_type: 'Approved Member',
+              year_founded: null,
+              team_size: null,
+              typical_check_size: app.ticket_size,
+              completed_at: app.created_at,
+              aum: app.capital_raised,
+              investment_thesis: app.thesis,
+              sector_focus: [],
+              stage_focus: [],
+              profiles: profile || null
+            };
+
+            managersWithProfiles.push(manager);
+          } catch (error) {
+            console.warn('Error processing approved application:', app.id, error);
+          }
+        }
+
+        setFundManagers(managersWithProfiles);
+        setLoading(false);
+        return;
+      }
+
+      // For members and admins, fetch from both member_surveys and survey_responses
       const { data: surveys, error: surveysError } = await supabase
         .from('member_surveys')
         .select('*')
@@ -64,7 +123,6 @@ const Network = () => {
 
       if (surveysError) {
         console.error('Error fetching surveys:', surveysError);
-        throw surveysError;
       }
 
       console.log('Surveys fetched:', surveys);
@@ -199,55 +257,43 @@ const Network = () => {
           let investmentRegion = null;
           if (item.primary_investment_region) {
             investmentRegion = item.primary_investment_region;
+          } else if (item.domicile_country) {
+            investmentRegion = item.domicile_country;
           } else if (item.location) {
             investmentRegion = item.location;
-          } else if (marketsOperated && Object.keys(marketsOperated).length > 0) {
-            investmentRegion = Object.keys(marketsOperated).join(', ');
           }
 
-          // Determine ticket size - check all possible field names
-          let ticketSize = null;
-          if (item.typical_check_size) {
-            ticketSize = item.typical_check_size;
-          } else if (item.ticket_size) {
-            ticketSize = item.ticket_size;
-          } else if (item.ticket_size_min && item.ticket_size_max) {
-            ticketSize = `$${item.ticket_size_min.toLocaleString()} - $${item.ticket_size_max.toLocaleString()}`;
-          }
-
-          // Determine AUM - check all possible field names
-          let aum = null;
-          if (item.aum) {
-            aum = item.aum;
-          } else if (item.capital_raised) {
-            aum = `$${item.capital_raised.toLocaleString()}`;
-          }
-
-          // Determine fund type - check all possible field names
-          let fundType = 'Unknown';
+          // Determine fund type
+          let fundType = null;
           if (item.fund_type) {
             fundType = item.fund_type;
           } else if (item.vehicle_type) {
             fundType = item.vehicle_type;
           }
 
-          // Determine year founded - check all possible field names
-          let yearFounded = null;
-          if (item.year_founded) {
-            yearFounded = item.year_founded;
-          } else if (item.legal_entity_date_from) {
-            yearFounded = item.legal_entity_date_from;
-          }
-
-          // Determine team size - check all possible field names
+          // Determine team size
           let teamSize = null;
           if (item.team_size) {
-            teamSize = item.team_size;
-          } else if (item.team_size_max) {
-            teamSize = item.team_size_max;
+            teamSize = typeof item.team_size === 'number' ? item.team_size : parseInt(item.team_size);
           }
 
-          // Determine investment thesis - check all possible field names
+          // Determine typical check size
+          let typicalCheckSize = null;
+          if (item.typical_check_size) {
+            typicalCheckSize = item.typical_check_size;
+          } else if (item.ticket_size) {
+            typicalCheckSize = item.ticket_size;
+          }
+
+          // Determine AUM
+          let aum = null;
+          if (item.aum) {
+            aum = item.aum;
+          } else if (item.capital_raised) {
+            aum = item.capital_raised;
+          }
+
+          // Determine investment thesis
           let investmentThesis = null;
           if (item.investment_thesis) {
             investmentThesis = item.investment_thesis;
@@ -255,56 +301,34 @@ const Network = () => {
             investmentThesis = item.thesis;
           }
 
-          // Create the fund manager object with all required fields
-          const fundManager: FundManager = {
-            id: item.id || `temp-${item.user_id}`,
+          const manager: FundManager = {
+            id: item.id,
             user_id: item.user_id,
             fund_name: fundName,
             website: website,
             primary_investment_region: investmentRegion,
             fund_type: fundType,
-            year_founded: yearFounded,
+            year_founded: item.year_founded,
             team_size: teamSize,
-            typical_check_size: ticketSize,
+            typical_check_size: typicalCheckSize,
             completed_at: item.completed_at,
             aum: aum,
             investment_thesis: investmentThesis,
             sector_focus: sectorFocus,
             stage_focus: stageFocus,
-            profiles: profile || undefined
+            profiles: profile || null
           };
 
-          // Validate the fund manager object before adding
-          if (fundManager.fund_name && fundManager.user_id) {
-            managersWithProfiles.push(fundManager);
-          } else {
-            console.warn('Skipping fund manager with missing required fields:', fundManager);
-          }
+          managersWithProfiles.push(manager);
         } catch (error) {
-          console.error('Error processing item:', item, error);
+          console.warn('Error processing item:', item?.id, error);
         }
       }
 
-      console.log('Fund managers with profiles:', managersWithProfiles);
-      
-      // Validate each fund manager before setting state
-      const validManagers = managersWithProfiles.filter(manager => {
-        if (!manager.fund_name) {
-          console.warn('Manager missing fund_name:', manager);
-          return false;
-        }
-        if (!manager.user_id) {
-          console.warn('Manager missing user_id:', manager);
-          return false;
-        }
-        return true;
-      });
-      
-      console.log('Valid fund managers:', validManagers);
-      setFundManagers(validManagers);
+      console.log('Final managers with profiles:', managersWithProfiles);
+      setFundManagers(managersWithProfiles);
     } catch (error) {
       console.error('Error fetching fund managers:', error);
-      setFundManagers([]);
     } finally {
       setLoading(false);
     }

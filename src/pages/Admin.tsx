@@ -682,7 +682,74 @@ const Admin = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
-          <p className="text-gray-600">Manage applications, members, and network analytics</p>
+          <p className="text-gray-600">Manage applications, members, and network activities</p>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <Card className="bg-white border-l-4 border-blue-500">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Pending Applications</p>
+                  <p className="text-2xl font-bold text-blue-600">
+                    {membershipRequests.filter(r => r.status === 'pending').length}
+                  </p>
+                </div>
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-blue-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white border-l-4 border-green-500">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Approved Members</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    {membershipRequests.filter(r => r.status === 'approved').length}
+                  </p>
+                </div>
+                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                  <Users className="w-5 h-5 text-green-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white border-l-4 border-yellow-500">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Applications</p>
+                  <p className="text-2xl font-bold text-yellow-600">
+                    {membershipRequests.length}
+                  </p>
+                </div>
+                <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-yellow-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white border-l-4 border-purple-500">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Recent Activities</p>
+                  <p className="text-2xl font-bold text-purple-600">
+                    {activityLogs.length}
+                  </p>
+                </div>
+                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                  <Activity className="w-5 h-5 text-purple-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -721,11 +788,15 @@ const Admin = () => {
               {membershipRequests.map((request) => (
                 <Card key={request.id} className="hover:shadow-lg transition-all duration-200 cursor-pointer" onClick={() => handleViewApplication(request)}>
                   <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm font-medium truncate">{request.applicant_name}</CardTitle>
+                    <div className="flex items-center justify-between gap-2">
+                      <CardTitle className="text-sm font-medium truncate flex-1">{request.applicant_name}</CardTitle>
                       <Badge 
                         variant={request.status === 'pending' ? 'secondary' : request.status === 'approved' ? 'default' : 'destructive'}
-                        className={request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : request.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}
+                        className={`flex-shrink-0 ${
+                          request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                          request.status === 'approved' ? 'bg-green-100 text-green-800' : 
+                          'bg-red-100 text-red-800'
+                        }`}
                       >
                         {request.status === 'pending' ? 'Pending' : request.status === 'approved' ? 'Approved' : 'Rejected'}
                       </Badge>
@@ -745,7 +816,7 @@ const Admin = () => {
                             href={request.vehicle_website.startsWith('http') ? request.vehicle_website : `https://${request.vehicle_website}`}
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline truncate"
+                            className="text-blue-600 hover:underline truncate block"
                             onClick={(e) => e.stopPropagation()}
                           >
                             {request.vehicle_website}
@@ -766,15 +837,18 @@ const Admin = () => {
           <TabsContent value="members" className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-900">Member Management</h2>
+              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                Total Members: {membershipRequests.filter(r => r.status === 'approved').length}
+              </Badge>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {membershipRequests.filter(r => r.status === 'approved').map((request) => (
                 <Card key={request.id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-green-500">
                   <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm font-medium truncate">{request.applicant_name}</CardTitle>
-                      <Badge variant="default" className="bg-green-100 text-green-800">Member</Badge>
+                    <div className="flex items-center justify-between gap-2">
+                      <CardTitle className="text-sm font-medium truncate flex-1">{request.applicant_name}</CardTitle>
+                      <Badge variant="default" className="bg-green-100 text-green-800 flex-shrink-0">Member</Badge>
                     </div>
                     <CardDescription className="text-xs truncate">{request.email}</CardDescription>
                   </CardHeader>
@@ -791,7 +865,7 @@ const Admin = () => {
                             href={request.vehicle_website.startsWith('http') ? request.vehicle_website : `https://${request.vehicle_website}`}
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline truncate"
+                            className="text-blue-600 hover:underline truncate block"
                           >
                             {request.vehicle_website}
                           </a>
@@ -868,57 +942,57 @@ const Admin = () => {
 
               <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-              <div className="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl sm:w-full border-0">
-                <div className="bg-blue-600 px-6 pt-6 pb-4 sm:p-8 sm:pb-6">
+              <div className="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl sm:w-full border-0 max-h-[90vh] overflow-y-auto">
+                <div className="bg-blue-600 px-4 sm:px-6 pt-4 sm:pt-6 pb-4 sm:pb-6">
                   <div className="sm:flex sm:items-start">
-                    <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-white sm:mx-0 sm:h-12 sm:w-12">
-                      <UserCheck className="h-6 w-6 text-blue-600" aria-hidden="true" />
+                    <div className="mx-auto flex-shrink-0 flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-white sm:mx-0">
+                      <UserCheck className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" aria-hidden="true" />
                     </div>
                     <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                      <h3 className="text-xl leading-6 font-bold text-white">
+                      <h3 className="text-lg sm:text-xl leading-6 font-bold text-white break-words">
                         Application Details - {selectedRequest.applicant_name}
                       </h3>
-                      <p className="text-blue-100 mt-2">Review application information and supporting documents</p>
+                      <p className="text-blue-100 mt-2 text-sm">Review application information and supporting documents</p>
                     </div>
                   </div>
                 </div>
                 
-                <div className="bg-gray-50 px-6 py-6 sm:px-8">
+                <div className="bg-gray-50 px-4 sm:px-6 py-4 sm:py-6">
                   <div className="max-h-96 overflow-y-auto">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                       <div className="space-y-4">
-                        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                        <div className="bg-white p-4 sm:p-6 rounded-lg border border-gray-200 shadow-sm">
                           <div className="flex items-center gap-3 mb-4">
-                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                              <MessageSquare className="h-4 w-4 text-blue-600" />
+                            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                              <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
                             </div>
-                            <h4 className="font-semibold text-gray-900 text-lg">Background Information</h4>
+                            <h4 className="font-semibold text-gray-900 text-base sm:text-lg">Background Information</h4>
                           </div>
-                          <div className="space-y-3 text-sm">
+                          <div className="space-y-3 text-xs sm:text-sm">
                             <div className="flex items-start gap-3">
-                              <User className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
-                              <div>
+                              <User className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div className="min-w-0 flex-1">
                                 <p className="font-medium text-gray-700">Name</p>
                                 <p className="text-gray-600 break-words">{selectedRequest.applicant_name}</p>
                               </div>
                             </div>
                             <div className="flex items-start gap-3">
-                              <Mail className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
-                              <div>
+                              <Mail className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div className="min-w-0 flex-1">
                                 <p className="font-medium text-gray-700">Email</p>
                                 <p className="text-gray-600 break-all">{selectedRequest.email}</p>
                               </div>
                             </div>
                             <div className="flex items-start gap-3">
-                              <Building2 className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
-                              <div>
+                              <Building2 className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div className="min-w-0 flex-1">
                                 <p className="font-medium text-gray-700">Vehicle Name</p>
                                 <p className="text-gray-600 break-words">{selectedRequest.vehicle_name}</p>
                               </div>
                             </div>
                             <div className="flex items-start gap-3">
-                              <Globe className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
-                              <div>
+                              <Globe className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div className="min-w-0 flex-1">
                                 <p className="font-medium text-gray-700">Vehicle Website</p>
                                 {selectedRequest.vehicle_website ? (
                                   <a 
@@ -935,8 +1009,8 @@ const Admin = () => {
                               </div>
                             </div>
                             <div className="flex items-start gap-3">
-                              <MapPin className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
-                              <div>
+                              <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div className="min-w-0 flex-1">
                                 <p className="font-medium text-gray-700">Country</p>
                                 <p className="text-gray-600 break-words">{selectedRequest.domicile_country || 'N/A'}</p>
                               </div>
@@ -944,31 +1018,31 @@ const Admin = () => {
                           </div>
                         </div>
 
-                        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                        <div className="bg-white p-4 sm:p-6 rounded-lg border border-gray-200 shadow-sm">
                           <div className="flex items-center gap-3 mb-4">
-                            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                              <Users className="h-4 w-4 text-green-600" />
+                            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                              <Users className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
                             </div>
-                            <h4 className="font-semibold text-gray-900 text-lg">Team Information</h4>
+                            <h4 className="font-semibold text-gray-900 text-base sm:text-lg">Team Information</h4>
                           </div>
-                          <div className="space-y-3 text-sm">
+                          <div className="space-y-3 text-xs sm:text-sm">
                             <div className="flex items-start gap-3">
-                              <Briefcase className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
-                              <div>
+                              <Briefcase className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div className="min-w-0 flex-1">
                                 <p className="font-medium text-gray-700">Role/Job Title</p>
                                 <p className="text-gray-600 break-words">{selectedRequest.role_job_title || 'N/A'}</p>
                               </div>
                             </div>
                             <div className="flex items-start gap-3">
-                              <Users className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
-                              <div>
+                              <Users className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div className="min-w-0 flex-1">
                                 <p className="font-medium text-gray-700">Team Size</p>
                                 <p className="text-gray-600 break-words">{selectedRequest.team_size || 'N/A'}</p>
                               </div>
                             </div>
                             <div className="flex items-start gap-3">
-                              <MapPin className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
-                              <div>
+                              <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div className="min-w-0 flex-1">
                                 <p className="font-medium text-gray-700">Location</p>
                                 <p className="text-gray-600 break-words">{selectedRequest.location || 'N/A'}</p>
                               </div>
@@ -976,45 +1050,45 @@ const Admin = () => {
                           </div>
                         </div>
 
-                        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                        <div className="bg-white p-4 sm:p-6 rounded-lg border border-gray-200 shadow-sm">
                           <div className="flex items-center gap-3 mb-4">
-                            <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                              <Building2 className="h-4 w-4 text-purple-600" />
+                            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                              <Building2 className="h-3 w-3 sm:h-4 sm:w-4 text-purple-600" />
                             </div>
-                            <h4 className="font-semibold text-gray-900 text-lg">Vehicle Information</h4>
+                            <h4 className="font-semibold text-gray-900 text-base sm:text-lg">Vehicle Information</h4>
                           </div>
-                          <div className="space-y-3 text-sm">
+                          <div className="space-y-3 text-xs sm:text-sm">
                             <div className="flex items-start gap-3">
-                              <Target className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
-                              <div>
+                              <Target className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div className="min-w-0 flex-1">
                                 <p className="font-medium text-gray-700">Thesis</p>
                                 <p className="text-gray-600 break-words">{selectedRequest.thesis || 'N/A'}</p>
                               </div>
                             </div>
                             <div className="flex items-start gap-3">
-                              <DollarSign className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
-                              <div>
+                              <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div className="min-w-0 flex-1">
                                 <p className="font-medium text-gray-700">Ticket Size</p>
                                 <p className="text-gray-600 break-words">{selectedRequest.ticket_size || 'N/A'}</p>
                               </div>
                             </div>
                             <div className="flex items-start gap-3">
-                              <TrendingUp className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
-                              <div>
+                              <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div className="min-w-0 flex-1">
                                 <p className="font-medium text-gray-700">Portfolio Investments</p>
                                 <p className="text-gray-600 break-words">{selectedRequest.portfolio_investments || 'N/A'}</p>
                               </div>
                             </div>
                             <div className="flex items-start gap-3">
-                              <Award className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
-                              <div>
+                              <Award className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div className="min-w-0 flex-1">
                                 <p className="font-medium text-gray-700">Capital Raised</p>
                                 <p className="text-gray-600 break-words">{selectedRequest.capital_raised || 'N/A'}</p>
                               </div>
                             </div>
                             <div className="flex items-start gap-3">
-                              <File className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
-                              <div>
+                              <File className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div className="min-w-0 flex-1">
                                 <p className="font-medium text-gray-700">Supporting Documents</p>
                                 {selectedRequest.supporting_documents ? (
                                   <div className="flex items-center gap-2">
@@ -1030,7 +1104,7 @@ const Admin = () => {
                                                   href={url}
                                                   target="_blank" 
                                                   rel="noopener noreferrer"
-                                                  className="text-blue-600 hover:underline block"
+                                                  className="text-blue-600 hover:underline block break-all"
                                                 >
                                                   Document {index + 1}
                                                 </a>
@@ -1045,7 +1119,7 @@ const Admin = () => {
                                             href={selectedRequest.supporting_documents}
                                             target="_blank" 
                                             rel="noopener noreferrer"
-                                            className="text-blue-600 hover:underline"
+                                            className="text-blue-600 hover:underline break-all"
                                           >
                                             View Documents
                                           </a>
@@ -1063,26 +1137,26 @@ const Admin = () => {
                       </div>
 
                       <div className="space-y-4">
-                        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                        <div className="bg-white p-4 sm:p-6 rounded-lg border border-gray-200 shadow-sm">
                           <div className="flex items-center gap-3 mb-4">
-                            <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                              <MessageSquare className="h-4 w-4 text-orange-600" />
+                            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                              <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4 text-orange-600" />
                             </div>
-                            <h4 className="font-semibold text-gray-900 text-lg">Information Sharing</h4>
+                            <h4 className="font-semibold text-gray-900 text-base sm:text-lg">Information Sharing</h4>
                           </div>
-                          <div className="space-y-3 text-sm">
+                          <div className="space-y-3 text-xs sm:text-sm">
                             {selectedRequest.information_sharing?.topics && selectedRequest.information_sharing.topics.length > 0 ? (
                               <div className="space-y-2">
                                 {selectedRequest.information_sharing.topics.map((topic, index) => (
                                   <div key={index} className="flex items-center gap-2">
-                                    <CheckCircle className="w-4 h-4 text-green-500" />
-                                    <span className="text-gray-700">{topic}</span>
+                                    <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
+                                    <span className="text-gray-700 break-words">{topic}</span>
                                   </div>
                                 ))}
                                 {selectedRequest.information_sharing.other && (
                                   <div className="flex items-center gap-2">
-                                    <CheckCircle className="w-4 h-4 text-green-500" />
-                                    <span className="text-gray-700">Other: {selectedRequest.information_sharing.other}</span>
+                                    <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
+                                    <span className="text-gray-700 break-words">Other: {selectedRequest.information_sharing.other}</span>
                                   </div>
                                 )}
                               </div>
@@ -1092,24 +1166,24 @@ const Admin = () => {
                           </div>
                         </div>
 
-                        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                        <div className="bg-white p-4 sm:p-6 rounded-lg border border-gray-200 shadow-sm">
                           <div className="flex items-center gap-3 mb-4">
-                            <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                              <Target className="h-4 w-4 text-yellow-600" />
+                            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
+                              <Target className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-600" />
                             </div>
-                            <h4 className="font-semibold text-gray-900 text-lg">ESCP Network Expectations</h4>
+                            <h4 className="font-semibold text-gray-900 text-base sm:text-lg">ESCP Network Expectations</h4>
                           </div>
-                          <div className="space-y-3 text-sm">
+                          <div className="space-y-3 text-xs sm:text-sm">
                             <div className="flex items-start gap-3">
-                              <MessageSquare className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
-                              <div>
+                              <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div className="min-w-0 flex-1">
                                 <p className="font-medium text-gray-700">Expectations</p>
                                 <p className="text-gray-600 break-words">{selectedRequest.expectations || 'N/A'}</p>
                               </div>
                             </div>
                             <div className="flex items-start gap-3">
-                              <Globe className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
-                              <div>
+                              <Globe className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div className="min-w-0 flex-1">
                                 <p className="font-medium text-gray-700">How heard about network</p>
                                 <p className="text-gray-600 break-words">{selectedRequest.how_heard_about_network || 'N/A'}</p>
                               </div>
@@ -1121,14 +1195,14 @@ const Admin = () => {
                   </div>
                 </div>
                 
-                <div className="bg-gray-100 px-6 py-4 sm:px-8 sm:flex sm:flex-row-reverse">
+                <div className="bg-gray-100 px-4 sm:px-6 py-4 sm:py-4 sm:flex sm:flex-row-reverse">
                   {selectedRequest.status === 'pending' && (
                     <Select
                       value=""
                       onValueChange={(value) => handleRoleChange(selectedRequest.id, value as 'viewer' | 'member')}
                       disabled={isUpdating}
                     >
-                      <SelectTrigger className="w-40 bg-white">
+                      <SelectTrigger className="w-full sm:w-40 bg-white">
                         <SelectValue placeholder="Change Role" />
                       </SelectTrigger>
                       <SelectContent>
