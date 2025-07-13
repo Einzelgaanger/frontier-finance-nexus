@@ -44,11 +44,15 @@ const Network = () => {
   const [filterType, setFilterType] = useState('all');
   const [approvedMembers, setApprovedMembers] = useState<any[]>([]); // For viewer
   const [viewerError, setViewerError] = useState<string | null>(null);
+  const [membershipRequests, setMembershipRequests] = useState<any[]>([]);
+  const [viewerLoading, setViewerLoading] = useState(true);
+  const [viewerError, setViewerError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchFundManagers();
     if (userRole === 'viewer') {
       fetchApprovedMembers();
+      fetchMembershipRequests();
     }
   }, [userRole]);
 
@@ -160,6 +164,24 @@ const Network = () => {
     }
   };
 
+  const fetchMembershipRequests = async () => {
+    setViewerLoading(true);
+    setViewerError(null);
+    try {
+      const { data, error } = await supabase
+        .from('membership_requests')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      setMembershipRequests(data || []);
+    } catch (err) {
+      setViewerError('Failed to load members. Please try again.');
+      setMembershipRequests([]);
+    } finally {
+      setViewerLoading(false);
+    }
+  };
+
   const filterManagers = () => {
     let filtered = fundManagers;
 
@@ -214,14 +236,15 @@ const Network = () => {
   }
 
   if (userRole === 'viewer') {
+    const approvedMembers = membershipRequests.filter((r: any) => r.status === 'approved');
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">Network Directory</h1>
-          <div className="flex flex-wrap gap-2 mb-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-3xl font-bold text-gray-900">Member Management</h2>
             <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-              Approved: {approvedMembers.length}
+              Total Members: {approvedMembers.length}
             </Badge>
           </div>
           {viewerError && (
@@ -229,13 +252,13 @@ const Network = () => {
               {viewerError}
             </div>
           )}
-          {loading ? (
+          {viewerLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading approved members...</p>
+              <p className="text-gray-600">Loading members...</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {approvedMembers.length === 0 ? (
                 <Card className="text-center py-12 col-span-full">
                   <CardContent>
@@ -254,7 +277,7 @@ const Network = () => {
                       </div>
                       <CardDescription className="text-xs truncate">{request.email}</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="pt-0">
                       <div className="space-y-2 text-xs text-gray-600">
                         <div className="flex items-center gap-2">
                           <Building2 className="w-3 h-3 flex-shrink-0" />
@@ -280,10 +303,6 @@ const Network = () => {
                         <div className="flex items-center gap-2">
                           <DollarSign className="w-3 h-3 flex-shrink-0" />
                           <span className="truncate">{request.ticket_size || 'N/A'}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-3 h-3 flex-shrink-0" />
-                          <span className="truncate">{request.created_at ? new Date(request.created_at).toLocaleDateString() : 'N/A'}</span>
                         </div>
                       </div>
                     </CardContent>
