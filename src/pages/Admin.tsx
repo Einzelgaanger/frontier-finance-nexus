@@ -760,18 +760,9 @@ const Admin = () => {
           </TabsList>
 
           <TabsContent value="applications" className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <h2 className="text-xl font-semibold text-gray-900">Membership Applications</h2>
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handlePopulateMemberSurveys}
-                  className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
-                >
-                  <Building2 className="w-4 h-4 mr-2" />
-                  Populate Network Data
-                </Button>
+              <div className="flex flex-wrap gap-2">
                 <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
                   Pending: {membershipRequests.filter(r => r.status === 'pending').length}
                 </Badge>

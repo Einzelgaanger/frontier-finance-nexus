@@ -88,8 +88,39 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
           </div>
         )}
 
+        {/* For viewers, show basic application info */}
+        {isViewer && (
+          <>
+            {manager.typical_check_size && (
+              <div className="flex items-center text-sm text-gray-600">
+                <DollarSign className="w-4 h-4 mr-2" />
+                <span>Ticket Size: {manager.typical_check_size}</span>
+              </div>
+            )}
+
+            {manager.aum && (
+              <div className="flex items-center text-sm text-gray-600">
+                <TrendingUp className="w-4 h-4 mr-2" />
+                <span>Capital Raised: {manager.aum}</span>
+              </div>
+            )}
+
+            {manager.investment_thesis && (
+              <div className="text-sm text-gray-600">
+                <div className="font-medium mb-1 flex items-center">
+                  <Target className="w-4 h-4 mr-2" />
+                  Investment Thesis:
+                </div>
+                <div className="text-xs text-gray-500 line-clamp-2 ml-6">
+                  {manager.investment_thesis}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
         {/* Member Details - Show for members and admins */}
-        {canViewDetails && (
+        {!isViewer && (
           <>
             {manager.team_size && (
               <div className="flex items-center text-sm text-gray-600">

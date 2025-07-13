@@ -180,7 +180,6 @@ const Network = () => {
           // Parse JSON fields with better error handling
           let sectorFocus: string[] = [];
           let stageFocus: string[] = [];
-          let marketsOperated: any = {};
 
           try {
             // Handle different data structures
@@ -203,17 +202,11 @@ const Network = () => {
                 ? JSON.parse(item.stage_focus)
                 : item.stage_focus || [];
             }
-            
-            if (item.markets_operated) {
-              marketsOperated = typeof item.markets_operated === 'string'
-                ? JSON.parse(item.markets_operated)
-                : item.markets_operated || {};
-            }
           } catch (e) {
             console.warn('Error parsing JSON fields for item:', item.id, e);
           }
 
-          // Determine fund name with fallback - check all possible field names
+          // Determine fund name with fallback
           let fundName = 'Unknown Fund';
           if (item.fund_name) {
             fundName = item.fund_name;
@@ -222,38 +215,16 @@ const Network = () => {
           } else if (item.name) {
             fundName = item.name;
           }
-          
-          // Log the item to debug field mapping
-          console.log('Processing item:', {
-            id: item.id,
-            user_id: item.user_id,
-            fund_name: item.fund_name,
-            vehicle_name: item.vehicle_name,
-            name: item.name,
-            final_fund_name: fundName,
-            all_fields: Object.keys(item)
-          });
 
-          // Determine website - check all possible field names
+          // Determine website
           let website = null;
           if (item.website) {
             website = item.website;
           } else if (item.vehicle_website) {
             website = item.vehicle_website;
-          } else if (item.vehicle_websites) {
-            if (Array.isArray(item.vehicle_websites)) {
-              website = item.vehicle_websites[0];
-            } else if (typeof item.vehicle_websites === 'string') {
-              try {
-                const parsed = JSON.parse(item.vehicle_websites);
-                website = Array.isArray(parsed) ? parsed[0] : null;
-              } catch (e) {
-                website = item.vehicle_websites;
-              }
-            }
           }
 
-          // Determine investment region - check all possible field names
+          // Determine investment region
           let investmentRegion = null;
           if (item.primary_investment_region) {
             investmentRegion = item.primary_investment_region;

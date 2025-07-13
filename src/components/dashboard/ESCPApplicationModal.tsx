@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { FileText, Upload, Building2, Users, Globe, Target, CheckCircle, XCircle } from 'lucide-react';
+import { uploadFileWithFallback } from '@/utils/setupStorage';
 
 interface ESCPApplicationModalProps {
   open: boolean;
@@ -103,7 +104,8 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
         });
         return false;
       }
-      return file.type === 'application/pdf';
+      // Accept any file type - images, PDFs, documents, etc.
+      return true;
     });
     
     setFormData(prev => ({ ...prev, supporting_documents: validFiles }));
@@ -116,34 +118,23 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
     
     for (const file of formData.supporting_documents) {
       try {
-        const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-        const { data, error } = await supabase.storage
-          .from('supporting-documents')
-          .upload(fileName, file);
+        const result = await uploadFileWithFallback(file);
         
-        if (error) {
-          console.error('Error uploading file:', error);
+        if (result.success) {
+          uploadedUrls.push(result.url);
+          console.log('File uploaded successfully:', result.fileName, result.url);
+          
+          if (result.fallback) {
+            toast({
+              title: "File Uploaded (Fallback)",
+              description: `${file.name} uploaded using fallback method. Contact admin to set up proper storage.`,
+              variant: "default"
+            });
+          }
+        } else {
           toast({
             title: "Upload Error",
-            description: `Failed to upload ${file.name}: ${error.message}`,
-            variant: "destructive"
-          });
-          continue;
-        }
-        
-        // Get the public URL for the uploaded file
-        const { data: urlData } = supabase.storage
-          .from('supporting-documents')
-          .getPublicUrl(fileName);
-        
-        if (urlData?.publicUrl) {
-          uploadedUrls.push(urlData.publicUrl);
-          console.log('File uploaded successfully:', fileName, urlData.publicUrl);
-        } else {
-          console.error('Failed to get public URL for:', fileName);
-          toast({
-            title: "URL Error",
-            description: `Failed to generate URL for ${file.name}`,
+            description: `Failed to upload ${file.name}: ${result.error}`,
             variant: "destructive"
           });
         }
@@ -260,7 +251,7 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
       // Show success message with animation
       setShowSuccessMessage(true);
       
-      // Hide success message after 2 seconds
+      // Hide success message after 5 seconds
       setTimeout(() => {
         setShowSuccessMessage(false);
         onClose();
@@ -287,7 +278,7 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
           notable_investments: '',
           additional_comments: ''
         });
-      }, 2000);
+      }, 5000);
 
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Failed to submit application. Please try again.";
@@ -486,11 +477,11 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
               </div>
               
               <div>
-                <Label htmlFor="supporting_documents" className="text-sm">Upload Supporting Documents (PDFs, max 5 files, 10MB each)</Label>
+                <Label htmlFor="supporting_documents" className="text-sm">Upload Supporting Documents (Any file type, max 5 files, 10MB each)</Label>
                 <div className="mt-2">
                   <Input
                     type="file"
-                    accept=".pdf"
+                    accept="*/*"
                     multiple
                     onChange={handleFileUpload}
                     className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 text-sm"
@@ -594,20 +585,20 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6 w-[95vw] sm:w-auto">
           <DialogHeader className="mb-6">
-            <DialogTitle className="text-xl sm:text-2xl font-bold text-gray-900">
+            <DialogTitle className="text-lg sm:text-xl font-bold text-gray-900 break-words">
               ESCP Network Application
             </DialogTitle>
-            <DialogDescription className="text-sm text-gray-600">
+            <DialogDescription className="text-sm text-gray-600 break-words">
               Complete this comprehensive application to join the Early Stage Capital Provider Network
             </DialogDescription>
           </DialogHeader>
 
           {/* Progress Indicator */}
-          <div className="flex items-center justify-between mb-6 px-2">
+          <div className="flex items-center justify-between mb-6 px-2 overflow-x-auto">
             {[1, 2, 3, 4].map((step) => (
-              <div key={step} className="flex items-center">
+              <div key={step} className="flex items-center flex-shrink-0">
                 <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${
                   step <= currentSection 
                     ? 'bg-blue-600 text-white' 
@@ -616,7 +607,7 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
                   {step}
                 </div>
                 {step < 4 && (
-                  <div className={`w-8 sm:w-16 h-1 mx-1 sm:mx-2 ${
+                  <div className={`w-6 sm:w-8 h-1 mx-1 sm:mx-2 ${
                     step < currentSection ? 'bg-blue-600' : 'bg-gray-200'
                   }`} />
                 )}
@@ -625,7 +616,7 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
           </div>
 
           {/* Form Content */}
-          <div className="min-h-[400px] px-2">
+          <div className="min-h-[400px] px-2 overflow-x-hidden">
             {renderSection()}
           </div>
 
@@ -658,12 +649,12 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
       {/* Success Message Overlay */}
       {showSuccessMessage && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg p-8 max-w-md mx-4 text-center shadow-2xl animate-in fade-in-0 zoom-in-95 duration-300">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-8 h-8 text-green-600" />
+          <div className="bg-white rounded-lg p-6 sm:p-8 max-w-md mx-4 text-center shadow-2xl animate-in fade-in-0 zoom-in-95 duration-300">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Application Submitted!</h3>
-            <p className="text-gray-600 mb-4">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 break-words">Application Submitted!</h3>
+            <p className="text-gray-600 mb-4 text-sm break-words">
               Your ESCP Network application has been submitted for review. We'll get back to you once the review is completed.
             </p>
             <div className="flex items-center justify-center gap-2 text-sm text-green-600">
