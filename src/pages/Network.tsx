@@ -43,13 +43,14 @@ const Network = () => {
   const [filterRegion, setFilterRegion] = useState('all');
   const [filterType, setFilterType] = useState('all');
   const [approvedMembers, setApprovedMembers] = useState<any[]>([]); // For viewer
+  const [viewerError, setViewerError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchFundManagers();
     if (userRole === 'viewer') {
       fetchApprovedMembers();
     }
-  }, []);
+  }, [userRole]);
 
   useEffect(() => {
     if (userRole === 'viewer') {
@@ -142,28 +143,21 @@ const Network = () => {
 
   const fetchApprovedMembers = async () => {
     setLoading(true);
-    const { data: approved, error } = await supabase
-      .from('membership_requests')
-      .select('*')
-      .eq('status', 'approved');
-    if (!approved) {
+    setViewerError(null);
+    try {
+      const { data: approved, error } = await supabase
+        .from('membership_requests')
+        .select('*')
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      setApprovedMembers(approved || []);
+    } catch (err: any) {
+      setViewerError('Failed to load approved members. Please try again.');
       setApprovedMembers([]);
+    } finally {
       setLoading(false);
-      return;
     }
-    // Fetch profiles for each approved member
-    const membersWithProfiles = await Promise.all(
-      approved.map(async (item: any) => {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('first_name, last_name, email')
-          .eq('id', item.user_id)
-          .single();
-        return { ...item, profile };
-      })
-    );
-    setApprovedMembers(membersWithProfiles);
-    setLoading(false);
   };
 
   const filterManagers = () => {
@@ -230,46 +224,66 @@ const Network = () => {
               Approved: {approvedMembers.length}
             </Badge>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {approvedMembers.map((request) => (
-              <Card key={request.id} className="hover:shadow-lg transition-all duration-200">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <CardTitle className="text-sm font-medium truncate flex-1">
-                      {request.profile?.first_name || ''} {request.profile?.last_name || ''}
-                    </CardTitle>
-                    <Badge variant="default" className="bg-green-100 text-green-800 flex-shrink-0">Approved</Badge>
-                  </div>
-                  <CardDescription className="text-xs truncate">{request.profile?.email || request.email}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-xs text-gray-600">
-                    <div className="flex items-center gap-2">
-                      <Building2 className="w-3 h-3 flex-shrink-0" />
-                      <span className="truncate">{request.vehicle_name}</span>
-                    </div>
-                    {request.vehicle_website && (
-                      <div className="flex items-center gap-2">
-                        <Globe className="w-3 h-3 flex-shrink-0" />
-                        <a 
-                          href={request.vehicle_website.startsWith('http') ? request.vehicle_website : `https://${request.vehicle_website}`}
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline truncate block"
-                        >
-                          {request.vehicle_website}
-                        </a>
+          {viewerError && (
+            <div className="mb-4 text-red-600 bg-red-50 border border-red-200 rounded p-2">
+              {viewerError}
+            </div>
+          )}
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading approved members...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {approvedMembers.length === 0 ? (
+                <Card className="text-center py-12 col-span-full">
+                  <CardContent>
+                    <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No approved members found</h3>
+                    <p className="text-gray-500 mb-4">No approved members are available yet. Check back later.</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                approvedMembers.map((request: any) => (
+                  <Card key={request.id} className="hover:shadow-lg transition-all duration-200">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <CardTitle className="text-sm font-medium truncate flex-1">{request.applicant_name}</CardTitle>
+                        <Badge variant="default" className="bg-green-100 text-green-800 flex-shrink-0">Approved</Badge>
                       </div>
-                    )}
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-3 h-3 flex-shrink-0" />
-                      <span className="truncate">{request.created_at ? new Date(request.created_at).toLocaleDateString() : 'N/A'}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                      <CardDescription className="text-xs truncate">{request.email}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2 text-xs text-gray-600">
+                        <div className="flex items-center gap-2">
+                          <Building2 className="w-3 h-3 flex-shrink-0" />
+                          <span className="truncate">{request.vehicle_name}</span>
+                        </div>
+                        {request.vehicle_website && (
+                          <div className="flex items-center gap-2">
+                            <Globe className="w-3 h-3 flex-shrink-0" />
+                            <a
+                              href={request.vehicle_website.startsWith('http') ? request.vehicle_website : `https://${request.vehicle_website}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline truncate block"
+                            >
+                              {request.vehicle_website}
+                            </a>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-3 h-3 flex-shrink-0" />
+                          <span className="truncate">{request.created_at ? new Date(request.created_at).toLocaleDateString() : 'N/A'}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          )}
         </div>
       </div>
     );
