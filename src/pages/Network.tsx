@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Building2, Globe, Users, DollarSign, Calendar, ExternalLink } from 'lucide-react';
+import { Building2, Globe, Users, DollarSign, Calendar, ExternalLink, Target, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { NetworkCard } from '@/components/network/NetworkCard';
 import { Link } from 'react-router-dom';
@@ -285,6 +285,24 @@ const Network = () => {
                       <DollarSign className="w-3 h-3 flex-shrink-0" />
                       <span className="truncate">{request.ticket_size || 'N/A'}</span>
                     </div>
+                    {request.thesis && (
+                      <div className="flex items-center gap-2">
+                        <Target className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">{request.thesis}</span>
+                      </div>
+                    )}
+                    {request.portfolio_investments && (
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">{request.portfolio_investments}</span>
+                      </div>
+                    )}
+                    {request.capital_raised && (
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">{request.capital_raised}</span>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
