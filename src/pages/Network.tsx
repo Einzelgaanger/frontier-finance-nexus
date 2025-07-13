@@ -190,19 +190,54 @@ const Network = () => {
   }
 
   if (userRole === 'viewer') {
+    // Fetch approved membership requests for viewer
+    const approvedRequests = fundManagers.filter(r => r.status === 'approved');
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-8">Network Directory</h1>
+          <div className="flex flex-wrap gap-2 mb-6">
+            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+              Approved: {approvedRequests.length}
+            </Badge>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {fundManagers.filter(r => r.status === 'approved').map((manager) => (
-              <NetworkCard 
-                key={manager.id} 
-                manager={manager} 
-                userRole={userRole}
-                showDetails={false} // viewer cannot click
-              />
+            {approvedRequests.map((request) => (
+              <Card key={request.id} className="hover:shadow-lg transition-all duration-200">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <CardTitle className="text-sm font-medium truncate flex-1">{request.applicant_name}</CardTitle>
+                    <Badge variant="default" className="bg-green-100 text-green-800 flex-shrink-0">Approved</Badge>
+                  </div>
+                  <CardDescription className="text-xs truncate">{request.email}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 text-xs text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-3 h-3 flex-shrink-0" />
+                      <span className="truncate">{request.vehicle_name}</span>
+                    </div>
+                    {request.vehicle_website && (
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-3 h-3 flex-shrink-0" />
+                        <a 
+                          href={request.vehicle_website.startsWith('http') ? request.vehicle_website : `https://${request.vehicle_website}`}
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline truncate block"
+                        >
+                          {request.vehicle_website}
+                        </a>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-3 h-3 flex-shrink-0" />
+                      <span className="truncate">{request.created_at ? new Date(request.created_at).toLocaleDateString() : 'N/A'}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
