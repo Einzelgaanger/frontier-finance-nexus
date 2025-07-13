@@ -118,6 +118,8 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
     
     for (const file of formData.supporting_documents) {
       try {
+        console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
+        
         const result = await uploadFileWithFallback(file);
         
         if (result.success) {
@@ -130,8 +132,15 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
               description: `${file.name} uploaded using fallback method. Contact admin to set up proper storage.`,
               variant: "default"
             });
+          } else {
+            toast({
+              title: "File Uploaded Successfully",
+              description: `${file.name} uploaded to cloud storage.`,
+              variant: "default"
+            });
           }
         } else {
+          console.error('Upload failed for file:', file.name, result.error);
           toast({
             title: "Upload Error",
             description: `Failed to upload ${file.name}: ${result.error}`,
@@ -148,6 +157,7 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
       }
     }
     
+    console.log('All uploads completed. URLs:', uploadedUrls);
     return uploadedUrls;
   };
 

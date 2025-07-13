@@ -116,6 +116,13 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
                 </div>
               </div>
             )}
+
+            {manager.completed_at && (
+              <div className="text-xs text-gray-500 flex items-center">
+                <FileText className="w-3 h-3 mr-1" />
+                Approved: {new Date(manager.completed_at).toLocaleDateString()}
+              </div>
+            )}
           </>
         )}
 
@@ -231,7 +238,7 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
           ) : (
             <Button variant="outline" size="sm" className="w-full" disabled>
               <Eye className="w-4 h-4 mr-2" />
-              {isViewer ? 'Member Access Required' : 'Sign in to view details'}
+              {isViewer ? 'Viewer Access - Apply to Join' : 'Sign in to view details'}
             </Button>
           )}
         </div>

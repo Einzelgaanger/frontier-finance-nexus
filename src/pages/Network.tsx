@@ -202,89 +202,23 @@ const Network = () => {
                 ? JSON.parse(item.stage_focus)
                 : item.stage_focus || [];
             }
-          } catch (e) {
-            console.warn('Error parsing JSON fields for item:', item.id, e);
-          }
-
-          // Determine fund name with fallback
-          let fundName = 'Unknown Fund';
-          if (item.fund_name) {
-            fundName = item.fund_name;
-          } else if (item.vehicle_name) {
-            fundName = item.vehicle_name;
-          } else if (item.name) {
-            fundName = item.name;
-          }
-
-          // Determine website
-          let website = null;
-          if (item.website) {
-            website = item.website;
-          } else if (item.vehicle_website) {
-            website = item.vehicle_website;
-          }
-
-          // Determine investment region
-          let investmentRegion = null;
-          if (item.primary_investment_region) {
-            investmentRegion = item.primary_investment_region;
-          } else if (item.domicile_country) {
-            investmentRegion = item.domicile_country;
-          } else if (item.location) {
-            investmentRegion = item.location;
-          }
-
-          // Determine fund type
-          let fundType = null;
-          if (item.fund_type) {
-            fundType = item.fund_type;
-          } else if (item.vehicle_type) {
-            fundType = item.vehicle_type;
-          }
-
-          // Determine team size
-          let teamSize = null;
-          if (item.team_size) {
-            teamSize = typeof item.team_size === 'number' ? item.team_size : parseInt(item.team_size);
-          }
-
-          // Determine typical check size
-          let typicalCheckSize = null;
-          if (item.typical_check_size) {
-            typicalCheckSize = item.typical_check_size;
-          } else if (item.ticket_size) {
-            typicalCheckSize = item.ticket_size;
-          }
-
-          // Determine AUM
-          let aum = null;
-          if (item.aum) {
-            aum = item.aum;
-          } else if (item.capital_raised) {
-            aum = item.capital_raised;
-          }
-
-          // Determine investment thesis
-          let investmentThesis = null;
-          if (item.investment_thesis) {
-            investmentThesis = item.investment_thesis;
-          } else if (item.thesis) {
-            investmentThesis = item.thesis;
+          } catch (parseError) {
+            console.warn('Error parsing JSON fields for item:', item.id, parseError);
           }
 
           const manager: FundManager = {
             id: item.id,
             user_id: item.user_id,
-            fund_name: fundName,
-            website: website,
-            primary_investment_region: investmentRegion,
-            fund_type: fundType,
-            year_founded: item.year_founded,
-            team_size: teamSize,
-            typical_check_size: typicalCheckSize,
+            fund_name: item.fund_name || item.vehicle_name || 'Unknown Fund',
+            website: item.website || item.vehicle_website,
+            primary_investment_region: item.primary_investment_region || item.domicile_country,
+            fund_type: item.fund_type || 'Unknown',
+            year_founded: item.year_founded || null,
+            team_size: item.team_size || null,
+            typical_check_size: item.typical_check_size || item.ticket_size,
             completed_at: item.completed_at,
-            aum: aum,
-            investment_thesis: investmentThesis,
+            aum: item.aum || item.capital_raised,
+            investment_thesis: item.investment_thesis || item.thesis,
             sector_focus: sectorFocus,
             stage_focus: stageFocus,
             profiles: profile || null
@@ -292,15 +226,14 @@ const Network = () => {
 
           managersWithProfiles.push(manager);
         } catch (error) {
-          console.warn('Error processing item:', item?.id, error);
+          console.warn('Error processing item:', item.id, error);
         }
       }
 
-      console.log('Final managers with profiles:', managersWithProfiles);
       setFundManagers(managersWithProfiles);
+      setLoading(false);
     } catch (error) {
       console.error('Error fetching fund managers:', error);
-    } finally {
       setLoading(false);
     }
   };
