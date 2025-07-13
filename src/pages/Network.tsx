@@ -271,7 +271,6 @@ const Network = () => {
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:underline truncate block"
-                          tabIndex={-1}
                         >
                           {request.vehicle_website}
                         </a>
@@ -285,24 +284,6 @@ const Network = () => {
                       <DollarSign className="w-3 h-3 flex-shrink-0" />
                       <span className="truncate">{request.ticket_size || 'N/A'}</span>
                     </div>
-                    {request.thesis && (
-                      <div className="flex items-center gap-2">
-                        <Target className="w-3 h-3 flex-shrink-0" />
-                        <span className="truncate">{request.thesis}</span>
-                      </div>
-                    )}
-                    {request.portfolio_investments && (
-                      <div className="flex items-center gap-2">
-                        <TrendingUp className="w-3 h-3 flex-shrink-0" />
-                        <span className="truncate">{request.portfolio_investments}</span>
-                      </div>
-                    )}
-                    {request.capital_raised && (
-                      <div className="flex items-center gap-2">
-                        <DollarSign className="w-3 h-3 flex-shrink-0" />
-                        <span className="truncate">{request.capital_raised}</span>
-                      </div>
-                    )}
                   </div>
                 </CardContent>
               </Card>
