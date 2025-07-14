@@ -19,7 +19,9 @@ import {
   Mail,
   ExternalLink,
   MapPin,
-  Briefcase
+  Briefcase,
+  FileText,
+  Download
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -38,6 +40,44 @@ interface SurveyResponse {
   completed_at: string;
   vehicle_website?: string;
   how_heard_about_network: string;
+  // Add all the new survey fields
+  vehicle_type?: string;
+  vehicle_type_other?: string;
+  team_members?: string;
+  team_size_min?: number;
+  team_size_max?: number;
+  team_description?: string;
+  legal_domicile?: string;
+  legal_domicile_other?: string;
+  markets_operated?: string;
+  markets_operated_other?: string;
+  ticket_size_min?: number;
+  ticket_size_max?: number;
+  ticket_description?: string;
+  target_capital?: number;
+  capital_raised?: number;
+  capital_in_market?: number;
+  supporting_document_url?: string;
+  information_sharing?: string;
+  fund_stage?: string;
+  current_status?: string;
+  current_status_other?: string;
+  legal_entity_date_from?: string;
+  legal_entity_date_to?: string;
+  legal_entity_month_from?: string;
+  legal_entity_month_to?: string;
+  first_close_date_from?: string;
+  first_close_date_to?: string;
+  first_close_month_from?: string;
+  first_close_month_to?: string;
+  investment_instruments_priority?: string;
+  sectors_allocation?: string;
+  target_return_min?: number;
+  target_return_max?: number;
+  equity_investments_made?: number;
+  equity_investments_exited?: number;
+  self_liquidating_made?: number;
+  self_liquidating_exited?: number;
 }
 
 interface FundManagerProfile {
@@ -48,9 +88,110 @@ interface FundManagerProfile {
   profile_picture_url?: string;
 }
 
+const sectionConfig = [
+  {
+    key: 'vehicle_info',
+    title: 'Vehicle Information',
+    icon: Building2,
+    fields: [
+      { key: 'vehicle_name', label: 'Fund Name' },
+      { key: 'vehicle_website', label: 'Vehicle Website' },
+      { key: 'vehicle_type', label: 'Vehicle Type' },
+      { key: 'vehicle_type_other', label: 'Other Vehicle Type' },
+      { key: 'thesis', label: 'Investment Thesis' },
+    ],
+  },
+  {
+    key: 'team',
+    title: 'Team & Leadership',
+    icon: Users,
+    fields: [
+      { key: 'team_members', label: 'Team Members' },
+      { key: 'team_size_min', label: 'Team Size (Min)' },
+      { key: 'team_size_max', label: 'Team Size (Max)' },
+      { key: 'team_description', label: 'Team Description' },
+    ],
+  },
+  {
+    key: 'geography',
+    title: 'Geographic & Market Focus',
+    icon: Globe,
+    fields: [
+      { key: 'legal_domicile', label: 'Legal Domicile' },
+      { key: 'legal_domicile_other', label: 'Other Domicile' },
+      { key: 'markets_operated', label: 'Markets Operated' },
+      { key: 'markets_operated_other', label: 'Other Markets' },
+    ],
+  },
+  {
+    key: 'investment_strategy',
+    title: 'Investment Strategy',
+    icon: Target,
+    fields: [
+      { key: 'ticket_size_min', label: 'Minimum Ticket Size (USD)' },
+      { key: 'ticket_size_max', label: 'Maximum Ticket Size (USD)' },
+      { key: 'ticket_description', label: 'Ticket Size Description' },
+      { key: 'target_capital', label: 'Target Capital (USD)' },
+      { key: 'capital_raised', label: 'Capital Raised (USD)' },
+      { key: 'capital_in_market', label: 'Capital in Market (USD)' },
+    ],
+  },
+  {
+    key: 'fund_operations',
+    title: 'Fund Operations',
+    icon: Briefcase,
+    fields: [
+      { key: 'supporting_document_url', label: 'Supporting Document' },
+      { key: 'information_sharing', label: 'Information Sharing Preference' },
+      { key: 'expectations', label: 'Expectations' },
+      { key: 'how_heard_about_network', label: 'How Heard About Network' },
+    ],
+  },
+  {
+    key: 'fund_status',
+    title: 'Fund Status & Timeline',
+    icon: Calendar,
+    fields: [
+      { key: 'fund_stage', label: 'Fund Stage' },
+      { key: 'current_status', label: 'Current Status' },
+      { key: 'current_status_other', label: 'Other Status' },
+      { key: 'legal_entity_date_from', label: 'Legal Entity Date From' },
+      { key: 'legal_entity_date_to', label: 'Legal Entity Date To' },
+      { key: 'legal_entity_month_from', label: 'Legal Entity Month From' },
+      { key: 'legal_entity_month_to', label: 'Legal Entity Month To' },
+      { key: 'first_close_date_from', label: 'First Close Date From' },
+      { key: 'first_close_date_to', label: 'First Close Date To' },
+      { key: 'first_close_month_from', label: 'First Close Month From' },
+      { key: 'first_close_month_to', label: 'First Close Month To' },
+    ],
+  },
+  {
+    key: 'investment_instruments',
+    title: 'Investment Instruments',
+    icon: DollarSign,
+    fields: [
+      { key: 'investment_instruments_priority', label: 'Investment Instruments (Priority Order)' },
+    ],
+  },
+  {
+    key: 'sector_returns',
+    title: 'Sector Focus & Returns',
+    icon: TrendingUp,
+    fields: [
+      { key: 'sectors_allocation', label: 'Sectors Allocation' },
+      { key: 'target_return_min', label: 'Target Return Min (%)' },
+      { key: 'target_return_max', label: 'Target Return Max (%)' },
+      { key: 'equity_investments_made', label: 'Equity Investments Made' },
+      { key: 'equity_investments_exited', label: 'Equity Investments Exited' },
+      { key: 'self_liquidating_made', label: 'Self-Liquidating Made' },
+      { key: 'self_liquidating_exited', label: 'Self-Liquidating Exited' },
+    ],
+  },
+];
+
 const FundManagerDetail = () => {
   const { userId } = useParams();
-  const { userRole } = useAuth();
+  const { userRole, user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<FundManagerProfile | null>(null);
@@ -102,7 +243,45 @@ const FundManagerDetail = () => {
         year: survey.year,
         completed_at: survey.completed_at,
         vehicle_website: survey.vehicle_website,
-        how_heard_about_network: survey.how_heard_about_network
+        how_heard_about_network: survey.how_heard_about_network,
+        // Add all the new survey fields
+        vehicle_type: survey.vehicle_type,
+        vehicle_type_other: survey.vehicle_type_other,
+        team_members: survey.team_members,
+        team_size_min: survey.team_size_min,
+        team_size_max: survey.team_size_max,
+        team_description: survey.team_description,
+        legal_domicile: survey.legal_domicile,
+        legal_domicile_other: survey.legal_domicile_other,
+        markets_operated: survey.markets_operated,
+        markets_operated_other: survey.markets_operated_other,
+        ticket_size_min: survey.ticket_size_min,
+        ticket_size_max: survey.ticket_size_max,
+        ticket_description: survey.ticket_description,
+        target_capital: survey.target_capital,
+        capital_raised: survey.capital_raised,
+        capital_in_market: survey.capital_in_market,
+        supporting_document_url: survey.supporting_document_url,
+        information_sharing: survey.information_sharing,
+        fund_stage: survey.fund_stage,
+        current_status: survey.current_status,
+        current_status_other: survey.current_status_other,
+        legal_entity_date_from: survey.legal_entity_date_from,
+        legal_entity_date_to: survey.legal_entity_date_to,
+        legal_entity_month_from: survey.legal_entity_month_from,
+        legal_entity_month_to: survey.legal_entity_month_to,
+        first_close_date_from: survey.first_close_date_from,
+        first_close_date_to: survey.first_close_date_to,
+        first_close_month_from: survey.first_close_month_from,
+        first_close_month_to: survey.first_close_month_to,
+        investment_instruments_priority: survey.investment_instruments_priority,
+        sectors_allocation: survey.sectors_allocation,
+        target_return_min: survey.target_return_min,
+        target_return_max: survey.target_return_max,
+        equity_investments_made: survey.equity_investments_made,
+        equity_investments_exited: survey.equity_investments_exited,
+        self_liquidating_made: survey.self_liquidating_made,
+        self_liquidating_exited: survey.self_liquidating_exited,
       })) as SurveyResponse[];
 
       setSurveys(typedSurveys);
@@ -120,6 +299,73 @@ const FundManagerDetail = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatFieldValue = (value: any, fieldKey: string): string => {
+    if (value === null || value === undefined || value === '') {
+      return 'Not provided';
+    }
+    
+    if (fieldKey.includes('_url') && value) {
+      return 'Document uploaded';
+    }
+    
+    if (typeof value === 'number') {
+      return value.toLocaleString();
+    }
+    
+    return String(value);
+  };
+
+  const renderField = (field: { key: string; label: string }, survey: SurveyResponse) => {
+    const value = (survey as any)[field.key];
+    const formattedValue = formatFieldValue(value, field.key);
+    
+    return (
+      <div key={field.key} className="flex flex-col sm:flex-row sm:items-center py-3 border-b border-gray-100 last:border-b-0">
+        <div className="flex-1">
+          <dt className="text-sm font-medium text-gray-700 mb-1">{field.label}</dt>
+          <dd className="text-sm text-gray-900">
+            {field.key.includes('_url') && value ? (
+              <div className="flex items-center space-x-2">
+                <FileText className="w-4 h-4 text-blue-600" />
+                <a 
+                  href={value} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 flex items-center space-x-1"
+                >
+                  <span>View Document</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            ) : (
+              formattedValue
+            )}
+          </dd>
+        </div>
+      </div>
+    );
+  };
+
+  const renderSection = (section: typeof sectionConfig[0], survey: SurveyResponse) => {
+    const IconComponent = section.icon;
+    
+    return (
+      <Card key={section.key} className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <IconComponent className="w-5 h-5 text-blue-600" />
+            <span>{section.title}</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <dl className="space-y-0">
+            {section.fields.map(field => renderField(field, survey))}
+          </dl>
+        </CardContent>
+      </Card>
+    );
   };
 
   if (userRole !== 'viewer' && userRole !== 'member' && userRole !== 'admin') {
@@ -189,6 +435,9 @@ const FundManagerDetail = () => {
       </div>
     );
   }
+
+  const isOwnProfile = user?.id === userId;
+  const memberSections = sectionConfig.slice(0, 4); // First 4 sections for members
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -273,163 +522,33 @@ const FundManagerDetail = () => {
         )}
 
         {/* Survey Data */}
-        <Tabs defaultValue="overview" className="mb-8">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="details">Details</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
-          </TabsList>
+        {activeSurvey && (
+          <>
+            {userRole === 'admin' ? (
+              // Admin view: All 8 sections in tabs
+              <Tabs defaultValue="vehicle_info" className="mb-8">
+                <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
+                  {sectionConfig.map(section => (
+                    <TabsTrigger key={section.key} value={section.key} className="text-xs">
+                      {section.title}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
 
-          <TabsContent value="overview" className="space-y-6">
-            {activeSurvey && (
-              <>
-                {/* Key Metrics */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <Card>
-                    <CardContent className="p-6">
-                      <div className="flex items-center">
-                        <Target className="w-8 h-8 text-blue-600" />
-                        <div className="ml-4">
-                          <p className="text-sm font-medium text-gray-600">Ticket Size</p>
-                          <p className="text-xl font-bold text-gray-900">{activeSurvey.ticket_size}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardContent className="p-6">
-                      <div className="flex items-center">
-                        <Briefcase className="w-8 h-8 text-green-600" />
-                        <div className="ml-4">
-                          <p className="text-sm font-medium text-gray-600">Portfolio</p>
-                          <p className="text-xl font-bold text-gray-900">{activeSurvey.portfolio_count} investments</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardContent className="p-6">
-                      <div className="flex items-center">
-                        <Calendar className="w-8 h-8 text-purple-600" />
-                        <div className="ml-4">
-                          <p className="text-sm font-medium text-gray-600">Survey Year</p>
-                          <p className="text-xl font-bold text-gray-900">{activeSurvey.year}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Investment Thesis */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Investment Thesis</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-700 leading-relaxed">{activeSurvey.thesis}</p>
-                  </CardContent>
-                </Card>
-
-                {/* Team & Operations */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Team Information</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-gray-700">{activeSurvey.team_size_description}</p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Capital Information</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-gray-700">{activeSurvey.capital_raised_description}</p>
-                    </CardContent>
-                  </Card>
-                </div>
-              </>
+                {sectionConfig.map(section => (
+                  <TabsContent key={section.key} value={section.key} className="mt-6">
+                    {renderSection(section, activeSurvey)}
+                  </TabsContent>
+                ))}
+              </Tabs>
+            ) : (
+              // Member/Viewer view: First 4 sections as full sections (no tabs)
+              <div className="space-y-6">
+                {memberSections.map(section => renderSection(section, activeSurvey))}
+              </div>
             )}
-          </TabsContent>
-
-          <TabsContent value="details" className="space-y-6">
-            {activeSurvey && (
-              <>
-                {userRole === 'admin' ? (
-                  <div className="space-y-4">
-                    <Card>
-                      <CardHeader><CardTitle>Full Survey Data</CardTitle></CardHeader>
-                      <CardContent>
-                        <ul className="list-disc pl-6 text-gray-700 space-y-1">
-                          {Object.entries(activeSurvey).map(([key, value]) => (
-                            value !== null && value !== undefined && value !== '' && (
-                              <li key={key}><b>{key.replace(/_/g, ' ')}:</b> {typeof value === 'object' ? JSON.stringify(value) : value}</li>
-                            )
-                          ))}
-                        </ul>
-                      </CardContent>
-                    </Card>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <Card>
-                      <CardHeader><CardTitle>General Survey Information</CardTitle></CardHeader>
-                      <CardContent>
-                        <ul className="list-disc pl-6 text-gray-700 space-y-1">
-                          {activeSurvey.thesis && <li><b>Thesis:</b> {activeSurvey.thesis}</li>}
-                          {activeSurvey.ticket_size && <li><b>Ticket Size:</b> {activeSurvey.ticket_size}</li>}
-                          {activeSurvey.team_size_description && <li><b>Team Size:</b> {activeSurvey.team_size_description}</li>}
-                          {activeSurvey.year && <li><b>Year:</b> {activeSurvey.year}</li>}
-                          {activeSurvey.expectations && <li><b>Expectations:</b> {activeSurvey.expectations}</li>}
-                          {activeSurvey.vehicle_website && <li><b>Website:</b> {activeSurvey.vehicle_website}</li>}
-                        </ul>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
-              </>
-            )}
-          </TabsContent>
-
-          <TabsContent value="history" className="space-y-6">
-            {activeSurvey && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Survey History</CardTitle>
-                  <CardDescription>All submitted surveys by this fund manager</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {surveys.map((survey) => (
-                      <div 
-                        key={survey.id} 
-                        className={`border rounded-lg p-4 cursor-pointer transition-colors ${activeSurvey?.id === survey.id ? 'border-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}
-                        onClick={() => setActiveSurvey(survey)}
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-semibold">{survey.vehicle_name}</h3>
-                            <p className="text-sm text-gray-600">Year: {survey.year}</p>
-                            <p className="text-sm text-gray-600">
-                              Submitted: {new Date(survey.completed_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                          <Badge variant={activeSurvey?.id === survey.id ? "default" : "secondary"}>
-                            {activeSurvey?.id === survey.id ? "Active" : "View"}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-        </Tabs>
+          </>
+        )}
       </div>
     </div>
   );
