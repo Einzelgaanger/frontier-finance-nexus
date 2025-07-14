@@ -116,7 +116,7 @@ const sectionConfig = [
       { key: 'vehicle_websites', label: 'Vehicle Websites', type: 'array' },
       { key: 'vehicle_type', label: 'Vehicle Type' },
       { key: 'vehicle_type_other', label: 'Other Vehicle Type' },
-      { key: 'thesis', label: 'Investment Thesis' },
+      { key: 'thesis', label: 'Investment Thesis', type: 'text' },
     ],
   },
   {
@@ -127,7 +127,7 @@ const sectionConfig = [
       { key: 'team_members', label: 'Team Members', type: 'object' },
       { key: 'team_size_min', label: 'Team Size (Min)', type: 'number' },
       { key: 'team_size_max', label: 'Team Size (Max)', type: 'number' },
-      { key: 'team_description', label: 'Team Description' },
+      { key: 'team_description', label: 'Team Description', type: 'text' },
     ],
   },
   {
@@ -147,7 +147,7 @@ const sectionConfig = [
     fields: [
       { key: 'ticket_size_min', label: 'Minimum Ticket Size (USD)', type: 'number' },
       { key: 'ticket_size_max', label: 'Maximum Ticket Size (USD)', type: 'number' },
-      { key: 'ticket_description', label: 'Ticket Size Description' },
+      { key: 'ticket_description', label: 'Ticket Size Description', type: 'text' },
       { key: 'target_capital', label: 'Target Capital (USD)', type: 'number' },
       { key: 'capital_raised', label: 'Capital Raised (USD)', type: 'number' },
       { key: 'capital_in_market', label: 'Capital in Market (USD)', type: 'number' },
@@ -160,7 +160,7 @@ const sectionConfig = [
     fields: [
       { key: 'supporting_document_url', label: 'Supporting Document', type: 'url' },
       { key: 'information_sharing', label: 'Information Sharing Preference' },
-      { key: 'expectations', label: 'Expectations' },
+      { key: 'expectations', label: 'Expectations', type: 'text' },
       { key: 'how_heard_about_network', label: 'How Heard About Network' },
     ],
   },
@@ -223,17 +223,29 @@ const FundManagerDetail = () => {
 
   const fetchFundManagerData = async () => {
     try {
-      // Fetch profile
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (profileError && profileError.code !== 'PGRST116') {
-        throw profileError;
+      console.log('Fetching data for userId:', userId);
+      
+      // Fetch profile with better error handling
+      let profileData = null;
+      let profileError = null;
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+        
+        profileData = data;
+        profileError = error;
+      } catch (err) {
+        console.error('Profile fetch error:', err);
+        profileError = err;
       }
 
+      console.log('Profile data:', profileData, 'Profile error:', profileError);
+
+      // Set profile even if there's an error (might be null)
       setProfile(profileData);
 
       // Fetch surveys
@@ -243,6 +255,8 @@ const FundManagerDetail = () => {
         .eq('user_id', userId)
         .not('completed_at', 'is', null)
         .order('year', { ascending: false });
+
+      console.log('Survey data:', surveyData, 'Survey error:', surveyError);
 
       if (surveyError) throw surveyError;
 
@@ -368,6 +382,20 @@ const FundManagerDetail = () => {
       return 'Document uploaded';
     }
     
+    // Handle text fields that might contain URLs
+    if (fieldType === 'text' && typeof value === 'string') {
+      // Check if the text contains URLs and format them
+      if (value.includes('http')) {
+        return 'Contains document links';
+      }
+      return value;
+    }
+    
+    // Handle regular string fields that might contain URLs
+    if (typeof value === 'string' && value.includes('http')) {
+      return 'Contains document links';
+    }
+    
     return String(value);
   };
 
@@ -375,12 +403,28 @@ const FundManagerDetail = () => {
     const value = (survey as any)[field.key];
     const formattedValue = formatFieldValue(value, field.key, field.type);
     
+    // Check if the value contains URLs (for any field type)
+    const containsUrls = typeof value === 'string' && value.includes('http');
+    
     return (
       <div key={field.key} className="flex flex-col sm:flex-row sm:items-center py-3 border-b border-gray-100 last:border-b-0">
         <div className="flex-1">
           <dt className="text-sm font-medium text-gray-700 mb-1">{field.label}</dt>
           <dd className="text-sm text-gray-900">
             {field.type === 'url' && value ? (
+              <div className="flex items-center space-x-2">
+                <FileText className="w-4 h-4 text-blue-600" />
+                <a 
+                  href={value} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 flex items-center space-x-1"
+                >
+                  <span>View Document</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            ) : containsUrls ? (
               <div className="flex items-center space-x-2">
                 <FileText className="w-4 h-4 text-blue-600" />
                 <a 
@@ -493,6 +537,16 @@ const FundManagerDetail = () => {
   const isOwnProfile = user?.id === userId;
   const memberSections = sectionConfig.slice(0, 4); // First 4 sections for members
 
+  // Get the fund manager's name from profile or survey data
+  const fundManagerName = profile 
+    ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() 
+    : activeSurvey?.vehicle_name || 'Unknown Fund Manager';
+
+  const fundManagerEmail = profile?.email || 'Email not available';
+
+  // Check if we have any profile information at all
+  const hasProfileInfo = profile && (profile.first_name || profile.last_name || profile.email);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -512,7 +566,7 @@ const FundManagerDetail = () => {
               
               <div className="flex-1">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  {profile ? `${profile.first_name} ${profile.last_name}` : 'Unknown Fund Manager'}
+                  {fundManagerName}
                 </h1>
                 <p className="text-lg text-gray-600 mb-4">
                   {activeSurvey?.vehicle_name}
@@ -521,7 +575,7 @@ const FundManagerDetail = () => {
                 <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                   <div className="flex items-center space-x-2">
                     <Mail className="w-4 h-4" />
-                    <span>{profile?.email || 'Unknown'}</span>
+                    <span>{fundManagerEmail}</span>
                   </div>
                   {activeSurvey?.location && (
                     <div className="flex items-center space-x-2">
@@ -543,8 +597,22 @@ const FundManagerDetail = () => {
                       </a>
                     </div>
                   )}
+                  {activeSurvey?.vehicle_websites && activeSurvey.vehicle_websites.length > 0 && (
+                    <div className="flex items-center space-x-2">
+                      <Globe className="w-4 h-4" />
+                      <a 
+                        href={activeSurvey.vehicle_websites[0].startsWith('http') ? activeSurvey.vehicle_websites[0] : `https://${activeSurvey.vehicle_websites[0]}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 flex items-center space-x-1"
+                      >
+                        <span>Website</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  )}
                 </div>
-                {!profile && (
+                {!hasProfileInfo && (
                   <div className="mt-2 text-sm text-yellow-700 bg-yellow-50 border border-yellow-200 rounded p-2">
                     Profile information is not available, but survey data is shown below.
                   </div>
