@@ -13,6 +13,7 @@ import Network from "./pages/Network";
 import FundManagerDetail from "./pages/FundManagerDetail";
 import Survey from "./pages/Survey";
 import Profile from "./pages/Profile";
+import ViewerSettings from "./pages/ViewerSettings";
 import ResetPassword from "./pages/ResetPassword";
 import Admin from "./pages/Admin";
 import Analytics from "./pages/Analytics";
@@ -46,13 +47,18 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/survey" element={
-              <ProtectedRoute requiredRole="member">
+              <ProtectedRoute requiredRole="viewer">
                 <Survey />
               </ProtectedRoute>
             } />
             <Route path="/profile" element={
               <ProtectedRoute requiredRole="member">
                 <Profile />
+              </ProtectedRoute>
+            } />
+            <Route path="/viewer-settings" element={
+              <ProtectedRoute requiredRole="viewer">
+                <ViewerSettings />
               </ProtectedRoute>
             } />
             <Route path="/reset-password" element={<ResetPassword />} />

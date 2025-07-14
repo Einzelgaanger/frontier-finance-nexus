@@ -27,6 +27,7 @@ interface FundManager {
   investment_thesis?: string;
   sector_focus?: string[];
   stage_focus?: string[];
+  role_badge?: string;
   profiles?: {
     first_name: string;
     last_name: string;
@@ -131,6 +132,7 @@ const Network = () => {
           investment_thesis: item.thesis || null,
           sector_focus: sectorFocus,
           stage_focus: stageFocus,
+          role_badge: item.role_badge || 'member',
           profiles: profile || null
         };
         managersWithProfiles.push(manager);
@@ -442,7 +444,16 @@ const Network = () => {
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between gap-2 mb-1">
                   <CardTitle className="text-xl font-bold truncate flex-1 text-gray-900 group-hover:text-blue-700">{manager.fund_name || 'Unknown Fund'}</CardTitle>
-                  <Badge variant="default" className="bg-green-100 text-green-800 flex-shrink-0">Member</Badge>
+                  <Badge 
+                    variant="default" 
+                    className={`flex-shrink-0 ${
+                      manager.role_badge === 'viewer' 
+                        ? 'bg-purple-100 text-purple-800' 
+                        : 'bg-green-100 text-green-800'
+                    }`}
+                  >
+                    {manager.role_badge === 'viewer' ? 'Viewer' : 'Member'}
+                  </Badge>
                 </div>
                 <CardDescription className="text-sm text-gray-500 truncate">{manager.profiles?.email || 'Unknown'}</CardDescription>
               </CardHeader>

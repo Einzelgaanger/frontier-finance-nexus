@@ -22,7 +22,7 @@ const Header = ({ showNav = true }: HeaderProps) => {
   const navigationItems = [
     { name: "Dashboard", href: "/dashboard", icon: Home, roles: ["admin", "member", "viewer"] },
     { name: "Network", href: "/network", icon: Network, roles: ["admin", "member", "viewer"] },
-    { name: "Survey", href: "/survey", icon: FileText, roles: ["member"] }, // Only members
+    { name: "Survey", href: "/survey", icon: FileText, roles: ["member", "viewer"] }, // Members and viewers
     { name: "Analytics", href: "/analytics", icon: BarChart3, roles: ["admin"] }, // Only admins
     { name: "Admin", href: "/admin", icon: Shield, roles: ["admin"] },
   ];
@@ -131,6 +131,18 @@ const Header = ({ showNav = true }: HeaderProps) => {
                         <div className="space-y-2">
                           {userRole === 'member' && (
                             <Link to="/profile">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full justify-start border-gray-300 hover:bg-gray-50"
+                              >
+                                <Settings className="w-4 h-4 mr-2" />
+                                Settings
+                              </Button>
+                            </Link>
+                          )}
+                          {userRole === 'viewer' && (
+                            <Link to="/viewer-settings">
                               <Button
                                 variant="outline"
                                 size="sm"

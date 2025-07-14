@@ -162,8 +162,8 @@ const Survey = () => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      // If member, only show their surveys
-      if (userRole === 'member') {
+      // If member or viewer, only show their surveys
+      if (userRole === 'member' || userRole === 'viewer') {
         query = query.eq('user_id', user.id);
       }
 
@@ -229,10 +229,46 @@ const Survey = () => {
     loadExistingResponse();
   }, [user, form, showNewSurvey, selectedYear]);
 
+  // Function to get previous survey data for prefilling
+  const getPreviousSurveyData = async () => {
+    if (!user?.id) return null;
+
+    try {
+      const { data, error } = await supabase
+        .rpc('get_previous_survey_data', { user_uuid: user.id });
+
+      if (error) {
+        console.error('Error getting previous survey data:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error getting previous survey data:', error);
+      return null;
+    }
+  };
+
+  // Function to prefill form with previous survey data
+  const prefillWithPreviousData = async () => {
+    const previousData = await getPreviousSurveyData();
+    if (previousData) {
+      const formData = mapSupabaseSurveyToFormData(previousData);
+      // Remove metadata fields that shouldn't be prefilled
+      const { id, year, created_at, completed_at, role_badge, ...prefillData } = formData;
+      form.reset(prefillData);
+      toast({
+        title: "Form Prefilled",
+        description: "Previous survey data has been loaded. You can edit any fields as needed.",
+      });
+    }
+  };
+
   const prepareForDb = (formData: SurveyFormData, userId: string, year: number, completed: boolean = false) => {
     const dbData: any = {
       user_id: userId,
       year,
+      role_badge: userRole || 'viewer',
       completed_at: completed ? new Date().toISOString() : null,
       
       // Section 1: Basic Vehicle Information
@@ -369,6 +405,7 @@ const Survey = () => {
         investment_thesis: data.thesis || null,
         sector_focus: Object.keys(data.sectors_allocation || {}),
         stage_focus: data.fund_stage || [],
+        role_badge: userRole || 'viewer',
         completed_at: new Date().toISOString()
       };
 
@@ -603,6 +640,16 @@ const Survey = () => {
                   Save Draft
                 </Button>
 
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={prefillWithPreviousData}
+                  disabled={isSubmitting}
+                  className="bg-purple-100 hover:bg-purple-200 text-purple-700 border-purple-300"
+                >
+                  Prefill from Previous Survey
+                </Button>
+
                 {currentSection < totalSections ? (
                   <Button 
                     type="button" 
@@ -681,7 +728,7 @@ const Survey = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Survey Management</h1>
           <p className="text-gray-600">
-            {userRole === 'member' 
+            {userRole === 'member' || userRole === 'viewer'
               ? 'Manage your survey submissions and create new surveys'
               : 'View and manage all survey submissions across the network'
             }
@@ -708,7 +755,7 @@ const Survey = () => {
                   Survey History
                 </CardTitle>
                 <CardDescription>
-                  {userRole === 'member' 
+                  {userRole === 'member' || userRole === 'viewer'
                     ? 'Your completed and draft surveys'
                     : 'All survey submissions in the network'
                   }
@@ -720,7 +767,7 @@ const Survey = () => {
                     <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No surveys found</h3>
                     <p className="text-gray-600 mb-4">
-                      {userRole === 'member' 
+                      {userRole === 'member' || userRole === 'viewer'
                         ? 'You haven\'t submitted any surveys yet.'
                         : 'No surveys have been submitted yet.'
                       }

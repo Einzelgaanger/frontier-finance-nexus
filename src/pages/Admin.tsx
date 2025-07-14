@@ -41,6 +41,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Link as RouterLink } from 'react-router-dom';
 import { Json } from '@/integrations/supabase/types';
 import { populateMemberSurveys } from '@/utils/populateMemberSurveys';
+import CreateViewerModal from '@/components/admin/CreateViewerModal';
 import {
   ResponsiveContainer,
   BarChart,
@@ -101,6 +102,7 @@ interface ActivityLogDetails {
   old_role?: string;
   new_role?: string;
   target_user_id?: string;
+  [key: string]: string | number | boolean | null | undefined;
 }
 
 interface ActivityLog {
@@ -124,6 +126,7 @@ const Admin = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingRoleChange, setPendingRoleChange] = useState<{requestId: string, newRole: 'viewer' | 'member'} | null>(null);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
+  const [showCreateViewerModal, setShowCreateViewerModal] = useState(false);
   const [analyticsData, setAnalyticsData] = useState({
     totalFunds: 0,
     totalCapital: 0,
@@ -763,6 +766,13 @@ const Admin = () => {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <h2 className="text-xl font-semibold text-gray-900">Membership Applications</h2>
               <div className="flex flex-wrap gap-2">
+                <Button
+                  onClick={() => setShowCreateViewerModal(true)}
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Create Viewer
+                </Button>
                 <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
                   Pending: {membershipRequests.filter(r => r.status === 'pending').length}
                 </Badge>
@@ -1297,6 +1307,16 @@ const Admin = () => {
             </div>
           </div>
         )}
+
+        {/* Create Viewer Modal */}
+        <CreateViewerModal
+          open={showCreateViewerModal}
+          onClose={() => setShowCreateViewerModal(false)}
+          onSuccess={() => {
+            fetchMembershipRequests();
+            fetchActivityLogs();
+          }}
+        />
       </div>
     </div>
   );

@@ -103,6 +103,9 @@ interface SurveyResponse {
   capital_raised_description?: string;
   ticket_size?: string;
   vehicle_website?: string;
+  
+  // Role badge
+  role_badge?: string;
 }
 
 interface FundManagerProfile {
@@ -624,9 +627,23 @@ const FundManagerDetail = () => {
               </div>
               
               <div className="flex-1">
-                <h1 className="text-4xl font-bold text-gray-900 mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  {fundManagerName}
-                </h1>
+                <div className="flex items-center gap-4 mb-3">
+                  <h1 className="text-4xl font-bold text-gray-900 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    {fundManagerName}
+                  </h1>
+                  {activeSurvey?.role_badge && (
+                    <Badge 
+                      variant="default" 
+                      className={`${
+                        activeSurvey.role_badge === 'viewer' 
+                          ? 'bg-purple-100 text-purple-800' 
+                          : 'bg-green-100 text-green-800'
+                      }`}
+                    >
+                      {activeSurvey.role_badge === 'viewer' ? 'Viewer' : 'Member'}
+                    </Badge>
+                  )}
+                </div>
                 <p className="text-xl text-gray-600 mb-6 font-medium">
                   {activeSurvey?.vehicle_name}
                 </p>
