@@ -21,7 +21,14 @@ import {
   MapPin,
   Briefcase,
   FileText,
-  Download
+  Download,
+  Star,
+  Award,
+  Zap,
+  Rocket,
+  Shield,
+  Heart,
+  Sparkles
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -111,6 +118,9 @@ const sectionConfig = [
     key: 'vehicle_info',
     title: 'Vehicle Information',
     icon: Building2,
+    color: 'from-blue-500 to-purple-600',
+    bgColor: 'bg-gradient-to-br from-blue-50 to-purple-50',
+    borderColor: 'border-blue-200',
     fields: [
       { key: 'vehicle_name', label: 'Fund Name' },
       { key: 'vehicle_websites', label: 'Vehicle Websites', type: 'array' },
@@ -123,6 +133,9 @@ const sectionConfig = [
     key: 'team',
     title: 'Team & Leadership',
     icon: Users,
+    color: 'from-green-500 to-emerald-600',
+    bgColor: 'bg-gradient-to-br from-green-50 to-emerald-50',
+    borderColor: 'border-green-200',
     fields: [
       { key: 'team_members', label: 'Team Members', type: 'object' },
       { key: 'team_size_min', label: 'Team Size (Min)', type: 'number' },
@@ -134,6 +147,9 @@ const sectionConfig = [
     key: 'geography',
     title: 'Geographic & Market Focus',
     icon: Globe,
+    color: 'from-orange-500 to-red-600',
+    bgColor: 'bg-gradient-to-br from-orange-50 to-red-50',
+    borderColor: 'border-orange-200',
     fields: [
       { key: 'legal_domicile', label: 'Legal Domicile', type: 'array' },
       { key: 'markets_operated', label: 'Markets Operated', type: 'object' },
@@ -144,6 +160,9 @@ const sectionConfig = [
     key: 'investment_strategy',
     title: 'Investment Strategy',
     icon: Target,
+    color: 'from-purple-500 to-pink-600',
+    bgColor: 'bg-gradient-to-br from-purple-50 to-pink-50',
+    borderColor: 'border-purple-200',
     fields: [
       { key: 'ticket_size_min', label: 'Minimum Ticket Size (USD)', type: 'number' },
       { key: 'ticket_size_max', label: 'Maximum Ticket Size (USD)', type: 'number' },
@@ -157,6 +176,9 @@ const sectionConfig = [
     key: 'fund_operations',
     title: 'Fund Operations',
     icon: Briefcase,
+    color: 'from-indigo-500 to-blue-600',
+    bgColor: 'bg-gradient-to-br from-indigo-50 to-blue-50',
+    borderColor: 'border-indigo-200',
     fields: [
       { key: 'supporting_document_url', label: 'Supporting Document', type: 'url' },
       { key: 'information_sharing', label: 'Information Sharing Preference' },
@@ -168,6 +190,9 @@ const sectionConfig = [
     key: 'fund_status',
     title: 'Fund Status & Timeline',
     icon: Calendar,
+    color: 'from-teal-500 to-cyan-600',
+    bgColor: 'bg-gradient-to-br from-teal-50 to-cyan-50',
+    borderColor: 'border-teal-200',
     fields: [
       { key: 'fund_stage', label: 'Fund Stage', type: 'array' },
       { key: 'current_status', label: 'Current Status' },
@@ -186,6 +211,9 @@ const sectionConfig = [
     key: 'investment_instruments',
     title: 'Investment Instruments',
     icon: DollarSign,
+    color: 'from-yellow-500 to-orange-600',
+    bgColor: 'bg-gradient-to-br from-yellow-50 to-orange-50',
+    borderColor: 'border-yellow-200',
     fields: [
       { key: 'investment_instruments_priority', label: 'Investment Instruments (Priority Order)', type: 'object' },
     ],
@@ -194,6 +222,9 @@ const sectionConfig = [
     key: 'sector_returns',
     title: 'Sector Focus & Returns',
     icon: TrendingUp,
+    color: 'from-pink-500 to-rose-600',
+    bgColor: 'bg-gradient-to-br from-pink-50 to-rose-50',
+    borderColor: 'border-pink-200',
     fields: [
       { key: 'sectors_allocation', label: 'Sectors Allocation', type: 'object' },
       { key: 'target_return_min', label: 'Target Return Min (%)', type: 'number' },
@@ -407,38 +438,41 @@ const FundManagerDetail = () => {
     const containsUrls = typeof value === 'string' && value.includes('http');
     
     return (
-      <div key={field.key} className="flex flex-col sm:flex-row sm:items-center py-3 border-b border-gray-100 last:border-b-0">
+      <div key={field.key} className="flex flex-col py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors rounded-lg p-3">
         <div className="flex-1">
-          <dt className="text-sm font-medium text-gray-700 mb-1">{field.label}</dt>
-          <dd className="text-sm text-gray-900">
+          <dt className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+            <Sparkles className="w-4 h-4 mr-2 text-purple-500" />
+            {field.label}
+          </dt>
+          <dd className="text-sm text-gray-900 break-words leading-relaxed">
             {field.type === 'url' && value ? (
               <div className="flex items-center space-x-2">
-                <FileText className="w-4 h-4 text-blue-600" />
+                <FileText className="w-5 h-5 text-blue-600" />
                 <a 
                   href={value} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800 flex items-center space-x-1"
+                  className="text-blue-600 hover:text-blue-800 flex items-center space-x-1 font-medium transition-colors"
                 >
                   <span>View Document</span>
-                  <ExternalLink className="w-3 h-3" />
+                  <ExternalLink className="w-4 h-4" />
                 </a>
               </div>
             ) : containsUrls ? (
               <div className="flex items-center space-x-2">
-                <FileText className="w-4 h-4 text-blue-600" />
+                <FileText className="w-5 h-5 text-blue-600" />
                 <a 
                   href={value} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800 flex items-center space-x-1"
+                  className="text-blue-600 hover:text-blue-800 flex items-center space-x-1 font-medium transition-colors"
                 >
                   <span>View Document</span>
-                  <ExternalLink className="w-3 h-3" />
+                  <ExternalLink className="w-4 h-4" />
                 </a>
               </div>
             ) : (
-              formattedValue
+              <span className="text-gray-800 font-medium">{formattedValue}</span>
             )}
           </dd>
         </div>
@@ -450,14 +484,19 @@ const FundManagerDetail = () => {
     const IconComponent = section.icon;
     
     return (
-      <Card key={section.key} className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <IconComponent className="w-5 h-5 text-blue-600" />
+      <Card key={section.key} className={`mb-8 shadow-lg border-2 ${section.borderColor} ${section.bgColor} hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]`}>
+        <CardHeader className={`bg-gradient-to-r ${section.color} text-white rounded-t-lg`}>
+          <CardTitle className="flex items-center space-x-3 text-xl font-bold">
+            <div className="p-2 bg-white/20 rounded-full">
+              <IconComponent className="w-6 h-6" />
+            </div>
             <span>{section.title}</span>
+            <div className="ml-auto">
+              <Star className="w-5 h-5 text-yellow-300" />
+            </div>
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           <dl className="space-y-0">
             {section.fields.map(field => renderField(field, survey))}
           </dl>
@@ -468,12 +507,15 @@ const FundManagerDetail = () => {
 
   if (userRole !== 'viewer' && userRole !== 'member' && userRole !== 'admin') {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50">
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="max-w-2xl mx-auto border-red-200 bg-red-50">
+          <Card className="max-w-2xl mx-auto border-red-200 bg-gradient-to-br from-red-50 to-pink-50 shadow-lg">
             <CardHeader>
-              <CardTitle className="text-red-800">Access Restricted</CardTitle>
+              <CardTitle className="text-red-800 flex items-center">
+                <Shield className="w-6 h-6 mr-2" />
+                Access Restricted
+              </CardTitle>
               <CardDescription className="text-red-700">
                 You need at least Viewer access to view fund manager details.
               </CardDescription>
@@ -486,12 +528,17 @@ const FundManagerDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading fund manager details...</p>
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
+            <p className="mt-4 text-gray-600 text-lg font-medium">Loading fund manager details...</p>
+            <div className="mt-2 flex justify-center space-x-2">
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
+              <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+              <div className="w-2 h-2 bg-pink-600 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+            </div>
           </div>
         </div>
       </div>
@@ -500,13 +547,16 @@ const FundManagerDetail = () => {
 
   if (!profile && surveys.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-50">
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="max-w-2xl mx-auto">
+          <Card className="max-w-2xl mx-auto bg-gradient-to-br from-yellow-50 to-orange-50 shadow-lg">
             <CardHeader>
-              <CardTitle>Fund Manager Not Found</CardTitle>
-              <CardDescription>
+              <CardTitle className="flex items-center text-yellow-800">
+                <Award className="w-6 h-6 mr-2" />
+                Fund Manager Not Found
+              </CardTitle>
+              <CardDescription className="text-yellow-700">
                 This fund manager profile is not available or has not completed any surveys.
               </CardDescription>
             </CardHeader>
@@ -518,13 +568,16 @@ const FundManagerDetail = () => {
 
   if (surveys.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="max-w-2xl mx-auto">
+          <Card className="max-w-2xl mx-auto bg-gradient-to-br from-green-50 to-emerald-50 shadow-lg">
             <CardHeader>
-              <CardTitle>Fund Manager Not Found</CardTitle>
-              <CardDescription>
+              <CardTitle className="flex items-center text-green-800">
+                <Rocket className="w-6 h-6 mr-2" />
+                Fund Manager Not Found
+              </CardTitle>
+              <CardDescription className="text-green-700">
                 This fund manager has not completed any surveys.
               </CardDescription>
             </CardHeader>
@@ -548,73 +601,84 @@ const FundManagerDetail = () => {
   const hasProfileInfo = profile && (profile.first_name || profile.last_name || profile.email);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
       <Header />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Profile Header */}
-        <Card className="mb-8">
-          <CardContent className="p-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
-              <Avatar className="w-20 h-20">
-                <AvatarImage src={profile?.profile_picture_url} />
-                <AvatarFallback className="text-2xl bg-blue-100 text-blue-600">
-                  {profile?.first_name?.[0]?.toUpperCase() || 'U'}
-                  {profile?.last_name?.[0]?.toUpperCase() || ''}
-                </AvatarFallback>
-              </Avatar>
+        <Card className="mb-8 shadow-xl border-0 bg-gradient-to-br from-white to-gray-50 overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 h-2"></div>
+          <CardContent className="p-8">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-6 sm:space-y-0 sm:space-x-8">
+              <div className="relative">
+                <Avatar className="w-24 h-24 border-4 border-white shadow-lg">
+                  <AvatarImage src={profile?.profile_picture_url} />
+                  <AvatarFallback className="text-3xl bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold">
+                    {profile?.first_name?.[0]?.toUpperCase() || 'U'}
+                    {profile?.last_name?.[0]?.toUpperCase() || ''}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="absolute -bottom-2 -right-2 bg-green-500 rounded-full p-1">
+                  <Heart className="w-4 h-4 text-white" />
+                </div>
+              </div>
               
               <div className="flex-1">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                <h1 className="text-4xl font-bold text-gray-900 mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   {fundManagerName}
                 </h1>
-                <p className="text-lg text-gray-600 mb-4">
+                <p className="text-xl text-gray-600 mb-6 font-medium">
                   {activeSurvey?.vehicle_name}
                 </p>
                 
-                <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                  <div className="flex items-center space-x-2">
-                    <Mail className="w-4 h-4" />
-                    <span>{fundManagerEmail}</span>
+                <div className="flex flex-wrap gap-6 text-sm">
+                  <div className="flex items-center space-x-3 bg-white px-4 py-2 rounded-full shadow-md">
+                    <Mail className="w-5 h-5 text-blue-600" />
+                    <span className="font-medium text-gray-700 break-all">{fundManagerEmail}</span>
                   </div>
                   {activeSurvey?.location && (
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="w-4 h-4" />
-                      <span>{activeSurvey.location}</span>
+                    <div className="flex items-center space-x-3 bg-white px-4 py-2 rounded-full shadow-md">
+                      <MapPin className="w-5 h-5 text-green-600" />
+                      <span className="font-medium text-gray-700">{activeSurvey.location}</span>
                     </div>
                   )}
                   {activeSurvey?.vehicle_website && (
-                    <div className="flex items-center space-x-2">
-                      <Globe className="w-4 h-4" />
+                    <div className="flex items-center space-x-3 bg-white px-4 py-2 rounded-full shadow-md hover:shadow-lg transition-shadow">
+                      <Globe className="w-5 h-5 text-purple-600" />
                       <a 
                         href={activeSurvey.vehicle_website.startsWith('http') ? activeSurvey.vehicle_website : `https://${activeSurvey.vehicle_website}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 flex items-center space-x-1"
+                        className="text-purple-600 hover:text-purple-800 flex items-center space-x-1 font-medium transition-colors"
                       >
                         <span>Website</span>
-                        <ExternalLink className="w-3 h-3" />
+                        <ExternalLink className="w-4 h-4" />
                       </a>
                     </div>
                   )}
                   {activeSurvey?.vehicle_websites && activeSurvey.vehicle_websites.length > 0 && (
-                    <div className="flex items-center space-x-2">
-                      <Globe className="w-4 h-4" />
+                    <div className="flex items-center space-x-3 bg-white px-4 py-2 rounded-full shadow-md hover:shadow-lg transition-shadow">
+                      <Globe className="w-5 h-5 text-purple-600" />
                       <a 
                         href={activeSurvey.vehicle_websites[0].startsWith('http') ? activeSurvey.vehicle_websites[0] : `https://${activeSurvey.vehicle_websites[0]}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 flex items-center space-x-1"
+                        className="text-purple-600 hover:text-purple-800 flex items-center space-x-1 font-medium transition-colors"
                       >
                         <span>Website</span>
-                        <ExternalLink className="w-3 h-3" />
+                        <ExternalLink className="w-4 h-4" />
                       </a>
                     </div>
                   )}
                 </div>
                 {!hasProfileInfo && (
-                  <div className="mt-2 text-sm text-yellow-700 bg-yellow-50 border border-yellow-200 rounded p-2">
-                    Profile information is not available, but survey data is shown below.
+                  <div className="mt-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-center space-x-2">
+                      <Zap className="w-5 h-5 text-yellow-600" />
+                      <span className="text-sm text-yellow-700 font-medium">
+                        Profile information is not available, but survey data is shown below.
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -624,11 +688,14 @@ const FundManagerDetail = () => {
 
         {/* Add a year selector if multiple surveys exist */}
         {surveys.length > 1 && (
-          <div className="mb-6 flex items-center gap-2">
-            <label htmlFor="survey-year" className="text-sm font-medium text-gray-700">Select Year:</label>
+          <div className="mb-8 flex items-center gap-4 bg-white p-4 rounded-lg shadow-md">
+            <label htmlFor="survey-year" className="text-sm font-semibold text-gray-700 flex items-center">
+              <Calendar className="w-4 h-4 mr-2 text-blue-600" />
+              Select Year:
+            </label>
             <select
               id="survey-year"
-              className="border rounded px-2 py-1 text-base"
+              className="border-2 border-blue-200 rounded-lg px-4 py-2 text-base font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
               value={activeSurvey?.year || ''}
               onChange={e => {
                 const year = Number(e.target.value);
@@ -649,16 +716,20 @@ const FundManagerDetail = () => {
             {userRole === 'admin' ? (
               // Admin view: All 8 sections in tabs
               <Tabs defaultValue="vehicle_info" className="mb-8">
-                <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
+                <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-8 bg-white shadow-lg rounded-lg p-1">
                   {sectionConfig.map(section => (
-                    <TabsTrigger key={section.key} value={section.key} className="text-xs">
+                    <TabsTrigger 
+                      key={section.key} 
+                      value={section.key} 
+                      className="text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300"
+                    >
                       {section.title}
                     </TabsTrigger>
                   ))}
                 </TabsList>
 
                 {sectionConfig.map(section => (
-                  <TabsContent key={section.key} value={section.key} className="mt-6">
+                  <TabsContent key={section.key} value={section.key} className="mt-8">
                     {renderSection(section, activeSurvey)}
                   </TabsContent>
                 ))}
@@ -666,16 +737,20 @@ const FundManagerDetail = () => {
             ) : (
               // Member/Viewer view: First 4 sections in tabs (not full sections)
               <Tabs defaultValue="vehicle_info" className="mb-8">
-                <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
+                <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 bg-white shadow-lg rounded-lg p-1">
                   {memberSections.map(section => (
-                    <TabsTrigger key={section.key} value={section.key} className="text-xs">
+                    <TabsTrigger 
+                      key={section.key} 
+                      value={section.key} 
+                      className="text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white transition-all duration-300"
+                    >
                       {section.title}
                     </TabsTrigger>
                   ))}
                 </TabsList>
 
                 {memberSections.map(section => (
-                  <TabsContent key={section.key} value={section.key} className="mt-6">
+                  <TabsContent key={section.key} value={section.key} className="mt-8">
                     {renderSection(section, activeSurvey)}
                   </TabsContent>
                 ))}
