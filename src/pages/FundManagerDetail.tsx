@@ -28,56 +28,74 @@ import { useToast } from '@/hooks/use-toast';
 
 interface SurveyResponse {
   id: string;
-  vehicle_name: string;
-  thesis: string;
-  ticket_size: string;
-  location: string;
-  team_size_description: string;
-  portfolio_count: number;
-  capital_raised_description: string;
-  expectations: string;
+  user_id: string;
   year: number;
   completed_at: string;
-  vehicle_website?: string;
-  how_heard_about_network: string;
-  // Add all the new survey fields
+  
+  // Section 1: Vehicle Information
+  vehicle_name: string;
+  vehicle_websites?: string[];
   vehicle_type?: string;
   vehicle_type_other?: string;
-  team_members?: string;
+  thesis?: string;
+  
+  // Section 2: Team & Leadership
+  team_members?: any[]; // JSONB array
   team_size_min?: number;
   team_size_max?: number;
   team_description?: string;
-  legal_domicile?: string;
-  legal_domicile_other?: string;
-  markets_operated?: string;
+  
+  // Section 3: Geographic & Market Focus
+  legal_domicile?: string[];
+  markets_operated?: Record<string, number>; // JSONB object
   markets_operated_other?: string;
+  
+  // Section 4: Investment Strategy
   ticket_size_min?: number;
   ticket_size_max?: number;
   ticket_description?: string;
   target_capital?: number;
   capital_raised?: number;
   capital_in_market?: number;
+  
+  // Section 5: Fund Operations
   supporting_document_url?: string;
   information_sharing?: string;
-  fund_stage?: string;
+  expectations?: string;
+  how_heard_about_network?: string;
+  
+  // Section 6: Fund Status & Timeline
+  fund_stage?: string[];
   current_status?: string;
   current_status_other?: string;
-  legal_entity_date_from?: string;
-  legal_entity_date_to?: string;
-  legal_entity_month_from?: string;
-  legal_entity_month_to?: string;
-  first_close_date_from?: string;
-  first_close_date_to?: string;
-  first_close_month_from?: string;
-  first_close_month_to?: string;
-  investment_instruments_priority?: string;
-  sectors_allocation?: string;
+  legal_entity_date_from?: number;
+  legal_entity_date_to?: number;
+  legal_entity_month_from?: number;
+  legal_entity_month_to?: number;
+  first_close_date_from?: number;
+  first_close_date_to?: number;
+  first_close_month_from?: number;
+  first_close_month_to?: number;
+  
+  // Section 7: Investment Instruments
+  investment_instruments_priority?: Record<string, number>; // JSONB object
+  
+  // Section 8: Sector Focus & Returns
+  sectors_allocation?: Record<string, number>; // JSONB object
   target_return_min?: number;
   target_return_max?: number;
   equity_investments_made?: number;
   equity_investments_exited?: number;
   self_liquidating_made?: number;
   self_liquidating_exited?: number;
+  
+  // Legacy fields (for backward compatibility)
+  location?: string;
+  team_size_description?: string;
+  portfolio_count?: number;
+  capital_raised_description?: string;
+  ticket_size?: string;
+  vehicle_website?: string;
 }
 
 interface FundManagerProfile {
@@ -95,7 +113,7 @@ const sectionConfig = [
     icon: Building2,
     fields: [
       { key: 'vehicle_name', label: 'Fund Name' },
-      { key: 'vehicle_website', label: 'Vehicle Website' },
+      { key: 'vehicle_websites', label: 'Vehicle Websites', type: 'array' },
       { key: 'vehicle_type', label: 'Vehicle Type' },
       { key: 'vehicle_type_other', label: 'Other Vehicle Type' },
       { key: 'thesis', label: 'Investment Thesis' },
@@ -106,9 +124,9 @@ const sectionConfig = [
     title: 'Team & Leadership',
     icon: Users,
     fields: [
-      { key: 'team_members', label: 'Team Members' },
-      { key: 'team_size_min', label: 'Team Size (Min)' },
-      { key: 'team_size_max', label: 'Team Size (Max)' },
+      { key: 'team_members', label: 'Team Members', type: 'object' },
+      { key: 'team_size_min', label: 'Team Size (Min)', type: 'number' },
+      { key: 'team_size_max', label: 'Team Size (Max)', type: 'number' },
       { key: 'team_description', label: 'Team Description' },
     ],
   },
@@ -117,9 +135,8 @@ const sectionConfig = [
     title: 'Geographic & Market Focus',
     icon: Globe,
     fields: [
-      { key: 'legal_domicile', label: 'Legal Domicile' },
-      { key: 'legal_domicile_other', label: 'Other Domicile' },
-      { key: 'markets_operated', label: 'Markets Operated' },
+      { key: 'legal_domicile', label: 'Legal Domicile', type: 'array' },
+      { key: 'markets_operated', label: 'Markets Operated', type: 'object' },
       { key: 'markets_operated_other', label: 'Other Markets' },
     ],
   },
@@ -128,12 +145,12 @@ const sectionConfig = [
     title: 'Investment Strategy',
     icon: Target,
     fields: [
-      { key: 'ticket_size_min', label: 'Minimum Ticket Size (USD)' },
-      { key: 'ticket_size_max', label: 'Maximum Ticket Size (USD)' },
+      { key: 'ticket_size_min', label: 'Minimum Ticket Size (USD)', type: 'number' },
+      { key: 'ticket_size_max', label: 'Maximum Ticket Size (USD)', type: 'number' },
       { key: 'ticket_description', label: 'Ticket Size Description' },
-      { key: 'target_capital', label: 'Target Capital (USD)' },
-      { key: 'capital_raised', label: 'Capital Raised (USD)' },
-      { key: 'capital_in_market', label: 'Capital in Market (USD)' },
+      { key: 'target_capital', label: 'Target Capital (USD)', type: 'number' },
+      { key: 'capital_raised', label: 'Capital Raised (USD)', type: 'number' },
+      { key: 'capital_in_market', label: 'Capital in Market (USD)', type: 'number' },
     ],
   },
   {
@@ -141,7 +158,7 @@ const sectionConfig = [
     title: 'Fund Operations',
     icon: Briefcase,
     fields: [
-      { key: 'supporting_document_url', label: 'Supporting Document' },
+      { key: 'supporting_document_url', label: 'Supporting Document', type: 'url' },
       { key: 'information_sharing', label: 'Information Sharing Preference' },
       { key: 'expectations', label: 'Expectations' },
       { key: 'how_heard_about_network', label: 'How Heard About Network' },
@@ -152,17 +169,17 @@ const sectionConfig = [
     title: 'Fund Status & Timeline',
     icon: Calendar,
     fields: [
-      { key: 'fund_stage', label: 'Fund Stage' },
+      { key: 'fund_stage', label: 'Fund Stage', type: 'array' },
       { key: 'current_status', label: 'Current Status' },
       { key: 'current_status_other', label: 'Other Status' },
-      { key: 'legal_entity_date_from', label: 'Legal Entity Date From' },
-      { key: 'legal_entity_date_to', label: 'Legal Entity Date To' },
-      { key: 'legal_entity_month_from', label: 'Legal Entity Month From' },
-      { key: 'legal_entity_month_to', label: 'Legal Entity Month To' },
-      { key: 'first_close_date_from', label: 'First Close Date From' },
-      { key: 'first_close_date_to', label: 'First Close Date To' },
-      { key: 'first_close_month_from', label: 'First Close Month From' },
-      { key: 'first_close_month_to', label: 'First Close Month To' },
+      { key: 'legal_entity_date_from', label: 'Legal Entity Date From', type: 'number' },
+      { key: 'legal_entity_date_to', label: 'Legal Entity Date To', type: 'number' },
+      { key: 'legal_entity_month_from', label: 'Legal Entity Month From', type: 'number' },
+      { key: 'legal_entity_month_to', label: 'Legal Entity Month To', type: 'number' },
+      { key: 'first_close_date_from', label: 'First Close Date From', type: 'number' },
+      { key: 'first_close_date_to', label: 'First Close Date To', type: 'number' },
+      { key: 'first_close_month_from', label: 'First Close Month From', type: 'number' },
+      { key: 'first_close_month_to', label: 'First Close Month To', type: 'number' },
     ],
   },
   {
@@ -170,7 +187,7 @@ const sectionConfig = [
     title: 'Investment Instruments',
     icon: DollarSign,
     fields: [
-      { key: 'investment_instruments_priority', label: 'Investment Instruments (Priority Order)' },
+      { key: 'investment_instruments_priority', label: 'Investment Instruments (Priority Order)', type: 'object' },
     ],
   },
   {
@@ -178,13 +195,13 @@ const sectionConfig = [
     title: 'Sector Focus & Returns',
     icon: TrendingUp,
     fields: [
-      { key: 'sectors_allocation', label: 'Sectors Allocation' },
-      { key: 'target_return_min', label: 'Target Return Min (%)' },
-      { key: 'target_return_max', label: 'Target Return Max (%)' },
-      { key: 'equity_investments_made', label: 'Equity Investments Made' },
-      { key: 'equity_investments_exited', label: 'Equity Investments Exited' },
-      { key: 'self_liquidating_made', label: 'Self-Liquidating Made' },
-      { key: 'self_liquidating_exited', label: 'Self-Liquidating Exited' },
+      { key: 'sectors_allocation', label: 'Sectors Allocation', type: 'object' },
+      { key: 'target_return_min', label: 'Target Return Min (%)', type: 'number' },
+      { key: 'target_return_max', label: 'Target Return Max (%)', type: 'number' },
+      { key: 'equity_investments_made', label: 'Equity Investments Made', type: 'number' },
+      { key: 'equity_investments_exited', label: 'Equity Investments Exited', type: 'number' },
+      { key: 'self_liquidating_made', label: 'Self-Liquidating Made', type: 'number' },
+      { key: 'self_liquidating_exited', label: 'Self-Liquidating Exited', type: 'number' },
     ],
   },
 ];
@@ -232,37 +249,43 @@ const FundManagerDetail = () => {
       // Type assertion to match our interface
       const typedSurveys = (surveyData || []).map(survey => ({
         id: survey.id,
-        vehicle_name: survey.vehicle_name,
-        thesis: survey.thesis,
-        ticket_size: survey.ticket_size,
-        location: survey.location,
-        team_size_description: survey.team_size_description,
-        portfolio_count: survey.portfolio_count,
-        capital_raised_description: survey.capital_raised_description,
-        expectations: survey.expectations,
+        user_id: survey.user_id,
         year: survey.year,
         completed_at: survey.completed_at,
-        vehicle_website: survey.vehicle_website,
-        how_heard_about_network: survey.how_heard_about_network,
-        // Add all the new survey fields
+        
+        // Section 1: Vehicle Information
+        vehicle_name: survey.vehicle_name,
+        vehicle_websites: survey.vehicle_websites,
         vehicle_type: survey.vehicle_type,
         vehicle_type_other: survey.vehicle_type_other,
+        thesis: survey.thesis,
+        
+        // Section 2: Team & Leadership
         team_members: survey.team_members,
         team_size_min: survey.team_size_min,
         team_size_max: survey.team_size_max,
         team_description: survey.team_description,
+        
+        // Section 3: Geographic & Market Focus
         legal_domicile: survey.legal_domicile,
-        legal_domicile_other: survey.legal_domicile_other,
         markets_operated: survey.markets_operated,
         markets_operated_other: survey.markets_operated_other,
+        
+        // Section 4: Investment Strategy
         ticket_size_min: survey.ticket_size_min,
         ticket_size_max: survey.ticket_size_max,
         ticket_description: survey.ticket_description,
         target_capital: survey.target_capital,
         capital_raised: survey.capital_raised,
         capital_in_market: survey.capital_in_market,
+        
+        // Section 5: Fund Operations
         supporting_document_url: survey.supporting_document_url,
         information_sharing: survey.information_sharing,
+        expectations: survey.expectations,
+        how_heard_about_network: survey.how_heard_about_network,
+        
+        // Section 6: Fund Status & Timeline
         fund_stage: survey.fund_stage,
         current_status: survey.current_status,
         current_status_other: survey.current_status_other,
@@ -274,7 +297,11 @@ const FundManagerDetail = () => {
         first_close_date_to: survey.first_close_date_to,
         first_close_month_from: survey.first_close_month_from,
         first_close_month_to: survey.first_close_month_to,
+        
+        // Section 7: Investment Instruments
         investment_instruments_priority: survey.investment_instruments_priority,
+        
+        // Section 8: Sector Focus & Returns
         sectors_allocation: survey.sectors_allocation,
         target_return_min: survey.target_return_min,
         target_return_max: survey.target_return_max,
@@ -282,6 +309,14 @@ const FundManagerDetail = () => {
         equity_investments_exited: survey.equity_investments_exited,
         self_liquidating_made: survey.self_liquidating_made,
         self_liquidating_exited: survey.self_liquidating_exited,
+        
+        // Legacy fields
+        location: survey.location,
+        team_size_description: survey.team_size_description,
+        portfolio_count: survey.portfolio_count,
+        capital_raised_description: survey.capital_raised_description,
+        ticket_size: survey.ticket_size,
+        vehicle_website: survey.vehicle_website,
       })) as SurveyResponse[];
 
       setSurveys(typedSurveys);
@@ -301,32 +336,51 @@ const FundManagerDetail = () => {
     }
   };
 
-  const formatFieldValue = (value: any, fieldKey: string): string => {
+  const formatFieldValue = (value: any, fieldKey: string, fieldType?: string): string => {
     if (value === null || value === undefined || value === '') {
       return 'Not provided';
     }
     
-    if (fieldKey.includes('_url') && value) {
-      return 'Document uploaded';
+    // Handle different field types
+    if (fieldType === 'array' && Array.isArray(value)) {
+      return value.join(', ');
     }
     
-    if (typeof value === 'number') {
+    if (fieldType === 'object' && typeof value === 'object') {
+      if (Array.isArray(value)) {
+        // Handle team_members array
+        return value.map((member: any) => 
+          `${member.name || 'Unknown'} (${member.role || 'Unknown role'})`
+        ).join(', ');
+      } else {
+        // Handle key-value objects like markets_operated
+        return Object.entries(value)
+          .map(([key, val]) => `${key}: ${val}`)
+          .join(', ');
+      }
+    }
+    
+    if (fieldType === 'number' && typeof value === 'number') {
       return value.toLocaleString();
+    }
+    
+    if (fieldType === 'url' && value) {
+      return 'Document uploaded';
     }
     
     return String(value);
   };
 
-  const renderField = (field: { key: string; label: string }, survey: SurveyResponse) => {
+  const renderField = (field: { key: string; label: string; type?: string }, survey: SurveyResponse) => {
     const value = (survey as any)[field.key];
-    const formattedValue = formatFieldValue(value, field.key);
+    const formattedValue = formatFieldValue(value, field.key, field.type);
     
     return (
       <div key={field.key} className="flex flex-col sm:flex-row sm:items-center py-3 border-b border-gray-100 last:border-b-0">
         <div className="flex-1">
           <dt className="text-sm font-medium text-gray-700 mb-1">{field.label}</dt>
           <dd className="text-sm text-gray-900">
-            {field.key.includes('_url') && value ? (
+            {field.type === 'url' && value ? (
               <div className="flex items-center space-x-2">
                 <FileText className="w-4 h-4 text-blue-600" />
                 <a 
@@ -542,10 +596,22 @@ const FundManagerDetail = () => {
                 ))}
               </Tabs>
             ) : (
-              // Member/Viewer view: First 4 sections as full sections (no tabs)
-              <div className="space-y-6">
-                {memberSections.map(section => renderSection(section, activeSurvey))}
-              </div>
+              // Member/Viewer view: First 4 sections in tabs (not full sections)
+              <Tabs defaultValue="vehicle_info" className="mb-8">
+                <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
+                  {memberSections.map(section => (
+                    <TabsTrigger key={section.key} value={section.key} className="text-xs">
+                      {section.title}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+
+                {memberSections.map(section => (
+                  <TabsContent key={section.key} value={section.key} className="mt-6">
+                    {renderSection(section, activeSurvey)}
+                  </TabsContent>
+                ))}
+              </Tabs>
             )}
           </>
         )}
