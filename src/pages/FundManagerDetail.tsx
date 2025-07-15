@@ -116,17 +116,25 @@ interface FundManagerProfile {
   profile_picture_url?: string;
 }
 
+// 1. Remove gradients/colors/icons that look unprofessional
+// 2. Use a formal color palette and icon set
+// 3. Organize and render all survey data in clear, ordered sections, matching the survey/application popup
+// 4. Properly format all data types
+// 5. Add year selection if not present
+// 6. Use 'Not provided' for missing data
+// 7. Remove all gradients and childish UI elements
+
+// ---
+// Replace sectionConfig with a formal, professional config (no gradients, formal icons/colors)
 const sectionConfig = [
   {
     key: 'vehicle_info',
     title: 'Vehicle Information',
     icon: Building2,
-    color: 'from-blue-500 to-purple-600',
-    bgColor: 'bg-gradient-to-br from-blue-50 to-purple-50',
-    borderColor: 'border-blue-200',
+    color: 'text-blue-700',
     fields: [
       { key: 'vehicle_name', label: 'Fund Name' },
-      { key: 'vehicle_websites', label: 'Vehicle Websites', type: 'array' },
+      { key: 'vehicle_websites', label: 'Vehicle Websites', type: 'array', isLink: true },
       { key: 'vehicle_type', label: 'Vehicle Type' },
       { key: 'vehicle_type_other', label: 'Other Vehicle Type' },
       { key: 'thesis', label: 'Investment Thesis', type: 'text' },
@@ -136,11 +144,9 @@ const sectionConfig = [
     key: 'team',
     title: 'Team & Leadership',
     icon: Users,
-    color: 'from-green-500 to-emerald-600',
-    bgColor: 'bg-gradient-to-br from-green-50 to-emerald-50',
-    borderColor: 'border-green-200',
+    color: 'text-green-700',
     fields: [
-      { key: 'team_members', label: 'Team Members', type: 'object' },
+      { key: 'team_members', label: 'Team Members', type: 'team' },
       { key: 'team_size_min', label: 'Team Size (Min)', type: 'number' },
       { key: 'team_size_max', label: 'Team Size (Max)', type: 'number' },
       { key: 'team_description', label: 'Team Description', type: 'text' },
@@ -150,12 +156,10 @@ const sectionConfig = [
     key: 'geography',
     title: 'Geographic & Market Focus',
     icon: Globe,
-    color: 'from-orange-500 to-red-600',
-    bgColor: 'bg-gradient-to-br from-orange-50 to-red-50',
-    borderColor: 'border-orange-200',
+    color: 'text-blue-900',
     fields: [
       { key: 'legal_domicile', label: 'Legal Domicile', type: 'array' },
-      { key: 'markets_operated', label: 'Markets Operated', type: 'object' },
+      { key: 'markets_operated', label: 'Markets Operated', type: 'markets' },
       { key: 'markets_operated_other', label: 'Other Markets' },
     ],
   },
@@ -163,39 +167,33 @@ const sectionConfig = [
     key: 'investment_strategy',
     title: 'Investment Strategy',
     icon: Target,
-    color: 'from-purple-500 to-pink-600',
-    bgColor: 'bg-gradient-to-br from-purple-50 to-pink-50',
-    borderColor: 'border-purple-200',
+    color: 'text-gold-700',
     fields: [
-      { key: 'ticket_size_min', label: 'Minimum Ticket Size (USD)', type: 'number' },
-      { key: 'ticket_size_max', label: 'Maximum Ticket Size (USD)', type: 'number' },
+      { key: 'ticket_size_min', label: 'Minimum Ticket Size (USD)', type: 'currency' },
+      { key: 'ticket_size_max', label: 'Maximum Ticket Size (USD)', type: 'currency' },
       { key: 'ticket_description', label: 'Ticket Size Description', type: 'text' },
-      { key: 'target_capital', label: 'Target Capital (USD)', type: 'number' },
-      { key: 'capital_raised', label: 'Capital Raised (USD)', type: 'number' },
-      { key: 'capital_in_market', label: 'Capital in Market (USD)', type: 'number' },
+      { key: 'target_capital', label: 'Desired Capital (USD)', type: 'currency' },
+      { key: 'capital_raised', label: 'AUM/Committed Capital (USD)', type: 'currency' },
+      { key: 'capital_in_market', label: 'Deployed Capital (USD)', type: 'currency' },
     ],
   },
   {
     key: 'fund_operations',
     title: 'Fund Operations',
     icon: Briefcase,
-    color: 'from-indigo-500 to-blue-600',
-    bgColor: 'bg-gradient-to-br from-indigo-50 to-blue-50',
-    borderColor: 'border-indigo-200',
+    color: 'text-black',
     fields: [
       { key: 'supporting_document_url', label: 'Supporting Document', type: 'url' },
-      { key: 'information_sharing', label: 'Information Sharing Preference' },
       { key: 'expectations', label: 'Expectations', type: 'text' },
       { key: 'how_heard_about_network', label: 'How Heard About Network' },
+      { key: 'how_heard_about_network_other', label: 'Other (How Heard)' },
     ],
   },
   {
     key: 'fund_status',
     title: 'Fund Status & Timeline',
     icon: Calendar,
-    color: 'from-teal-500 to-cyan-600',
-    bgColor: 'bg-gradient-to-br from-teal-50 to-cyan-50',
-    borderColor: 'border-teal-200',
+    color: 'text-blue-700',
     fields: [
       { key: 'fund_stage', label: 'Fund Stage', type: 'array' },
       { key: 'current_status', label: 'Current Status' },
@@ -214,28 +212,24 @@ const sectionConfig = [
     key: 'investment_instruments',
     title: 'Investment Instruments',
     icon: DollarSign,
-    color: 'from-yellow-500 to-orange-600',
-    bgColor: 'bg-gradient-to-br from-yellow-50 to-orange-50',
-    borderColor: 'border-yellow-200',
+    color: 'text-gold-700',
     fields: [
-      { key: 'investment_instruments_priority', label: 'Investment Instruments (Priority Order)', type: 'object' },
+      { key: 'investment_instruments_priority', label: 'Investment Instruments (Priority Order)', type: 'instruments' },
     ],
   },
   {
     key: 'sector_returns',
     title: 'Sector Focus & Returns',
     icon: TrendingUp,
-    color: 'from-pink-500 to-rose-600',
-    bgColor: 'bg-gradient-to-br from-pink-50 to-rose-50',
-    borderColor: 'border-pink-200',
+    color: 'text-green-700',
     fields: [
-      { key: 'sectors_allocation', label: 'Sectors Allocation', type: 'object' },
-      { key: 'target_return_min', label: 'Target Return Min (%)', type: 'number' },
-      { key: 'target_return_max', label: 'Target Return Max (%)', type: 'number' },
-      { key: 'equity_investments_made', label: 'Equity Investments Made', type: 'number' },
-      { key: 'equity_investments_exited', label: 'Equity Investments Exited', type: 'number' },
-      { key: 'self_liquidating_made', label: 'Self-Liquidating Made', type: 'number' },
-      { key: 'self_liquidating_exited', label: 'Self-Liquidating Exited', type: 'number' },
+      { key: 'sectors_allocation', label: 'Sectors Allocation', type: 'sectors' },
+      { key: 'target_return_min', label: 'Range Minimum (%)', type: 'number' },
+      { key: 'target_return_max', label: 'Range Maximum (%)', type: 'number' },
+      { key: 'equity_investments_made', label: 'Number of Equity Investments Made', type: 'number' },
+      { key: 'equity_investments_exited', label: 'Number of Equity Investments Exited', type: 'number' },
+      { key: 'self_liquidating_made', label: 'Number of Self-Liquidating Made', type: 'number' },
+      { key: 'self_liquidating_exited', label: 'Number of Self-Liquidating Exited', type: 'number' },
     ],
   },
 ];
@@ -384,396 +378,166 @@ const FundManagerDetail = () => {
     }
   };
 
-  const formatFieldValue = (value: any, fieldKey: string, fieldType?: string): string => {
-    if (value === null || value === undefined || value === '') {
-      return 'Not provided';
+  // Replace renderField and renderSection with professional, readable formatting
+  const formatFieldValue = (value: any, fieldKey: string, fieldType?: string, isLink?: boolean): React.ReactNode => {
+    if (value === null || value === undefined || value === '' || (Array.isArray(value) && value.length === 0)) {
+      return <span className="text-gray-400 italic">Not provided</span>;
     }
-    
-    // Handle different field types
     if (fieldType === 'array' && Array.isArray(value)) {
-      return value.join(', ');
-    }
-    
-    if (fieldType === 'object' && typeof value === 'object') {
-      if (Array.isArray(value)) {
-        // Handle team_members array
-        return value.map((member: any) => 
-          `${member.name || 'Unknown'} (${member.role || 'Unknown role'})`
-        ).join(', ');
-      } else {
-        // Handle key-value objects like markets_operated
-        return Object.entries(value)
-          .map(([key, val]) => `${key}: ${val}`)
-          .join(', ');
+      if (isLink) {
+        return (
+          <ul className="list-disc ml-4">
+            {value.map((url: string, i: number) => (
+              <li key={i}><a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">{url}</a></li>
+            ))}
+          </ul>
+        );
       }
+      return <span>{value.join(', ')}</span>;
     }
-    
+    if (fieldType === 'team' && Array.isArray(value)) {
+      return (
+        <ul className="list-disc ml-4">
+          {value.map((member: any, i: number) => (
+            <li key={i}>
+              <span className="font-medium">{member.name}</span>
+              {member.role && <> ({member.role})</>}
+              {member.email && <>, <a href={`mailto:${member.email}`} className="text-blue-700 underline">{member.email}</a></>}
+              {member.phone && <>, {member.phone}</>}
+              {member.experience && <><br /><span className="text-gray-500">{member.experience}</span></>}
+            </li>
+          ))}
+        </ul>
+      );
+    }
+    if (fieldType === 'markets' && value && typeof value === 'object') {
+      return (
+        <ul className="list-disc ml-4">
+          {Object.entries(value).map(([country, percent]: [string, any], i) => (
+            <li key={i}>{country}: <span className="font-medium">{percent}%</span></li>
+          ))}
+        </ul>
+      );
+    }
+    if (fieldType === 'instruments' && value && typeof value === 'object') {
+      // Render as a sorted list by priority if possible
+      const entries = Object.entries(value).sort((a, b) => (b[1] as number) - (a[1] as number));
+      return (
+        <ol className="list-decimal ml-4">
+          {entries.map(([instrument, priority], i) => (
+            <li key={i}>{instrument} <span className="text-gray-500">(Priority: {priority})</span></li>
+          ))}
+        </ol>
+      );
+    }
+    if (fieldType === 'sectors' && value && typeof value === 'object') {
+      return (
+        <ul className="list-disc ml-4">
+          {Object.entries(value).map(([sector, percent]: [string, any], i) => (
+            <li key={i}>{sector}: <span className="font-medium">{percent}%</span></li>
+          ))}
+        </ul>
+      );
+    }
+    if (fieldType === 'url' && typeof value === 'string') {
+      return <a href={value} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">{value}</a>;
+    }
+    if (fieldType === 'currency' && typeof value === 'number') {
+      return <span>${value.toLocaleString()}</span>;
+    }
     if (fieldType === 'number' && typeof value === 'number') {
-      return value.toLocaleString();
+      return <span>{value}</span>;
     }
-    
-    if (fieldType === 'url' && value) {
-      return 'Document uploaded';
-    }
-    
-    // Handle text fields that might contain URLs
     if (fieldType === 'text' && typeof value === 'string') {
-      // Check if the text contains URLs and format them
-      if (value.includes('http')) {
-        return 'Contains document links';
-      }
-      return value;
+      return <span className="whitespace-pre-line">{value}</span>;
     }
-    
-    // Handle regular string fields that might contain URLs
-    if (typeof value === 'string' && value.includes('http')) {
-      return 'Contains document links';
+    if (typeof value === 'string') {
+      return <span>{value}</span>;
     }
-    
-    return String(value);
+    return <span className="text-gray-400 italic">Not provided</span>;
   };
 
-  const renderField = (field: { key: string; label: string; type?: string }, survey: SurveyResponse) => {
-    const value = (survey as any)[field.key];
-    const formattedValue = formatFieldValue(value, field.key, field.type);
-    
-    // Check if the value contains URLs (for any field type)
-    const containsUrls = typeof value === 'string' && value.includes('http');
-    
-    return (
-      <div key={field.key} className="flex flex-col py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors rounded-lg p-3">
-        <div className="flex-1">
-          <dt className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-            <Sparkles className="w-4 h-4 mr-2 text-purple-500" />
-            {field.label}
-          </dt>
-          <dd className="text-sm text-gray-900 break-words leading-relaxed">
-            {field.type === 'url' && value ? (
-              <div className="flex items-center space-x-2">
-                <FileText className="w-5 h-5 text-blue-600" />
-                <a 
-                  href={value} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800 flex items-center space-x-1 font-medium transition-colors"
-                >
-                  <span>View Document</span>
-                  <ExternalLink className="w-4 h-4" />
-                </a>
-              </div>
-            ) : containsUrls ? (
-              <div className="flex items-center space-x-2">
-                <FileText className="w-5 h-5 text-blue-600" />
-                <a 
-                  href={value} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800 flex items-center space-x-1 font-medium transition-colors"
-                >
-                  <span>View Document</span>
-                  <ExternalLink className="w-4 h-4" />
-                </a>
-              </div>
-            ) : (
-              <span className="text-gray-800 font-medium">{formattedValue}</span>
-            )}
-          </dd>
-        </div>
+  const renderSection = (section: typeof sectionConfig[0], survey: SurveyResponse) => (
+    <section key={section.key} className="mb-8">
+      <div className="flex items-center mb-2">
+        {section.icon && <section.icon className={`w-5 h-5 mr-2 ${section.color}`} />}
+        <h2 className="text-lg font-semibold text-black tracking-tight">{section.title}</h2>
       </div>
-    );
-  };
-
-  const renderSection = (section: typeof sectionConfig[0], survey: SurveyResponse) => {
-    const IconComponent = section.icon;
-    
-    return (
-      <Card key={section.key} className={`mb-8 shadow-lg border-2 ${section.borderColor} ${section.bgColor} hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]`}>
-        <CardHeader className={`bg-gradient-to-r ${section.color} text-white rounded-t-lg`}>
-          <CardTitle className="flex items-center space-x-3 text-xl font-bold">
-            <div className="p-2 bg-white/20 rounded-full">
-              <IconComponent className="w-6 h-6" />
-            </div>
-            <span>{section.title}</span>
-            <div className="ml-auto">
-              <Star className="w-5 h-5 text-yellow-300" />
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          <dl className="space-y-0">
-            {section.fields.map(field => renderField(field, survey))}
-          </dl>
-        </CardContent>
-      </Card>
-    );
-  };
+      <div className="border-b border-gray-200 mb-4" />
+      <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+        {section.fields.map(field => (
+          <div key={field.key} className="flex flex-col mb-2">
+            <dt className="text-sm font-medium text-gray-700 mb-1">{field.label}</dt>
+            <dd className="text-base text-gray-900">
+              {formatFieldValue(survey[field.key as keyof SurveyResponse], field.key, field.type, field.isLink)}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
 
   if (userRole !== 'viewer' && userRole !== 'member' && userRole !== 'admin') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50">
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="max-w-2xl mx-auto border-red-200 bg-gradient-to-br from-red-50 to-pink-50 shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-red-800 flex items-center">
-                <Shield className="w-6 h-6 mr-2" />
-                Access Restricted
-              </CardTitle>
-              <CardDescription className="text-red-700">
-                You need at least Viewer access to view fund manager details.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-      </div>
-    );
+    return null;
   }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
-            <p className="mt-4 text-gray-600 text-lg font-medium">Loading fund manager details...</p>
-            <div className="mt-2 flex justify-center space-x-2">
-              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
-              <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-              <div className="w-2 h-2 bg-pink-600 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!profile && surveys.length === 0) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-50">
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="max-w-2xl mx-auto bg-gradient-to-br from-yellow-50 to-orange-50 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center text-yellow-800">
-                <Award className="w-6 h-6 mr-2" />
-                Fund Manager Not Found
-              </CardTitle>
-              <CardDescription className="text-yellow-700">
-                This fund manager profile is not available or has not completed any surveys.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
-  if (surveys.length === 0) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="max-w-2xl mx-auto bg-gradient-to-br from-green-50 to-emerald-50 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center text-green-800">
-                <Rocket className="w-6 h-6 mr-2" />
-                Fund Manager Not Found
-              </CardTitle>
-              <CardDescription className="text-green-700">
-                This fund manager has not completed any surveys.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
-  const isOwnProfile = user?.id === userId;
-  const memberSections = sectionConfig.slice(0, 4); // First 4 sections for members
-
-  // Get the fund manager's name from profile or survey data
-  const fundManagerName = profile 
-    ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() 
-    : activeSurvey?.vehicle_name || 'Unknown Fund Manager';
-
-  const fundManagerEmail = profile?.email || 'Email not available';
-
-  // Check if we have any profile information at all
-  const hasProfileInfo = profile && (profile.first_name || profile.last_name || profile.email);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+    <div className="min-h-screen bg-white">
       <Header />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Profile Header */}
-        <Card className="mb-8 shadow-xl border-0 bg-gradient-to-br from-white to-gray-50 overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 h-2"></div>
-          <CardContent className="p-8">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-6 sm:space-y-0 sm:space-x-8">
-              <div className="relative">
-                <Avatar className="w-24 h-24 border-4 border-white shadow-lg">
-                  <AvatarImage src={profile?.profile_picture_url} />
-                  <AvatarFallback className="text-3xl bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold">
-                    {profile?.first_name?.[0]?.toUpperCase() || 'U'}
-                    {profile?.last_name?.[0]?.toUpperCase() || ''}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="absolute -bottom-2 -right-2 bg-green-500 rounded-full p-1">
-                  <Heart className="w-4 h-4 text-white" />
-                </div>
-              </div>
-              
-              <div className="flex-1">
-                <div className="flex items-center gap-4 mb-3">
-                  <h1 className="text-4xl font-bold text-gray-900 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    {fundManagerName}
-                  </h1>
-                  {activeSurvey?.role_badge && (
-                    <Badge 
-                      variant="default" 
-                      className={`${
-                        activeSurvey.role_badge === 'viewer' 
-                          ? 'bg-purple-100 text-purple-800' 
-                          : 'bg-green-100 text-green-800'
-                      }`}
-                    >
-                      {activeSurvey.role_badge === 'viewer' ? 'Viewer' : 'Member'}
-                    </Badge>
-                  )}
-                </div>
-                <p className="text-xl text-gray-600 mb-6 font-medium">
-                  {activeSurvey?.vehicle_name}
-                </p>
-                
-                <div className="flex flex-wrap gap-6 text-sm">
-                  <div className="flex items-center space-x-3 bg-white px-4 py-2 rounded-full shadow-md">
-                    <Mail className="w-5 h-5 text-blue-600" />
-                    <span className="font-medium text-gray-700 break-all">{fundManagerEmail}</span>
-                  </div>
-                  {activeSurvey?.location && (
-                    <div className="flex items-center space-x-3 bg-white px-4 py-2 rounded-full shadow-md">
-                      <MapPin className="w-5 h-5 text-green-600" />
-                      <span className="font-medium text-gray-700">{activeSurvey.location}</span>
-                    </div>
-                  )}
-                  {activeSurvey?.vehicle_website && (
-                    <div className="flex items-center space-x-3 bg-white px-4 py-2 rounded-full shadow-md hover:shadow-lg transition-shadow">
-                      <Globe className="w-5 h-5 text-purple-600" />
-                      <a 
-                        href={activeSurvey.vehicle_website.startsWith('http') ? activeSurvey.vehicle_website : `https://${activeSurvey.vehicle_website}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-purple-600 hover:text-purple-800 flex items-center space-x-1 font-medium transition-colors"
-                      >
-                        <span>Website</span>
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
-                    </div>
-                  )}
-                  {activeSurvey?.vehicle_websites && activeSurvey.vehicle_websites.length > 0 && (
-                    <div className="flex items-center space-x-3 bg-white px-4 py-2 rounded-full shadow-md hover:shadow-lg transition-shadow">
-                      <Globe className="w-5 h-5 text-purple-600" />
-                      <a 
-                        href={activeSurvey.vehicle_websites[0].startsWith('http') ? activeSurvey.vehicle_websites[0] : `https://${activeSurvey.vehicle_websites[0]}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-purple-600 hover:text-purple-800 flex items-center space-x-1 font-medium transition-colors"
-                      >
-                        <span>Website</span>
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
-                    </div>
-                  )}
-                </div>
-                {!hasProfileInfo && (
-                  <div className="mt-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg">
-                    <div className="flex items-center space-x-2">
-                      <Zap className="w-5 h-5 text-yellow-600" />
-                      <span className="text-sm text-yellow-700 font-medium">
-                        Profile information is not available, but survey data is shown below.
-                      </span>
-                    </div>
-                  </div>
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center space-x-4 mb-4 md:mb-0">
+            {profile?.profile_picture_url ? (
+              <Avatar className="w-16 h-16">
+                <AvatarImage src={profile.profile_picture_url} alt={profile.first_name} />
+                <AvatarFallback>{profile.first_name?.[0]}{profile.last_name?.[0]}</AvatarFallback>
+              </Avatar>
+            ) : (
+              <Avatar className="w-16 h-16 bg-gray-200">
+                <AvatarFallback>{profile?.first_name?.[0]}{profile?.last_name?.[0]}</AvatarFallback>
+              </Avatar>
+            )}
+            <div>
+              <h1 className="text-2xl font-bold text-black">{profile?.first_name} {profile?.last_name}</h1>
+              <div className="flex items-center space-x-2 mt-1">
+                <span className="text-gray-600 text-sm">{profile?.email}</span>
+                {activeSurvey?.role_badge && (
+                  <Badge className="ml-2 capitalize text-xs px-2 py-1 bg-gold-500 text-white font-semibold rounded">
+                    {activeSurvey.role_badge}
+                  </Badge>
                 )}
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Add a year selector if multiple surveys exist */}
-        {surveys.length > 1 && (
-          <div className="mb-8 flex items-center gap-4 bg-white p-4 rounded-lg shadow-md">
-            <label htmlFor="survey-year" className="text-sm font-semibold text-gray-700 flex items-center">
-              <Calendar className="w-4 h-4 mr-2 text-blue-600" />
-              Select Year:
-            </label>
-            <select
-              id="survey-year"
-              className="border-2 border-blue-200 rounded-lg px-4 py-2 text-base font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-              value={activeSurvey?.year || ''}
-              onChange={e => {
-                const year = Number(e.target.value);
-                const found = surveys.find(s => s.year === year);
-                if (found) setActiveSurvey(found);
-              }}
-            >
-              {surveys.map(s => (
-                <option key={s.id} value={s.year}>{s.year}</option>
-              ))}
-            </select>
           </div>
-        )}
-
-        {/* Survey Data */}
-        {activeSurvey && (
-          <>
-            {userRole === 'admin' ? (
-              // Admin view: All 8 sections in tabs
-              <Tabs defaultValue="vehicle_info" className="mb-8">
-                <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-8 bg-white shadow-lg rounded-lg p-1">
-                  {sectionConfig.map(section => (
-                    <TabsTrigger 
-                      key={section.key} 
-                      value={section.key} 
-                      className="text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300"
-                    >
-                      {section.title}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-
-                {sectionConfig.map(section => (
-                  <TabsContent key={section.key} value={section.key} className="mt-8">
-                    {renderSection(section, activeSurvey)}
-                  </TabsContent>
+          {surveys.length > 1 && (
+            <div className="flex items-center space-x-2">
+              <label htmlFor="survey-year" className="sr-only">Survey Year</label>
+              <span className="text-gray-700 font-medium">Survey Year:</span>
+              <select
+                id="survey-year"
+                className="border border-gray-300 rounded px-2 py-1 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={activeSurvey?.year || ''}
+                onChange={e => {
+                  const selected = surveys.find(s => s.year === Number(e.target.value));
+                  if (selected) setActiveSurvey(selected);
+                }}
+              >
+                {surveys.map(s => (
+                  <option key={s.id} value={s.year}>{s.year}</option>
                 ))}
-              </Tabs>
-            ) : (
-              // Member/Viewer view: First 4 sections in tabs (not full sections)
-              <Tabs defaultValue="vehicle_info" className="mb-8">
-                <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 bg-white shadow-lg rounded-lg p-1">
-                  {memberSections.map(section => (
-                    <TabsTrigger 
-                      key={section.key} 
-                      value={section.key} 
-                      className="text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white transition-all duration-300"
-                    >
-                      {section.title}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
+              </select>
+            </div>
+          )}
+        </div>
 
-                {memberSections.map(section => (
-                  <TabsContent key={section.key} value={section.key} className="mt-8">
-                    {renderSection(section, activeSurvey)}
-                  </TabsContent>
-                ))}
-              </Tabs>
-            )}
-          </>
+        {loading ? (
+          <div className="text-center py-16 text-lg text-gray-500">Loading fund manager details...</div>
+        ) : !activeSurvey ? (
+          <div className="text-center py-16 text-lg text-gray-500">No survey data found for this fund manager.</div>
+        ) : (
+          <div>
+            {sectionConfig.map(section => renderSection(section, activeSurvey))}
+          </div>
         )}
       </div>
     </div>
