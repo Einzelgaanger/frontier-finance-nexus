@@ -58,6 +58,11 @@ function mapSupabaseSurveyToFormData(data: Record<string, unknown>): SurveyFormD
       : typeof data.investment_instruments_priority === 'string'
         ? JSON.parse(data.investment_instruments_priority)
         : {},
+    investment_instruments_data: Array.isArray(data.investment_instruments_data)
+      ? data.investment_instruments_data
+      : typeof data.investment_instruments_data === 'string'
+        ? JSON.parse(data.investment_instruments_data)
+        : [],
     sectors_allocation: typeof data.sectors_allocation === 'object' && data.sectors_allocation !== null
       ? data.sectors_allocation
       : typeof data.sectors_allocation === 'string'
@@ -104,9 +109,9 @@ const surveySchema = z.object({
 
   // Section 5: Fund Operations
   supporting_document_url: z.string().optional(),
-  information_sharing: z.string().optional(),
   expectations: z.string().optional(),
   how_heard_about_network: z.string().optional(),
+  how_heard_about_network_other: z.string().optional(),
 
   // Section 6: Fund Status & Timeline
   fund_stage: z.array(z.string()).optional(),
@@ -123,9 +128,17 @@ const surveySchema = z.object({
 
   // Section 7: Investment Instruments
   investment_instruments_priority: z.record(z.number()).optional(),
+  investment_instruments_data: z.array(z.object({
+    name: z.string(),
+    committed: z.number(),
+    committedPercentage: z.number(),
+    deployed: z.number(),
+    deployedValue: z.number(),
+    priority: z.number(),
+  })).optional(),
 
   // Section 8: Sector Focus & Returns
-  sectors_allocation: z.record(z.number()).optional(),
+  sectors_allocation: z.record(z.string(), z.number()).optional(),
   target_return_min: z.number().optional(),
   target_return_max: z.number().optional(),
   equity_investments_made: z.number().optional(),
@@ -251,15 +264,37 @@ const Survey = () => {
 
   // Function to prefill form with previous survey data
   const prefillWithPreviousData = async () => {
-    const previousData = await getPreviousSurveyData();
-    if (previousData) {
-      const formData = mapSupabaseSurveyToFormData(previousData);
-      // Remove metadata fields that shouldn't be prefilled
-      const { id, year, created_at, completed_at, role_badge, ...prefillData } = formData;
-      form.reset(prefillData);
+    try {
+      const previousData = await getPreviousSurveyData();
+      if (previousData) {
+        const formData = mapSupabaseSurveyToFormData(previousData);
+        // Remove metadata fields that shouldn't be prefilled
+        const { id, year, created_at, completed_at, role_badge, ...prefillData } = formData;
+        
+        // Set each field individually to ensure proper form state
+        Object.entries(prefillData).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            form.setValue(key as keyof SurveyFormData, value);
+          }
+        });
+        
+        toast({
+          title: "Form Prefilled",
+          description: "Previous survey data has been loaded. You can edit any fields as needed.",
+        });
+      } else {
+        toast({
+          title: "No Previous Data",
+          description: "No previous survey data found to prefill from.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error prefilling form:', error);
       toast({
-        title: "Form Prefilled",
-        description: "Previous survey data has been loaded. You can edit any fields as needed.",
+        title: "Prefill Error",
+        description: "Failed to load previous survey data. Please try again.",
+        variant: "destructive"
       });
     }
   };
@@ -297,9 +332,9 @@ const Survey = () => {
       
       // Section 5: Fund Operations
       supporting_document_url: formData.supporting_document_url || null,
-      information_sharing: formData.information_sharing || null,
       expectations: formData.expectations || null,
       how_heard_about_network: formData.how_heard_about_network || null,
+      how_heard_about_network_other: formData.how_heard_about_network_other || null,
       
       // Section 6: Fund Status & Timeline
       fund_stage: formData.fund_stage || [],
@@ -311,6 +346,7 @@ const Survey = () => {
       
       // Section 7: Investment Instruments
       investment_instruments_priority: formData.investment_instruments_priority || {},
+      investment_instruments_data: formData.investment_instruments_data || [],
       
       // Section 8: Sector Focus & Returns
       sectors_allocation: formData.sectors_allocation || {},
@@ -489,7 +525,8 @@ const Survey = () => {
     if (currentSection < totalSections) {
       setCurrentSection(currentSection + 1);
     } else if (currentSection === totalSections) {
-      setShowSubmitConfirmation(true);
+      // Submit directly without confirmation
+      form.handleSubmit(onSubmit)();
     }
   };
 

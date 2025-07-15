@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, X, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
@@ -17,7 +16,6 @@ interface SectorReturnsSectionProps {
 
 interface SectorAllocation {
   sector: string;
-  regions: string[];
   percentage: number;
 }
 
@@ -25,7 +23,6 @@ export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
   const [sectorAllocations, setSectorAllocations] = useState<SectorAllocation[]>(
     Object.keys(form.getValues('sectors_allocation') || {}).map(sector => ({
       sector,
-      regions: [],
       percentage: form.getValues('sectors_allocation')[sector] || 0
     }))
   );
@@ -44,21 +41,13 @@ export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
     'Merchandising/ Retail/ On-time-retail'
   ];
 
-  const regionOptions = [
-    'East Africa', 'West Africa', 'Southern Africa', 'North Africa',
-    'Sub-Saharan Africa', 'MENA', 'Global', 'Kenya', 'Uganda', 'Tanzania',
-    'Ghana', 'Nigeria', 'South Africa', 'Egypt', 'Morocco', 'Other'
-  ];
-
   const addSectorAllocation = () => {
-    setSectorAllocations([...sectorAllocations, { sector: '', regions: [], percentage: 0 }]);
+    setSectorAllocations([...sectorAllocations, { sector: '', percentage: 0 }]);
   };
 
-  const updateSectorAllocation = (index: number, field: keyof SectorAllocation, value: string | number | string[]) => {
+  const updateSectorAllocation = (index: number, field: keyof SectorAllocation, value: string | number) => {
     const newAllocations = [...sectorAllocations];
-    if (field === 'regions') {
-      newAllocations[index].regions = value as string[];
-    } else if (field === 'sector') {
+    if (field === 'sector') {
       newAllocations[index].sector = value as string;
     } else if (field === 'percentage') {
       newAllocations[index].percentage = value as number;
@@ -89,11 +78,11 @@ export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Sector Focus & Regional Allocation</CardTitle>
+          <CardTitle className="text-lg">Sector Focus & Allocation</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-gray-600 mb-4">
-            For each sector you focus on, select the regions and specify the percentage allocation.
+            Select the sectors you focus on and specify the percentage allocation for each.
             The total of all percentages should equal 100%.
           </p>
           
@@ -140,36 +129,6 @@ export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
                   />
                 </div>
               </div>
-              
-              <div className="space-y-2">
-                <FormLabel>Regions for this sector:</FormLabel>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {regionOptions.map((region) => (
-                    <div key={region} className="flex items-center space-x-2">
-                      <Checkbox
-                        checked={allocation.regions.includes(region)}
-                        onCheckedChange={(checked) => {
-                          const newRegions = checked
-                            ? [...allocation.regions, region]
-                            : allocation.regions.filter(r => r !== region);
-                          updateSectorAllocation(index, 'regions', newRegions);
-                        }}
-                      />
-                      <label className="text-sm">{region}</label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              {allocation.regions.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {allocation.regions.map((region) => (
-                    <Badge key={region} variant="secondary">
-                      {region}
-                    </Badge>
-                  ))}
-                </div>
-              )}
             </div>
           ))}
           
@@ -215,7 +174,7 @@ export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
           name="target_return_min"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Minimum Target Return (%) *</FormLabel>
+              <FormLabel>Range Minimum (%) *</FormLabel>
               <FormControl>
                 <Input 
                   type="number" 
@@ -234,7 +193,7 @@ export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
           name="target_return_max"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Maximum Target Return (%) *</FormLabel>
+              <FormLabel>Range Maximum (%) *</FormLabel>
               <FormControl>
                 <Input 
                   type="number" 
@@ -255,7 +214,7 @@ export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
           name="equity_investments_made"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Equity Investments Made *</FormLabel>
+              <FormLabel>Number of Equity Investments Made *</FormLabel>
               <FormControl>
                 <Input 
                   type="number" 
@@ -274,7 +233,7 @@ export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
           name="equity_investments_exited"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Equity Investments Exited *</FormLabel>
+              <FormLabel>Number of Equity Investments Exited *</FormLabel>
               <FormControl>
                 <Input 
                   type="number" 
@@ -293,7 +252,7 @@ export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
           name="self_liquidating_made"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Self-Liquidating Made *</FormLabel>
+              <FormLabel>Number of Self-Liquidating Made *</FormLabel>
               <FormControl>
                 <Input 
                   type="number" 
@@ -312,7 +271,7 @@ export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
           name="self_liquidating_exited"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Self-Liquidating Exited *</FormLabel>
+              <FormLabel>Number of Self-Liquidating Exited *</FormLabel>
               <FormControl>
                 <Input 
                   type="number" 

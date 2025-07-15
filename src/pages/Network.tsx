@@ -441,7 +441,7 @@ const Network = () => {
           {filteredManagers.map((manager) => (
             <Card
               key={manager.id}
-              className="group bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
+              className="group bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer min-h-[280px]"
               onClick={() => navigate(`/network/fund-manager/${manager.user_id}`)}
             >
               <CardHeader className="pb-3">
@@ -453,7 +453,7 @@ const Network = () => {
                     variant="default" 
                     className={`text-xs ${
                       manager.role_badge === 'viewer' 
-                        ? 'bg-purple-100 text-purple-700 border-purple-200' 
+                        ? 'bg-blue-100 text-blue-700 border-blue-200' 
                         : 'bg-green-100 text-green-700 border-green-200'
                     }`}
                   >
@@ -465,14 +465,14 @@ const Network = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="space-y-2 text-sm text-gray-600">
+                <div className="space-y-3 text-sm text-gray-600">
                   <div className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-gray-400" />
+                    <Building2 className="w-4 h-4 text-blue-500" />
                     <span className="truncate">{manager.primary_investment_region || 'Unknown Region'}</span>
                   </div>
                   {manager.website && (
                     <div className="flex items-center gap-2">
-                      <Globe className="w-4 h-4 text-gray-400" />
+                      <Globe className="w-4 h-4 text-green-500" />
                       <a
                         href={manager.website.startsWith('http') ? manager.website : `https://${manager.website}`}
                         target="_blank"
@@ -485,16 +485,29 @@ const Network = () => {
                     </div>
                   )}
                   <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-gray-400" />
+                    <Users className="w-4 h-4 text-gold-500" />
                     <span className="truncate">{manager.team_size || 'N/A'} team members</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-gray-400" />
+                    <DollarSign className="w-4 h-4 text-green-500" />
                     <span className="truncate">{manager.typical_check_size || 'N/A'} ticket size</span>
                   </div>
+                  {manager.investment_thesis && (
+                    <div className="mt-3 pt-3 border-t border-gray-100">
+                      <div className="flex items-start gap-2">
+                        <Target className="w-4 h-4 text-gold-500 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-xs font-medium text-gray-700 mb-1">Investment Thesis</p>
+                          <p className="text-xs text-gray-600 line-clamp-3 leading-relaxed">
+                            {manager.investment_thesis}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   {userRole === 'admin' && manager.aum && (
                     <div className="flex items-center gap-2">
-                      <Target className="w-4 h-4 text-gray-400" />
+                      <Target className="w-4 h-4 text-gold-500" />
                       <span className="truncate">AUM: {manager.aum}</span>
                     </div>
                   )}

@@ -91,7 +91,7 @@ export function InvestmentStrategySection({ form }: InvestmentStrategySectionPro
               name="target_capital"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Target Capital (USD) *</FormLabel>
+                  <FormLabel>Desired Capital (USD) *</FormLabel>
                   <FormControl>
                     <Input 
                       type="number" 
@@ -110,7 +110,7 @@ export function InvestmentStrategySection({ form }: InvestmentStrategySectionPro
               name="capital_raised"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Capital Raised (USD) *</FormLabel>
+                  <FormLabel>AUM / Committed Capital (USD) *</FormLabel>
                   <FormControl>
                     <Input 
                       type="number" 
@@ -129,7 +129,7 @@ export function InvestmentStrategySection({ form }: InvestmentStrategySectionPro
               name="capital_in_market"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Capital in Market (USD) *</FormLabel>
+                  <FormLabel>Deployed Capital (USD) *</FormLabel>
                   <FormControl>
                     <Input 
                       type="number" 
@@ -146,13 +146,13 @@ export function InvestmentStrategySection({ form }: InvestmentStrategySectionPro
           
           <div className="bg-blue-50 p-4 rounded-lg">
             <div className="flex justify-between items-center">
-              <span className="font-medium text-blue-900">Dry Powder (Available Capital):</span>
+              <span className="font-medium text-blue-900">Available Capital (Dry Powder):</span>
               <span className="text-lg font-bold text-blue-900">
                 ${dryPowder.toLocaleString()}
               </span>
             </div>
             <p className="text-sm text-blue-700 mt-1">
-              Calculated as: Capital Raised - Capital in Market
+              Calculated as: AUM / Committed Capital - Deployed Capital
             </p>
           </div>
         </CardContent>

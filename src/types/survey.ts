@@ -28,9 +28,9 @@ export interface SurveyFormData {
   capital_raised?: number;
   capital_in_market?: number;
   supporting_document_url?: string;
-  information_sharing?: string;
   expectations?: string;
   how_heard_about_network?: string;
+  how_heard_about_network_other?: string;
   fund_stage?: string[];
   current_status?: string;
   current_status_other?: string;
@@ -43,6 +43,14 @@ export interface SurveyFormData {
   first_close_month_from?: number;
   first_close_month_to?: number;
   investment_instruments_priority?: Record<string, number>;
+  investment_instruments_data?: Array<{
+    name: string;
+    committed: number;
+    committedPercentage: number;
+    deployed: number;
+    deployedValue: number;
+    priority: number;
+  }>;
   sectors_allocation?: Record<string, number>;
   target_return_min?: number;
   target_return_max?: number;
