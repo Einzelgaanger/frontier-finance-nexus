@@ -125,7 +125,7 @@ const CreateViewerModal = ({ open, onClose, onSuccess }: CreateViewerModalProps)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [currentSection, setCurrentSection] = useState(1);
 
-  const totalSections = 8;
+  const totalSections = 9; // 1 for account info + 8 for survey sections
   const progress = (currentSection / totalSections) * 100;
 
   const form = useForm<ViewerFormData>({
@@ -196,20 +196,22 @@ const CreateViewerModal = ({ open, onClose, onSuccess }: CreateViewerModalProps)
   const renderCurrentSection = () => {
     switch (currentSection) {
       case 1:
-        return <VehicleInfoSection form={form} />;
+        return null; // Account information is rendered separately
       case 2:
-        return <TeamSection form={form} />;
+        return <VehicleInfoSection form={form} />;
       case 3:
-        return <GeographicSection form={form} />;
+        return <TeamSection form={form} />;
       case 4:
-        return <InvestmentStrategySection form={form} />;
+        return <GeographicSection form={form} />;
       case 5:
-        return <FundOperationsSection form={form} />;
+        return <InvestmentStrategySection form={form} />;
       case 6:
-        return <FundStatusSection form={form} />;
+        return <FundOperationsSection form={form} />;
       case 7:
-        return <InvestmentInstrumentsSection form={form} />;
+        return <FundStatusSection form={form} />;
       case 8:
+        return <InvestmentInstrumentsSection form={form} />;
+      case 9:
         return <SectorReturnsSection form={form} />;
       default:
         return <VehicleInfoSection form={form} />;
@@ -350,7 +352,7 @@ const CreateViewerModal = ({ open, onClose, onSuccess }: CreateViewerModalProps)
               <CardHeader>
                 <CardTitle className="flex items-center">
                   {currentSection === totalSections && <CheckCircle className="w-5 h-5 mr-2 text-green-600" />}
-                  {sectionTitles[currentSection]}
+                  {sectionTitles[currentSection - 1]}
                 </CardTitle>
                 <CardDescription>
                   {currentSection === 1 

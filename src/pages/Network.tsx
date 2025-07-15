@@ -327,8 +327,21 @@ const Network = () => {
                                 <Target className="w-4 h-4 text-gold-500 mt-0.5 flex-shrink-0" />
                                 <div className="flex-1 min-w-0">
                                   <p className="text-xs font-medium text-gray-700 mb-1">Investment Thesis</p>
-                                  <p className="text-xs text-gray-600 line-clamp-3 leading-relaxed break-words">
+                                  <p className="text-xs text-gray-600 line-clamp-4 leading-relaxed break-words">
                                     {member.investment_thesis}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          {member.team_overview && (
+                            <div className="mt-3 pt-3 border-t border-gray-100">
+                              <div className="flex items-start gap-2">
+                                <Users className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-medium text-gray-700 mb-1">Team Overview</p>
+                                  <p className="text-xs text-gray-600 line-clamp-4 leading-relaxed break-words">
+                                    {member.team_overview}
                                   </p>
                                 </div>
                               </div>

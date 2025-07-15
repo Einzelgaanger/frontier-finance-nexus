@@ -242,6 +242,21 @@ const FundManagerDetail = () => {
   const [profile, setProfile] = useState<FundManagerProfile | null>(null);
   const [surveys, setSurveys] = useState<SurveyResponse[]>([]);
   const [activeSurvey, setActiveSurvey] = useState<SurveyResponse | null>(null);
+  const [currentSection, setCurrentSection] = useState(0);
+
+  // Determine which sections to show based on user role
+  const getVisibleSections = () => {
+    if (userRole === 'admin') {
+      return sectionConfig;
+    } else if (userRole === 'member') {
+      return sectionConfig.slice(0, 4); // Only first 4 sections for members
+    } else {
+      return sectionConfig.slice(0, 4); // Only first 4 sections for viewers
+    }
+  };
+
+  const visibleSections = getVisibleSections();
+  const totalSections = visibleSections.length;
 
   useEffect(() => {
     if (userId && (userRole === 'viewer' || userRole === 'member' || userRole === 'admin')) {
@@ -378,11 +393,23 @@ const FundManagerDetail = () => {
     }
   };
 
-  // Replace renderField and renderSection with professional, readable formatting
+  const handleNextSection = () => {
+    if (currentSection < totalSections - 1) {
+      setCurrentSection(currentSection + 1);
+    }
+  };
+
+  const handlePreviousSection = () => {
+    if (currentSection > 0) {
+      setCurrentSection(currentSection - 1);
+    }
+  };
+
   const formatFieldValue = (value: any, fieldKey: string, fieldType?: string, isLink?: boolean): React.ReactNode => {
     if (value === null || value === undefined || value === '' || (Array.isArray(value) && value.length === 0)) {
       return <span className="text-gray-400 italic">Not provided</span>;
     }
+    
     if (fieldType === 'array' && Array.isArray(value)) {
       if (isLink) {
         return (
@@ -395,6 +422,7 @@ const FundManagerDetail = () => {
       }
       return <span>{value.join(', ')}</span>;
     }
+    
     if (fieldType === 'team' && Array.isArray(value)) {
       return (
         <ul className="list-disc ml-4">
@@ -410,50 +438,80 @@ const FundManagerDetail = () => {
         </ul>
       );
     }
+    
     if (fieldType === 'markets' && value && typeof value === 'object') {
+      // Sort by percentage in descending order
+      const sortedEntries = Object.entries(value).sort((a, b) => (b[1] as number) - (a[1] as number));
       return (
         <ul className="list-disc ml-4">
-          {Object.entries(value).map(([country, percent]: [string, any], i) => (
+          {sortedEntries.map(([country, percent]: [string, any], i) => (
             <li key={i}>{country}: <span className="font-medium">{percent}%</span></li>
           ))}
         </ul>
       );
     }
+    
     if (fieldType === 'instruments' && value && typeof value === 'object') {
-      // Render as a sorted list by priority if possible
-      const entries = Object.entries(value).sort((a, b) => (b[1] as number) - (a[1] as number));
+      // Sort by priority in descending order
+      const sortedEntries = Object.entries(value).sort((a, b) => (b[1] as number) - (a[1] as number));
       return (
         <ol className="list-decimal ml-4">
-          {entries.map(([instrument, priority], i) => (
+          {sortedEntries.map(([instrument, priority], i) => (
             <li key={i}>{instrument} <span className="text-gray-500">(Priority: {priority})</span></li>
           ))}
         </ol>
       );
     }
+    
     if (fieldType === 'sectors' && value && typeof value === 'object') {
+      // Sort by percentage in descending order
+      const sortedEntries = Object.entries(value).sort((a, b) => (b[1] as number) - (a[1] as number));
       return (
         <ul className="list-disc ml-4">
-          {Object.entries(value).map(([sector, percent]: [string, any], i) => (
+          {sortedEntries.map(([sector, percent]: [string, any], i) => (
             <li key={i}>{sector}: <span className="font-medium">{percent}%</span></li>
           ))}
         </ul>
       );
     }
+    
     if (fieldType === 'url' && typeof value === 'string') {
       return <a href={value} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">{value}</a>;
     }
+    
     if (fieldType === 'currency' && typeof value === 'number') {
       return <span>${value.toLocaleString()}</span>;
     }
+    
     if (fieldType === 'number' && typeof value === 'number') {
       return <span>{value}</span>;
     }
+    
     if (fieldType === 'text' && typeof value === 'string') {
+      // Truncate long text descriptions
+      if (value.length > 200) {
+        return (
+          <div>
+            <span className="text-gray-600 line-clamp-4">{value}</span>
+            <button 
+              onClick={() => {
+                // Toggle full view - you can implement this with state
+                console.log('Show full text');
+              }}
+              className="text-blue-600 text-sm mt-1 hover:underline"
+            >
+              Show more
+            </button>
+          </div>
+        );
+      }
       return <span className="whitespace-pre-line">{value}</span>;
     }
+    
     if (typeof value === 'string') {
       return <span>{value}</span>;
     }
+    
     return <span className="text-gray-400 italic">Not provided</span>;
   };
 
@@ -535,8 +593,44 @@ const FundManagerDetail = () => {
         ) : !activeSurvey ? (
           <div className="text-center py-16 text-lg text-gray-500">No survey data found for this fund manager.</div>
         ) : (
-          <div>
-            {sectionConfig.map(section => renderSection(section, activeSurvey))}
+          <div className="space-y-6">
+            {/* Section Navigation */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">
+                  Section {currentSection + 1} of {totalSections}
+                </span>
+                <div className="w-32 bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${((currentSection + 1) / totalSections) * 100}%` }}
+                  />
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePreviousSection}
+                  disabled={currentSection === 0}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNextSection}
+                  disabled={currentSection === totalSections - 1}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+
+            {/* Current Section */}
+            <div className="transition-all duration-300 ease-in-out">
+              {renderSection(visibleSections[currentSection], activeSurvey)}
+            </div>
           </div>
         )}
       </div>
