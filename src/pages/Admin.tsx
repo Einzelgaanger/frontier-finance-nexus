@@ -194,20 +194,37 @@ const Admin = () => {
         .from('user_roles')
         .select(`
           user_id,
-          role,
-          created_at,
-          profiles!inner(
-            id,
-            full_name,
-            email,
-            avatar_url
-          )
+          role
         `)
-        .eq('role', 'viewer')
-        .order('created_at', { ascending: false });
+        .eq('role', 'viewer');
 
       if (error) throw error;
-      setCreatedViewers(data || []);
+      
+      // Get profile data separately for each viewer
+      const viewersWithProfiles = await Promise.all(
+        (data || []).map(async (viewer) => {
+          try {
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('id, full_name, email, avatar_url')
+              .eq('id', viewer.user_id)
+              .single();
+            
+            return {
+              ...viewer,
+              profiles: profileData || { id: viewer.user_id, full_name: 'Unknown', email: 'No email', avatar_url: null }
+            };
+          } catch (profileError) {
+            console.error('Error fetching profile for viewer:', viewer.user_id, profileError);
+            return {
+              ...viewer,
+              profiles: { id: viewer.user_id, full_name: 'Unknown', email: 'No email', avatar_url: null }
+            };
+          }
+        })
+      );
+      
+      setCreatedViewers(viewersWithProfiles);
     } catch (error) {
       console.error('Error fetching created viewers:', error);
     }
@@ -938,10 +955,6 @@ const Admin = () => {
                       <div className="flex items-center gap-2">
                         <User className="w-3 h-3 flex-shrink-0" />
                         <span className="truncate">User ID: {viewer.user_id}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-3 h-3 flex-shrink-0" />
-                        <span className="truncate">Created: {new Date(viewer.created_at).toLocaleDateString()}</span>
                       </div>
                     </div>
                   </CardContent>
