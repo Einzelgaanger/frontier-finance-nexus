@@ -660,61 +660,20 @@ const Survey = () => {
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 ) : (
-                  <div className="flex gap-2">
-                    <Button 
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      {isSubmitting ? 'Submitting...' : 'Review & Submit'}
-                      <CheckCircle className="w-4 h-4 ml-2" />
-                    </Button>
-                    <Button 
-                      type="button"
-                      onClick={() => {
-                        console.log('Direct submit clicked');
-                        form.handleSubmit(onSubmit)();
-                      }}
-                      disabled={isSubmitting}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      Direct Submit
-                    </Button>
-                  </div>
+                  <Button 
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {isSubmitting ? 'Submitting...' : 'Submit Survey'}
+                    <CheckCircle className="w-4 h-4 ml-2" />
+                  </Button>
                 )}
               </div>
             </form>
           </Form>
 
-          {/* Confirmation Dialog */}
-          <Dialog open={showSubmitConfirmation} onOpenChange={setShowSubmitConfirmation}>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Confirm Survey Submission</DialogTitle>
-                <DialogDescription>
-                  Are you sure you want to submit this survey? You won't be able to edit it after submission.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="flex justify-end space-x-3 mt-4">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowSubmitConfirmation(false)}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={() => {
-                    console.log('Confirmation dialog submit clicked');
-                    form.handleSubmit(onSubmit)();
-                  }}
-                  disabled={isSubmitting}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  {isSubmitting ? 'Submitting...' : 'Submit Survey'}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+
         </div>
       </div>
     );

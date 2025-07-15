@@ -385,10 +385,10 @@ const Network = () => {
 
         {/* Network Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
+          <Card className="bg-white border border-gray-200">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total Funds</CardTitle>
-              <Building2 className="h-4 w-4 text-gray-500" />
+              <CardTitle className="text-sm font-medium text-gray-700">Total Funds</CardTitle>
+              <Building2 className="h-4 w-4 text-gray-400" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">{filteredManagers.length}</div>
@@ -396,10 +396,10 @@ const Network = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-white border border-gray-200">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Regions</CardTitle>
-              <Globe className="h-4 w-4 text-gray-500" />
+              <CardTitle className="text-sm font-medium text-gray-700">Regions</CardTitle>
+              <Globe className="h-4 w-4 text-gray-400" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">{getRegions().length}</div>
@@ -407,10 +407,10 @@ const Network = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-white border border-gray-200">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Fund Types</CardTitle>
-              <Users className="h-4 w-4 text-gray-500" />
+              <CardTitle className="text-sm font-medium text-gray-700">Fund Types</CardTitle>
+              <Users className="h-4 w-4 text-gray-400" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">{getFundTypes().length}</div>
@@ -418,10 +418,13 @@ const Network = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-white border border-gray-200">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Your Access</CardTitle>
-              <Badge variant={userRole === 'admin' ? 'default' : 'secondary'}>
+              <CardTitle className="text-sm font-medium text-gray-700">Your Access</CardTitle>
+              <Badge 
+                variant={userRole === 'admin' ? 'default' : 'secondary'}
+                className={userRole === 'admin' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-gray-100 text-gray-700 border-gray-200'}
+              >
                 {userRole === 'admin' ? 'Admin' : 'Member'}
               </Badge>
             </CardHeader>
@@ -438,39 +441,43 @@ const Network = () => {
           {filteredManagers.map((manager) => (
             <Card
               key={manager.id}
-              className="group bg-white/90 border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-200 min-h-[220px] flex flex-col justify-between cursor-pointer p-5"
+              className="group bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
               onClick={() => navigate(`/network/fund-manager/${manager.user_id}`)}
             >
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <CardTitle className="text-xl font-bold truncate flex-1 text-gray-900 group-hover:text-blue-700">{manager.fund_name || 'Unknown Fund'}</CardTitle>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between gap-2">
+                  <CardTitle className="text-lg font-semibold truncate text-gray-900 group-hover:text-blue-600">
+                    {manager.fund_name || 'Unknown Fund'}
+                  </CardTitle>
                   <Badge 
                     variant="default" 
-                    className={`flex-shrink-0 ${
+                    className={`text-xs ${
                       manager.role_badge === 'viewer' 
-                        ? 'bg-purple-100 text-purple-800' 
-                        : 'bg-green-100 text-green-800'
+                        ? 'bg-purple-100 text-purple-700 border-purple-200' 
+                        : 'bg-green-100 text-green-700 border-green-200'
                     }`}
                   >
                     {manager.role_badge === 'viewer' ? 'Viewer' : 'Member'}
                   </Badge>
                 </div>
-                <CardDescription className="text-sm text-gray-500 truncate">{manager.profiles?.email || 'Unknown'}</CardDescription>
+                <CardDescription className="text-sm text-gray-500">
+                  {manager.profiles?.email || 'Unknown'}
+                </CardDescription>
               </CardHeader>
-              <CardContent className="flex-1 flex flex-col justify-between gap-2 pt-2">
-                <div className="space-y-2 text-base text-gray-700">
+              <CardContent className="pt-0">
+                <div className="space-y-2 text-sm text-gray-600">
                   <div className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4 flex-shrink-0 text-gray-400" />
+                    <Building2 className="w-4 h-4 text-gray-400" />
                     <span className="truncate">{manager.primary_investment_region || 'Unknown Region'}</span>
                   </div>
                   {manager.website && (
                     <div className="flex items-center gap-2">
-                      <Globe className="w-4 h-4 flex-shrink-0 text-gray-400" />
+                      <Globe className="w-4 h-4 text-gray-400" />
                       <a
                         href={manager.website.startsWith('http') ? manager.website : `https://${manager.website}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline truncate block"
+                        className="text-blue-600 hover:underline truncate"
                         onClick={e => e.stopPropagation()}
                       >
                         {manager.website}
@@ -478,24 +485,18 @@ const Network = () => {
                     </div>
                   )}
                   <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 flex-shrink-0 text-gray-400" />
-                    <span className="truncate">{manager.team_size || 'N/A'} <span className="text-xs text-gray-400 ml-1">Team</span></span>
+                    <Users className="w-4 h-4 text-gray-400" />
+                    <span className="truncate">{manager.team_size || 'N/A'} team members</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 flex-shrink-0 text-gray-400" />
-                    <span className="truncate">{manager.typical_check_size || 'N/A'} <span className="text-xs text-gray-400 ml-1">Ticket</span></span>
+                    <DollarSign className="w-4 h-4 text-gray-400" />
+                    <span className="truncate">{manager.typical_check_size || 'N/A'} ticket size</span>
                   </div>
-                  {userRole === 'admin' && (
-                    <>
-                      <div className="flex items-center gap-2">
-                        <Target className="w-4 h-4 flex-shrink-0 text-gray-400" />
-                        <span className="truncate">AUM: {manager.aum || 'N/A'}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4 flex-shrink-0 text-gray-400" />
-                        <span className="truncate">Thesis: {manager.investment_thesis || 'N/A'}</span>
-                      </div>
-                    </>
+                  {userRole === 'admin' && manager.aum && (
+                    <div className="flex items-center gap-2">
+                      <Target className="w-4 h-4 text-gray-400" />
+                      <span className="truncate">AUM: {manager.aum}</span>
+                    </div>
                   )}
                 </div>
               </CardContent>
@@ -508,3 +509,4 @@ const Network = () => {
 };
 
 export default Network;
+
