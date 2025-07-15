@@ -168,6 +168,61 @@ const Survey = () => {
   const totalSections = 8;
   const progress = (currentSection / totalSections) * 100;
 
+  // Auto-save functionality
+  const [autoSaveTimer, setAutoSaveTimer] = useState<NodeJS.Timeout | null>(null);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+
+  const autoSave = useCallback(async () => {
+    if (!user || !selectedYear) return;
+
+    try {
+      const formData = form.getValues();
+      const surveyData = prepareForDb(formData, user.id, selectedYear, false);
+
+      if (existingResponse?.id) {
+        await supabase
+          .from('survey_responses')
+          .update(surveyData)
+          .eq('id', existingResponse.id);
+      } else {
+        await supabase
+          .from('survey_responses')
+          .insert(surveyData);
+      }
+
+      setLastSaved(new Date());
+      console.log('Auto-saved survey data');
+    } catch (error) {
+      console.error('Auto-save error:', error);
+    }
+  }, [user, selectedYear, existingResponse, form]);
+
+  // Set up auto-save on form changes
+  useEffect(() => {
+    if (autoSaveTimer) {
+      clearTimeout(autoSaveTimer);
+    }
+
+    const timer = setTimeout(() => {
+      autoSave();
+    }, 30000); // Auto-save every 30 seconds
+
+    setAutoSaveTimer(timer);
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [form.watch(), autoSave]);
+
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimer) {
+        clearTimeout(autoSaveTimer);
+      }
+    };
+  }, [autoSaveTimer]);
+
   const fetchPastSurveys = useCallback(async () => {
     try {
       let query = supabase
@@ -526,6 +581,9 @@ const Survey = () => {
       setCurrentSection(currentSection + 1);
     } else if (currentSection === totalSections) {
       // Submit directly without confirmation
+      console.log('Submitting survey from handleNext...');
+      console.log('Form values:', form.getValues());
+      console.log('Form errors:', form.formState.errors);
       form.handleSubmit(onSubmit)();
     }
   };
@@ -632,6 +690,12 @@ const Survey = () => {
               </div>
             </div>
             <Progress value={progress} className="w-full" />
+            {lastSaved && (
+              <div className="text-xs text-green-600 flex items-center gap-1 mt-2">
+                <CheckCircle className="w-3 h-3" />
+                Auto-saved {lastSaved.toLocaleTimeString()}
+              </div>
+            )}
             <p className="mt-2 text-gray-600">
               Complete all sections to submit your survey
             </p>

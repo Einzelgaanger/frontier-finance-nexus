@@ -11,6 +11,14 @@ import { useState, useEffect } from 'react';
 
 import type { SurveyFormData } from '@/types/survey';
 
+// Helper function to parse comma-separated numbers
+const parseNumberWithCommas = (value: string): number => {
+  if (!value) return 0;
+  // Remove commas and parse as float
+  const cleanValue = value.replace(/,/g, '');
+  return parseFloat(cleanValue) || 0;
+};
+
 interface InvestmentInstrument {
   name: string;
   committed: number; // Value in USD
@@ -268,8 +276,8 @@ export function InvestmentInstrumentsSection({ form }: InvestmentInstrumentsSect
                         if (otherInstrumentName && otherCommitted && otherDeployed) {
                           addInstrument(
                             otherInstrumentName,
-                            parseFloat(otherCommitted),
-                            parseFloat(otherDeployed)
+                            parseNumberWithCommas(otherCommitted),
+                            parseNumberWithCommas(otherDeployed)
                           );
                         }
                       }}
@@ -327,7 +335,7 @@ export function InvestmentInstrumentsSection({ form }: InvestmentInstrumentsSect
                               onChange={(e) => updateInstrument(
                                 instruments.findIndex(inst => inst.name === instrument.name),
                                 inputMode === 'percentage' ? 'committedPercentage' : 'committed',
-                                parseFloat(e.target.value) || 0
+                                parseNumberWithCommas(e.target.value)
                               )}
                               className="w-20"
                             />
@@ -344,7 +352,7 @@ export function InvestmentInstrumentsSection({ form }: InvestmentInstrumentsSect
                               onChange={(e) => updateInstrument(
                                 instruments.findIndex(inst => inst.name === instrument.name),
                                 'deployed',
-                                parseFloat(e.target.value) || 0
+                                parseNumberWithCommas(e.target.value)
                               )}
                               className="w-20"
                             />

@@ -7,6 +7,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useState, useEffect } from 'react';
 
 import type { SurveyFormData } from '@/types/survey';
+
+// Helper function to parse comma-separated numbers
+const parseNumberWithCommas = (value: string): number => {
+  if (!value) return 0;
+  // Remove commas and parse as float
+  const cleanValue = value.replace(/,/g, '');
+  return parseFloat(cleanValue) || 0;
+};
+
 interface InvestmentStrategySectionProps {
   form: UseFormReturn<SurveyFormData>;
 }
@@ -34,7 +43,7 @@ export function InvestmentStrategySection({ form }: InvestmentStrategySectionPro
                   type="number" 
                   placeholder="100000"
                   {...field}
-                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                  onChange={(e) => field.onChange(parseNumberWithCommas(e.target.value))}
                 />
               </FormControl>
               <FormMessage />
@@ -53,7 +62,7 @@ export function InvestmentStrategySection({ form }: InvestmentStrategySectionPro
                   type="number" 
                   placeholder="5000000"
                   {...field}
-                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                  onChange={(e) => field.onChange(parseNumberWithCommas(e.target.value))}
                 />
               </FormControl>
               <FormMessage />
@@ -97,7 +106,7 @@ export function InvestmentStrategySection({ form }: InvestmentStrategySectionPro
                       type="number" 
                       placeholder="50,000,000"
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      onChange={(e) => field.onChange(parseNumberWithCommas(e.target.value))}
                     />
                   </FormControl>
                   <FormMessage />
@@ -116,7 +125,7 @@ export function InvestmentStrategySection({ form }: InvestmentStrategySectionPro
                       type="number" 
                       placeholder="25,000,000"
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      onChange={(e) => field.onChange(parseNumberWithCommas(e.target.value))}
                     />
                   </FormControl>
                   <FormMessage />
@@ -135,7 +144,7 @@ export function InvestmentStrategySection({ form }: InvestmentStrategySectionPro
                       type="number" 
                       placeholder="20,000,000"
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      onChange={(e) => field.onChange(parseNumberWithCommas(e.target.value))}
                     />
                   </FormControl>
                   <FormMessage />

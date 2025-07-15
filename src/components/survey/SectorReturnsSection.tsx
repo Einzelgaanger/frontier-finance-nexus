@@ -10,6 +10,15 @@ import { Plus, X, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 
 import type { SurveyFormData } from '@/types/survey';
+
+// Helper function to parse comma-separated numbers
+const parseNumberWithCommas = (value: string): number => {
+  if (!value) return 0;
+  // Remove commas and parse as float
+  const cleanValue = value.replace(/,/g, '');
+  return parseFloat(cleanValue) || 0;
+};
+
 interface SectorReturnsSectionProps {
   form: UseFormReturn<SurveyFormData>;
 }
@@ -124,7 +133,7 @@ export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
                     type="number"
                     placeholder="0"
                     value={allocation.percentage || ''}
-                    onChange={(e) => updateSectorAllocation(index, 'percentage', parseFloat(e.target.value) || 0)}
+                    onChange={(e) => updateSectorAllocation(index, 'percentage', parseNumberWithCommas(e.target.value))}
                     className="w-full"
                   />
                 </div>
@@ -180,7 +189,7 @@ export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
                   type="number" 
                   placeholder="15"
                   {...field}
-                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                  onChange={(e) => field.onChange(parseNumberWithCommas(e.target.value))}
                 />
               </FormControl>
               <FormMessage />
@@ -199,7 +208,7 @@ export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
                   type="number" 
                   placeholder="35"
                   {...field}
-                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                  onChange={(e) => field.onChange(parseNumberWithCommas(e.target.value))}
                 />
               </FormControl>
               <FormMessage />
@@ -220,7 +229,7 @@ export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
                   type="number" 
                   placeholder="10"
                   {...field}
-                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                  onChange={(e) => field.onChange(parseNumberWithCommas(e.target.value))}
                 />
               </FormControl>
               <FormMessage />
@@ -239,7 +248,7 @@ export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
                   type="number" 
                   placeholder="3"
                   {...field}
-                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                  onChange={(e) => field.onChange(parseNumberWithCommas(e.target.value))}
                 />
               </FormControl>
               <FormMessage />
@@ -258,7 +267,7 @@ export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
                   type="number" 
                   placeholder="5"
                   {...field}
-                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                  onChange={(e) => field.onChange(parseNumberWithCommas(e.target.value))}
                 />
               </FormControl>
               <FormMessage />
@@ -277,7 +286,7 @@ export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
                   type="number" 
                   placeholder="2"
                   {...field}
-                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                  onChange={(e) => field.onChange(parseNumberWithCommas(e.target.value))}
                 />
               </FormControl>
               <FormMessage />
