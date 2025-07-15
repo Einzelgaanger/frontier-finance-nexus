@@ -258,30 +258,32 @@ export const MarketSelector = ({ value, onChange, placeholder = "Search countrie
 
         {/* Percentage input */}
         {selectedCountry && (
-          <div className="flex gap-2">
-            <Input
-              type="number"
-              placeholder="Percentage (1-100)"
-              value={percentage}
-              onChange={(e) => setPercentage(e.target.value)}
-              min="1"
-              max="100"
-              className="flex-1"
-            />
-            <Button
-              type="button"
-              onClick={() => handleAddMarket(selectedCountry, parseInt(percentage) || 0)}
-              disabled={!percentage || !canAddMarket(parseInt(percentage) || 0)}
-              className="bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
-          </div>
-          {selectedCountry && percentage && !canAddMarket(parseInt(percentage) || 0) && (
-            <div className="text-xs text-red-500">
-              Total percentage would exceed 100%. Current total: {getTotalPercentage()}%
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                placeholder="Percentage (1-100)"
+                value={percentage}
+                onChange={(e) => setPercentage(e.target.value)}
+                min="1"
+                max="100"
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                onClick={() => handleAddMarket(selectedCountry, parseInt(percentage) || 0)}
+                disabled={!percentage || !canAddMarket(parseInt(percentage) || 0)}
+                className="bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
             </div>
-          )}
+            {selectedCountry && percentage && !canAddMarket(parseInt(percentage) || 0) && (
+              <div className="text-xs text-red-500">
+                Total percentage would exceed 100%. Current total: {getTotalPercentage()}%
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>

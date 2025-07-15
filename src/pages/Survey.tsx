@@ -416,11 +416,15 @@ const Survey = () => {
   };
 
   const onSubmit = async (data: SurveyFormData) => {
+    console.log('=== SURVEY SUBMISSION STARTED ===');
     console.log('Submitting survey with data:', data);
     console.log('Form is valid:', form.formState.isValid);
     console.log('Form errors:', form.formState.errors);
+    console.log('User:', user);
+    console.log('Selected year:', selectedYear);
     
     if (!user) {
+      console.log('No user found');
       toast({
         title: "Authentication Required",
         description: "Please log in to submit your survey.",
@@ -430,6 +434,7 @@ const Survey = () => {
     }
 
     if (!selectedYear) {
+      console.log('No year selected');
       toast({
         title: "Year Required",
         description: "Please select a year for this survey.",
@@ -441,6 +446,7 @@ const Survey = () => {
     // Validate market allocation doesn't exceed 100%
     const totalMarketAllocation = Object.values(data.markets_operated || {}).reduce((sum, val) => sum + val, 0);
     if (totalMarketAllocation > 100) {
+      console.log('Market allocation exceeds 100%');
       toast({
         title: "Invalid Market Allocation",
         description: "Total market allocation cannot exceed 100%.",
@@ -449,6 +455,7 @@ const Survey = () => {
       return;
     }
 
+    console.log('All validations passed, starting submission...');
     setIsSubmitting(true);
     setShowSubmitConfirmation(false);
     
@@ -702,7 +709,15 @@ const Survey = () => {
           </div>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
+              console.log('Form validation errors:', errors);
+              console.log('Form values:', form.getValues());
+              toast({
+                title: "Validation Error",
+                description: "Please check all required fields.",
+                variant: "destructive"
+              });
+            })} className="space-y-8">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
@@ -761,14 +776,60 @@ const Survey = () => {
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 ) : (
-                  <Button 
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    {isSubmitting ? 'Submitting...' : 'Submit Survey'}
-                    <CheckCircle className="w-4 h-4 ml-2" />
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      type="button"
+                      onClick={() => {
+                        console.log('Manual submit clicked');
+                        console.log('Form values:', form.getValues());
+                        console.log('Form errors:', form.formState.errors);
+                        form.handleSubmit(onSubmit)();
+                      }}
+                      className="bg-yellow-600 hover:bg-yellow-700"
+                    >
+                      Test Submit
+                    </Button>
+                    <Button 
+                      type="button"
+                      onClick={async () => {
+                        console.log('Force submit clicked');
+                        const data = form.getValues();
+                        console.log('Force submitting with data:', data);
+                        try {
+                          const surveyData = prepareForDb(data, user.id, selectedYear || 2024, true);
+                          console.log('Prepared survey data:', surveyData);
+                          
+                          const result = await supabase
+                            .from('survey_responses')
+                            .insert([surveyData]);
+                          
+                          console.log('Force submit result:', result);
+                          if (result.error) {
+                            console.error('Force submit error:', result.error);
+                          } else {
+                            console.log('Force submit success!');
+                            toast({
+                              title: "Survey Submitted Successfully!",
+                              description: `Your ${selectedYear || 2024} survey has been completed and submitted.`,
+                            });
+                          }
+                        } catch (error) {
+                          console.error('Force submit error:', error);
+                        }
+                      }}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      Force Submit
+                    </Button>
+                    <Button 
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {isSubmitting ? 'Submitting...' : 'Submit Survey'}
+                      <CheckCircle className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
                 )}
               </div>
             </form>
