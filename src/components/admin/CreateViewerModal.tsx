@@ -26,11 +26,7 @@ const surveySchema = z.object({
   // Account fields
   email: z.string().email('Invalid email address'),
   password: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number')
-    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
+    .min(6, 'Password must be at least 6 characters'),
   confirmPassword: z.string().min(1, 'Please confirm your password'),
   survey_year: z.number().min(2020, 'Year must be 2020 or later').max(2030, 'Year must be 2030 or earlier'),
   
@@ -231,6 +227,7 @@ const CreateViewerModal = ({ open, onClose, onSuccess }: CreateViewerModalProps)
   ];
 
   const onSubmit = async (data: ViewerFormData) => {
+    console.log('Form submission started with data:', data);
     setIsCreating(true);
 
     try {
@@ -281,6 +278,8 @@ const CreateViewerModal = ({ open, onClose, onSuccess }: CreateViewerModalProps)
         self_liquidating_exited: data.self_liquidating_exited,
       };
 
+      console.log('Calling database function with survey data:', surveyData);
+
       // Call the database function to create viewer with survey
       const { data: result, error } = await supabase.rpc('create_viewer_with_survey', {
         viewer_email: data.email,
@@ -288,6 +287,8 @@ const CreateViewerModal = ({ open, onClose, onSuccess }: CreateViewerModalProps)
         survey_data: surveyData,
         survey_year: data.survey_year
       });
+
+      console.log('Database response:', { result, error });
 
       if (error) {
         console.error('Error creating viewer:', error);
@@ -298,6 +299,8 @@ const CreateViewerModal = ({ open, onClose, onSuccess }: CreateViewerModalProps)
         });
         return;
       }
+
+      console.log('Viewer created successfully:', result);
 
       toast({
         title: "Viewer Created Successfully",
@@ -347,7 +350,14 @@ const CreateViewerModal = ({ open, onClose, onSuccess }: CreateViewerModalProps)
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
+            console.log('Form validation errors:', errors);
+            toast({
+              title: "Validation Error",
+              description: "Please check all required fields.",
+              variant: "destructive"
+            });
+          })} className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -495,23 +505,36 @@ const CreateViewerModal = ({ open, onClose, onSuccess }: CreateViewerModalProps)
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               ) : (
-                <Button 
-                  type="submit"
-                  disabled={isCreating}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  {isCreating ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Creating Viewer...
-                    </>
-                  ) : (
-                    <>
-                      <UserPlus className="w-4 h-4 mr-2" />
-                      Create Viewer with Survey
-                    </>
-                  )}
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    type="button"
+                    onClick={() => {
+                      console.log('Form values:', form.getValues());
+                      console.log('Form errors:', form.formState.errors);
+                      form.handleSubmit(onSubmit)();
+                    }}
+                    className="bg-yellow-600 hover:bg-yellow-700"
+                  >
+                    Test Submit
+                  </Button>
+                  <Button 
+                    type="submit"
+                    disabled={isCreating}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {isCreating ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Creating Viewer...
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="w-4 h-4 mr-2" />
+                        Create Viewer with Survey
+                      </>
+                    )}
+                  </Button>
+                </div>
               )}
             </div>
           </form>

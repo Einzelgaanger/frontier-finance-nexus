@@ -127,6 +127,7 @@ const Admin = () => {
   const [pendingRoleChange, setPendingRoleChange] = useState<{requestId: string, newRole: 'viewer' | 'member'} | null>(null);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [showCreateViewerModal, setShowCreateViewerModal] = useState(false);
+  const [createdViewers, setCreatedViewers] = useState<any[]>([]);
   const [analyticsData, setAnalyticsData] = useState({
     totalFunds: 0,
     totalCapital: 0,
@@ -187,13 +188,39 @@ const Admin = () => {
     }
   }, []);
 
+  const fetchCreatedViewers = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select(`
+          user_id,
+          role,
+          created_at,
+          profiles!inner(
+            id,
+            full_name,
+            email,
+            avatar_url
+          )
+        `)
+        .eq('role', 'viewer')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setCreatedViewers(data || []);
+    } catch (error) {
+      console.error('Error fetching created viewers:', error);
+    }
+  }, []);
+
   useEffect(() => {
     if (userRole === 'admin') {
       fetchFundManagers();
       fetchMembershipRequests();
       fetchActivityLogs();
+      fetchCreatedViewers();
     }
-  }, [userRole, fetchFundManagers, fetchMembershipRequests, fetchActivityLogs]);
+  }, [userRole, fetchFundManagers, fetchMembershipRequests, fetchActivityLogs, fetchCreatedViewers]);
 
   useEffect(() => {
     if (userRole === 'admin') {
@@ -756,9 +783,10 @@ const Admin = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="applications">Applications</TabsTrigger>
             <TabsTrigger value="members">Members</TabsTrigger>
+            <TabsTrigger value="viewers">Created Viewers</TabsTrigger>
             <TabsTrigger value="activity">Activity Logs</TabsTrigger>
           </TabsList>
 
@@ -887,6 +915,41 @@ const Admin = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="viewers" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">Created Viewers</h2>
+              <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                Total Viewers: {createdViewers.length}
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {createdViewers.map((viewer) => (
+                <Card key={viewer.user_id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-purple-500">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <CardTitle className="text-sm font-medium truncate flex-1">{viewer.profiles?.full_name || 'No Name'}</CardTitle>
+                      <Badge variant="default" className="bg-purple-100 text-purple-800 flex-shrink-0">Viewer</Badge>
+                    </div>
+                    <CardDescription className="text-xs truncate">{viewer.profiles?.email || 'No Email'}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="space-y-2 text-xs text-gray-600">
+                      <div className="flex items-center gap-2">
+                        <User className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">User ID: {viewer.user_id}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">Created: {new Date(viewer.created_at).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
           <TabsContent value="activity" className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-900">Activity Logs</h2>
@@ -932,6 +995,16 @@ const Admin = () => {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Create Viewer Modal */}
+        <CreateViewerModal
+          open={showCreateViewerModal}
+          onClose={() => setShowCreateViewerModal(false)}
+          onSuccess={() => {
+            fetchCreatedViewers();
+            setShowCreateViewerModal(false);
+          }}
+        />
 
         {/* Application Details Modal */}
         {selectedRequest && (
@@ -1307,16 +1380,6 @@ const Admin = () => {
             </div>
           </div>
         )}
-
-        {/* Create Viewer Modal */}
-        <CreateViewerModal
-          open={showCreateViewerModal}
-          onClose={() => setShowCreateViewerModal(false)}
-          onSuccess={() => {
-            fetchMembershipRequests();
-            fetchActivityLogs();
-          }}
-        />
       </div>
     </div>
   );

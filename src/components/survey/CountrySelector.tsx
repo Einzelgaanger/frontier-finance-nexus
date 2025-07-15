@@ -160,7 +160,10 @@ export const MarketSelector = ({ value, onChange, placeholder = "Search countrie
   }, [searchTerm, value]);
 
   const handleAddMarket = (country: string, percentageValue: number) => {
-    if (percentageValue > 0 && percentageValue <= 100) {
+    const currentTotal = getTotalPercentage();
+    const newTotal = currentTotal + percentageValue;
+    
+    if (percentageValue > 0 && percentageValue <= 100 && newTotal <= 100) {
       const newValue = { ...value, [country]: percentageValue };
       onChange(newValue);
       setSearchTerm('');
@@ -179,6 +182,11 @@ export const MarketSelector = ({ value, onChange, placeholder = "Search countrie
 
   const getTotalPercentage = () => {
     return Object.values(value).reduce((sum, val) => sum + val, 0);
+  };
+
+  const canAddMarket = (percentageValue: number) => {
+    const currentTotal = getTotalPercentage();
+    return percentageValue > 0 && percentageValue <= 100 && (currentTotal + percentageValue) <= 100;
   };
 
   return (
@@ -263,12 +271,17 @@ export const MarketSelector = ({ value, onChange, placeholder = "Search countrie
             <Button
               type="button"
               onClick={() => handleAddMarket(selectedCountry, parseInt(percentage) || 0)}
-              disabled={!percentage || parseInt(percentage) <= 0 || parseInt(percentage) > 100}
-              className="bg-green-600 hover:bg-green-700"
+              disabled={!percentage || !canAddMarket(parseInt(percentage) || 0)}
+              className="bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
               <Plus className="w-4 h-4" />
             </Button>
           </div>
+          {selectedCountry && percentage && !canAddMarket(parseInt(percentage) || 0) && (
+            <div className="text-xs text-red-500">
+              Total percentage would exceed 100%. Current total: {getTotalPercentage()}%
+            </div>
+          )}
         )}
       </div>
     </div>
