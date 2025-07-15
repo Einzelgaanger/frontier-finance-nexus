@@ -240,85 +240,116 @@ const Network = () => {
   if (userRole === 'viewer') {
     const approvedMembers = membershipRequests.filter((r: any) => r.status === 'approved');
     return (
-      <div className="relative min-h-screen">
-        {/* Static background image */}
-        <div className="fixed inset-0 z-0">
-          <img src="/CFF.jpg" alt="Background" className="w-full h-full object-cover" />
-        </div>
-        <div className="relative z-10 min-h-screen">
-          <Header />
-          <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-6 sm:py-8">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-3xl font-bold text-gray-900">Member Management</h2>
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-6 sm:py-8">
+          <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <h1 className="text-3xl font-bold text-gray-900">Approved Members Directory</h1>
+            <div className="flex items-center space-x-2">
               <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                Total Members: {approvedMembers.length}
+                Total Approved: {approvedMembers.length}
               </Badge>
             </div>
-            {viewerError && (
-              <div className="mb-4 text-red-600 bg-red-50 border border-red-200 rounded p-2">
-                {viewerError}
-              </div>
-            )}
-            {viewerLoading ? (
-              <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading members...</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {approvedMembers.length === 0 ? (
-                  <Card className="text-center py-12 col-span-full bg-white/80">
-                    <CardContent>
-                      <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">No approved members found</h3>
-                      <p className="text-base text-gray-500 mb-4">No approved members are available yet. Check back later.</p>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  approvedMembers.map((request: any) => (
-                    <Card key={request.id} className="hover:shadow-lg transition-all duration-200 bg-white/80 min-h-[180px] flex flex-col justify-between">
+          </div>
+
+          {viewerError && (
+            <div className="mb-4 text-red-600 bg-red-50 border border-red-200 rounded p-2">
+              {viewerError}
+            </div>
+          )}
+
+          {viewerLoading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading approved members...</p>
+            </div>
+          ) : (
+            <>
+              {approvedMembers.length === 0 ? (
+                <Card className="text-center py-12 bg-white">
+                  <CardContent>
+                    <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No approved members found</h3>
+                    <p className="text-base text-gray-500 mb-4">No approved members are available yet. Check back later.</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {approvedMembers.map((member: any) => (
+                    <Card 
+                      key={member.id} 
+                      className="group bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer min-h-[280px]"
+                    >
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between gap-2">
-                          <CardTitle className="text-lg font-semibold truncate flex-1">{request.applicant_name}</CardTitle>
-                          <Badge variant="default" className="bg-green-100 text-green-800 flex-shrink-0">Member</Badge>
+                          <CardTitle className="text-lg font-semibold truncate text-gray-900 group-hover:text-blue-600">
+                            {member.applicant_name || 'Unknown Member'}
+                          </CardTitle>
+                          <Badge variant="default" className="bg-green-100 text-green-700 border-green-200 text-xs">
+                            Approved Member
+                          </Badge>
                         </div>
-                        <CardDescription className="text-base truncate">{request.email}</CardDescription>
+                        <CardDescription className="text-sm text-gray-500">
+                          {member.email || 'No email provided'}
+                        </CardDescription>
                       </CardHeader>
                       <CardContent className="pt-0">
-                        <div className="space-y-2 text-base text-gray-600">
+                        <div className="space-y-3 text-sm text-gray-600">
                           <div className="flex items-center gap-2">
-                            <Building2 className="w-4 h-4 flex-shrink-0" />
-                            <span className="truncate">{request.vehicle_name}</span>
+                            <Building2 className="w-4 h-4 text-blue-500" />
+                            <span className="truncate">{member.vehicle_name || 'Unknown Fund'}</span>
                           </div>
-                          {request.vehicle_website && (
+                          {member.vehicle_website && (
                             <div className="flex items-center gap-2">
-                              <Globe className="w-4 h-4 flex-shrink-0" />
+                              <Globe className="w-4 h-4 text-green-500" />
                               <a
-                                href={request.vehicle_website.startsWith('http') ? request.vehicle_website : `https://${request.vehicle_website}`}
+                                href={member.vehicle_website.startsWith('http') ? member.vehicle_website : `https://${member.vehicle_website}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-blue-600 hover:underline truncate block"
+                                className="text-blue-600 hover:underline truncate"
+                                onClick={e => e.stopPropagation()}
                               >
-                                {request.vehicle_website}
+                                {member.vehicle_website}
                               </a>
                             </div>
                           )}
                           <div className="flex items-center gap-2">
-                            <Users className="w-4 h-4 flex-shrink-0" />
-                            <span className="truncate">{request.team_size || 'N/A'}</span>
+                            <Users className="w-4 h-4 text-gold-500" />
+                            <span className="truncate">{member.team_size || 'N/A'} team members</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <DollarSign className="w-4 h-4 flex-shrink-0" />
-                            <span className="truncate">{request.ticket_size || 'N/A'}</span>
+                            <DollarSign className="w-4 h-4 text-green-500" />
+                            <span className="truncate">{member.ticket_size || 'N/A'} ticket size</span>
                           </div>
+                          {member.investment_thesis && (
+                            <div className="mt-3 pt-3 border-t border-gray-100">
+                              <div className="flex items-start gap-2">
+                                <Target className="w-4 h-4 text-gold-500 mt-0.5 flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-medium text-gray-700 mb-1">Investment Thesis</p>
+                                  <p className="text-xs text-gray-600 line-clamp-3 leading-relaxed break-words">
+                                    {member.investment_thesis}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          {member.completed_at && (
+                            <div className="flex items-center gap-2">
+                              <Calendar className="w-4 h-4 text-blue-500" />
+                              <span className="truncate text-xs text-gray-500">
+                                Approved: {new Date(member.completed_at).toLocaleDateString()}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
-                  ))
-                )}
-              </div>
-            )}
-          </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
     );
@@ -496,9 +527,9 @@ const Network = () => {
                     <div className="mt-3 pt-3 border-t border-gray-100">
                       <div className="flex items-start gap-2">
                         <Target className="w-4 h-4 text-gold-500 mt-0.5 flex-shrink-0" />
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <p className="text-xs font-medium text-gray-700 mb-1">Investment Thesis</p>
-                          <p className="text-xs text-gray-600 line-clamp-3 leading-relaxed">
+                          <p className="text-xs text-gray-600 line-clamp-3 leading-relaxed break-words">
                             {manager.investment_thesis}
                           </p>
                         </div>
