@@ -1,4 +1,4 @@
--- Fix the create_viewer_with_survey function to work without auth.users table access
+-- Fix the create_viewer_with_survey function to work with correct profiles table columns
 CREATE OR REPLACE FUNCTION create_viewer_with_survey(
   viewer_email TEXT,
   viewer_password TEXT,

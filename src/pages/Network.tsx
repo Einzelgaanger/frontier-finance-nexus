@@ -88,11 +88,20 @@ const Network = () => {
       let managersWithProfiles: FundManager[] = [];
       for (const item of surveys) {
         if (!item || !item.user_id || !approvedIds.has(item.user_id)) continue;
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('first_name, last_name, email')
-          .eq('id', item.user_id)
-          .single();
+        let profile = null;
+        try {
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('first_name, last_name, email')
+            .eq('id', item.user_id)
+            .maybeSingle();
+          
+          if (!profileError && profileData) {
+            profile = profileData;
+          }
+        } catch (profileErr) {
+          console.error('Error fetching profile for user:', item.user_id, profileErr);
+        }
         let sectorFocus: string[] = [];
         let stageFocus: string[] = [];
         try {

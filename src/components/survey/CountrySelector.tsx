@@ -157,7 +157,7 @@ export const MarketSelector = ({ value, onChange, placeholder = "Search countrie
       ).slice(0, 10);
       setFilteredCountries(filtered);
     }
-  }, [searchTerm, value]);
+  }, [searchTerm]);
 
   const handleAddMarket = (country: string, percentageValue: number) => {
     const currentTotal = getTotalPercentage();

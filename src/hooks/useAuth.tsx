@@ -66,6 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
+    let roleFetchTimeout: NodeJS.Timeout;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -77,15 +78,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          // Clear any existing timeout
+          if (roleFetchTimeout) {
+            clearTimeout(roleFetchTimeout);
+          }
+          
           // Wait for the trigger to complete if it's a new signup
           if (event === 'SIGNED_IN' && !user) {
-            setTimeout(() => {
+            roleFetchTimeout = setTimeout(() => {
               if (mounted) {
                 fetchUserRole(session.user.id);
               }
             }, 2000);
           } else {
-            await fetchUserRole(session.user.id);
+            // Debounce role fetching to avoid multiple rapid calls
+            roleFetchTimeout = setTimeout(() => {
+              if (mounted) {
+                fetchUserRole(session.user.id);
+              }
+            }, 500);
           }
 
           // Handle redirect after successful authentication
@@ -121,7 +132,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(session?.user ?? null);
           
           if (session?.user) {
-            await fetchUserRole(session.user.id);
+            // Debounce the initial role fetch
+            roleFetchTimeout = setTimeout(() => {
+              if (mounted) {
+                fetchUserRole(session.user.id);
+              }
+            }, 500);
           }
           setLoading(false);
         }
@@ -137,6 +153,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       mounted = false;
+      if (roleFetchTimeout) {
+        clearTimeout(roleFetchTimeout);
+      }
       subscription.unsubscribe();
     };
   }, []);

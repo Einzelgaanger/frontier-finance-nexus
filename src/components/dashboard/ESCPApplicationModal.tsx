@@ -1,17 +1,19 @@
 
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { FileText, Upload, Building2, Users, Globe, Target, CheckCircle, XCircle } from 'lucide-react';
-import { uploadFileWithFallback } from '@/utils/setupStorage';
+import { supabase } from '@/integrations/supabase/client';
+import { FileText, Upload, Eye, Link, X, Plus, Search, CheckCircle } from 'lucide-react';
+import { CountrySelector } from '@/components/survey/CountrySelector';
 
 interface ESCPApplicationModalProps {
   open: boolean;
@@ -24,6 +26,7 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
   const [loading, setLoading] = useState(false);
   const [currentSection, setCurrentSection] = useState(1);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [uploading, setUploading] = useState(false);
   
   const [formData, setFormData] = useState({
     // Background Information
@@ -31,7 +34,7 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
     email: user?.email || '',
     vehicle_name: '',
     organization_website: '',
-    domicile_country: '',
+    domicile_countries: [] as string[],
     
     // Team Information
     role_job_title: '',
@@ -42,7 +45,8 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
     typical_check_size: '',
     number_of_investments: '',
     amount_raised_to_date: '',
-    supporting_documents: [] as File[],
+    supporting_documents: [] as string[],
+    supporting_document_links: [] as string[],
     
     // Network Expectations
     information_sharing_topics: [] as string[],
@@ -84,6 +88,27 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  // Helper to convert file to base64 and store in database
+  const uploadToDatabase = async (file: File, userId: string) => {
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64Data = reader.result as string;
+        const fileData = {
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type,
+          data: base64Data,
+          uploadedAt: new Date().toISOString()
+        };
+        resolve(JSON.stringify(fileData));
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Handle file upload
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     if (files.length > 5) {
@@ -94,69 +119,83 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
       });
       return;
     }
-    const validFiles = files.filter(file => {
-      if (file.size > 50 * 1024 * 1024) {
+
+    setUploading(true);
+    try {
+      const uploadedFiles: string[] = [];
+      for (const file of files) {
+        if (file.size > 10 * 1024 * 1024) { // 10MB limit for base64
+          toast({
+            title: "File too large",
+            description: `${file.name} exceeds 10MB limit`,
+            variant: "destructive"
+          });
+          continue;
+        }
+        const fileData = await uploadToDatabase(file, user?.id || 'anonymous');
+        uploadedFiles.push(fileData);
         toast({
-          title: "File too large",
-          description: `${file.name} exceeds 50MB limit`,
-          variant: "destructive"
+          title: "File Uploaded Successfully",
+          description: `${file.name} uploaded to database`,
+          variant: "default"
         });
-        return false;
       }
-      // Accept any file type
-      return true;
-    });
-    setFormData(prev => ({ ...prev, supporting_documents: validFiles }));
+      // Store file data in form state
+      setFormData(prev => ({
+        ...prev,
+        supporting_documents: [...prev.supporting_documents, ...uploadedFiles]
+      }));
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      toast({
+        title: "Upload Error",
+        description: "Failed to upload files. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // Handle link upload (store as text data)
+  const handleLinkUpload = async (link: string) => {
+    if (!link.trim()) return;
+    
+    setUploading(true);
+    try {
+      const linkData = {
+        fileName: 'document-link.txt',
+        fileSize: link.length,
+        fileType: 'text/plain',
+        data: `data:text/plain;base64,${btoa(link)}`,
+        uploadedAt: new Date().toISOString()
+      };
+      
+      setFormData(prev => ({
+        ...prev,
+        supporting_document_links: [...prev.supporting_document_links, JSON.stringify(linkData)]
+      }));
+
+      toast({
+        title: "Link Saved Successfully",
+        description: "Link saved to database",
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('Error uploading link:', error);
+      toast({
+        title: "Upload Error",
+        description: "Failed to save link. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const uploadDocuments = async (): Promise<string[]> => {
-    if (formData.supporting_documents.length === 0) return [];
-    
-    const uploadedUrls: string[] = [];
-    
-    for (const file of formData.supporting_documents) {
-      try {
-        console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
-        
-        const result = await uploadFileWithFallback(file);
-        
-        if (result.success) {
-          uploadedUrls.push(result.url);
-          console.log('File uploaded successfully:', result.fileName, result.url);
-          
-          if (result.fallback) {
-            toast({
-              title: "File Uploaded (Fallback)",
-              description: `${file.name} uploaded using fallback method. Contact admin to set up proper storage.`,
-              variant: "default"
-            });
-          } else {
-            toast({
-              title: "File Uploaded Successfully",
-              description: `${file.name} uploaded to cloud storage.`,
-              variant: "default"
-            });
-          }
-        } else {
-          console.error('Upload failed for file:', file.name, result.error);
-          toast({
-            title: "Upload Error",
-            description: `Failed to upload ${file.name}: ${result.error}`,
-            variant: "destructive"
-          });
-        }
-      } catch (error) {
-        console.error('Error uploading document:', error);
-        toast({
-          title: "Upload Error",
-          description: `Failed to upload ${file.name}`,
-          variant: "destructive"
-        });
-      }
-    }
-    
-    console.log('All uploads completed. URLs:', uploadedUrls);
-    return uploadedUrls;
+    // Just return the file data already in state
+    return formData.supporting_documents;
   };
 
   const handleTopicToggle = (topic: string) => {
@@ -171,13 +210,13 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
   const validateSection = (section: number): boolean => {
     switch (section) {
       case 1:
-        return !!(formData.applicant_name && formData.email && formData.vehicle_name && formData.organization_website && formData.domicile_country);
+        return !!(formData.applicant_name && formData.email && formData.vehicle_name && formData.organization_website && formData.domicile_countries.length > 0);
       case 2:
         return !!(formData.role_job_title && formData.team_overview);
       case 3:
         return !!(formData.investment_thesis && formData.typical_check_size && formData.number_of_investments && formData.amount_raised_to_date);
       case 4:
-        return !!(formData.information_sharing_topics.length > 0 && formData.expectations_from_network && formData.how_heard_about_network);
+        return !!(formData.expectations_from_network && formData.how_heard_about_network);
       default:
         return true;
     }
@@ -185,18 +224,24 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
 
   const handleNext = () => {
     if (validateSection(currentSection)) {
-      setCurrentSection(prev => Math.min(prev + 1, 4));
+      if (currentSection < 4) {
+        setCurrentSection(currentSection + 1);
+      } else {
+        handleSubmit();
+      }
     } else {
       toast({
         title: "Incomplete Section",
-        description: "Please fill in all required fields before proceeding",
+        description: "Please complete all required fields before proceeding",
         variant: "destructive"
       });
     }
   };
 
   const handlePrevious = () => {
-    setCurrentSection(prev => Math.max(prev - 1, 1));
+    if (currentSection > 1) {
+      setCurrentSection(currentSection - 1);
+    }
   };
 
   const handleSubmit = async () => {
@@ -230,10 +275,10 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
         email: formData.email,
         vehicle_name: formData.vehicle_name,
         vehicle_website: formData.organization_website,
-        domicile_country: formData.domicile_country,
+        domicile_country: formData.domicile_countries.join(', '), // Join multiple countries
         role_job_title: formData.role_job_title,
         team_size: formData.team_overview,
-        location: formData.domicile_country, // Use domicile_country as location
+        location: formData.domicile_countries.join(', '), // Use domicile countries as location
         thesis: formData.investment_thesis,
         ticket_size: formData.typical_check_size,
         portfolio_investments: formData.number_of_investments,
@@ -256,18 +301,22 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
 
       if (error) throw error;
 
-      // Show success message and close popup immediately
       setShowSuccessMessage(true);
+      setLoading(false);
+      
+      toast({
+        title: "Application Submitted Successfully!",
+        description: "Your application has been submitted and is under review.",
+      });
+
+      // Reset form after successful submission
       setTimeout(() => {
-        setShowSuccessMessage(false);
-        onClose();
-        setCurrentSection(1);
         setFormData({
           applicant_name: '',
           email: user?.email || '',
           vehicle_name: '',
           organization_website: '',
-          domicile_country: '',
+          domicile_countries: [],
           role_job_title: '',
           team_overview: '',
           investment_thesis: '',
@@ -275,6 +324,7 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
           number_of_investments: '',
           amount_raised_to_date: '',
           supporting_documents: [],
+          supporting_document_links: [],
           information_sharing_topics: [],
           expectations_from_network: '',
           how_heard_about_network: '',
@@ -284,101 +334,84 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
           notable_investments: '',
           additional_comments: ''
         });
-        // Optionally redirect after submission
-        window.location.href = '/dashboard';
-      }, 5000); // Close after 5 seconds
+        setCurrentSection(1);
+        setShowSuccessMessage(false);
+        onClose();
+      }, 3000);
 
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to submit application. Please try again.";
+    } catch (error) {
+      console.error('Error submitting application:', error);
       toast({
-        title: "Submission Failed",
-        description: errorMessage,
-        variant: "destructive",
-        duration: 5000,
-        className: "bg-red-50 border-red-200 text-red-800",
-        action: (
-          <div className="flex items-center gap-2">
-            <XCircle className="w-5 h-5 text-red-600" />
-            <span className="text-red-700 font-medium">Error</span>
-          </div>
-        ),
+        title: "Submission Error",
+        description: "Failed to submit application. Please try again.",
+        variant: "destructive"
       });
-    } finally {
       setLoading(false);
     }
   };
 
-  const renderSection = () => {
-    switch (currentSection) {
+  const renderSection = (section: number) => {
+    switch (section) {
       case 1:
         return (
-          <div className="space-y-4 sm:space-y-6">
-            <div className="flex items-center space-x-3 mb-4 sm:mb-6">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900">Background Information</h3>
-                <p className="text-xs sm:text-sm text-gray-600">Tell us about yourself and your organization</p>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="applicant_name" className="text-sm">Full Name *</Label>
-                <Input
-                  id="applicant_name"
-                  value={formData.applicant_name}
-                  onChange={(e) => handleInputChange('applicant_name', e.target.value)}
-                  placeholder="Your full name"
-                  className="text-sm"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="email" className="text-sm">Email Address *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  placeholder="your.email@company.com"
-                  className="text-sm"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="vehicle_name" className="text-sm">Vehicle/Fund Name *</Label>
-                <Input
-                  id="vehicle_name"
-                  value={formData.vehicle_name}
-                  onChange={(e) => handleInputChange('vehicle_name', e.target.value)}
-                  placeholder="e.g., Frontier Capital Fund I"
-                  className="text-sm"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="organization_website" className="text-sm">Vehicle Website *</Label>
-                <Input
-                  id="organization_website"
-                  type="url"
-                  value={formData.organization_website}
-                  onChange={(e) => handleInputChange('organization_website', e.target.value)}
-                  placeholder="https://www.yourfund.com"
-                  className="text-sm"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="domicile_country" className="text-sm">Domicile Country *</Label>
-                <Input
-                  id="domicile_country"
-                  value={formData.domicile_country}
-                  onChange={(e) => handleInputChange('domicile_country', e.target.value)}
-                  placeholder="e.g., United States, United Kingdom, Singapore"
-                  className="text-sm"
-                />
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Background Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="applicant_name" className="text-sm">Applicant Name *</Label>
+                  <Input
+                    id="applicant_name"
+                    value={formData.applicant_name}
+                    onChange={(e) => handleInputChange('applicant_name', e.target.value)}
+                    placeholder="Your full name"
+                    className="text-sm"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="email" className="text-sm">Email Address *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    placeholder="your.email@example.com"
+                    className="text-sm"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="vehicle_name" className="text-sm">Vehicle/Fund Name *</Label>
+                  <Input
+                    id="vehicle_name"
+                    value={formData.vehicle_name}
+                    onChange={(e) => handleInputChange('vehicle_name', e.target.value)}
+                    placeholder="e.g., Frontier Capital Fund I"
+                    className="text-sm"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="organization_website" className="text-sm">Vehicle Website *</Label>
+                  <Input
+                    id="organization_website"
+                    type="url"
+                    value={formData.organization_website}
+                    onChange={(e) => handleInputChange('organization_website', e.target.value)}
+                    placeholder="https://www.yourfund.com"
+                    className="text-sm"
+                  />
+                </div>
+                
+                <div className="md:col-span-2">
+                  <CountrySelector
+                    value={formData.domicile_countries}
+                    onChange={(countries) => handleInputChange('domicile_countries', countries)}
+                    label="Legal Domicile Countries *"
+                    placeholder="Search and select countries for legal domicile..."
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -386,40 +419,32 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
 
       case 2:
         return (
-          <div className="space-y-4 sm:space-y-6">
-            <div className="flex items-center space-x-3 mb-4 sm:mb-6">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-full flex items-center justify-center">
-                <Users className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
-              </div>
-              <div>
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900">Team Information</h3>
-                <p className="text-xs sm:text-sm text-gray-600">Share details about your team and experience</p>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="role_job_title" className="text-sm">Role/Job Title & Relevant Experience *</Label>
-                <Textarea
-                  id="role_job_title"
-                  value={formData.role_job_title}
-                  onChange={(e) => handleInputChange('role_job_title', e.target.value)}
-                  placeholder="Describe your role and relevant investment experience..."
-                  rows={3}
-                  className="text-sm"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="team_overview" className="text-sm">Team Size & Co-founder Details *</Label>
-                <Textarea
-                  id="team_overview"
-                  value={formData.team_overview}
-                  onChange={(e) => handleInputChange('team_overview', e.target.value)}
-                  placeholder="Describe your team size, key co-founders, and their backgrounds..."
-                  rows={4}
-                  className="text-sm"
-                />
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Team Information</h3>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="role_job_title" className="text-sm">Your Role/Job Title *</Label>
+                  <Input
+                    id="role_job_title"
+                    value={formData.role_job_title}
+                    onChange={(e) => handleInputChange('role_job_title', e.target.value)}
+                    placeholder="e.g., Managing Partner, Investment Director"
+                    className="text-sm"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="team_overview" className="text-sm">Team Overview *</Label>
+                  <Textarea
+                    id="team_overview"
+                    value={formData.team_overview}
+                    onChange={(e) => handleInputChange('team_overview', e.target.value)}
+                    placeholder="Describe your team structure, key members, and their roles..."
+                    rows={4}
+                    className="text-sm"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -427,83 +452,158 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
 
       case 3:
         return (
-          <div className="space-y-4 sm:space-y-6">
-            <div className="flex items-center space-x-3 mb-4 sm:mb-6">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                <Target className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
-              </div>
-              <div>
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900">Vehicle Information</h3>
-                <p className="text-xs sm:text-sm text-gray-600">Tell us about your investment approach and track record</p>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="investment_thesis" className="text-sm">Investment Thesis *</Label>
-                <Textarea
-                  id="investment_thesis"
-                  value={formData.investment_thesis}
-                  onChange={(e) => handleInputChange('investment_thesis', e.target.value)}
-                  placeholder="Describe your investment thesis, focus areas, and strategy..."
-                  rows={4}
-                  className="text-sm"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="typical_check_size" className="text-sm">Average Ticket Size (USD) *</Label>
-                <Input
-                  id="typical_check_size"
-                  value={formData.typical_check_size}
-                  onChange={(e) => handleInputChange('typical_check_size', e.target.value)}
-                  placeholder="e.g., $50K - $500K"
-                  className="text-sm"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="number_of_investments" className="text-sm">Number of Investments Made *</Label>
-                <Input
-                  id="number_of_investments"
-                  value={formData.number_of_investments}
-                  onChange={(e) => handleInputChange('number_of_investments', e.target.value)}
-                  placeholder="e.g., 12 investments"
-                  className="text-sm"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="amount_raised_to_date" className="text-sm">Capital Raised (soft + hard commitments; include self-contribution) *</Label>
-                <Input
-                  id="amount_raised_to_date"
-                  value={formData.amount_raised_to_date}
-                  onChange={(e) => handleInputChange('amount_raised_to_date', e.target.value)}
-                  placeholder="e.g., $2.5M raised"
-                  className="text-sm"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="supporting_documents" className="text-sm">Upload Supporting Documents (Any file type, max 5 files, 10MB each)</Label>
-                <div className="mt-2">
-                  <Input
-                    type="file"
-                    accept="*/*"
-                    multiple
-                    onChange={handleFileUpload}
-                    className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 text-sm"
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Vehicle Information</h3>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="investment_thesis" className="text-sm">Investment Thesis *</Label>
+                  <Textarea
+                    id="investment_thesis"
+                    value={formData.investment_thesis}
+                    onChange={(e) => handleInputChange('investment_thesis', e.target.value)}
+                    placeholder="Describe your investment strategy, focus areas, and approach..."
+                    rows={4}
+                    className="text-sm"
                   />
-                  {formData.supporting_documents.length > 0 && (
-                    <div className="mt-2 space-y-1">
-                      {formData.supporting_documents.map((file, index) => (
-                        <div key={index} className="flex items-center text-xs sm:text-sm text-gray-600">
-                          <FileText className="w-3 h-3 sm:w-4 sm:h-4 mr-2 flex-shrink-0" />
-                          <span className="truncate">{file.name}</span>
-                        </div>
-                      ))}
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="typical_check_size" className="text-sm">Typical Check Size *</Label>
+                    <Input
+                      id="typical_check_size"
+                      value={formData.typical_check_size}
+                      onChange={(e) => handleInputChange('typical_check_size', e.target.value)}
+                      placeholder="e.g., $500K - $2M"
+                      className="text-sm"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="number_of_investments" className="text-sm">Number of Investments *</Label>
+                    <Input
+                      id="number_of_investments"
+                      value={formData.number_of_investments}
+                      onChange={(e) => handleInputChange('number_of_investments', e.target.value)}
+                      placeholder="e.g., 15-20 companies"
+                      className="text-sm"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="amount_raised_to_date" className="text-sm">Amount Raised to Date *</Label>
+                    <Input
+                      id="amount_raised_to_date"
+                      value={formData.amount_raised_to_date}
+                      onChange={(e) => handleInputChange('amount_raised_to_date', e.target.value)}
+                      placeholder="e.g., $50M"
+                      className="text-sm"
+                    />
+                  </div>
+                </div>
+
+                {/* Supporting Documents Section */}
+                <div className="space-y-4">
+                  <Label className="text-sm">Supporting Documents</Label>
+                  
+                  {/* File Upload */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-gray-600">Upload Files (PDF, Images, etc.)</Label>
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                      <div className="text-center">
+                        <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                        <p className="text-sm text-gray-600 mb-2">
+                          Upload supporting documents (max 5 files, 10MB each)
+                        </p>
+                                               <input
+                         type="file"
+                         accept="*/*"
+                         multiple
+                         onChange={handleFileUpload}
+                         className="hidden"
+                         id="document-upload"
+                         disabled={uploading}
+                         aria-label="Upload supporting documents"
+                       />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => document.getElementById('document-upload')?.click()}
+                          disabled={uploading}
+                          className="text-sm"
+                        >
+                          <Upload className="w-4 h-4 mr-2" />
+                          {uploading ? 'Uploading...' : 'Choose Files'}
+                        </Button>
+                      </div>
                     </div>
-                  )}
+                    
+                    {/* Show uploaded files */}
+                    {formData.supporting_documents.length > 0 && (
+                      <div className="space-y-1">
+                        {formData.supporting_documents.map((fileData, index) => {
+                          const parsedData = JSON.parse(fileData);
+                          return (
+                            <div key={index} className="flex items-center text-xs text-gray-600">
+                              <FileText className="w-3 h-3 mr-2" />
+                              <span className="truncate">{parsedData.fileName}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Link Input */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-gray-600">Or Provide Document Links</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="https://example.com/document.pdf"
+                        className="text-sm"
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            const target = e.target as HTMLInputElement;
+                            if (target.value.trim()) {
+                              handleLinkUpload(target.value.trim());
+                              target.value = '';
+                            }
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          const input = document.querySelector('input[placeholder*="example.com"]') as HTMLInputElement;
+                          if (input && input.value.trim()) {
+                            handleLinkUpload(input.value.trim());
+                            input.value = '';
+                          }
+                        }}
+                        disabled={uploading}
+                        className="text-sm"
+                      >
+                        {uploading ? 'Saving...' : 'Save Link'}
+                      </Button>
+                    </div>
+                    
+                    {/* Show saved links */}
+                    {formData.supporting_document_links.length > 0 && (
+                      <div className="space-y-1">
+                        {formData.supporting_document_links.map((linkData, index) => {
+                          const parsedData = JSON.parse(linkData);
+                          return (
+                            <div key={index} className="flex items-center text-xs text-gray-600">
+                              <Link className="w-3 h-3 mr-2" />
+                              <span className="truncate">{parsedData.fileName}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -512,74 +612,67 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
 
       case 4:
         return (
-          <div className="space-y-4 sm:space-y-6">
-            <div className="flex items-center space-x-3 mb-4 sm:mb-6">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                <Globe className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
-              </div>
-              <div>
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900">Network Expectations</h3>
-                <p className="text-xs sm:text-sm text-gray-600">Help us understand your goals and how you heard about us</p>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <Label className="text-sm">Topics you're willing to share expertise on (select multiple) *</Label>
-                <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {informationSharingOptions.map((topic) => (
-                    <div key={topic} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={topic}
-                        checked={formData.information_sharing_topics.includes(topic)}
-                        onCheckedChange={() => handleTopicToggle(topic)}
-                      />
-                      <Label htmlFor={topic} className="text-xs sm:text-sm leading-tight">{topic}</Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              <div>
-                <Label htmlFor="expectations_from_network" className="text-sm">Expectations from the ESCP Network *</Label>
-                <Textarea
-                  id="expectations_from_network"
-                  value={formData.expectations_from_network}
-                  onChange={(e) => handleInputChange('expectations_from_network', e.target.value)}
-                  placeholder="What do you hope to gain from joining the ESCP Network?"
-                  rows={3}
-                  className="text-sm"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="how_heard_about_network" className="text-sm">How did you hear about the Network? *</Label>
-                <Select 
-                  value={formData.how_heard_about_network} 
-                  onValueChange={(value) => handleInputChange('how_heard_about_network', value)}
-                >
-                  <SelectTrigger className="text-sm">
-                    <SelectValue placeholder="Select how you heard about us" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {howHeardOptions.map((option) => (
-                      <SelectItem key={option} value={option}>{option}</SelectItem>
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Network Expectations</h3>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm">Information Sharing Topics *</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                    {informationSharingOptions.map((topic) => (
+                      <div key={topic} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={topic}
+                          checked={formData.information_sharing_topics.includes(topic)}
+                          onCheckedChange={() => handleTopicToggle(topic)}
+                        />
+                        <Label htmlFor={topic} className="text-sm font-normal">{topic}</Label>
+                      </div>
                     ))}
-                  </SelectContent>
-                </Select>
-                
-                {formData.how_heard_about_network === 'Other' && (
-                  <div className="mt-2">
-                    <Label htmlFor="how_heard_other" className="text-sm">Please specify</Label>
-                    <Input
-                      id="how_heard_other"
-                      value={formData.how_heard_other}
-                      onChange={(e) => handleInputChange('how_heard_other', e.target.value)}
-                      placeholder="Please tell us how you heard about the network"
-                      className="text-sm"
-                    />
                   </div>
-                )}
+                </div>
+                
+                <div>
+                  <Label htmlFor="expectations_from_network" className="text-sm">Expectations from the ESCP Network *</Label>
+                  <Textarea
+                    id="expectations_from_network"
+                    value={formData.expectations_from_network}
+                    onChange={(e) => handleInputChange('expectations_from_network', e.target.value)}
+                    placeholder="What do you hope to gain from joining the ESCP Network?"
+                    rows={3}
+                    className="text-sm"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="how_heard_about_network" className="text-sm">How did you hear about the Network? *</Label>
+                  <Select 
+                    value={formData.how_heard_about_network} 
+                    onValueChange={(value) => handleInputChange('how_heard_about_network', value)}
+                  >
+                    <SelectTrigger className="text-sm">
+                      <SelectValue placeholder="Select how you heard about us" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {howHeardOptions.map((option) => (
+                        <SelectItem key={option} value={option}>{option}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  {formData.how_heard_about_network === 'Other' && (
+                    <div className="mt-2">
+                      <Label htmlFor="how_heard_other" className="text-sm">Please specify</Label>
+                      <Input
+                        id="how_heard_other"
+                        value={formData.how_heard_other}
+                        onChange={(e) => handleInputChange('how_heard_other', e.target.value)}
+                        placeholder="Please explain how you discovered this network..."
+                        className="text-sm mt-1"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -590,88 +683,72 @@ export function ESCPApplicationModal({ open, onClose }: ESCPApplicationModalProp
     }
   };
 
-  return (
-    <>
+  if (showSuccessMessage) {
+    return (
       <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6 w-[95vw] sm:w-auto">
-          <DialogHeader className="mb-6">
-            <DialogTitle className="text-lg sm:text-xl font-bold text-gray-900 break-words">
-              ESCP Network Application
-            </DialogTitle>
-            <DialogDescription className="text-sm text-gray-600 break-words">
-              Complete this comprehensive application to join the Early Stage Capital Provider Network
-            </DialogDescription>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center">Application Submitted!</DialogTitle>
           </DialogHeader>
-
-          {/* Progress Indicator */}
-          <div className="flex items-center justify-between mb-6 px-2 overflow-x-auto">
-            {[1, 2, 3, 4].map((step) => (
-              <div key={step} className="flex items-center flex-shrink-0">
-                <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${
-                  step <= currentSection 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-200 text-gray-600'
-                }`}>
-                  {step}
-                </div>
-                {step < 4 && (
-                  <div className={`w-6 sm:w-8 h-1 mx-1 sm:mx-2 ${
-                    step < currentSection ? 'bg-blue-600' : 'bg-gray-200'
-                  }`} />
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Form Content */}
-          <div className="min-h-[400px] px-2 overflow-x-hidden">
-            {renderSection()}
-          </div>
-
-          {/* Navigation Buttons */}
-          <div className="flex flex-col sm:flex-row justify-between pt-6 border-t gap-3">
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentSection === 1}
-              className="w-full sm:w-auto"
-            >
-              Previous
-            </Button>
-            
-            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
-              {currentSection < 4 ? (
-                <Button onClick={handleNext} className="w-full sm:w-auto">
-                  Next
-                </Button>
-              ) : (
-                <Button onClick={handleSubmit} disabled={loading} className="w-full sm:w-auto">
-                  {loading ? 'Submitting...' : 'Submit Application'}
-                </Button>
-              )}
+          <div className="text-center space-y-4">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+              <CheckCircle className="w-8 h-8 text-green-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Thank You!</h3>
+              <p className="text-gray-600">
+                Your application has been successfully submitted and is under review. 
+                We will contact you once the review process is complete.
+              </p>
             </div>
           </div>
         </DialogContent>
       </Dialog>
+    );
+  }
 
-      {/* Success Message Overlay */}
-      {showSuccessMessage && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg p-6 sm:p-8 max-w-md mx-4 text-center shadow-2xl animate-in fade-in-0 zoom-in-95 duration-300">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>ESCP Network Application</DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-6">
+          {/* Progress Bar */}
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm text-gray-600">
+              <span>Step {currentSection} of 4</span>
+              <span>{Math.round((currentSection / 4) * 100)}% Complete</span>
             </div>
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 break-words">Application Submitted!</h3>
-            <p className="text-gray-600 mb-4 text-sm break-words">
-              Your ESCP Network application has been submitted for review. We'll get back to you once the review is completed.
-            </p>
-            <div className="flex items-center justify-center gap-2 text-sm text-green-600">
-              <CheckCircle className="w-4 h-4" />
-              <span>Successfully submitted</span>
-            </div>
+            <Progress value={(currentSection / 4) * 100} className="w-full" />
+          </div>
+
+          {/* Form Content */}
+          {renderSection(currentSection)}
+
+          {/* Navigation Buttons */}
+          <div className="flex justify-between pt-6">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handlePrevious}
+              disabled={currentSection === 1}
+            >
+              Previous
+            </Button>
+            
+            <Button
+              type="button"
+              onClick={handleNext}
+              disabled={loading}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {loading ? 'Submitting...' : currentSection === 4 ? 'Submit Application' : 'Next'}
+            </Button>
           </div>
         </div>
-      )}
-    </>
+      </DialogContent>
+    </Dialog>
   );
 }

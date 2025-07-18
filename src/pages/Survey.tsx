@@ -83,15 +83,15 @@ const surveySchema = z.object({
 
   // Section 2: Team & Leadership
   team_members: z.array(z.object({
-    name: z.string().min(1, 'Name is required'),
-    email: z.string().email('Invalid email').optional(),
+    name: z.string().optional(),
+    email: z.string().optional(),
     phone: z.string().optional(),
-    role: z.string().min(1, 'Role is required'),
+    role: z.string().optional(),
     experience: z.string().optional(),
   })).optional(),
   team_size_min: z.number().optional(),
   team_size_max: z.number().optional(),
-  team_description: z.string().optional(),
+  team_description: z.string().min(1, 'Team description is required'),
 
   // Section 3: Geographic & Market Focus
   legal_domicile: z.array(z.string()).optional(),
@@ -103,18 +103,27 @@ const surveySchema = z.object({
   ticket_size_min: z.number().optional(),
   ticket_size_max: z.number().optional(),
   ticket_description: z.string().optional(),
-  target_capital: z.number().optional(),
+  target_capital: z.number().optional().refine((val) => {
+    if (val === undefined || val === null || val === 0) return true; // Allow empty/zero for viewers
+    return val > 0;
+  }, 'Target capital must be greater than 0'),
   capital_raised: z.number().optional(),
   capital_in_market: z.number().optional(),
 
   // Section 5: Fund Operations
   supporting_document_url: z.string().optional(),
-  expectations: z.string().optional(),
+  expectations: z.string().optional().refine((val) => {
+    if (val === undefined || val === null || val === '') return true; // Allow empty for viewers
+    return val.trim().length > 0;
+  }, 'Expectations are required'),
   how_heard_about_network: z.string().optional(),
   how_heard_about_network_other: z.string().optional(),
 
   // Section 6: Fund Status & Timeline
-  fund_stage: z.array(z.string()).optional(),
+  fund_stage: z.array(z.string()).optional().refine((data) => {
+    if (!data || data.length === 0) return true; // Allow empty for viewers
+    return data.length > 0;
+  }, 'At least one fund stage is required'),
   current_status: z.string().optional(),
   current_status_other: z.string().optional(),
   legal_entity_date_from: z.number().optional(),
@@ -135,10 +144,19 @@ const surveySchema = z.object({
     deployed: z.number(),
     deployedValue: z.number(),
     priority: z.number(),
-  })).optional(),
+  })).optional().refine((data) => {
+    if (!data || data.length === 0) return true; // Allow empty for viewers
+    return data.length > 0;
+  }, 'At least one investment instrument is required'),
 
   // Section 8: Sector Focus & Returns
-  sectors_allocation: z.record(z.string(), z.number()).optional(),
+  sectors_allocation: z.record(z.string(), z.number()).optional().refine(
+    (data) => {
+      if (!data || Object.keys(data).length === 0) return true; // Allow empty for viewers
+      return Object.keys(data).length > 0;
+    },
+    'At least one sector focus is required'
+  ),
   target_return_min: z.number().optional(),
   target_return_max: z.number().optional(),
   equity_investments_made: z.number().optional(),
@@ -162,93 +180,20 @@ const Survey = () => {
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [showSubmitConfirmation, setShowSubmitConfirmation] = useState(false);
   const [customYear, setCustomYear] = useState<string>('');
-  const { user, userRole } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+  const { user, userRole, loading: authLoading } = useAuth();
   const { toast } = useToast();
 
   const totalSections = 8;
   const progress = (currentSection / totalSections) * 100;
 
-  // Auto-save functionality
-  const [autoSaveTimer, setAutoSaveTimer] = useState<NodeJS.Timeout | null>(null);
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
-
-  const autoSave = useCallback(async () => {
-    if (!user || !selectedYear) return;
-
-    try {
-      const formData = form.getValues();
-      const surveyData = prepareForDb(formData, user.id, selectedYear, false);
-
-      if (existingResponse?.id) {
-        await supabase
-          .from('survey_responses')
-          .update(surveyData)
-          .eq('id', existingResponse.id);
-      } else {
-        await supabase
-          .from('survey_responses')
-          .insert(surveyData);
-      }
-
-      setLastSaved(new Date());
-      console.log('Auto-saved survey data');
-    } catch (error) {
-      console.error('Auto-save error:', error);
-    }
-  }, [user, selectedYear, existingResponse, form]);
-
-  // Set up auto-save on form changes
-  useEffect(() => {
-    if (autoSaveTimer) {
-      clearTimeout(autoSaveTimer);
-    }
-
-    const timer = setTimeout(() => {
-      autoSave();
-    }, 30000); // Auto-save every 30 seconds
-
-    setAutoSaveTimer(timer);
-
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
-  }, [form.watch(), autoSave]);
-
-  // Clean up timer on unmount
-  useEffect(() => {
-    return () => {
-      if (autoSaveTimer) {
-        clearTimeout(autoSaveTimer);
-      }
-    };
-  }, [autoSaveTimer]);
-
-  const fetchPastSurveys = useCallback(async () => {
-    try {
-      let query = supabase
-        .from('survey_responses')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      // If member or viewer, only show their surveys
-      if (userRole === 'member' || userRole === 'viewer') {
-        query = query.eq('user_id', user.id);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      setPastSurveys((data || []).map(mapSupabaseSurveyToFormData));
-    } catch (error) {
-      console.error('Error fetching past surveys:', error);
-    }
-  }, [userRole, user?.id]);
-
+  // Initialize form first
   const form = useForm<SurveyFormData>({
     resolver: zodResolver(surveySchema),
     defaultValues: {
       vehicle_name: '',
       vehicle_websites: [],
-      team_members: [],
+      team_members: [], // Empty array for viewers
       legal_domicile: [],
       fund_stage: [],
       team_size_min: 1,
@@ -264,14 +209,71 @@ const Survey = () => {
       equity_investments_exited: 0,
       self_liquidating_made: 0,
       self_liquidating_exited: 0,
+      supporting_document_url: '',
+      expectations: '',
+      how_heard_about_network: '',
+      how_heard_about_network_other: '',
+      vehicle_type: '',
+      vehicle_type_other: '',
+      thesis: '',
+      team_description: '',
+      legal_domicile_other: '',
+      markets_operated: {},
+      markets_operated_other: '',
+      ticket_description: '',
+      current_status: '',
+      current_status_other: '',
+      legal_entity_date_from: undefined,
+      legal_entity_date_to: undefined,
+      legal_entity_month_from: undefined,
+      legal_entity_month_to: undefined,
+      first_close_date_from: undefined,
+      first_close_date_to: undefined,
+      first_close_month_from: undefined,
+      first_close_month_to: undefined,
+      investment_instruments_priority: {},
+      investment_instruments_data: [],
+      sectors_allocation: {},
     }
   });
 
-  useEffect(() => {
-    if (user) {
-      fetchPastSurveys();
+
+
+  const fetchPastSurveys = useCallback(async () => {
+    try {
+      let query = supabase
+        .from('survey_responses')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      // If member or viewer, only show their surveys; admins can see all
+      if (userRole === 'member' || userRole === 'viewer') {
+        query = query.eq('user_id', user.id);
+      }
+      // Admins can see all surveys (no additional filter needed)
+
+      const { data, error } = await query;
+      if (error) throw error;
+      setPastSurveys((data || []).map(mapSupabaseSurveyToFormData));
+    } catch (error) {
+      console.error('Error fetching past surveys:', error);
     }
-  }, [user, fetchPastSurveys]);
+  }, [userRole, user?.id]);
+
+  useEffect(() => {
+    if (user && !authLoading) {
+      fetchPastSurveys();
+      setIsLoading(false);
+    }
+  }, [user, authLoading, fetchPastSurveys]);
+
+  // Ensure form data persists between sections
+  useEffect(() => {
+    const subscription = form.watch((value, { name, type }) => {
+      console.log('Form field changed:', name, type, value);
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   useEffect(() => {
     const loadExistingResponse = async () => {
@@ -297,62 +299,7 @@ const Survey = () => {
     loadExistingResponse();
   }, [user, form, showNewSurvey, selectedYear]);
 
-  // Function to get previous survey data for prefilling
-  const getPreviousSurveyData = async () => {
-    if (!user?.id) return null;
 
-    try {
-      const { data, error } = await supabase
-        .rpc('get_previous_survey_data', { user_uuid: user.id });
-
-      if (error) {
-        console.error('Error getting previous survey data:', error);
-        return null;
-      }
-
-      return data;
-    } catch (error) {
-      console.error('Error getting previous survey data:', error);
-      return null;
-    }
-  };
-
-  // Function to prefill form with previous survey data
-  const prefillWithPreviousData = async () => {
-    try {
-      const previousData = await getPreviousSurveyData();
-      if (previousData) {
-        const formData = mapSupabaseSurveyToFormData(previousData);
-        // Remove metadata fields that shouldn't be prefilled
-        const { id, year, created_at, completed_at, role_badge, ...prefillData } = formData;
-        
-        // Set each field individually to ensure proper form state
-        Object.entries(prefillData).forEach(([key, value]) => {
-          if (value !== undefined && value !== null) {
-            form.setValue(key as keyof SurveyFormData, value);
-          }
-        });
-        
-        toast({
-          title: "Form Prefilled",
-          description: "Previous survey data has been loaded. You can edit any fields as needed.",
-        });
-      } else {
-        toast({
-          title: "No Previous Data",
-          description: "No previous survey data found to prefill from.",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error('Error prefilling form:', error);
-      toast({
-        title: "Prefill Error",
-        description: "Failed to load previous survey data. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
 
   const prepareForDb = (formData: SurveyFormData, userId: string, year: number, completed: boolean = false) => {
     const dbData: any = {
@@ -368,7 +315,7 @@ const Survey = () => {
       thesis: formData.thesis || null,
       
       // Section 2: Team & Leadership
-      team_members: formData.team_members || [],
+      team_members: userRole === 'viewer' ? [] : (formData.team_members || []),
       team_size_min: formData.team_size_min || null,
       team_size_max: formData.team_size_max || null,
       team_description: formData.team_description || null,
@@ -422,6 +369,44 @@ const Survey = () => {
     console.log('Form errors:', form.formState.errors);
     console.log('User:', user);
     console.log('Selected year:', selectedYear);
+    console.log('User role:', userRole);
+    
+    // Debug form state
+    console.log('Form state:', {
+      isValid: form.formState.isValid,
+      isDirty: form.formState.isDirty,
+      isSubmitting: form.formState.isSubmitting,
+      errors: form.formState.errors,
+      values: form.getValues()
+    });
+    
+    // For viewers, we'll be more lenient with validation
+    const isViewer = userRole === 'viewer';
+    
+    // For viewers, skip schema validation and use custom validation
+    if (isViewer) {
+      // For viewers, just check basic required fields
+      if (!data.vehicle_name || !data.team_description || !data.expectations) {
+        toast({
+          title: "Missing Required Fields",
+          description: "Please fill in Fund Name, Team Description, and Expectations.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Ensure team_members is treated as optional for viewers
+      if (!data.team_members) {
+        data.team_members = [];
+      }
+    } else {
+      // For members/admins, use full schema validation
+      const validationResult = await form.trigger();
+      if (!validationResult) {
+        console.log('Final validation failed');
+        return;
+      }
+    }
     
     if (!user) {
       console.log('No user found');
@@ -443,9 +428,9 @@ const Survey = () => {
       return;
     }
 
-    // Validate market allocation doesn't exceed 100%
+    // Validate market allocation doesn't exceed 100% (skip for viewers)
     const totalMarketAllocation = Object.values(data.markets_operated || {}).reduce((sum, val) => sum + val, 0);
-    if (totalMarketAllocation > 100) {
+    if (!isViewer && totalMarketAllocation > 100) {
       console.log('Market allocation exceeds 100%');
       toast({
         title: "Invalid Market Allocation",
@@ -558,40 +543,134 @@ const Survey = () => {
 
     } catch (error) {
       console.error('Submit error:', error);
-      toast({
-        title: "Submission Failed",
-        description: error?.message || "Failed to submit survey. Please try again.",
-        variant: "destructive"
-      });
+      
+      // Check if it's a validation error
+      if (error?.message?.includes('team_members')) {
+        toast({
+          title: "Validation Error",
+          description: "Please ensure all required fields are filled. Team members are optional for viewers.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Submission Failed",
+          description: error?.message || "Failed to submit survey. Please try again.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleNext = () => {
+  // Section validation rules
+  const getSectionValidationRules = (section: number) => {
     const currentValues = form.getValues();
+    const isViewer = userRole === 'viewer';
     
-    // Validate current section before proceeding
-    if (currentSection === 3) {
-      const totalMarketAllocation = Object.values(currentValues.markets_operated || {}).reduce((sum, val) => sum + val, 0);
-      if (totalMarketAllocation > 100) {
-        toast({
-          title: "Invalid Market Allocation",
-          description: "Total market allocation cannot exceed 100%. Please adjust your allocations.",
-          variant: "destructive"
-        });
-        return;
+    console.log('Section validation for section', section, 'with values:', currentValues);
+    
+    switch (section) {
+      case 1: // Vehicle Information
+        const hasVehicleName = currentValues.vehicle_name && currentValues.vehicle_name.trim() !== '';
+        console.log('Section 1 validation:', { hasVehicleName, vehicleName: currentValues.vehicle_name });
+        return {
+          isValid: hasVehicleName,
+          missingFields: !hasVehicleName ? ['Fund Name'] : []
+        };
+      case 2: // Team & Leadership
+        const hasTeamDescription = currentValues.team_description && currentValues.team_description.trim() !== '';
+        console.log('Section 2 validation:', { hasTeamDescription, teamDescription: currentValues.team_description });
+        return {
+          isValid: hasTeamDescription,
+          missingFields: !hasTeamDescription ? ['Team Description'] : []
+        };
+      case 3: // Geographic & Market Focus
+        // For viewers, allow empty market allocation but if they provide it, validate it
+        const totalMarketAllocation = Object.values(currentValues.markets_operated || {}).reduce((sum, val) => sum + val, 0);
+        const hasMarketData = Object.keys(currentValues.markets_operated || {}).length > 0;
+        return {
+          isValid: isViewer ? true : (hasMarketData ? (totalMarketAllocation > 0 && totalMarketAllocation <= 100) : true),
+          missingFields: isViewer ? [] : (hasMarketData && totalMarketAllocation === 0 ? ['Market Allocation'] : hasMarketData && totalMarketAllocation > 100 ? ['Market Allocation (exceeds 100%)'] : [])
+        };
+      case 4: // Investment Strategy
+        return {
+          isValid: isViewer ? true : (!currentValues.target_capital || currentValues.target_capital > 0),
+          missingFields: isViewer ? [] : (currentValues.target_capital && currentValues.target_capital <= 0 ? ['Target Capital'] : [])
+        };
+      case 5: // Fund Operations
+        return {
+          isValid: currentValues.expectations && currentValues.expectations.trim() !== '',
+          missingFields: !currentValues.expectations || currentValues.expectations.trim() === '' ? ['Expectations'] : []
+        };
+      case 6: // Fund Status & Timeline
+        // For viewers, allow empty fund stage
+        return {
+          isValid: isViewer ? true : (currentValues.fund_stage && currentValues.fund_stage.length > 0),
+          missingFields: isViewer ? [] : (!currentValues.fund_stage || currentValues.fund_stage.length === 0 ? ['Fund Stage'] : [])
+        };
+      case 7: // Investment Instruments
+        // For viewers, allow empty investment instruments
+        return {
+          isValid: isViewer ? true : (currentValues.investment_instruments_data && currentValues.investment_instruments_data.length > 0),
+          missingFields: isViewer ? [] : (!currentValues.investment_instruments_data || currentValues.investment_instruments_data.length === 0 ? ['Investment Instruments'] : [])
+        };
+      case 8: // Sector Focus & Returns
+        // For viewers, allow empty sector allocation
+        return {
+          isValid: isViewer ? true : (currentValues.sectors_allocation && Object.keys(currentValues.sectors_allocation).length > 0),
+          missingFields: isViewer ? [] : (!currentValues.sectors_allocation || Object.keys(currentValues.sectors_allocation).length === 0 ? ['Sector Focus'] : [])
+        };
+      default:
+        return { isValid: true, missingFields: [] };
+    }
+  };
+
+  const handleNext = () => {
+    console.log('handleNext called for section:', currentSection);
+    const currentValues = form.getValues();
+    console.log('Current form values:', currentValues);
+    
+    // Force form to update with current values
+    form.trigger();
+    
+    const validation = getSectionValidationRules(currentSection);
+    console.log('Validation result:', validation);
+    
+    if (!validation.isValid) {
+      console.log('Section validation FAILED - preventing progression');
+      
+      // Trigger vibration if available
+      if (navigator.vibrate) {
+        navigator.vibrate(200);
       }
+      
+      // Show error toast
+      toast({
+        title: "Section Incomplete",
+        description: `Please complete the following required fields: ${validation.missingFields.join(', ')}`,
+        variant: "destructive"
+      });
+      
+      // Trigger form validation to show red highlights
+      form.trigger();
+      return;
     }
 
+    console.log('Section validation PASSED - proceeding to next section');
     if (currentSection < totalSections) {
       setCurrentSection(currentSection + 1);
     } else if (currentSection === totalSections) {
-      // Submit directly without confirmation
+      // Submit directly without validation - let the form handle it
       console.log('Submitting survey from handleNext...');
       console.log('Form values:', form.getValues());
-      console.log('Form errors:', form.formState.errors);
-      form.handleSubmit(onSubmit)();
+      
+      // For viewers, bypass schema validation
+      if (userRole === 'viewer') {
+        onSubmit(form.getValues());
+      } else {
+        form.handleSubmit(onSubmit)();
+      }
     }
   };
 
@@ -673,6 +752,15 @@ const Survey = () => {
     "Sector Focus & Returns"
   ];
 
+  // Show loading state while auth is loading or user is not available
+  if (authLoading || !user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
   // If showing new survey form
   if (showNewSurvey) {
     return (
@@ -694,30 +782,51 @@ const Survey = () => {
               </div>
               <div className="text-sm text-gray-600">
                 Section {currentSection} of {totalSections}
+                {(() => {
+                  const validation = getSectionValidationRules(currentSection);
+                  return validation.isValid ? (
+                    <span className="ml-2 text-green-600 font-semibold">✓ Complete</span>
+                  ) : (
+                    <span className="ml-2 text-red-600 font-semibold">⚠ Incomplete - Required fields missing</span>
+                  );
+                })()}
               </div>
             </div>
             <Progress value={progress} className="w-full" />
-            {lastSaved && (
-              <div className="text-xs text-green-600 flex items-center gap-1 mt-2">
-                <CheckCircle className="w-3 h-3" />
-                Auto-saved {lastSaved.toLocaleTimeString()}
-              </div>
-            )}
             <p className="mt-2 text-gray-600">
               Complete all sections to submit your survey
             </p>
           </div>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
-              console.log('Form validation errors:', errors);
-              console.log('Form values:', form.getValues());
-              toast({
-                title: "Validation Error",
-                description: "Please check all required fields.",
-                variant: "destructive"
-              });
-            })} className="space-y-8">
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              
+              // For viewers, bypass schema validation
+              if (userRole === 'viewer') {
+                const formData = form.getValues();
+                console.log('Viewer form submission - bypassing schema validation');
+                onSubmit(formData);
+              } else {
+                // For members/admins, use normal form validation
+                form.handleSubmit(onSubmit, (errors) => {
+                  console.log('Form validation errors:', errors);
+                  console.log('Form values:', form.getValues());
+                  
+                  // Create a more detailed error message
+                  const errorMessages = Object.entries(errors).map(([field, error]) => {
+                    return `${field}: ${error?.message || 'Required'}`;
+                  }).join(', ');
+                  
+                  toast({
+                    title: "Validation Error",
+                    description: `Please fix the following issues: ${errorMessages}`,
+                    variant: "destructive"
+                  });
+                  return; // Prevent submission on validation errors
+                })(e);
+              }
+            }} className="space-y-8">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
@@ -756,80 +865,34 @@ const Survey = () => {
                   Save Draft
                 </Button>
 
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={prefillWithPreviousData}
-                  disabled={isSubmitting}
-                  className="bg-purple-100 hover:bg-purple-200 text-purple-700 border-purple-300"
-                >
-                  Prefill from Previous Survey
-                </Button>
+
 
                 {currentSection < totalSections ? (
                   <Button 
                     type="button" 
                     onClick={handleNext}
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className={(() => {
+                      const validation = getSectionValidationRules(currentSection);
+                      return validation.isValid 
+                        ? "bg-blue-600 hover:bg-blue-700" 
+                        : "bg-red-600 hover:bg-red-700";
+                    })()}
                   >
-                    Next
+                    {(() => {
+                      const validation = getSectionValidationRules(currentSection);
+                      return validation.isValid ? "Next" : "Complete Section First";
+                    })()}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 ) : (
-                  <div className="flex gap-2">
-                    <Button 
-                      type="button"
-                      onClick={() => {
-                        console.log('Manual submit clicked');
-                        console.log('Form values:', form.getValues());
-                        console.log('Form errors:', form.formState.errors);
-                        form.handleSubmit(onSubmit)();
-                      }}
-                      className="bg-yellow-600 hover:bg-yellow-700"
-                    >
-                      Test Submit
-                    </Button>
-                    <Button 
-                      type="button"
-                      onClick={async () => {
-                        console.log('Force submit clicked');
-                        const data = form.getValues();
-                        console.log('Force submitting with data:', data);
-                        try {
-                          const surveyData = prepareForDb(data, user.id, selectedYear || 2024, true);
-                          console.log('Prepared survey data:', surveyData);
-                          
-                          const result = await supabase
-                            .from('survey_responses')
-                            .insert([surveyData]);
-                          
-                          console.log('Force submit result:', result);
-                          if (result.error) {
-                            console.error('Force submit error:', result.error);
-                          } else {
-                            console.log('Force submit success!');
-                            toast({
-                              title: "Survey Submitted Successfully!",
-                              description: `Your ${selectedYear || 2024} survey has been completed and submitted.`,
-                            });
-                          }
-                        } catch (error) {
-                          console.error('Force submit error:', error);
-                        }
-                      }}
-                      className="bg-red-600 hover:bg-red-700"
-                    >
-                      Force Submit
-                    </Button>
-                    <Button 
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      {isSubmitting ? 'Submitting...' : 'Submit Survey'}
-                      <CheckCircle className="w-4 h-4 ml-2" />
-                    </Button>
-                  </div>
+                  <Button 
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {isSubmitting ? 'Submitting...' : 'Submit Survey'}
+                    <CheckCircle className="w-4 h-4 ml-2" />
+                  </Button>
                 )}
               </div>
             </form>
@@ -896,29 +959,43 @@ const Survey = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {pastSurveys.map((survey) => (
-                      <div key={survey.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <Calendar className="w-5 h-5 text-blue-600" />
+                    {pastSurveys.map((survey) => {
+                      const isDraft = !survey.completed_at;
+                      return (
+                        <div
+                          key={survey.id}
+                          className={`flex items-center justify-between p-4 border rounded-lg ${isDraft ? 'hover:bg-blue-50 cursor-pointer' : ''}`}
+                          onClick={() => {
+                            if (!isDraft) return;
+                            setSelectedYear(survey.year);
+                            setShowNewSurvey(true);
+                            setExistingResponse(survey);
+                            form.reset(survey);
+                            setCurrentSection(1);
+                          }}
+                        >
+                          <div className="flex items-center space-x-4">
+                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                              <Calendar className="w-5 h-5 text-blue-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900">Survey {survey.year}</p>
+                              <p className="text-sm text-gray-600">
+                                {new Date(survey.created_at).toLocaleDateString()}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-medium text-gray-900">Survey {survey.year}</p>
-                            <p className="text-sm text-gray-600">
-                              {new Date(survey.created_at).toLocaleDateString()}
-                            </p>
+                          <div className="flex items-center space-x-3">
+                            <Badge 
+                              variant={survey.completed_at ? "default" : "secondary"}
+                              className={survey.completed_at ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}
+                            >
+                              {survey.completed_at ? "Completed" : "Draft"}
+                            </Badge>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-3">
-                          <Badge 
-                            variant={survey.completed_at ? "default" : "secondary"}
-                            className={survey.completed_at ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}
-                          >
-                            {survey.completed_at ? "Completed" : "Draft"}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>

@@ -362,42 +362,42 @@ export function InvestmentInstrumentsSection({ form }: InvestmentInstrumentsSect
                         <td className="p-2">
                           <div className="text-sm">
                             ${instrument.deployedValue.toLocaleString()}
-                          </div>
+                    </div>
                         </td>
                         <td className="p-2">
                           <div className="flex gap-1">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
                               onClick={() => moveUp(instruments.findIndex(inst => inst.name === instrument.name))}
-                            >
-                              <ArrowUp className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
+                      >
+                        <ArrowUp className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
                               onClick={() => moveDown(instruments.findIndex(inst => inst.name === instrument.name))}
-                            >
-                              <ArrowDown className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
+                      >
+                        <ArrowDown className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
                               onClick={() => removeInstrument(instruments.findIndex(inst => inst.name === instrument.name))}
-                            >
-                              <X className="w-4 h-4" />
-                            </Button>
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
                           </div>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-              </div>
-            </div>
+                    </div>
+                  </div>
           )}
 
           {/* Validation Summary */}

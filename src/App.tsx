@@ -47,7 +47,7 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/survey" element={
-              <ProtectedRoute requiredRole="viewer">
+              <ProtectedRoute>
                 <Survey />
               </ProtectedRoute>
             } />

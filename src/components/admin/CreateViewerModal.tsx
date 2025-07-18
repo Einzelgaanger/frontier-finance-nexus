@@ -21,7 +21,7 @@ import { InvestmentInstrumentsSection } from '@/components/survey/InvestmentInst
 import { SectorReturnsSection } from '@/components/survey/SectorReturnsSection';
 import type { SurveyFormData } from '@/types/survey';
 
-// Use the same schema as the Survey page
+// Use the same schema as the Survey page but more lenient for admin creation
 const surveySchema = z.object({
   // Account fields
   email: z.string().email('Invalid email address'),
@@ -31,20 +31,17 @@ const surveySchema = z.object({
   survey_year: z.number().min(2020, 'Year must be 2020 or later').max(2030, 'Year must be 2030 or earlier'),
   
   // Section 1: Vehicle Information
-  vehicle_name: z.string().min(1, 'Fund name is required'),
+  vehicle_name: z.string().optional().refine((val) => {
+    if (val === undefined || val === null || val === '') return true; // Allow empty for admin creation
+    return val.trim().length > 0;
+  }, 'Fund name is required'),
   vehicle_websites: z.array(z.string()).optional(),
   vehicle_type: z.string().optional(),
   vehicle_type_other: z.string().optional(),
   thesis: z.string().optional(),
 
-  // Section 2: Team & Leadership
-  team_members: z.array(z.object({
-    name: z.string().min(1, 'Name is required'),
-    email: z.string().email('Invalid email').optional(),
-    phone: z.string().optional(),
-    role: z.string().min(1, 'Role is required'),
-    experience: z.string().optional(),
-  })).optional(),
+  // Section 2: Team & Leadership - Completely optional for admin creation
+  team_members: z.any().optional(), // Allow any value for team_members
   team_size_min: z.number().optional(),
   team_size_max: z.number().optional(),
   team_description: z.string().optional(),
@@ -91,10 +88,19 @@ const surveySchema = z.object({
     deployed: z.number(),
     deployedValue: z.number(),
     priority: z.number(),
-  })).optional(),
+  })).optional().refine((data) => {
+    if (!data || data.length === 0) return true; // Allow empty for admin creation
+    return data.length > 0;
+  }, 'At least one investment instrument is required'),
 
   // Section 8: Sector Focus & Returns
-  sectors_allocation: z.record(z.string(), z.number()).optional(),
+  sectors_allocation: z.record(z.string(), z.number()).optional().refine(
+    (data) => {
+      if (!data || Object.keys(data).length === 0) return true; // Allow empty for admin creation
+      return Object.keys(data).length > 0;
+    },
+    'At least one sector focus is required'
+  ),
   target_return_min: z.number().optional(),
   target_return_max: z.number().optional(),
   equity_investments_made: z.number().optional(),
@@ -136,7 +142,7 @@ const CreateViewerModal = ({ open, onClose, onSuccess }: CreateViewerModalProps)
       vehicle_type: '',
       vehicle_type_other: '',
       thesis: '',
-      team_members: [],
+      team_members: [], // Start with empty array
       team_size_min: 1,
       team_size_max: 1,
       team_description: '',
@@ -231,6 +237,32 @@ const CreateViewerModal = ({ open, onClose, onSuccess }: CreateViewerModalProps)
     setIsCreating(true);
 
     try {
+      // First, create the user through our backend API
+      const response = await fetch('http://localhost:4000/create-viewer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+          vehicle_name: data.vehicle_name
+        })
+      });
+
+      const result = await response.json();
+      
+      if (!response.ok) {
+        console.error('Error creating user:', result.error);
+        toast({
+          title: "Error Creating User",
+          description: result.error || 'Failed to create user. Make sure the backend server is running on port 4000.',
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const userId = result.user.id;
+      console.log('User created with ID:', userId);
+
       // Prepare survey data for the database function
       const surveyData = {
         vehicle_name: data.vehicle_name,
@@ -268,7 +300,14 @@ const CreateViewerModal = ({ open, onClose, onSuccess }: CreateViewerModalProps)
         first_close_month_from: data.first_close_month_from,
         first_close_month_to: data.first_close_month_to,
         investment_instruments_priority: data.investment_instruments_priority || {},
-        investment_instruments_data: data.investment_instruments_data || [],
+        investment_instruments_data: (data.investment_instruments_data || []).map((item: any) => ({
+          name: item.name ?? '',
+          committed: item.committed ?? 0,
+          committedPercentage: item.committedPercentage ?? 0,
+          deployed: item.deployed ?? 0,
+          deployedValue: item.deployedValue ?? 0,
+          priority: item.priority ?? 0,
+        })),
         sectors_allocation: data.sectors_allocation || {},
         target_return_min: data.target_return_min,
         target_return_max: data.target_return_max,
@@ -280,27 +319,26 @@ const CreateViewerModal = ({ open, onClose, onSuccess }: CreateViewerModalProps)
 
       console.log('Calling database function with survey data:', surveyData);
 
-      // Call the database function to create viewer with survey
-      const { data: result, error } = await supabase.rpc('create_viewer_with_survey', {
-        viewer_email: data.email,
-        viewer_password: data.password,
-        survey_data: surveyData,
-        survey_year: data.survey_year
+      // Call the database function to create survey data for the existing user
+      const { data: result2, error } = await supabase.rpc('create_viewer_survey_data', {
+        p_user_id: userId,
+        p_survey_data: surveyData,
+        p_survey_year: data.survey_year
       });
 
-      console.log('Database response:', { result, error });
+      console.log('Database response:', { result: result2, error });
 
       if (error) {
-        console.error('Error creating viewer:', error);
+        console.error('Error creating survey data:', error);
         toast({
-          title: "Error Creating Viewer",
+          title: "Error Creating Survey Data",
           description: error.message,
           variant: "destructive"
         });
         return;
       }
 
-      console.log('Viewer created successfully:', result);
+      console.log('Viewer created successfully:', result2);
 
       toast({
         title: "Viewer Created Successfully",
@@ -352,9 +390,20 @@ const CreateViewerModal = ({ open, onClose, onSuccess }: CreateViewerModalProps)
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
             console.log('Form validation errors:', errors);
+            
+            // Create a more detailed error message
+            const errorMessages = Object.entries(errors).map(([field, error]) => {
+              if (field === 'team_members' && Array.isArray(error)) {
+                return `team_members: ${error.length} validation errors`;
+              }
+              return `${field}: ${error?.message || 'Required'}`;
+            }).join(', ');
+            
+            console.log('Detailed error messages:', errorMessages);
+            
             toast({
               title: "Validation Error",
-              description: "Please check all required fields.",
+              description: `Please fix the following issues: ${errorMessages}`,
               variant: "destructive"
             });
           })} className="space-y-6">
@@ -484,57 +533,69 @@ const CreateViewerModal = ({ open, onClose, onSuccess }: CreateViewerModalProps)
               </CardContent>
             </Card>
 
-            <div className="flex justify-between items-center">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={handlePrevious}
-                disabled={currentSection === 1}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Previous
-              </Button>
-
-              {currentSection < totalSections ? (
-                <Button 
-                  type="button" 
-                  onClick={handleNext}
-                  className="bg-blue-600 hover:bg-blue-700"
+            <div className="flex justify-between items-center pt-6">
+              {currentSection > 1 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handlePrevious}
+                  className="flex items-center gap-2"
                 >
-                  Next
-                  <ArrowRight className="w-4 h-4 ml-2" />
+                  <ArrowLeft className="h-4 w-4" />
+                  Previous
                 </Button>
-              ) : (
+              )}
+              
+              {currentSection === 1 ? (
                 <div className="flex gap-2">
-                  <Button 
+                  <Button
                     type="button"
-                    onClick={() => {
-                      console.log('Form values:', form.getValues());
-                      console.log('Form errors:', form.formState.errors);
-                      form.handleSubmit(onSubmit)();
-                    }}
-                    className="bg-yellow-600 hover:bg-yellow-700"
+                    variant="outline"
+                    onClick={() => setCurrentSection(totalSections)}
+                    className="flex items-center gap-2"
                   >
-                    Test Submit
+                    <ArrowRight className="h-4 w-4" />
+                    Go to Finish
                   </Button>
-                  <Button 
+                </div>
+              ) : currentSection === totalSections ? (
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setCurrentSection(1)}
+                    className="flex items-center gap-2"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Back to Start
+                  </Button>
+                  <Button
                     type="submit"
                     disabled={isCreating}
-                    className="bg-green-600 hover:bg-green-700"
+                    className="flex items-center gap-2"
                   >
                     {isCreating ? (
                       <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        <Loader2 className="h-4 w-4 animate-spin" />
                         Creating Viewer...
                       </>
                     ) : (
                       <>
-                        <UserPlus className="w-4 h-4 mr-2" />
-                        Create Viewer with Survey
+                        <UserPlus className="h-4 w-4" />
+                        Create Viewer
                       </>
                     )}
                   </Button>
                 </div>
+              ) : (
+                <Button
+                  type="button"
+                  onClick={handleNext}
+                  className="flex items-center gap-2"
+                >
+                  Next
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
               )}
             </div>
           </form>

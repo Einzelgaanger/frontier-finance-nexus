@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, X, Users, User, Mail, Phone, Briefcase, Hash } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import type { SurveyFormData } from '@/types/survey';
 interface TeamSectionProps {
@@ -24,6 +24,16 @@ export function TeamSection({ form }: TeamSectionProps) {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>(
     (form.getValues('team_members') as TeamMember[]) || []
   );
+
+  // Filter out empty team members before form submission
+  useEffect(() => {
+    const validMembers = teamMembers.filter(member => 
+      member.name.trim() !== '' || member.role.trim() !== '' || member.email.trim() !== '' || member.phone.trim() !== ''
+    );
+    if (validMembers.length !== teamMembers.length) {
+      form.setValue('team_members', validMembers);
+    }
+  }, [teamMembers, form]);
 
   const addTeamMember = () => {
     const newMembers = [...teamMembers, { name: '', email: '', phone: '', role: '' }];

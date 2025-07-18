@@ -476,6 +476,37 @@ const FundManagerDetail = () => {
     }
     
     if (fieldType === 'url' && typeof value === 'string') {
+      // Handle base64 document format
+      try {
+        const doc = JSON.parse(value);
+        if (doc.fileName && doc.data) {
+          return (
+            <div className="flex items-center gap-2">
+              <FileText className="w-4 h-4 text-blue-600" />
+              <span className="text-sm font-medium text-gray-700">
+                {doc.fileName}
+              </span>
+              <span className="text-xs text-gray-500">
+                ({Math.round(doc.fileSize / 1024)}KB)
+              </span>
+              <button
+                onClick={() => {
+                  const link = document.createElement('a');
+                  link.href = doc.data;
+                  link.download = doc.fileName;
+                  link.click();
+                }}
+                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+              >
+                Download
+              </button>
+            </div>
+          );
+        }
+      } catch (e) {
+        // Fallback to regular URL
+        return <a href={value} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">{value}</a>;
+      }
       return <a href={value} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">{value}</a>;
     }
     

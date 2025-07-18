@@ -1,25 +1,21 @@
--- Fix the create_viewer_with_survey function to work without auth.users table access
-CREATE OR REPLACE FUNCTION create_viewer_with_survey(
-  viewer_email TEXT,
-  viewer_password TEXT,
+-- Fix the create_viewer_survey_data function to resolve ambiguous user_id reference
+CREATE OR REPLACE FUNCTION create_viewer_survey_data(
+  user_id UUID,
   survey_data JSONB,
   survey_year INTEGER
 )
 RETURNS UUID AS $$
 DECLARE
-  new_user_id UUID;
   survey_id UUID;
+  current_user_id UUID;
 BEGIN
-  -- Generate a new UUID for the user
-  new_user_id := gen_random_uuid();
-
-  -- Create profile for the user (this will be the main user record)
-  INSERT INTO public.profiles (id, email, first_name, last_name)
-  VALUES (new_user_id, viewer_email, COALESCE(survey_data->>'vehicle_name', 'Viewer'), 'User');
-
-  -- Assign viewer role
+  -- Get the current user ID for logging
+  current_user_id := auth.uid();
+  
+  -- Assign viewer role if not already assigned
   INSERT INTO public.user_roles (user_id, role)
-  VALUES (new_user_id, 'viewer');
+  VALUES (user_id, 'viewer')
+  ON CONFLICT (user_id, role) DO NOTHING;
 
   -- Create survey response with updated structure
   INSERT INTO public.survey_responses (
@@ -29,7 +25,6 @@ BEGIN
     completed_at,
     created_at,
     updated_at,
-    -- Survey fields
     vehicle_name,
     vehicle_websites,
     vehicle_type,
@@ -74,7 +69,7 @@ BEGIN
     self_liquidating_made,
     self_liquidating_exited
   ) VALUES (
-    new_user_id,
+    user_id,
     survey_year,
     'viewer',
     NOW(),
@@ -144,7 +139,7 @@ BEGIN
     created_at,
     updated_at
   ) VALUES (
-    new_user_id,
+    user_id,
     COALESCE(survey_data->>'vehicle_name', 'Unknown Fund'),
     survey_data->'vehicle_websites',
     survey_data->>'vehicle_type',
@@ -162,24 +157,26 @@ BEGIN
     NOW()
   );
 
-  -- Log the activity
-  INSERT INTO public.activity_logs (
-    user_id,
-    action,
-    details
-  ) VALUES (
-    new_user_id,
-    'viewer_created_with_survey',
-    jsonb_build_object(
-      'viewer_email', viewer_email,
-      'survey_year', survey_year,
-      'created_by', auth.uid()
-    )
-  );
+  -- Log the activity (only if current_user_id is not null)
+  IF current_user_id IS NOT NULL THEN
+    INSERT INTO public.activity_logs (
+      user_id,
+      action,
+      details
+    ) VALUES (
+      current_user_id,
+      'viewer_survey_created',
+      jsonb_build_object(
+        'survey_year', survey_year,
+        'target_user_id', user_id,
+        'vehicle_name', survey_data->>'vehicle_name'
+      )
+    );
+  END IF;
 
-  RETURN new_user_id;
+  RETURN survey_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Grant execute permission to authenticated users (for admin use)
-GRANT EXECUTE ON FUNCTION create_viewer_with_survey TO authenticated; 
+GRANT EXECUTE ON FUNCTION create_viewer_survey_data TO authenticated;

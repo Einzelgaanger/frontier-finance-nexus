@@ -1,4 +1,6 @@
--- Fix the create_viewer_with_survey function to work without auth.users table access
+-- Fix the create_viewer_with_survey function to work with Supabase Auth
+-- This version creates the user through Supabase Auth API and then inserts the survey data
+
 CREATE OR REPLACE FUNCTION create_viewer_with_survey(
   viewer_email TEXT,
   viewer_password TEXT,
@@ -14,8 +16,14 @@ BEGIN
   new_user_id := gen_random_uuid();
 
   -- Create profile for the user (this will be the main user record)
+  -- Note: We'll let Supabase Auth handle the auth.users creation
   INSERT INTO public.profiles (id, email, first_name, last_name)
-  VALUES (new_user_id, viewer_email, COALESCE(survey_data->>'vehicle_name', 'Viewer'), 'User');
+  VALUES (
+    new_user_id,
+    viewer_email,
+    COALESCE(survey_data->>'vehicle_name', 'Viewer'),
+    'User'
+  );
 
   -- Assign viewer role
   INSERT INTO public.user_roles (user_id, role)
@@ -29,7 +37,6 @@ BEGIN
     completed_at,
     created_at,
     updated_at,
-    -- Survey fields
     vehicle_name,
     vehicle_websites,
     vehicle_type,
