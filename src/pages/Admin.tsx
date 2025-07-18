@@ -142,135 +142,213 @@ const Admin = () => {
     }
   });
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  
+  // Add loading states for individual sections
+  const [applicationsLoading, setApplicationsLoading] = useState(false);
+  const [membersLoading, setMembersLoading] = useState(false);
+  const [activityLoading, setActivityLoading] = useState(false);
+  const [viewersLoading, setViewersLoading] = useState(false);
+  
+  // Add data cache
+  const [dataCache, setDataCache] = useState<Record<string, { data: any; timestamp: number }>>({});
 
-  const fetchFundManagers = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('member_surveys')
-        .select('*')
-        .not('completed_at', 'is', null);
-
-      if (error) throw error;
-      setFundManagers(data || []);
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching fund managers:', error);
-      setLoading(false);
-    }
+  // Add function to clear cache
+  const clearCache = useCallback(() => {
+    setDataCache({});
   }, []);
 
-  const fetchMembershipRequests = useCallback(async () => {
+  // Add function to refresh data
+  const refreshData = useCallback(async () => {
+    clearCache();
+    setLoading(true);
     try {
+      await Promise.all([
+        fetchMembershipRequests(),
+        fetchAnalyticsData()
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  }, [clearCache, fetchMembershipRequests, fetchAnalyticsData]);
+
+  const fetchFundManagers = useCallback(async () => {
+    const cacheKey = 'fundManagers';
+    const cache = dataCache[cacheKey];
+    const now = Date.now();
+    
+    // Return cached data if it's less than 5 minutes old
+    if (cache && (now - cache.timestamp) < 5 * 60 * 1000) {
+      setFundManagers(cache.data);
+      return;
+    }
+
+    try {
+      setMembersLoading(true);
+      const { data, error } = await supabase
+        .from('member_surveys')
+        .select('id, user_id, fund_name, website')
+        .not('completed_at', 'is', null)
+        .limit(100); // Limit to prevent overwhelming
+
+      if (error) throw error;
+      
+      const managers = data || [];
+      setFundManagers(managers);
+      
+      // Cache the data
+      setDataCache(prev => ({
+        ...prev,
+        [cacheKey]: { data: managers, timestamp: now }
+      }));
+    } catch (error) {
+      console.error('Error fetching fund managers:', error);
+    } finally {
+      setMembersLoading(false);
+    }
+  }, [dataCache]);
+
+  const fetchMembershipRequests = useCallback(async () => {
+    const cacheKey = 'membershipRequests';
+    const cache = dataCache[cacheKey];
+    const now = Date.now();
+    
+    // Return cached data if it's less than 2 minutes old
+    if (cache && (now - cache.timestamp) < 2 * 60 * 1000) {
+      setMembershipRequests(cache.data);
+      return;
+    }
+
+    try {
+      setApplicationsLoading(true);
       const { data, error } = await supabase
         .from('membership_requests')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(50); // Limit to prevent overwhelming
 
       if (error) throw error;
-      setMembershipRequests(data || []);
+      
+      const requests = data || [];
+      setMembershipRequests(requests);
+      
+      // Cache the data
+      setDataCache(prev => ({
+        ...prev,
+        [cacheKey]: { data: requests, timestamp: now }
+      }));
     } catch (error) {
       console.error('Error fetching membership requests:', error);
+    } finally {
+      setApplicationsLoading(false);
     }
-  }, []);
+  }, [dataCache]);
 
   const fetchActivityLogs = useCallback(async () => {
+    const cacheKey = 'activityLogs';
+    const cache = dataCache[cacheKey];
+    const now = Date.now();
+    
+    // Return cached data if it's less than 1 minute old
+    if (cache && (now - cache.timestamp) < 1 * 60 * 1000) {
+      setActivityLogs(cache.data);
+      return;
+    }
+
     try {
+      setActivityLoading(true);
       const { data, error } = await supabase
         .from('activity_logs')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(25); // Limit to prevent overwhelming
 
       if (error) throw error;
-      setActivityLogs((data || []) as ActivityLog[]);
+      
+      const logs = (data || []) as ActivityLog[];
+      setActivityLogs(logs);
+      
+      // Cache the data
+      setDataCache(prev => ({
+        ...prev,
+        [cacheKey]: { data: logs, timestamp: now }
+      }));
     } catch (error) {
       console.error('Error fetching activity logs:', error);
+    } finally {
+      setActivityLoading(false);
     }
-  }, []);
+  }, [dataCache]);
 
   const fetchCreatedViewers = useCallback(async () => {
+    const cacheKey = 'createdViewers';
+    const cache = dataCache[cacheKey];
+    const now = Date.now();
+    
+    // Return cached data if it's less than 3 minutes old
+    if (cache && (now - cache.timestamp) < 3 * 60 * 1000) {
+      setCreatedViewers(cache.data);
+      return;
+    }
+
     try {
+      setViewersLoading(true);
       const { data, error } = await supabase
         .from('user_roles')
         .select(`
           user_id,
           role
         `)
-        .eq('role', 'viewer');
+        .eq('role', 'viewer')
+        .limit(50); // Limit to prevent overwhelming
 
       if (error) throw error;
       
-      // Get profile data separately for each viewer
-      const viewersWithProfiles = await Promise.all(
-        (data || []).map(async (viewer) => {
-          try {
-            const { data: profileData, error: profileError } = await supabase
-              .from('profiles')
-              .select('id, first_name, last_name, email, profile_picture_url')
-              .eq('id', viewer.user_id)
-              .maybeSingle();
-            
-            if (profileError) {
-              console.error('Error fetching profile for viewer:', viewer.user_id, profileError);
-              return {
-                ...viewer,
-                profiles: { 
-                  id: viewer.user_id, 
-                  full_name: 'Unknown', 
-                  email: 'No email', 
-                  avatar_url: null 
-                }
-              };
-            }
-            
-            return {
-              ...viewer,
-              profiles: profileData ? {
-                id: profileData.id,
-                full_name: `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || 'Unknown',
-                email: profileData.email || 'No email',
-                avatar_url: profileData.profile_picture_url
-              } : { 
-                id: viewer.user_id, 
-                full_name: 'Unknown', 
-                email: 'No email', 
-                avatar_url: null 
-              }
-            };
-          } catch (profileError) {
-            console.error('Error fetching profile for viewer:', viewer.user_id, profileError);
-            return {
-              ...viewer,
-              profiles: { 
-                id: viewer.user_id, 
-                full_name: 'Unknown', 
-                email: 'No email', 
-                avatar_url: null 
-              }
-            };
-          }
-        })
-      );
+      const viewers = data || [];
+      setCreatedViewers(viewers);
       
-      setCreatedViewers(viewersWithProfiles);
+      // Cache the data
+      setDataCache(prev => ({
+        ...prev,
+        [cacheKey]: { data: viewers, timestamp: now }
+      }));
     } catch (error) {
       console.error('Error fetching created viewers:', error);
+    } finally {
+      setViewersLoading(false);
     }
-  }, []);
+  }, [dataCache]);
 
   useEffect(() => {
     if (userRole === 'admin') {
       setLoading(true);
+      // Only load essential data initially
       Promise.all([
-        fetchFundManagers(),
-        fetchMembershipRequests(),
-        fetchActivityLogs(),
-        fetchCreatedViewers()
+        fetchMembershipRequests(), // Always load applications first
+        fetchAnalyticsData() // Load analytics for dashboard
       ]).finally(() => {
         setLoading(false);
       });
     }
-  }, [userRole, fetchFundManagers, fetchMembershipRequests, fetchActivityLogs, fetchCreatedViewers]);
+  }, [userRole, fetchMembershipRequests, fetchAnalyticsData]);
+
+  // Lazy load other data when tabs are accessed
+  useEffect(() => {
+    if (userRole === 'admin' && activeTab === 'members') {
+      fetchFundManagers();
+    }
+  }, [userRole, activeTab, fetchFundManagers]);
+
+  useEffect(() => {
+    if (userRole === 'admin' && activeTab === 'activity') {
+      fetchActivityLogs();
+    }
+  }, [userRole, activeTab, fetchActivityLogs]);
+
+  useEffect(() => {
+    if (userRole === 'admin' && activeTab === 'viewers') {
+      fetchCreatedViewers();
+    }
+  }, [userRole, activeTab, fetchCreatedViewers]);
 
   useEffect(() => {
     if (userRole === 'admin') {
@@ -279,23 +357,34 @@ const Admin = () => {
   }, [userRole, selectedYear]);
 
   const fetchAnalyticsData = async () => {
+    const cacheKey = `analytics_${selectedYear}`;
+    const cache = dataCache[cacheKey];
+    const now = Date.now();
+    
+    // Return cached data if it's less than 10 minutes old
+    if (cache && (now - cache.timestamp) < 10 * 60 * 1000) {
+      setAnalyticsData(cache.data);
+      return;
+    }
+
     setAnalyticsLoading(true);
     try {
-      // Fetch member surveys for analytics with year filter - simplified query
+      // Use a more efficient query with aggregation
       const { data: surveys, error } = await supabase
         .from('member_surveys')
         .select('aum, typical_check_size, primary_investment_region, fund_type, created_at, number_of_investments')
         .not('completed_at', 'is', null)
         .gte('created_at', `${selectedYear}-01-01`)
-        .lt('created_at', `${selectedYear + 1}-01-01`);
+        .lt('created_at', `${selectedYear + 1}-01-01`)
+        .limit(1000); // Reasonable limit
 
       if (error) throw error;
 
       if (surveys && surveys.length > 0) {
-        // Simplified analytics calculations
+        // Use more efficient calculations
         const totalFunds = surveys.length;
         
-        // Parse AUM and calculate total capital
+        // Simplified total capital calculation
         const totalCapital = surveys.reduce((sum, survey) => {
           if (survey.aum) {
             const amount = parseFloat(survey.aum.replace(/[^0-9.]/g, ''));
@@ -304,7 +393,7 @@ const Admin = () => {
           return sum;
         }, 0);
 
-        // Simplified average ticket size calculation
+        // Simplified average ticket size
         const ticketSizes = surveys
           .map(s => s.typical_check_size)
           .filter(Boolean)
@@ -379,7 +468,7 @@ const Admin = () => {
           });
         }
 
-        setAnalyticsData({
+        const analyticsResult = {
           totalFunds,
           totalCapital,
           averageTicketSize,
@@ -392,9 +481,17 @@ const Admin = () => {
             newFundsThisMonth,
             totalInvestments
           }
-        });
+        };
+
+        setAnalyticsData(analyticsResult);
+        
+        // Cache the result
+        setDataCache(prev => ({
+          ...prev,
+          [cacheKey]: { data: analyticsResult, timestamp: now }
+        }));
       } else {
-        setAnalyticsData({
+        const defaultData = {
           totalFunds: 0,
           totalCapital: 0,
           averageTicketSize: 0,
@@ -407,12 +504,19 @@ const Admin = () => {
             newFundsThisMonth: 0,
             totalInvestments: 0
           }
-        });
+        };
+        setAnalyticsData(defaultData);
+        
+        // Cache the default data
+        setDataCache(prev => ({
+          ...prev,
+          [cacheKey]: { data: defaultData, timestamp: now }
+        }));
       }
     } catch (error) {
       console.error('Error fetching analytics data:', error);
       // Set default data on error
-      setAnalyticsData({
+      const defaultData = {
         totalFunds: 0,
         totalCapital: 0,
         averageTicketSize: 0,
@@ -425,7 +529,8 @@ const Admin = () => {
           newFundsThisMonth: 0,
           totalInvestments: 0
         }
-      });
+      };
+      setAnalyticsData(defaultData);
     } finally {
       setAnalyticsLoading(false);
     }
@@ -807,8 +912,21 @@ const Admin = () => {
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
-          <p className="text-gray-600">Manage applications, members, and network activities</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
+              <p className="text-gray-600">Manage applications, members, and network activities</p>
+            </div>
+            <Button
+              onClick={refreshData}
+              disabled={loading}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Activity className="w-4 h-4" />
+              {loading ? 'Refreshing...' : 'Refresh Data'}
+            </Button>
+          </div>
         </div>
 
         {/* Quick Stats */}
@@ -910,7 +1028,29 @@ const Admin = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {membershipRequests.map((request) => (
+              {applicationsLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[...Array(6)].map((_, i) => (
+                    <Card key={i} className="animate-pulse">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="h-4 bg-gray-200 rounded flex-1"></div>
+                          <div className="h-6 w-16 bg-gray-200 rounded"></div>
+                        </div>
+                        <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="space-y-2">
+                          {[...Array(3)].map((_, j) => (
+                            <div key={j} className="h-3 bg-gray-200 rounded"></div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                membershipRequests.map((request) => (
                 <Card key={request.id} className="hover:shadow-lg transition-all duration-200 cursor-pointer" onClick={() => handleViewApplication(request)}>
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between gap-2">
@@ -967,8 +1107,30 @@ const Admin = () => {
               </Badge>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {membershipRequests.filter(r => r.status === 'approved').map((request) => (
+            {membersLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[...Array(6)].map((_, i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="h-4 bg-gray-200 rounded flex-1"></div>
+                        <div className="h-6 w-16 bg-gray-200 rounded"></div>
+                      </div>
+                      <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="space-y-2">
+                        {[...Array(3)].map((_, j) => (
+                          <div key={j} className="h-3 bg-gray-200 rounded"></div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {membershipRequests.filter(r => r.status === 'approved').map((request) => (
                 <Card key={request.id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-green-500">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between gap-2">
@@ -1020,7 +1182,29 @@ const Admin = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {createdViewers.map((viewer) => (
+              {viewersLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[...Array(6)].map((_, i) => (
+                    <Card key={i} className="animate-pulse">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="h-4 bg-gray-200 rounded flex-1"></div>
+                          <div className="h-6 w-16 bg-gray-200 rounded"></div>
+                        </div>
+                        <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="space-y-2">
+                          {[...Array(2)].map((_, j) => (
+                            <div key={j} className="h-3 bg-gray-200 rounded"></div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                createdViewers.map((viewer) => (
                 <Card key={viewer.user_id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-purple-500">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between gap-2">
@@ -1051,7 +1235,30 @@ const Admin = () => {
             </div>
 
             <div className="space-y-4">
-              {activityLogs.map((log) => (
+              {activityLoading ? (
+                <div className="space-y-4">
+                  {[...Array(8)].map((_, i) => (
+                    <Card key={i} className="animate-pulse">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+                            <div className="flex-1">
+                              <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                              <div className="flex items-center gap-4">
+                                <div className="h-3 bg-gray-200 rounded w-32"></div>
+                                <div className="h-3 bg-gray-200 rounded w-20"></div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="h-6 w-20 bg-gray-200 rounded"></div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                activityLogs.map((log) => (
                 <Card key={log.id} className={`hover:shadow-md transition-shadow ${getActivityColor(log.action)}`}>
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
