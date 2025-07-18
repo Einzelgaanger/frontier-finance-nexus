@@ -130,7 +130,7 @@ export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
                 <div className="space-y-2">
                   <FormLabel>Allocation Percentage *</FormLabel>
                   <Input
-                    type="number"
+                    type="text"
                     placeholder="0"
                     value={allocation.percentage || ''}
                     onChange={(e) => updateSectorAllocation(index, 'percentage', parseNumberWithCommas(e.target.value))}
@@ -186,10 +186,13 @@ export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
               <FormLabel>Range Minimum (%) *</FormLabel>
               <FormControl>
                 <Input 
-                  type="number" 
+                  type="text" 
                   placeholder="15"
-                  {...field}
-                  onChange={(e) => field.onChange(parseNumberWithCommas(e.target.value))}
+                  value={field.value ? field.value.toString() : ''}
+                  onChange={(e) => {
+                    const parsedValue = parseNumberWithCommas(e.target.value);
+                    field.onChange(parsedValue);
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -205,10 +208,13 @@ export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
               <FormLabel>Range Maximum (%) *</FormLabel>
               <FormControl>
                 <Input 
-                  type="number" 
+                  type="text" 
                   placeholder="35"
-                  {...field}
-                  onChange={(e) => field.onChange(parseNumberWithCommas(e.target.value))}
+                  value={field.value ? field.value.toString() : ''}
+                  onChange={(e) => {
+                    const parsedValue = parseNumberWithCommas(e.target.value);
+                    field.onChange(parsedValue);
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -226,10 +232,13 @@ export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
               <FormLabel>Number of Equity Investments Made *</FormLabel>
               <FormControl>
                 <Input 
-                  type="number" 
+                  type="text" 
                   placeholder="10"
-                  {...field}
-                  onChange={(e) => field.onChange(parseNumberWithCommas(e.target.value))}
+                  value={field.value ? field.value.toString() : ''}
+                  onChange={(e) => {
+                    const parsedValue = parseNumberWithCommas(e.target.value);
+                    field.onChange(parsedValue);
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -245,10 +254,13 @@ export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
               <FormLabel>Number of Equity Investments Exited *</FormLabel>
               <FormControl>
                 <Input 
-                  type="number" 
+                  type="text" 
                   placeholder="3"
-                  {...field}
-                  onChange={(e) => field.onChange(parseNumberWithCommas(e.target.value))}
+                  value={field.value ? field.value.toString() : ''}
+                  onChange={(e) => {
+                    const parsedValue = parseNumberWithCommas(e.target.value);
+                    field.onChange(parsedValue);
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -264,10 +276,13 @@ export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
               <FormLabel>Number of Self-Liquidating Made *</FormLabel>
               <FormControl>
                 <Input 
-                  type="number" 
+                  type="text" 
                   placeholder="5"
-                  {...field}
-                  onChange={(e) => field.onChange(parseNumberWithCommas(e.target.value))}
+                  value={field.value ? field.value.toString() : ''}
+                  onChange={(e) => {
+                    const parsedValue = parseNumberWithCommas(e.target.value);
+                    field.onChange(parsedValue);
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -283,10 +298,13 @@ export function SectorReturnsSection({ form }: SectorReturnsSectionProps) {
               <FormLabel>Number of Self-Liquidating Exited *</FormLabel>
               <FormControl>
                 <Input 
-                  type="number" 
+                  type="text" 
                   placeholder="2"
-                  {...field}
-                  onChange={(e) => field.onChange(parseNumberWithCommas(e.target.value))}
+                  value={field.value ? field.value.toString() : ''}
+                  onChange={(e) => {
+                    const parsedValue = parseNumberWithCommas(e.target.value);
+                    field.onChange(parsedValue);
+                  }}
                 />
               </FormControl>
               <FormMessage />

@@ -77,11 +77,14 @@ export function TeamSection({ form }: TeamSectionProps) {
                   <FormLabel className="text-indigo-800 font-medium">Minimum Team Size *</FormLabel>
                   <FormControl>
                     <Input 
-                      type="number" 
+                      type="text" 
                       placeholder="1"
                       className="border-indigo-200 focus:border-indigo-400 focus:ring-indigo-200"
-                      {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      value={field.value ? field.value.toString() : ''}
+                      onChange={(e) => {
+                        const parsedValue = parseInt(e.target.value) || 0;
+                        field.onChange(parsedValue);
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -97,11 +100,14 @@ export function TeamSection({ form }: TeamSectionProps) {
                   <FormLabel className="text-indigo-800 font-medium">Maximum Team Size *</FormLabel>
                   <FormControl>
                     <Input 
-                      type="number" 
+                      type="text" 
                       placeholder="10"
                       className="border-indigo-200 focus:border-indigo-400 focus:ring-indigo-200"
-                      {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      value={field.value ? field.value.toString() : ''}
+                      onChange={(e) => {
+                        const parsedValue = parseInt(e.target.value) || 0;
+                        field.onChange(parsedValue);
+                      }}
                     />
                   </FormControl>
                   <FormMessage />

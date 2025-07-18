@@ -40,10 +40,13 @@ export function InvestmentStrategySection({ form }: InvestmentStrategySectionPro
               <FormLabel>Minimum Ticket Size (USD) *</FormLabel>
               <FormControl>
                 <Input 
-                  type="number" 
+                  type="text" 
                   placeholder="100000"
-                  {...field}
-                  onChange={(e) => field.onChange(parseNumberWithCommas(e.target.value))}
+                  value={field.value ? field.value.toLocaleString() : ''}
+                  onChange={(e) => {
+                    const parsedValue = parseNumberWithCommas(e.target.value);
+                    field.onChange(parsedValue);
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -59,10 +62,13 @@ export function InvestmentStrategySection({ form }: InvestmentStrategySectionPro
               <FormLabel>Maximum Ticket Size (USD) *</FormLabel>
               <FormControl>
                 <Input 
-                  type="number" 
+                  type="text" 
                   placeholder="5000000"
-                  {...field}
-                  onChange={(e) => field.onChange(parseNumberWithCommas(e.target.value))}
+                  value={field.value ? field.value.toLocaleString() : ''}
+                  onChange={(e) => {
+                    const parsedValue = parseNumberWithCommas(e.target.value);
+                    field.onChange(parsedValue);
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -103,10 +109,13 @@ export function InvestmentStrategySection({ form }: InvestmentStrategySectionPro
                   <FormLabel>Desired Capital (USD) *</FormLabel>
                   <FormControl>
                     <Input 
-                      type="number" 
+                      type="text" 
                       placeholder="50,000,000"
-                      {...field}
-                      onChange={(e) => field.onChange(parseNumberWithCommas(e.target.value))}
+                      value={field.value ? field.value.toLocaleString() : ''}
+                      onChange={(e) => {
+                        const parsedValue = parseNumberWithCommas(e.target.value);
+                        field.onChange(parsedValue);
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -122,10 +131,13 @@ export function InvestmentStrategySection({ form }: InvestmentStrategySectionPro
                   <FormLabel>AUM / Committed Capital (USD) *</FormLabel>
                   <FormControl>
                     <Input 
-                      type="number" 
+                      type="text" 
                       placeholder="25,000,000"
-                      {...field}
-                      onChange={(e) => field.onChange(parseNumberWithCommas(e.target.value))}
+                      value={field.value ? field.value.toLocaleString() : ''}
+                      onChange={(e) => {
+                        const parsedValue = parseNumberWithCommas(e.target.value);
+                        field.onChange(parsedValue);
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -141,10 +153,13 @@ export function InvestmentStrategySection({ form }: InvestmentStrategySectionPro
                   <FormLabel>Deployed Capital (USD) *</FormLabel>
                   <FormControl>
                     <Input 
-                      type="number" 
+                      type="text" 
                       placeholder="20,000,000"
-                      {...field}
-                      onChange={(e) => field.onChange(parseNumberWithCommas(e.target.value))}
+                      value={field.value ? field.value.toLocaleString() : ''}
+                      onChange={(e) => {
+                        const parsedValue = parseNumberWithCommas(e.target.value);
+                        field.onChange(parsedValue);
+                      }}
                     />
                   </FormControl>
                   <FormMessage />

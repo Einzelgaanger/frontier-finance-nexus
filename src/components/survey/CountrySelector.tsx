@@ -261,12 +261,10 @@ export const MarketSelector = ({ value, onChange, placeholder = "Search countrie
           <div className="space-y-2">
             <div className="flex gap-2">
               <Input
-                type="number"
+                type="text"
                 placeholder="Percentage (1-100)"
                 value={percentage}
                 onChange={(e) => setPercentage(e.target.value)}
-                min="1"
-                max="100"
                 className="flex-1"
               />
               <Button

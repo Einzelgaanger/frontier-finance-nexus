@@ -660,18 +660,8 @@ const Survey = () => {
     console.log('Section validation PASSED - proceeding to next section');
     if (currentSection < totalSections) {
       setCurrentSection(currentSection + 1);
-    } else if (currentSection === totalSections) {
-      // Submit directly without validation - let the form handle it
-      console.log('Submitting survey from handleNext...');
-      console.log('Form values:', form.getValues());
-      
-      // For viewers, bypass schema validation
-      if (userRole === 'viewer') {
-        onSubmit(form.getValues());
-      } else {
-        form.handleSubmit(onSubmit)();
-      }
     }
+    // Removed automatic submission - user must explicitly submit on final section
   };
 
   const handlePrevious = () => {

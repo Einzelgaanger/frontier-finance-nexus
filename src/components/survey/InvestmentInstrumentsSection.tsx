@@ -260,13 +260,13 @@ export function InvestmentInstrumentsSection({ form }: InvestmentInstrumentsSect
                       placeholder={inputMode === 'percentage' ? 'Committed %' : 'Committed Value'}
                       value={otherCommitted}
                       onChange={(e) => setOtherCommitted(e.target.value)}
-                      type="number"
+                      type="text"
                     />
                     <Input
                       placeholder="Deployed %"
                       value={otherDeployed}
                       onChange={(e) => setOtherDeployed(e.target.value)}
-                      type="number"
+                      type="text"
                     />
                   </div>
                   <div className="flex gap-2">
@@ -330,7 +330,7 @@ export function InvestmentInstrumentsSection({ form }: InvestmentInstrumentsSect
                         <td className="p-2">
                           <div className="space-y-1">
                             <Input
-                              type="number"
+                              type="text"
                               value={inputMode === 'percentage' ? instrument.committedPercentage.toFixed(1) : instrument.committed.toLocaleString()}
                               onChange={(e) => updateInstrument(
                                 instruments.findIndex(inst => inst.name === instrument.name),
@@ -347,7 +347,7 @@ export function InvestmentInstrumentsSection({ form }: InvestmentInstrumentsSect
                         <td className="p-2">
                           <div className="space-y-1">
                             <Input
-                              type="number"
+                              type="text"
                               value={instrument.deployed.toFixed(1)}
                               onChange={(e) => updateInstrument(
                                 instruments.findIndex(inst => inst.name === instrument.name),
