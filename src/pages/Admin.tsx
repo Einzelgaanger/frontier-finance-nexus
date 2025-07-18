@@ -1078,7 +1078,7 @@ const Admin = () => {
                         <div className="flex items-center gap-2">
                           <Globe className="w-3 h-3 flex-shrink-0" />
                           <a 
-                            href={request.vehicle_website.startsWith('http') ? request.vehicle_website : `https://${request.vehicle_website}`}
+                            href={request.vehicle_website.startsWith('http') ? request.vehicle_website : 'https://' + request.vehicle_website}
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:underline truncate block"
@@ -1095,9 +1095,10 @@ const Admin = () => {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+              ))
             </div>
-          </TabsContent>
+          )}
+        </TabsContent>
 
           <TabsContent value="members" className="space-y-6">
             <div className="flex items-center justify-between">
@@ -1149,7 +1150,7 @@ const Admin = () => {
                         <div className="flex items-center gap-2">
                           <Globe className="w-3 h-3 flex-shrink-0" />
                           <a 
-                            href={request.vehicle_website.startsWith('http') ? request.vehicle_website : `https://${request.vehicle_website}`}
+                            href={request.vehicle_website.startsWith('http') ? request.vehicle_website : 'https://' + request.vehicle_website}
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:underline truncate block"
@@ -1222,7 +1223,7 @@ const Admin = () => {
                     </div>
                   </CardContent>
                 </Card>
-              )))}
+              ))}
             </div>
           </TabsContent>
 
@@ -1369,7 +1370,7 @@ const Admin = () => {
                                 <p className="font-medium text-gray-700">Vehicle Website</p>
                                 {selectedRequest.vehicle_website ? (
                                   <a 
-                                    href={selectedRequest.vehicle_website.startsWith('http') ? selectedRequest.vehicle_website : `https://${selectedRequest.vehicle_website}`}
+                                    href={selectedRequest.vehicle_website.startsWith('http') ? selectedRequest.vehicle_website : 'https://' + selectedRequest.vehicle_website}
                                     target="_blank" 
                                     rel="noopener noreferrer"
                                     className="text-blue-600 hover:underline break-all"
