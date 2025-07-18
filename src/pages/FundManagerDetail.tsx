@@ -30,7 +30,14 @@ import {
   Heart,
   Sparkles,
   ArrowLeft,
-  ArrowRight
+  ArrowRight,
+  User,
+  MessageSquare,
+  Clock,
+  AlertTriangle,
+  PieChart,
+  CheckCircle,
+  Phone
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -137,11 +144,11 @@ const sectionConfig = [
     bgColor: 'bg-blue-50',
     borderColor: 'border-blue-200',
     fields: [
-      { key: 'vehicle_name', label: 'Fund Name' },
-      { key: 'vehicle_websites', label: 'Vehicle Websites', type: 'array', isLink: true },
-      { key: 'vehicle_type', label: 'Vehicle Type' },
-      { key: 'vehicle_type_other', label: 'Other Vehicle Type' },
-      { key: 'thesis', label: 'Investment Thesis', type: 'text' },
+      { key: 'vehicle_name', label: 'Fund Name', icon: Building2 },
+      { key: 'vehicle_websites', label: 'Vehicle Websites', type: 'array', isLink: true, icon: Globe },
+      { key: 'vehicle_type', label: 'Vehicle Type', icon: Briefcase },
+      { key: 'vehicle_type_other', label: 'Other Vehicle Type', icon: FileText },
+      { key: 'thesis', label: 'Investment Thesis', type: 'text', icon: Target },
     ],
   },
   {
@@ -152,10 +159,10 @@ const sectionConfig = [
     bgColor: 'bg-green-50',
     borderColor: 'border-green-200',
     fields: [
-      { key: 'team_members', label: 'Team Members', type: 'team' },
-      { key: 'team_size_min', label: 'Team Size (Min)', type: 'number' },
-      { key: 'team_size_max', label: 'Team Size (Max)', type: 'number' },
-      { key: 'team_description', label: 'Team Description', type: 'text' },
+      { key: 'team_members', label: 'Team Members', type: 'team', icon: Users },
+      { key: 'team_size_min', label: 'Team Size (Min)', type: 'number', icon: User },
+      { key: 'team_size_max', label: 'Team Size (Max)', type: 'number', icon: Users },
+      { key: 'team_description', label: 'Team Description', type: 'text', icon: MessageSquare },
     ],
   },
   {
@@ -166,9 +173,9 @@ const sectionConfig = [
     bgColor: 'bg-purple-50',
     borderColor: 'border-purple-200',
     fields: [
-      { key: 'legal_domicile', label: 'Legal Domicile', type: 'array' },
-      { key: 'markets_operated', label: 'Markets Operated', type: 'markets' },
-      { key: 'markets_operated_other', label: 'Other Markets' },
+      { key: 'legal_domicile', label: 'Legal Domicile', type: 'array', icon: MapPin },
+      { key: 'markets_operated', label: 'Markets Operated', type: 'markets', icon: Globe },
+      { key: 'markets_operated_other', label: 'Other Markets', icon: MapPin },
     ],
   },
   {
@@ -179,12 +186,12 @@ const sectionConfig = [
     bgColor: 'bg-orange-50',
     borderColor: 'border-orange-200',
     fields: [
-      { key: 'ticket_size_min', label: 'Minimum Ticket Size (USD)', type: 'currency' },
-      { key: 'ticket_size_max', label: 'Maximum Ticket Size (USD)', type: 'currency' },
-      { key: 'ticket_description', label: 'Ticket Size Description', type: 'text' },
-      { key: 'target_capital', label: 'Desired Capital (USD)', type: 'currency' },
-      { key: 'capital_raised', label: 'AUM/Committed Capital (USD)', type: 'currency' },
-      { key: 'capital_in_market', label: 'Deployed Capital (USD)', type: 'currency' },
+      { key: 'ticket_size_min', label: 'Minimum Ticket Size (USD)', type: 'currency', icon: DollarSign },
+      { key: 'ticket_size_max', label: 'Maximum Ticket Size (USD)', type: 'currency', icon: DollarSign },
+      { key: 'ticket_description', label: 'Ticket Size Description', type: 'text', icon: FileText },
+      { key: 'target_capital', label: 'Desired Capital (USD)', type: 'currency', icon: TrendingUp },
+      { key: 'capital_raised', label: 'AUM/Committed Capital (USD)', type: 'currency', icon: DollarSign },
+      { key: 'capital_in_market', label: 'Deployed Capital (USD)', type: 'currency', icon: TrendingUp },
     ],
   },
   {
@@ -195,10 +202,10 @@ const sectionConfig = [
     bgColor: 'bg-indigo-50',
     borderColor: 'border-indigo-200',
     fields: [
-      { key: 'supporting_document_url', label: 'Supporting Document', type: 'url' },
-      { key: 'expectations', label: 'Expectations', type: 'text' },
-      { key: 'how_heard_about_network', label: 'How Heard About Network' },
-      { key: 'how_heard_about_network_other', label: 'Other (How Heard)' },
+      { key: 'supporting_document_url', label: 'Supporting Document', type: 'url', icon: FileText },
+      { key: 'expectations', label: 'Expectations', type: 'text', icon: MessageSquare },
+      { key: 'how_heard_about_network', label: 'How Heard About Network', icon: Globe },
+      { key: 'how_heard_about_network_other', label: 'Other (How Heard)', icon: MessageSquare },
     ],
   },
   {
@@ -209,13 +216,13 @@ const sectionConfig = [
     bgColor: 'bg-teal-50',
     borderColor: 'border-teal-200',
     fields: [
-      { key: 'fund_stage', label: 'Fund Stage', type: 'array' },
-      { key: 'current_status', label: 'Current Status' },
-      { key: 'current_status_other', label: 'Other Status' },
-      { key: 'legal_entity_date_from', label: 'Legal Entity Date From', type: 'date' },
-      { key: 'legal_entity_date_to', label: 'Legal Entity Date To', type: 'date' },
-      { key: 'first_close_date_from', label: 'First Close Date From', type: 'date' },
-      { key: 'first_close_date_to', label: 'First Close Date To', type: 'date' },
+      { key: 'fund_stage', label: 'Fund Stage', type: 'array', icon: Award },
+      { key: 'current_status', label: 'Current Status', icon: Clock },
+      { key: 'current_status_other', label: 'Other Status', icon: AlertTriangle },
+      { key: 'legal_entity_date_from', label: 'Legal Entity Date From', type: 'date', icon: Calendar },
+      { key: 'legal_entity_date_to', label: 'Legal Entity Date To', type: 'date', icon: Calendar },
+      { key: 'first_close_date_from', label: 'First Close Date From', type: 'date', icon: Calendar },
+      { key: 'first_close_date_to', label: 'First Close Date To', type: 'date', icon: Calendar },
     ],
   },
   {
@@ -226,7 +233,7 @@ const sectionConfig = [
     bgColor: 'bg-yellow-50',
     borderColor: 'border-yellow-200',
     fields: [
-      { key: 'investment_instruments_priority', label: 'Investment Instruments Priority', type: 'instruments' },
+      { key: 'investment_instruments_priority', label: 'Investment Instruments Priority', type: 'instruments', icon: Zap },
     ],
   },
   {
@@ -237,13 +244,13 @@ const sectionConfig = [
     bgColor: 'bg-red-50',
     borderColor: 'border-red-200',
     fields: [
-      { key: 'sectors_allocation', label: 'Sectors Allocation', type: 'sectors' },
-      { key: 'target_return_min', label: 'Target Return Min (%)', type: 'number' },
-      { key: 'target_return_max', label: 'Target Return Max (%)', type: 'number' },
-      { key: 'equity_investments_made', label: 'Equity Investments Made', type: 'number' },
-      { key: 'equity_investments_exited', label: 'Equity Investments Exited', type: 'number' },
-      { key: 'self_liquidating_made', label: 'Self Liquidating Made', type: 'number' },
-      { key: 'self_liquidating_exited', label: 'Self Liquidating Exited', type: 'number' },
+      { key: 'sectors_allocation', label: 'Sectors Allocation', type: 'sectors', icon: PieChart },
+      { key: 'target_return_min', label: 'Target Return Min (%)', type: 'number', icon: TrendingUp },
+      { key: 'target_return_max', label: 'Target Return Max (%)', type: 'number', icon: TrendingUp },
+      { key: 'equity_investments_made', label: 'Equity Investments Made', type: 'number', icon: DollarSign },
+      { key: 'equity_investments_exited', label: 'Equity Investments Exited', type: 'number', icon: CheckCircle },
+      { key: 'self_liquidating_made', label: 'Self Liquidating Made', type: 'number', icon: DollarSign },
+      { key: 'self_liquidating_exited', label: 'Self Liquidating Exited', type: 'number', icon: CheckCircle },
     ],
   },
 ];
@@ -429,6 +436,37 @@ const FundManagerDetail = () => {
     return year.toString();
   };
 
+  const formatSurveyDate = (dateValue: any) => {
+    if (!dateValue) return 'Not provided';
+    
+    // Handle different date formats from survey
+    if (typeof dateValue === 'number') {
+      // If it's a number like 202401 (year + month)
+      const year = Math.floor(dateValue / 100);
+      const month = dateValue % 100;
+      if (month > 0 && month <= 12) {
+        return new Date(year, month - 1).toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long' 
+        });
+      }
+      return year.toString();
+    }
+    
+    if (typeof dateValue === 'string') {
+      // If it's a string date
+      const date = new Date(dateValue);
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long' 
+        });
+      }
+    }
+    
+    return 'Not provided';
+  };
+
   const formatFieldValue = (value: any, fieldKey: string, fieldType?: string, isLink?: boolean): React.ReactNode => {
     if (value === null || value === undefined || value === '' || (Array.isArray(value) && value.length === 0)) {
       return <span className="text-gray-400 italic">Not provided</span>;
@@ -449,17 +487,50 @@ const FundManagerDetail = () => {
     
     if (fieldType === 'team' && Array.isArray(value)) {
       return (
-        <ul className="list-disc ml-4">
-          {value.map((member: any, i: number) => (
-            <li key={i}>
-              <span className="font-medium">{member.name}</span>
-              {member.role && <> ({member.role})</>}
-              {member.email && <>, <a href={`mailto:${member.email}`} className="text-blue-700 underline">{member.email}</a></>}
-              {member.phone && <>, {member.phone}</>}
-              {member.experience && <><br /><span className="text-gray-500">{member.experience}</span></>}
-            </li>
-          ))}
-        </ul>
+        <div className="space-y-3">
+          <div className="text-sm text-gray-600 mb-3">
+            Team members and their details
+          </div>
+          <div className="space-y-3">
+            {value.map((member: any, i) => (
+              <div key={i} className="p-4 bg-gray-50 rounded-lg border">
+                <div className="flex items-center space-x-3 mb-2">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <span className="text-sm font-bold text-green-600">{i + 1}</span>
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium text-gray-900">{member.name || 'Unnamed Member'}</div>
+                    {member.role && (
+                      <div className="text-sm text-gray-600">{member.role}</div>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-1 text-sm text-gray-600">
+                  {member.email && (
+                    <div className="flex items-center space-x-2">
+                      <Mail className="w-3 h-3" />
+                      <a href={`mailto:${member.email}`} className="text-blue-600 hover:underline">
+                        {member.email}
+                      </a>
+                    </div>
+                  )}
+                  {member.phone && (
+                    <div className="flex items-center space-x-2">
+                      <Phone className="w-3 h-3" />
+                      <span>{member.phone}</span>
+                    </div>
+                  )}
+                  {member.experience && (
+                    <div className="flex items-start space-x-2 mt-2">
+                      <Briefcase className="w-3 h-3 mt-0.5" />
+                      <span className="text-gray-700">{member.experience}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       );
     }
     
@@ -467,11 +538,37 @@ const FundManagerDetail = () => {
       // Sort by percentage in descending order
       const sortedEntries = Object.entries(value).sort((a, b) => (b[1] as number) - (a[1] as number));
       return (
-        <ul className="list-disc ml-4">
-          {sortedEntries.map(([country, percent]: [string, any], i) => (
-            <li key={i}>{country}: <span className="font-medium">{percent}%</span></li>
-          ))}
-        </ul>
+        <div className="space-y-3">
+          <div className="text-sm text-gray-600 mb-3">
+            Markets operated by percentage
+          </div>
+          <div className="space-y-2">
+            {sortedEntries.map(([country, percent]: [string, any], i) => (
+              <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                    <span className="text-sm font-bold text-purple-600">{i + 1}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-900">{country}</span>
+                    <div className="text-xs text-gray-500">Market presence</div>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-20 bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-purple-500 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${Math.min(percent, 100)}%` }}
+                    />
+                  </div>
+                  <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                    {percent}%
+                  </Badge>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       );
     }
     
@@ -479,11 +576,31 @@ const FundManagerDetail = () => {
       // Sort by priority in descending order
       const sortedEntries = Object.entries(value).sort((a, b) => (b[1] as number) - (a[1] as number));
       return (
-        <ol className="list-decimal ml-4">
-          {sortedEntries.map(([instrument, priority], i) => (
-            <li key={i}>{instrument} <span className="text-gray-500">(Priority: {priority})</span></li>
-          ))}
-        </ol>
+        <div className="space-y-3">
+          <div className="text-sm text-gray-600 mb-3">
+            Investment instruments ranked by priority (higher number = higher priority)
+          </div>
+          <div className="space-y-2">
+            {sortedEntries.map(([instrument, priority], i) => (
+              <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-sm font-bold text-blue-600">{i + 1}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-900">{instrument}</span>
+                    <div className="text-xs text-gray-500">Priority: {priority}</div>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                    Priority {priority}
+                  </Badge>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       );
     }
     
@@ -491,11 +608,37 @@ const FundManagerDetail = () => {
       // Sort by percentage in descending order
       const sortedEntries = Object.entries(value).sort((a, b) => (b[1] as number) - (a[1] as number));
       return (
-        <ul className="list-disc ml-4">
-          {sortedEntries.map(([sector, percent]: [string, any], i) => (
-            <li key={i}>{sector}: <span className="font-medium">{percent}%</span></li>
-          ))}
-        </ul>
+        <div className="space-y-3">
+          <div className="text-sm text-gray-600 mb-3">
+            Sector allocation by percentage
+          </div>
+          <div className="space-y-2">
+            {sortedEntries.map(([sector, percent]: [string, any], i) => (
+              <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <span className="text-sm font-bold text-green-600">{i + 1}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-900">{sector}</span>
+                    <div className="text-xs text-gray-500">Allocation</div>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-20 bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${Math.min(percent, 100)}%` }}
+                    />
+                  </div>
+                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                    {percent}%
+                  </Badge>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       );
     }
     
@@ -543,33 +686,16 @@ const FundManagerDetail = () => {
     }
     
     if (fieldType === 'date' && typeof value === 'number') {
-      const year = Math.floor(value / 10000);
-      const month = Math.floor((value % 10000) / 100);
-      return formatDate(year, month);
+      return formatSurveyDate(value);
     }
     
     if (fieldType === 'text' && typeof value === 'string') {
-      const isExpanded = expandedTexts[fieldKey] || false;
-      const textToShow = isExpanded ? value : value.substring(0, 200); // Show first 200 characters
-      const showMoreButton = value.length > 200;
-
-      return (
-        <div>
-          <span className="text-gray-600 line-clamp-4">{textToShow}</span>
-          {showMoreButton && (
-            <button 
-              onClick={() => setExpandedTexts(prev => ({ ...prev, [fieldKey]: !isExpanded }))}
-              className="text-blue-600 text-sm mt-1 hover:underline"
-            >
-              {isExpanded ? 'Show less' : 'Show more'}
-            </button>
-          )}
-        </div>
-      );
+      // Show full text without truncation
+      return <span className="whitespace-pre-line text-gray-700 leading-relaxed">{value}</span>;
     }
     
     if (typeof value === 'string') {
-      return <span>{value}</span>;
+      return <span className="text-gray-700">{value}</span>;
     }
     
     return <span className="text-gray-400 italic">Not provided</span>;
@@ -594,6 +720,7 @@ const FundManagerDetail = () => {
             return (
               <div key={field.key} className={`p-4 rounded-lg border ${hasValue ? 'bg-white border-gray-200' : 'bg-gray-50 border-gray-100'}`}>
                 <dt className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                  {field.icon && <field.icon className="w-4 h-4 mr-2 text-gray-500" />}
                   {field.label}
                   {!hasValue && <span className="ml-2 text-xs text-gray-400">(Not provided)</span>}
                 </dt>
@@ -634,23 +761,49 @@ const FundManagerDetail = () => {
                   </AvatarFallback>
                 </Avatar>
               )}
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-1">
+              <div className="flex-1 min-w-0">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2 break-words">
                   {profile?.first_name} {profile?.last_name}
                 </h1>
-                <div className="flex items-center space-x-3">
+                <div className="space-y-2">
                   <div className="flex items-center text-gray-600">
-                    <Mail className="w-4 h-4 mr-2" />
-                    <span className="text-sm">{profile?.email}</span>
+                    <Mail className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span className="text-sm break-all">{profile?.email}</span>
                   </div>
+                  {activeSurvey?.vehicle_name && (
+                    <div className="flex items-center text-gray-600">
+                      <Building2 className="w-4 h-4 mr-2 flex-shrink-0" />
+                      <span className="text-sm break-words">{activeSurvey.vehicle_name}</span>
+                    </div>
+                  )}
+                  {activeSurvey?.vehicle_websites && activeSurvey.vehicle_websites.length > 0 && (
+                    <div className="flex items-center text-gray-600">
+                      <Globe className="w-4 h-4 mr-2 flex-shrink-0" />
+                      <div className="flex flex-wrap gap-2">
+                        {activeSurvey.vehicle_websites.map((website, index) => (
+                          <a
+                            key={index}
+                            href={website.startsWith('http') ? website : `https://${website}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 text-sm break-all underline"
+                          >
+                            {website}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   {activeSurvey?.role_badge && (
-                    <Badge className={`capitalize text-xs px-3 py-1 font-semibold rounded-full ${
-                      activeSurvey.role_badge === 'viewer' 
-                        ? 'bg-purple-100 text-purple-800 border border-purple-200' 
-                        : 'bg-blue-100 text-blue-800 border border-blue-200'
-                    }`}>
-                      {activeSurvey.role_badge}
-                    </Badge>
+                    <div className="flex items-center">
+                      <Badge className={`capitalize text-xs px-3 py-1 font-semibold rounded-full ${
+                        activeSurvey.role_badge === 'viewer' 
+                          ? 'bg-purple-100 text-purple-800 border border-purple-200' 
+                          : 'bg-blue-100 text-blue-800 border border-blue-200'
+                      }`}>
+                        {activeSurvey.role_badge}
+                      </Badge>
+                    </div>
                   )}
                 </div>
               </div>
