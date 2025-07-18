@@ -181,6 +181,9 @@ const Survey = () => {
   const [showSubmitConfirmation, setShowSubmitConfirmation] = useState(false);
   const [customYear, setCustomYear] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
+  const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
+  const [pendingSubmission, setPendingSubmission] = useState<SurveyFormData | null>(null);
+  const [formData, setFormData] = useState<Partial<SurveyFormData>>({});
   const { user, userRole, loading: authLoading } = useAuth();
   const { toast } = useToast();
 
@@ -271,6 +274,8 @@ const Survey = () => {
   useEffect(() => {
     const subscription = form.watch((value, { name, type }) => {
       console.log('Form field changed:', name, type, value);
+      // Persist form data to state
+      setFormData(value);
     });
     return () => subscription.unsubscribe();
   }, [form]);
@@ -792,30 +797,10 @@ const Survey = () => {
             <form onSubmit={(e) => {
               e.preventDefault();
               
-              // For viewers, bypass schema validation
-              if (userRole === 'viewer') {
-                const formData = form.getValues();
-                console.log('Viewer form submission - bypassing schema validation');
-                onSubmit(formData);
-              } else {
-                // For members/admins, use normal form validation
-                form.handleSubmit(onSubmit, (errors) => {
-                  console.log('Form validation errors:', errors);
-                  console.log('Form values:', form.getValues());
-                  
-                  // Create a more detailed error message
-                  const errorMessages = Object.entries(errors).map(([field, error]) => {
-                    return `${field}: ${error?.message || 'Required'}`;
-                  }).join(', ');
-                  
-                  toast({
-                    title: "Validation Error",
-                    description: `Please fix the following issues: ${errorMessages}`,
-                    variant: "destructive"
-                  });
-                  return; // Prevent submission on validation errors
-                })(e);
-              }
+              // Show confirmation dialog instead of auto-submitting
+              const formData = form.getValues();
+              setPendingSubmission(formData);
+              setShowConfirmationDialog(true);
             }} className="space-y-8">
               <Card>
                 <CardHeader>
@@ -887,6 +872,63 @@ const Survey = () => {
               </div>
             </form>
           </Form>
+
+          {/* Confirmation Dialog */}
+          <Dialog open={showConfirmationDialog} onOpenChange={setShowConfirmationDialog}>
+            <DialogContent className="sm:max-w-lg">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  Confirm Survey Submission
+                </DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to submit your survey for {selectedYear}? 
+                  This action cannot be undone.
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="flex justify-end gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowConfirmationDialog(false);
+                    setPendingSubmission(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (pendingSubmission) {
+                      // For viewers, bypass schema validation
+                      if (userRole === 'viewer') {
+                        console.log('Viewer form submission - bypassing schema validation');
+                        onSubmit(pendingSubmission);
+                      } else {
+                        // For members/admins, use normal form validation
+                        const validationResult = form.trigger();
+                        if (validationResult) {
+                          onSubmit(pendingSubmission);
+                        } else {
+                          toast({
+                            title: "Validation Error",
+                            description: "Please fix all validation errors before submitting.",
+                            variant: "destructive"
+                          });
+                        }
+                      }
+                    }
+                    setShowConfirmationDialog(false);
+                    setPendingSubmission(null);
+                  }}
+                  disabled={isSubmitting}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {isSubmitting ? 'Submitting...' : 'Submit Survey'}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
 
 
         </div>
@@ -960,8 +1002,11 @@ const Survey = () => {
                             setSelectedYear(survey.year);
                             setShowNewSurvey(true);
                             setExistingResponse(survey);
+                            // Reset form with existing data
                             form.reset(survey);
                             setCurrentSection(1);
+                            // Also set the form data state
+                            setFormData(survey as Partial<SurveyFormData>);
                           }}
                         >
                           <div className="flex items-center space-x-4">

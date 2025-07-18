@@ -68,26 +68,39 @@ const Network = () => {
   const fetchFundManagers = async () => {
     try {
       setLoading(true);
-      // Always use fallback: fetch all completed surveys and approved membership_requests, filter in JS
+      
+      // Fetch from both survey_responses and member_surveys tables
       const { data: surveys, error: surveysError } = await supabase
         .from('survey_responses')
         .select('*')
         .not('completed_at', 'is', null)
         .order('completed_at', { ascending: false });
+        
+      const { data: memberSurveys, error: memberSurveysError } = await supabase
+        .from('member_surveys')
+        .select('*')
+        .not('completed_at', 'is', null)
+        .order('completed_at', { ascending: false });
+
+      if (surveysError) throw surveysError;
+      if (memberSurveysError) throw memberSurveysError;
+
+      // Get approved membership requests
       const { data: approved, error: approvedError } = await supabase
         .from('membership_requests')
         .select('user_id')
         .eq('status', 'approved');
-      if (!surveys || !approved) {
-        console.log('No surveys or approved members found', { surveys, approved });
-        setFundManagers([]);
-        setLoading(false);
-        return;
-      }
-      const approvedIds = new Set(approved.map(r => r.user_id));
+        
+      if (approvedError) throw approvedError;
+
+      const approvedIds = new Set(approved?.map(r => r.user_id) || []);
+      
       let managersWithProfiles: FundManager[] = [];
-      for (const item of surveys) {
+      
+      // Process survey_responses (members)
+      for (const item of surveys || []) {
         if (!item || !item.user_id || !approvedIds.has(item.user_id)) continue;
+        
         let profile = null;
         try {
           const { data: profileData, error: profileError } = await supabase
@@ -102,6 +115,7 @@ const Network = () => {
         } catch (profileErr) {
           console.error('Error fetching profile for user:', item.user_id, profileErr);
         }
+        
         let sectorFocus: string[] = [];
         let stageFocus: string[] = [];
         try {
@@ -124,6 +138,7 @@ const Network = () => {
               : item.stage_focus || [];
           }
         } catch {}
+        
         const manager: FundManager = {
           id: item.id,
           user_id: item.user_id,
@@ -146,8 +161,54 @@ const Network = () => {
         };
         managersWithProfiles.push(manager);
       }
-      console.log('Approved managers with completed surveys:', managersWithProfiles);
-      setFundManagers(managersWithProfiles);
+      
+      // Process member_surveys (viewers and members)
+      for (const item of memberSurveys || []) {
+        if (!item || !item.user_id) continue;
+        
+        let profile = null;
+        try {
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('first_name, last_name, email')
+            .eq('id', item.user_id)
+            .maybeSingle();
+          
+          if (!profileError && profileData) {
+            profile = profileData;
+          }
+        } catch (profileErr) {
+          console.error('Error fetching profile for user:', item.user_id, profileErr);
+        }
+        
+        const manager: FundManager = {
+          id: item.id,
+          user_id: item.user_id,
+          fund_name: item.fund_name || 'Unknown Fund',
+          website: item.website || null,
+          primary_investment_region: item.primary_investment_region || 'Unknown',
+          fund_type: item.fund_type || 'Unknown',
+          year_founded: item.year_founded || null,
+          team_size: item.team_size || null,
+          typical_check_size: item.typical_check_size || null,
+          completed_at: item.completed_at,
+          aum: item.aum || null,
+          investment_thesis: item.investment_thesis || null,
+          sector_focus: item.sector_focus || [],
+          stage_focus: item.stage_focus || [],
+          role_badge: item.role_badge || 'viewer',
+          profiles: profile || null
+        };
+        managersWithProfiles.push(manager);
+      }
+      
+      // Remove duplicates based on user_id
+      const uniqueManagers = managersWithProfiles.filter((manager, index, self) => 
+        index === self.findIndex(m => m.user_id === manager.user_id)
+      );
+      
+      console.log('All managers with completed surveys:', uniqueManagers);
+      setFundManagers(uniqueManagers);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching fund managers:', error);
