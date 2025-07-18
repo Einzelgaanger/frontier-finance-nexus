@@ -8,7 +8,6 @@ import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LoadingScreen from "@/components/ui/loading-screen";
 import { useLoadingStore } from "@/store/loading-store";
-import { useNavigationLoading } from "@/hooks/useNavigationLoading";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -24,12 +23,6 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Component to handle navigation loading
-const NavigationHandler = () => {
-  useNavigationLoading();
-  return null;
-};
-
 const App = () => {
   const isLoading = useLoadingStore((state) => state.isLoading);
   
@@ -41,7 +34,6 @@ const App = () => {
         <Sonner />
         <AuthProvider>
         <BrowserRouter>
-          <NavigationHandler />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />

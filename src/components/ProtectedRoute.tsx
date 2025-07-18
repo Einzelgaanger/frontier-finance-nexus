@@ -1,8 +1,7 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate } from 'react-router-dom';
-import { useLoadingStore } from '@/store/loading-store';
-import LoadingScreen from '@/components/ui/loading-screen';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -11,10 +10,13 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
   const { user, userRole, loading } = useAuth();
-  const { isLoading } = useLoadingStore();
 
-  if (loading || isLoading) {
-    return <LoadingScreen />;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
   }
 
   if (!user) {

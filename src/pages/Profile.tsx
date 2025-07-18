@@ -186,10 +186,31 @@ const Profile = () => {
       <Header />
       
       <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Profile Header */}
+        {/* Professional Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Profile</h1>
-          <p className="text-gray-600">Manage your account settings and preferences</p>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+                <User className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-semibold text-gray-900">Profile Settings</h1>
+                <p className="text-gray-600 text-sm">Manage your account information and preferences</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="border-gray-300 text-gray-600"
+                onClick={fetchProfile}
+                disabled={loading}
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                Last updated: {lastUpdated.toLocaleTimeString()}
+              </Button>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -374,10 +395,10 @@ const Profile = () => {
               <Button
                 variant="outline"
                 onClick={fetchProfile}
-                // disabled={loading} // Removed loading state
+                disabled={loading}
                 className="border-gray-300"
               >
-                <RefreshCw className={`w-4 h-4 mr-2`} />
+                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
                 Refresh
               </Button>
               <Button

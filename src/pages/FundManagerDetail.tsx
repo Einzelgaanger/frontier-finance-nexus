@@ -673,6 +673,95 @@ const FundManagerDetail = () => {
           </div>
         </div>
 
+        {/* Professional Profile Card */}
+        <Card className="mb-8 shadow-sm border-gray-200">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+              <div className="flex items-center space-x-4 mb-4 md:mb-0">
+                {profile?.profile_picture_url ? (
+                  <Avatar className="w-16 h-16 border-2 border-gray-200 shadow-sm">
+                    <AvatarImage src={profile.profile_picture_url} alt={profile.first_name} />
+                    <AvatarFallback className="bg-blue-600 text-white text-lg font-semibold">
+                      {profile.first_name?.[0]}{profile.last_name?.[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <Avatar className="w-16 h-16 border-2 border-gray-200 shadow-sm bg-blue-600">
+                    <AvatarFallback className="text-white text-lg font-semibold">
+                      {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                )}
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-2 break-words">
+                    {profile?.first_name} {profile?.last_name}
+                  </h2>
+                  <div className="space-y-2">
+                    <div className="flex items-center text-gray-600">
+                      <Mail className="w-4 h-4 mr-2 flex-shrink-0" />
+                      <span className="text-sm break-all">{profile?.email}</span>
+                    </div>
+                    {activeSurvey?.vehicle_name && (
+                      <div className="flex items-center text-gray-600">
+                        <Building2 className="w-4 h-4 mr-2 flex-shrink-0" />
+                        <span className="text-sm break-words">{activeSurvey.vehicle_name}</span>
+                      </div>
+                    )}
+                    {activeSurvey?.vehicle_websites && activeSurvey.vehicle_websites.length > 0 && (
+                      <div className="flex items-center text-gray-600">
+                        <Globe className="w-4 h-4 mr-2 flex-shrink-0" />
+                        <div className="flex flex-wrap gap-2">
+                          {activeSurvey.vehicle_websites.map((website, index) => (
+                            <a
+                              key={index}
+                              href={website.startsWith('http') ? website : `https://${website}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 text-sm break-all underline"
+                            >
+                              {website}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {activeSurvey?.role_badge && (
+                      <div className="flex items-center">
+                        <Badge className={`capitalize text-xs px-3 py-1 font-semibold rounded-full ${
+                          activeSurvey.role_badge === 'viewer' 
+                            ? 'bg-purple-100 text-purple-800 border border-purple-200' 
+                            : 'bg-blue-100 text-blue-800 border border-blue-200'
+                        }`}>
+                          {activeSurvey.role_badge}
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              {surveys.length > 1 && (
+                <div className="flex items-center space-x-3 bg-gray-50 rounded-lg p-3">
+                  <Calendar className="w-5 h-5 text-gray-600" />
+                  <span className="text-gray-700 font-medium">Survey Year:</span>
+                  <select
+                    className="border border-gray-300 rounded-md px-3 py-1 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    value={activeSurvey?.year || ''}
+                    onChange={e => {
+                      const selected = surveys.find(s => s.year === Number(e.target.value));
+                      if (selected) setActiveSurvey(selected);
+                    }}
+                    aria-label="Select survey year"
+                  >
+                    {surveys.map(s => (
+                      <option key={s.id} value={s.year}>{s.year}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
         {loading ? (
           <Card className="shadow-sm border-gray-200">
             <CardContent className="p-12">

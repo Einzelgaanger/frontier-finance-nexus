@@ -1,98 +1,167 @@
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { useState, useEffect, createContext, useContext } from 'react';
+import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { User } from '@supabase/supabase-js';
-import { useLoadingStore } from '@/store/loading-store';
 
 interface AuthContextType {
   user: User | null;
+  session: Session | null;
   userRole: string | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, metadata?: Record<string, unknown>) => Promise<{ error: any }>;
-  signInWithGoogle: () => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: unknown }>;
+  signUp: (email: string, password: string, metadata?: Record<string, unknown>) => Promise<{ error: unknown }>;
   signOut: () => Promise<void>;
+  signInWithGoogle: () => Promise<{ error: unknown }>;
   refreshUserRole: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
-
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const { setLoading: setGlobalLoading } = useLoadingStore();
-
-  useEffect(() => {
-    // Get initial session
-    const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        setUser(session.user);
-        await fetchUserRole(session.user.id);
-      }
-      setLoading(false);
-    };
-
-    getInitialSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session?.user) {
-          setUser(session.user);
-          await fetchUserRole(session.user.id);
-        } else {
-          setUser(null);
-          setUserRole(null);
-        }
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   const fetchUserRole = async (userId: string) => {
     try {
+      console.log('Fetching user role for:', userId);
       const { data, error } = await supabase
-        .from('profiles')
+        .from('user_roles')
         .select('role')
-        .eq('id', userId)
-        .single();
-
+        .eq('user_id', userId)
+        .maybeSingle();
+      
       if (error) {
         console.error('Error fetching user role:', error);
-        setUserRole('viewer'); // Default to viewer
+        setUserRole('viewer');
+        return;
+      }
+
+      if (!data) {
+        console.log('No role found, creating default viewer role');
+        const { error: insertError } = await supabase
+          .from('user_roles')
+          .insert({ user_id: userId, role: 'viewer' });
+        
+        if (insertError) {
+          console.error('Error creating default role:', insertError);
+        }
+        setUserRole('viewer');
       } else {
-        setUserRole(data?.role || 'viewer');
+        console.log('User role fetched:', data.role);
+        setUserRole(data.role);
       }
     } catch (error) {
-      console.error('Error fetching user role:', error);
-      setUserRole('viewer'); // Default to viewer
+      console.error('Error in fetchUserRole:', error);
+      setUserRole('viewer');
     }
   };
 
   const refreshUserRole = async () => {
-    if (user) {
+    if (user?.id) {
       await fetchUserRole(user.id);
     }
   };
 
+  useEffect(() => {
+    let mounted = true;
+    let roleFetchTimeout: NodeJS.Timeout;
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
+        
+        if (!mounted) return;
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          // Clear any existing timeout
+          if (roleFetchTimeout) {
+            clearTimeout(roleFetchTimeout);
+          }
+          
+          // Wait for the trigger to complete if it's a new signup
+          if (event === 'SIGNED_IN' && !user) {
+            roleFetchTimeout = setTimeout(() => {
+              if (mounted) {
+                fetchUserRole(session.user.id);
+              }
+            }, 2000);
+          } else {
+            // Debounce role fetching to avoid multiple rapid calls
+            roleFetchTimeout = setTimeout(() => {
+              if (mounted) {
+                fetchUserRole(session.user.id);
+              }
+            }, 500);
+          }
+
+          // Handle redirect after successful authentication
+          if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && 
+              window.location.pathname === '/auth') {
+            window.location.href = '/dashboard';
+          }
+        } else {
+          setUserRole(null);
+        }
+        
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    );
+
+    // Check for existing session
+    const checkSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+          if (mounted) {
+            setLoading(false);
+          }
+          return;
+        }
+
+        if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          if (session?.user) {
+            // Debounce the initial role fetch
+            roleFetchTimeout = setTimeout(() => {
+              if (mounted) {
+                fetchUserRole(session.user.id);
+              }
+            }, 500);
+          }
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error in checkSession:', error);
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    checkSession();
+
+    return () => {
+      mounted = false;
+      if (roleFetchTimeout) {
+        clearTimeout(roleFetchTimeout);
+      }
+      subscription.unsubscribe();
+    };
+  }, []);
+
   const signIn = async (email: string, password: string) => {
     try {
-      setGlobalLoading(true);
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -106,7 +175,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signUp = async (email: string, password: string, metadata?: Record<string, unknown>) => {
     try {
-      setGlobalLoading(true);
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -122,9 +190,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const signOut = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
+  };
+
   const signInWithGoogle = async () => {
     try {
-      setGlobalLoading(true);
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -138,29 +213,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const signOut = async () => {
-    try {
-      setGlobalLoading(true);
-      await supabase.auth.signOut();
-    } catch (error) {
-      console.error('Sign out error:', error);
-    }
-  };
-
-  const value = {
-    user,
-    userRole,
-    loading,
-    signIn,
-    signUp,
-    signInWithGoogle,
-    signOut,
-    refreshUserRole,
-  };
-
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{
+      user,
+      session,
+      userRole,
+      loading,
+      signIn,
+      signUp,
+      signOut,
+      signInWithGoogle,
+      refreshUserRole,
+    }}>
       {children}
     </AuthContext.Provider>
   );
-};
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}

@@ -339,7 +339,7 @@ const Analytics = () => {
                 <Card className="shadow-sm border-gray-200">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
-                      <div>
+            <div>
                         <p className="text-sm font-medium text-gray-600 mb-1">Total Funds</p>
                         <p className="text-2xl font-bold text-gray-900">{metrics.totalFunds}</p>
                       </div>
@@ -441,41 +441,41 @@ const Analytics = () => {
                 </div>
               </div>
             </div>
-
+            
             {/* Professional Filters */}
             <Card className="mb-8 shadow-sm border-gray-200">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
-                    <Button
-                      variant="outline"
+              <Button
+                variant="outline"
                       size="sm"
-                      onClick={() => setShowFilters(!showFilters)}
+                onClick={() => setShowFilters(!showFilters)}
                       className="border-gray-300"
-                    >
-                      <Filter className="w-4 h-4 mr-2" />
-                      Filters
-                      {showFilters ? <ChevronUp className="w-4 h-4 ml-2" /> : <ChevronDown className="w-4 h-4 ml-2" />}
-                    </Button>
+              >
+                <Filter className="w-4 h-4 mr-2" />
+                Filters
+                {showFilters ? <ChevronUp className="w-4 h-4 ml-2" /> : <ChevronDown className="w-4 h-4 ml-2" />}
+              </Button>
                     {loading && (
                       <div className="flex items-center text-sm text-gray-600">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
                         Loading data...
-                      </div>
+            </div>
                     )}
-                  </div>
+          </div>
                   <div className="flex items-center space-x-3">
                     <Label htmlFor="year-select" className="text-sm font-medium text-gray-700">Year:</Label>
-                    <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+                  <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
                       <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
                         {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(year => (
-                          <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                        <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   </div>
                 </div>
                 
@@ -483,23 +483,23 @@ const Analytics = () => {
                   <div className="mt-4 pt-4 border-t border-gray-200">
                     <div className="flex items-center space-x-4">
                       <Label htmlFor="time-range" className="text-sm font-medium text-gray-700">Time Range:</Label>
-                      <Select value={timeRange} onValueChange={setTimeRange}>
+                  <Select value={timeRange} onValueChange={setTimeRange}>
                         <SelectTrigger className="w-48">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Time</SelectItem>
-                          <SelectItem value="last_30_days">Last 30 Days</SelectItem>
-                          <SelectItem value="last_90_days">Last 90 Days</SelectItem>
-                          <SelectItem value="last_6_months">Last 6 Months</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Time</SelectItem>
+                      <SelectItem value="last_30_days">Last 30 Days</SelectItem>
+                      <SelectItem value="last_90_days">Last 90 Days</SelectItem>
+                      <SelectItem value="last_6_months">Last 6 Months</SelectItem>
+                    </SelectContent>
+                  </Select>
+              </div>
+            </div>
+          )}
+            </CardContent>
+          </Card>
+          
             {/* Professional Metrics Overview */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               <Card className="shadow-sm border-gray-200">
@@ -509,14 +509,14 @@ const Analytics = () => {
                       <p className="text-sm font-medium text-gray-600 mb-1">Total Funds</p>
                       <p className="text-2xl font-bold text-gray-900">{metrics.totalFunds}</p>
                       <p className="text-xs text-gray-500 mt-1">Active funds</p>
-                    </div>
+                </div>
                     <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
                       <Building2 className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
               <Card className="shadow-sm border-gray-200">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
@@ -524,14 +524,14 @@ const Analytics = () => {
                       <p className="text-sm font-medium text-gray-600 mb-1">Total Capital</p>
                       <p className="text-2xl font-bold text-gray-900">${(metrics.totalCapital / 1000000).toFixed(1)}M</p>
                       <p className="text-xs text-gray-500 mt-1">Target capital</p>
-                    </div>
+                </div>
                     <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
                       <DollarSign className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
               <Card className="shadow-sm border-gray-200">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
@@ -539,14 +539,14 @@ const Analytics = () => {
                       <p className="text-sm font-medium text-gray-600 mb-1">Avg Ticket Size</p>
                       <p className="text-2xl font-bold text-gray-900">${(metrics.averageTicketSize / 1000000).toFixed(1)}M</p>
                       <p className="text-xs text-gray-500 mt-1">Per investment</p>
-                    </div>
+                </div>
                     <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
                       <Target className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
               <Card className="shadow-sm border-gray-200">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
@@ -554,14 +554,14 @@ const Analytics = () => {
                       <p className="text-sm font-medium text-gray-600 mb-1">Active Markets</p>
                       <p className="text-2xl font-bold text-gray-900">{metrics.activeMarkets}</p>
                       <p className="text-xs text-gray-500 mt-1">Geographic reach</p>
-                    </div>
+                </div>
                     <div className="w-12 h-12 bg-orange-600 rounded-lg flex items-center justify-center">
                       <Globe className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+                </div>
 
             {/* Professional Charts */}
             <Tabs defaultValue="overview" className="space-y-6">
@@ -569,20 +569,20 @@ const Analytics = () => {
                 <TabsTrigger value="overview" className="flex items-center space-x-2">
                   <Eye className="w-4 h-4" />
                   <span>Overview</span>
-                </TabsTrigger>
+            </TabsTrigger>
                 <TabsTrigger value="capital" className="flex items-center space-x-2">
                   <DollarSign className="w-4 h-4" />
                   <span>Capital</span>
-                </TabsTrigger>
+            </TabsTrigger>
                 <TabsTrigger value="performance" className="flex items-center space-x-2">
                   <TrendingUpIcon className="w-4 h-4" />
                   <span>Performance</span>
-                </TabsTrigger>
+            </TabsTrigger>
                 <TabsTrigger value="trends" className="flex items-center space-x-2">
                   <LineChartIcon className="w-4 h-4" />
                   <span>Trends</span>
-                </TabsTrigger>
-              </TabsList>
+            </TabsTrigger>
+          </TabsList>
 
               <TabsContent value="overview" className="space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -592,23 +592,23 @@ const Analytics = () => {
                         <PieChartIcon2 className="w-5 h-5 mr-2 text-blue-600" />
                         Fund Stages Distribution
                       </CardTitle>
-                    </CardHeader>
-                    <CardContent>
+                </CardHeader>
+                <CardContent>
                       <ResponsiveContainer width="100%" height={300}>
-                        <PieChart>
-                          <Pie
+                      <PieChart>
+                        <Pie
                             data={prepareChartData()}
-                            cx="50%"
-                            cy="50%"
+                          cx="50%"
+                          cy="50%"
                             outerRadius={80}
-                            dataKey="value"
+                          dataKey="value"
                             label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                           />
-                          <Tooltip />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </CardContent>
-                  </Card>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                </CardContent>
+              </Card>
 
                   <Card className="shadow-sm border-gray-200">
                     <CardHeader className="pb-4">
@@ -616,17 +616,17 @@ const Analytics = () => {
                         <BarChart3Icon className="w-5 h-5 mr-2 text-green-600" />
                         Network Metrics
                       </CardTitle>
-                    </CardHeader>
-                    <CardContent>
+                </CardHeader>
+                <CardContent>
                       <div className="space-y-4">
                         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                           <span className="text-sm font-medium text-gray-700">Average Team Size</span>
                           <span className="text-sm font-bold text-gray-900">{metrics.averageTeamSize.toFixed(1)}</span>
-                        </div>
+                  </div>
                         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                           <span className="text-sm font-medium text-gray-700">Average Return Target</span>
                           <span className="text-sm font-bold text-gray-900">{metrics.averageReturn.toFixed(1)}%</span>
-                        </div>
+            </div>
                         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                           <span className="text-sm font-medium text-gray-700">Total Investments</span>
                           <span className="text-sm font-bold text-gray-900">{metrics.totalInvestments}</span>
@@ -635,9 +635,9 @@ const Analytics = () => {
                           <span className="text-sm font-medium text-gray-700">Dry Powder</span>
                           <span className="text-sm font-bold text-gray-900">${(metrics.totalDryPowder / 1000000).toFixed(1)}M</span>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  </div>
+                </CardContent>
+              </Card>
                 </div>
               </TabsContent>
 
@@ -648,8 +648,8 @@ const Analytics = () => {
                       <DollarSign className="w-5 h-5 mr-2 text-green-600" />
                       Capital Allocation by Fund
                     </CardTitle>
-                  </CardHeader>
-                  <CardContent>
+                </CardHeader>
+                <CardContent>
                     <ResponsiveContainer width="100%" height={400}>
                       <BarChart data={prepareCapitalData()}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -662,9 +662,9 @@ const Analytics = () => {
                         <Bar dataKey="capitalInMarket" fill="#F59E0B" name="Capital in Market" />
                       </BarChart>
                     </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                </CardContent>
+              </Card>
+          </TabsContent>
 
               <TabsContent value="performance" className="space-y-6">
                 <Card className="shadow-sm border-gray-200">
@@ -673,24 +673,24 @@ const Analytics = () => {
                       <TrendingUpIcon className="w-5 h-5 mr-2 text-purple-600" />
                       Investment Performance
                     </CardTitle>
-                  </CardHeader>
-                  <CardContent>
+              </CardHeader>
+              <CardContent>
                     <ResponsiveContainer width="100%" height={400}>
                       <ComposedChart data={preparePerformanceData()}>
-                        <CartesianGrid strokeDasharray="3 3" />
+                      <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="name" />
                         <YAxis yAxisId="left" />
                         <YAxis yAxisId="right" orientation="right" />
                         <Tooltip />
-                        <Legend />
+                      <Legend />
                         <Bar yAxisId="left" dataKey="equityInvestments" fill="#3B82F6" name="Equity Investments" />
                         <Bar yAxisId="left" dataKey="selfLiquidatingInvestments" fill="#10B981" name="Self Liquidating" />
                         <Line yAxisId="right" type="monotone" dataKey="targetReturn" stroke="#EF4444" name="Target Return %" />
-                      </ComposedChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                    </ComposedChart>
+                  </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
               <TabsContent value="trends" className="space-y-6">
                 <Card className="shadow-sm border-gray-200">
@@ -699,19 +699,19 @@ const Analytics = () => {
                       <LineChartIcon className="w-5 h-5 mr-2 text-orange-600" />
                       Fund Growth Trends
                     </CardTitle>
-                  </CardHeader>
-                  <CardContent>
+              </CardHeader>
+              <CardContent>
                     <ResponsiveContainer width="100%" height={400}>
                       <AreaChart data={prepareTrendData()}>
-                        <CartesianGrid strokeDasharray="3 3" />
+                      <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="year" />
                         <YAxis />
-                        <Tooltip />
+                      <Tooltip />
                         <Area type="monotone" dataKey="funds" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.3} />
                       </AreaChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
+                  </ResponsiveContainer>
+              </CardContent>
+            </Card>
               </TabsContent>
             </Tabs>
           </TabsContent>

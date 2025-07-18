@@ -1,3 +1,4 @@
+
 import { cn } from "@/lib/utils";
 
 interface LoadingSpinnerProps {
@@ -24,4 +25,4 @@ const LoadingSpinner = ({ size = "md", className }: LoadingSpinnerProps) => {
   );
 };
 
-export default LoadingSpinner; 
+export default LoadingSpinner;

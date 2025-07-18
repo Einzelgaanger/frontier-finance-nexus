@@ -329,8 +329,8 @@ const Survey = () => {
       });
     } finally {
       setIsLoading(false);
-    }
-  };
+      }
+    };
 
   const prepareForDb = (formData: SurveyFormData, userId: string, year: number, completed: boolean = false) => {
     const now = new Date().toISOString();
@@ -365,7 +365,7 @@ const Survey = () => {
     }
 
     try {
-      setIsSubmitting(true);
+    setIsSubmitting(true);
       const year = selectedYear || new Date().getFullYear();
       const dbData = prepareForDb(data, user.id, year, true);
 
@@ -395,11 +395,11 @@ const Survey = () => {
       setShowSubmitConfirmation(true);
     } catch (error) {
       console.error('Error submitting survey:', error);
-      toast({
+        toast({
         title: "Error",
         description: "Failed to submit survey. Please try again.",
-        variant: "destructive"
-      });
+          variant: "destructive"
+        });
     } finally {
       setIsSubmitting(false);
     }
@@ -425,8 +425,8 @@ const Survey = () => {
     
     isValid.then((valid) => {
       if (valid && currentSection < totalSections) {
-        setCurrentSection(currentSection + 1);
-      }
+      setCurrentSection(currentSection + 1);
+    }
     });
   };
 
@@ -447,7 +447,7 @@ const Survey = () => {
     }
 
     try {
-      setIsSubmitting(true);
+    setIsSubmitting(true);
       const formData = form.getValues();
       const year = selectedYear || new Date().getFullYear();
       const dbData = prepareForDb(formData, user.id, year, false);
@@ -551,8 +551,8 @@ const Survey = () => {
                   Last updated: {lastUpdated.toLocaleTimeString()}
                 </Button>
               </div>
+              </div>
             </div>
-          </div>
 
           {/* Professional Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -563,7 +563,7 @@ const Survey = () => {
                     <p className="text-sm font-medium text-gray-600 mb-1">Total Surveys</p>
                     <p className="text-2xl font-bold text-gray-900">{pastSurveys.length}</p>
                     <p className="text-xs text-gray-500 mt-1">Completed responses</p>
-                  </div>
+          </div>
                   <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
                     <FileText className="w-6 h-6 text-white" />
                   </div>
@@ -585,8 +585,8 @@ const Survey = () => {
                     <Calendar className="w-6 h-6 text-white" />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
             <Card className="shadow-sm border-gray-200">
               <CardContent className="p-6">
@@ -640,8 +640,8 @@ const Survey = () => {
                       onChange={(e) => setCustomYear(e.target.value)}
                       className="w-48"
                     />
-                  )}
-                </div>
+                )}
+              </div>
                 
                 <Button
                   onClick={() => {
@@ -660,7 +660,7 @@ const Survey = () => {
                       investment_instruments_data: [],
                       sectors_allocation: {},
                       year: year,
-                    });
+                          });
                   }}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3"
                   disabled={!selectedYear && !customYear}
@@ -683,17 +683,17 @@ const Survey = () => {
                 <CardDescription>View and manage your previous survey responses</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                  <div className="space-y-4">
                   {pastSurveys.map((survey, index) => (
-                    <div
+                        <div
                       key={survey.id || index}
                       className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <Calendar className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <div>
+                        >
+                          <div className="flex items-center space-x-4">
+                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                              <Calendar className="w-5 h-5 text-blue-600" />
+                            </div>
+                            <div>
                           <h3 className="font-medium text-gray-900">
                             Survey {survey.year}
                           </h3>
@@ -703,17 +703,17 @@ const Survey = () => {
                           {survey.completed_at && (
                             <p className="text-xs text-gray-400">
                               Completed: {new Date(survey.completed_at).toLocaleDateString()}
-                            </p>
+                              </p>
                           )}
-                        </div>
-                      </div>
+                            </div>
+                          </div>
                       <div className="flex items-center space-x-2">
-                        <Badge 
-                          variant={survey.completed_at ? "default" : "secondary"}
+                            <Badge 
+                              variant={survey.completed_at ? "default" : "secondary"}
                           className={survey.completed_at ? "bg-green-100 text-green-700 border-green-200" : "bg-yellow-100 text-yellow-700 border-yellow-200"}
-                        >
+                            >
                           {survey.completed_at ? 'Completed' : 'Draft'}
-                        </Badge>
+                            </Badge>
                         <Button
                           variant="outline"
                           size="sm"
@@ -729,10 +729,10 @@ const Survey = () => {
                           <Eye className="w-4 h-4 mr-1" />
                           View
                         </Button>
-                      </div>
-                    </div>
+                          </div>
+                        </div>
                   ))}
-                </div>
+                  </div>
               </CardContent>
             </Card>
           )}
@@ -774,15 +774,15 @@ const Survey = () => {
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              <Button 
-                variant="outline" 
+                          <Button
+                            variant="outline"
                 size="sm"
                 className="border-gray-300 text-gray-600"
                 onClick={() => setShowNewSurvey(false)}
-              >
+                          >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Surveys
-              </Button>
+                          </Button>
               <Button 
                 variant="outline" 
                 size="sm"
@@ -793,8 +793,8 @@ const Survey = () => {
                 <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
                 Last updated: {lastUpdated.toLocaleTimeString()}
               </Button>
-            </div>
-          </div>
+                      </div>
+                      </div>
         </div>
 
         {/* Professional Progress Section */}
@@ -802,7 +802,7 @@ const Survey = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2">
                   <span className="text-sm font-medium text-gray-700">
                     Section {currentSection} of {totalSections}
                   </span>
@@ -818,8 +818,8 @@ const Survey = () => {
                 </span>
               </div>
               <div className="flex items-center space-x-3">
-                <Button
-                  variant="outline"
+                        <Button
+                          variant="outline"
                   size="sm"
                   onClick={handlePrevious}
                   disabled={currentSection === 1}
@@ -837,9 +837,9 @@ const Survey = () => {
                 >
                   Next
                   <ArrowRight className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
+                        </Button>
+                      </div>
+                    </div>
             
             {/* Section Indicators */}
             <div className="flex space-x-2">
@@ -857,9 +857,9 @@ const Survey = () => {
                   <span className="hidden sm:inline">{section.title}</span>
                 </button>
               ))}
-            </div>
-          </CardContent>
-        </Card>
+                </div>
+              </CardContent>
+            </Card>
 
         {/* Survey Form */}
         <Form {...form}>

@@ -1,37 +1,42 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Progress } from '@/components/ui/progress';
 import { 
   Eye, 
-  RefreshCw, 
-  TrendingUp, 
-  Users, 
+  UserPlus, 
   Building2, 
-  Globe,
-  DollarSign,
-  BarChart3,
-  Calendar,
-  MapPin,
-  Target,
+  Key, 
+  Users, 
+  Globe, 
+  FileText, 
+  Send, 
+  ChevronRight, 
+  ShieldCheck, 
+  Briefcase, 
+  LineChart,
+  Menu, 
+  Home, 
+  Settings, 
+  HelpCircle, 
+  LogOut, 
+  TrendingUp,
+  Wallet, 
+  ChartBar, 
+  PieChart, 
+  Network,
+  RefreshCw,
   Award,
-  Activity,
-  Zap,
-  Shield,
   CheckCircle,
   Clock,
-  AlertCircle,
-  Star,
-  ArrowUpRight,
-  ArrowDownRight,
-  Minus,
-  Wallet,
-  ChartBar,
-  PieChart,
-  Network
+  MapPin,
+  DollarSign
 } from 'lucide-react';
+import { ESCPApplicationModal } from './ESCPApplicationModal';
 
 const LoadingScreen = () => {
   const [progress, setProgress] = useState(0);
@@ -126,218 +131,223 @@ const ViewerDashboard = () => {
   }
 
   return (
-    <div className="h-screen bg-gray-50 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 h-full flex flex-col justify-start">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto p-6">
         {/* Professional Header */}
-        <div className="flex items-center justify-between" style={{ minHeight: 64 }}>
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
-              <Eye className="w-6 h-6 text-white" />
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+                <Eye className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-semibold text-gray-900">ESCP Network</h1>
+                <p className="text-gray-600 text-sm">Early Stage Capital Provider Network - Global Fund Manager Platform</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900">ESCP Network</h1>
-              <p className="text-gray-600 text-sm">Early Stage Capital Provider Network - Global Fund Manager Platform</p>
+            <div className="flex items-center space-x-3">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="border-gray-300 text-gray-600"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Last updated: {lastUpdated.toLocaleTimeString()}
+              </Button>
+              <Badge 
+                variant="outline" 
+                className="px-3 py-1 bg-blue-50 text-blue-700 border-blue-200"
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                Visitor Access
+              </Badge>
             </div>
-          </div>
-          <div className="flex items-center space-x-3">
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="border-gray-300 text-gray-600"
-            >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Last updated: {lastUpdated.toLocaleTimeString()}
-            </Button>
-            <Badge 
-              variant="outline" 
-              className="px-3 py-1 bg-blue-50 text-blue-700 border-blue-200"
-            >
-              <Eye className="w-4 h-4 mr-2" />
-              Visitor Access
-            </Badge>
           </div>
         </div>
 
         {/* Professional Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <Card className="bg-white shadow-sm border-gray-200">
-            <CardContent className="p-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card className="shadow-sm border-gray-200">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Fund Managers</p>
-                  <p className="text-2xl font-bold text-gray-900">247</p>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-600 mb-1">Network Size</p>
+                  <p className="text-2xl font-bold text-gray-900">120+</p>
+                  <p className="text-xs text-gray-500 mt-1">Fund managers</p>
                 </div>
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Building2 className="w-5 h-5 text-blue-600" />
+                <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <Users className="w-6 h-6 text-white" />
                 </div>
-              </div>
-              <div className="flex items-center mt-2">
-                <ArrowUpRight className="w-4 h-4 text-green-600 mr-1" />
-                <span className="text-sm text-green-600 font-medium">+12%</span>
-                <span className="text-sm text-gray-500 ml-1">from last month</span>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white shadow-sm border-gray-200">
-            <CardContent className="p-4">
+          <Card className="shadow-sm border-gray-200">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Active Regions</p>
-                  <p className="text-2xl font-bold text-gray-900">18</p>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-600 mb-1">Geographic Reach</p>
+                  <p className="text-2xl font-bold text-gray-900">30+</p>
+                  <p className="text-xs text-gray-500 mt-1">Countries</p>
                 </div>
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <Globe className="w-5 h-5 text-green-600" />
+                <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
+                  <Globe className="w-6 h-6 text-white" />
                 </div>
-              </div>
-              <div className="flex items-center mt-2">
-                <ArrowUpRight className="w-4 h-4 text-green-600 mr-1" />
-                <span className="text-sm text-green-600 font-medium">+3</span>
-                <span className="text-sm text-gray-500 ml-1">new regions</span>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white shadow-sm border-gray-200">
-            <CardContent className="p-4">
+          <Card className="shadow-sm border-gray-200">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total AUM</p>
-                  <p className="text-2xl font-bold text-gray-900">$2.4B</p>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-600 mb-1">Investment Focus</p>
+                  <p className="text-2xl font-bold text-gray-900">Frontier</p>
+                  <p className="text-xs text-gray-500 mt-1">Markets</p>
                 </div>
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <DollarSign className="w-5 h-5 text-purple-600" />
+                <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
+                  <DollarSign className="w-6 h-6 text-white" />
                 </div>
-              </div>
-              <div className="flex items-center mt-2">
-                <ArrowUpRight className="w-4 h-4 text-green-600 mr-1" />
-                <span className="text-sm text-green-600 font-medium">+8.5%</span>
-                <span className="text-sm text-gray-500 ml-1">from last quarter</span>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white shadow-sm border-gray-200">
-            <CardContent className="p-4">
+          <Card className="shadow-sm border-gray-200">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Network Growth</p>
-                  <p className="text-2xl font-bold text-gray-900">+34%</p>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-600 mb-1">Your Status</p>
+                  <Badge className="bg-gray-100 text-gray-700 border-gray-200">
+                    Visitor
+                  </Badge>
+                  <p className="text-xs text-gray-500 mt-1">Apply for membership</p>
                 </div>
-                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-orange-600" />
+                <div className="w-12 h-12 bg-orange-600 rounded-lg flex items-center justify-center">
+                  <Award className="w-6 h-6 text-white" />
                 </div>
-              </div>
-              <div className="flex items-center mt-2">
-                <ArrowUpRight className="w-4 h-4 text-green-600 mr-1" />
-                <span className="text-sm text-green-600 font-medium">+15</span>
-                <span className="text-sm text-gray-500 ml-1">new members</span>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Access Level Card */}
-        <Card className="bg-white shadow-sm border-gray-200">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center text-lg font-semibold text-gray-900">
-              <Shield className="w-5 h-5 mr-2 text-blue-600" />
-              Access Level & Permissions
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-3">
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Application */}
+          <div className="lg:col-span-2">
+            <Card className="shadow-sm border-gray-200">
+              <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Network Access</span>
-                  <Badge className="bg-green-100 text-green-700 border-green-200">
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                    Active
-                  </Badge>
+                  <div className="flex items-center space-x-4">
+                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                      <Send className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">Apply for ESCP Network Membership</CardTitle>
+                      <CardDescription className="text-sm">
+                        Join our network of emerging market fund managers
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <Button 
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                    onClick={() => setShowApplicationModal(true)}
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    Start Application
+                  </Button>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Fund Manager Profiles</span>
-                  <Badge className="bg-green-100 text-green-700 border-green-200">
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                    View
-                  </Badge>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-semibold text-gray-700 flex items-center">
+                      <ShieldCheck className="w-4 h-4 mr-2 text-green-600" />
+                      Application Process
+                    </h4>
+                    <ul className="space-y-3">
+                      {[
+                        'Complete detailed application form',
+                        'Admin review and approval',
+                        'Account upgrade to member status',
+                        'Complete member survey'
+                      ].map((step, i) => (
+                        <li key={i} className="flex items-center text-gray-700">
+                          <span className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center mr-3 text-sm font-medium text-green-800">
+                            {i + 1}
+                          </span>
+                          <span className="text-sm">{step}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-semibold text-gray-700 flex items-center">
+                      <Briefcase className="w-4 h-4 mr-2 text-blue-600" />
+                      Member Benefits
+                    </h4>
+                    <ul className="space-y-3">
+                      {[
+                        'Access full network directory',
+                        'Connect with fund managers',
+                        'Share investment insights',
+                        'Join exclusive events'
+                      ].map((benefit, i) => (
+                        <li key={i} className="flex items-center text-gray-700">
+                          <CheckCircle className="w-4 h-4 mr-2 text-blue-500" />
+                          <span className="text-sm">{benefit}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Survey Data</span>
-                  <Badge className="bg-green-100 text-green-700 border-green-200">
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                    View
-                  </Badge>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column - Access & Stats */}
+          <div className="space-y-6">
+            {/* Access Level Card */}
+            <Card className="shadow-sm border-gray-200">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center">
+                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                    <Eye className="w-4 h-4 text-blue-600" />
+                  </div>
+                  Visitor Access Level
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="space-y-3">
+                    {[
+                      'Browse limited directory',
+                      'View public profiles',
+                      'Apply for membership'
+                    ].map((feature, i) => (
+                      <div key={i} className="flex items-center text-gray-700">
+                        <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+                        <span className="text-sm">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <Button 
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    onClick={() => window.location.href = '/network'}
+                  >
+                    <Globe className="w-4 h-4 mr-2" />
+                    Browse Directory
+                  </Button>
                 </div>
-              </div>
-              
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Analytics Access</span>
-                  <Badge className="bg-green-100 text-green-700 border-green-200">
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                    Limited
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Network Updates</span>
-                  <Badge className="bg-green-100 text-green-700 border-green-200">
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                    Real-time
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Data Export</span>
-                  <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200">
-                    <Clock className="w-3 h-3 mr-1" />
-                    Pending
-                  </Badge>
-                </div>
-              </div>
-              
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Member Directory</span>
-                  <Badge className="bg-green-100 text-green-700 border-green-200">
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                    Access
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Contact Information</span>
-                  <Badge className="bg-green-100 text-green-700 border-green-200">
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                    View
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Network Events</span>
-                  <Badge className="bg-green-100 text-green-700 border-green-200">
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                    Notify
-                  </Badge>
-                </div>
-              </div>
-            </div>
-            
-            <div className="mt-6 pt-4 border-t border-gray-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-900">Account Status</h4>
-                  <p className="text-sm text-gray-600">Visitor access granted until December 31, 2024</p>
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="border-blue-300 text-blue-700 hover:bg-blue-50"
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Refresh Access
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+        
+        {/* Application Modal */}
+        <ESCPApplicationModal 
+          open={showApplicationModal} 
+          onClose={() => setShowApplicationModal(false)} 
+        />
       </div>
     </div>
   );
