@@ -1095,7 +1095,7 @@ const Admin = () => {
                     </div>
                   </CardContent>
                 </Card>
-              ))
+              ))}
             </div>
           )}
         </TabsContent>
@@ -1132,45 +1132,45 @@ const Admin = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {membershipRequests.filter(r => r.status === 'approved').map((request) => (
-                <Card key={request.id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-green-500">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <CardTitle className="text-sm font-medium truncate flex-1">{request.applicant_name}</CardTitle>
-                      <Badge variant="default" className="bg-green-100 text-green-800 flex-shrink-0">Member</Badge>
-                    </div>
-                    <CardDescription className="text-xs truncate">{request.email}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="space-y-2 text-xs text-gray-600">
-                      <div className="flex items-center gap-2">
-                        <Building2 className="w-3 h-3 flex-shrink-0" />
-                        <span className="truncate">{request.vehicle_name}</span>
+                  <Card key={request.id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-green-500">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <CardTitle className="text-sm font-medium truncate flex-1">{request.applicant_name}</CardTitle>
+                        <Badge variant="default" className="bg-green-100 text-green-800 flex-shrink-0">Member</Badge>
                       </div>
-                      {request.vehicle_website && (
+                      <CardDescription className="text-xs truncate">{request.email}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="space-y-2 text-xs text-gray-600">
                         <div className="flex items-center gap-2">
-                          <Globe className="w-3 h-3 flex-shrink-0" />
-                          <a 
-                            href={request.vehicle_website.startsWith('http') ? request.vehicle_website : 'https://' + request.vehicle_website}
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline truncate block"
-                          >
-                            {request.vehicle_website}
-                          </a>
+                          <Building2 className="w-3 h-3 flex-shrink-0" />
+                          <span className="truncate">{request.vehicle_name}</span>
                         </div>
-                      )}
-                      <div className="flex items-center gap-2">
-                        <Users className="w-3 h-3 flex-shrink-0" />
-                        <span className="truncate">{request.team_size || 'N/A'}</span>
+                        {request.vehicle_website && (
+                          <div className="flex items-center gap-2">
+                            <Globe className="w-3 h-3 flex-shrink-0" />
+                            <a 
+                              href={request.vehicle_website.startsWith('http') ? request.vehicle_website : 'https://' + request.vehicle_website}
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline truncate block"
+                            >
+                              {request.vehicle_website}
+                            </a>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <Users className="w-3 h-3 flex-shrink-0" />
+                          <span className="truncate">{request.team_size || 'N/A'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <DollarSign className="w-3 h-3 flex-shrink-0" />
+                          <span className="truncate">{request.ticket_size || 'N/A'}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <DollarSign className="w-3 h-3 flex-shrink-0" />
-                        <span className="truncate">{request.ticket_size || 'N/A'}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                ))}
             </div>
           </TabsContent>
 
@@ -1206,24 +1206,24 @@ const Admin = () => {
                 </div>
               ) : (
                 createdViewers.map((viewer) => (
-                <Card key={viewer.user_id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-purple-500">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <CardTitle className="text-sm font-medium truncate flex-1">{viewer.profiles?.full_name || 'No Name'}</CardTitle>
-                      <Badge variant="default" className="bg-purple-100 text-purple-800 flex-shrink-0">User</Badge>
-                    </div>
-                    <CardDescription className="text-xs truncate">{viewer.profiles?.email || 'No Email'}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="space-y-2 text-xs text-gray-600">
-                      <div className="flex items-center gap-2">
-                        <User className="w-3 h-3 flex-shrink-0" />
-                        <span className="truncate">User ID: {viewer.user_id}</span>
+                  <Card key={viewer.user_id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-purple-500">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <CardTitle className="text-sm font-medium truncate flex-1">{viewer.profiles?.full_name || 'No Name'}</CardTitle>
+                        <Badge variant="default" className="bg-purple-100 text-purple-800 flex-shrink-0">User</Badge>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      <CardDescription className="text-xs truncate">{viewer.profiles?.email || 'No Email'}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="space-y-2 text-xs text-gray-600">
+                        <div className="flex items-center gap-2">
+                          <User className="w-3 h-3 flex-shrink-0" />
+                          <span className="truncate">User ID: {viewer.user_id}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
             </div>
           </TabsContent>
 
@@ -1260,38 +1260,38 @@ const Admin = () => {
                 </div>
               ) : (
                 activityLogs.map((log) => (
-                <Card key={log.id} className={`hover:shadow-md transition-shadow ${getActivityColor(log.action)}`}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm">
-                          {getActivityIcon(log.action)}
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-900">{formatActivityDetails(log)}</p>
-                          <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {new Date(log.created_at).toLocaleString()}
-                            </span>
-                            {log.user_agent && (
+                  <Card key={log.id} className={`hover:shadow-md transition-shadow ${getActivityColor(log.action)}`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm">
+                            {getActivityIcon(log.action)}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900">{formatActivityDetails(log)}</p>
+                            <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
                               <span className="flex items-center gap-1">
-                                <Globe className="w-3 h-3" />
-                                {log.user_agent.includes('Mobile') ? 'Mobile' : 'Desktop'}
+                                <Clock className="w-3 h-3" />
+                                {new Date(log.created_at).toLocaleString()}
                               </span>
-                            )}
+                              {log.user_agent && (
+                                <span className="flex items-center gap-1">
+                                  <Globe className="w-3 h-3" />
+                                  {log.user_agent.includes('Mobile') ? 'Mobile' : 'Desktop'}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
+                        <div className="text-right">
+                          <Badge variant="outline" className="text-xs">
+                            {log.action.replace('_', ' ').toUpperCase()}
+                          </Badge>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <Badge variant="outline" className="text-xs">
-                          {log.action.replace('_', ' ').toUpperCase()}
-                        </Badge>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                ))
             </div>
           </TabsContent>
         </Tabs>
