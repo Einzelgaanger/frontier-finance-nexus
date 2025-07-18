@@ -6,6 +6,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import LoadingScreen from "@/components/ui/loading-screen";
+import { useLoadingStore } from "@/store/loading-store";
+import { useNavigationLoading } from "@/hooks/useNavigationLoading";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -21,13 +24,24 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <AuthProvider>
+// Component to handle navigation loading
+const NavigationHandler = () => {
+  useNavigationLoading();
+  return null;
+};
+
+const App = () => {
+  const isLoading = useLoadingStore((state) => state.isLoading);
+  
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        {isLoading && <LoadingScreen />}
+        <Toaster />
+        <Sonner />
+        <AuthProvider>
         <BrowserRouter>
+          <NavigationHandler />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
@@ -75,9 +89,10 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+        </AuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

@@ -72,7 +72,7 @@ interface MembershipRequest {
   id: string;
   user_id: string;
   applicant_name: string;
-    email: string;
+  email: string;
   vehicle_name: string;
   vehicle_website?: string | null;
   domicile_country?: string | null;
@@ -156,20 +156,6 @@ const Admin = () => {
   const clearCache = useCallback(() => {
     setDataCache({});
   }, []);
-
-  // Add function to refresh data
-  const refreshData = useCallback(async () => {
-    clearCache();
-    setLoading(true);
-    try {
-      await Promise.all([
-        fetchMembershipRequests(),
-        fetchAnalyticsData()
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  }, [clearCache, fetchMembershipRequests, fetchAnalyticsData]);
 
   const fetchFundManagers = useCallback(async () => {
     const cacheKey = 'fundManagers';
@@ -329,7 +315,7 @@ const Admin = () => {
         setLoading(false);
       });
     }
-  }, [userRole, fetchMembershipRequests, fetchAnalyticsData]);
+  }, [userRole, fetchMembershipRequests]);
 
   // Lazy load other data when tabs are accessed
   useEffect(() => {
@@ -535,6 +521,20 @@ const Admin = () => {
       setAnalyticsLoading(false);
     }
   };
+
+  // Add function to refresh data
+  const refreshData = useCallback(async () => {
+    clearCache();
+    setLoading(true);
+    try {
+      await Promise.all([
+        fetchMembershipRequests(),
+        fetchAnalyticsData()
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  }, [clearCache, fetchMembershipRequests]);
 
   const handleRoleChange = async (requestId: string, newRole: 'viewer' | 'member') => {
     setPendingRoleChange({ requestId, newRole });
@@ -908,7 +908,7 @@ const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="min-h-screen bg-gray-50">
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
@@ -1050,55 +1050,57 @@ const Admin = () => {
                   ))}
                 </div>
               ) : (
-                membershipRequests.map((request) => (
-                <Card key={request.id} className="hover:shadow-lg transition-all duration-200 cursor-pointer" onClick={() => handleViewApplication(request)}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <CardTitle className="text-sm font-medium truncate flex-1">{request.applicant_name}</CardTitle>
-                      <Badge 
-                        variant={request.status === 'pending' ? 'secondary' : request.status === 'approved' ? 'default' : 'destructive'}
-                        className={`flex-shrink-0 ${
-                          request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                          request.status === 'approved' ? 'bg-green-100 text-green-800' : 
-                          'bg-red-100 text-red-800'
-                        }`}
-                      >
-                        {request.status === 'pending' ? 'Pending' : request.status === 'approved' ? 'Approved' : 'Rejected'}
-                      </Badge>
-                    </div>
-                    <CardDescription className="text-xs truncate">{request.email}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="space-y-2 text-xs text-gray-600">
-                      <div className="flex items-center gap-2">
-                        <Building2 className="w-3 h-3 flex-shrink-0" />
-                        <span className="truncate">{request.vehicle_name}</span>
-                      </div>
-                      {request.vehicle_website && (
-                        <div className="flex items-center gap-2">
-                          <Globe className="w-3 h-3 flex-shrink-0" />
-                          <a 
-                            href={request.vehicle_website.startsWith('http') ? request.vehicle_website : 'https://' + request.vehicle_website}
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline truncate block"
-                            onClick={(e) => e.stopPropagation()}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {membershipRequests.map((request) => (
+                    <Card key={request.id} className="hover:shadow-lg transition-all duration-200 cursor-pointer" onClick={() => handleViewApplication(request)}>
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <CardTitle className="text-sm font-medium truncate flex-1">{request.applicant_name}</CardTitle>
+                          <Badge 
+                            variant={request.status === 'pending' ? 'secondary' : request.status === 'approved' ? 'default' : 'destructive'}
+                            className={`flex-shrink-0 ${
+                              request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                              request.status === 'approved' ? 'bg-green-100 text-green-800' : 
+                              'bg-red-100 text-red-800'
+                            }`}
                           >
-                            {request.vehicle_website}
-                          </a>
+                            {request.status === 'pending' ? 'Pending' : request.status === 'approved' ? 'Approved' : 'Rejected'}
+                          </Badge>
                         </div>
-                      )}
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-3 h-3 flex-shrink-0" />
-                        <span className="truncate">{request.created_at ? new Date(request.created_at).toLocaleDateString() : 'N/A'}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                        <CardDescription className="text-xs truncate">{request.email}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="space-y-2 text-xs text-gray-600">
+                          <div className="flex items-center gap-2">
+                            <Building2 className="w-3 h-3 flex-shrink-0" />
+                            <span className="truncate">{request.vehicle_name}</span>
+                          </div>
+                          {request.vehicle_website && (
+                            <div className="flex items-center gap-2">
+                              <Globe className="w-3 h-3 flex-shrink-0" />
+                              <a 
+                                href={request.vehicle_website.startsWith('http') ? request.vehicle_website : 'https://' + request.vehicle_website}
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline truncate block"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {request.vehicle_website}
+                              </a>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-3 h-3 flex-shrink-0" />
+                            <span className="truncate">{request.created_at ? new Date(request.created_at).toLocaleDateString() : 'N/A'}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
-        </TabsContent>
+          </TabsContent>
 
           <TabsContent value="members" className="space-y-6">
             <div className="flex items-center justify-between">
@@ -1171,7 +1173,8 @@ const Admin = () => {
                     </CardContent>
                   </Card>
                 ))}
-            </div>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="viewers" className="space-y-6">
@@ -1223,7 +1226,8 @@ const Admin = () => {
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                ))
+              )}
             </div>
           </TabsContent>
 
@@ -1292,6 +1296,7 @@ const Admin = () => {
                     </CardContent>
                   </Card>
                 ))
+              )}
             </div>
           </TabsContent>
         </Tabs>

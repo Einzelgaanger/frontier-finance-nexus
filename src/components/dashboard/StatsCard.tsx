@@ -11,17 +11,50 @@ interface StatsCardProps {
     value: number;
     isPositive: boolean;
   };
+  color?: string;
 }
 
-const StatsCard = ({ title, value, description, icon: Icon, trend }: StatsCardProps) => {
+const StatsCard = ({ title, value, description, icon: Icon, trend, color = 'bg-blue-500' }: StatsCardProps) => {
+  const getColorClasses = (color: string) => {
+    const colorMap: { [key: string]: { bg: string; text: string; iconBg: string; iconText: string } } = {
+      'bg-blue-500': {
+        bg: 'bg-blue-500',
+        text: 'text-blue-600',
+        iconBg: 'bg-blue-100',
+        iconText: 'text-blue-600'
+      },
+      'bg-orange-500': {
+        bg: 'bg-orange-500',
+        text: 'text-orange-600',
+        iconBg: 'bg-orange-100',
+        iconText: 'text-orange-600'
+      },
+      'bg-green-500': {
+        bg: 'bg-green-500',
+        text: 'text-green-600',
+        iconBg: 'bg-green-100',
+        iconText: 'text-green-600'
+      },
+      'bg-purple-500': {
+        bg: 'bg-purple-500',
+        text: 'text-purple-600',
+        iconBg: 'bg-purple-100',
+        iconText: 'text-purple-600'
+      }
+    };
+    return colorMap[color] || colorMap['bg-blue-500'];
+  };
+
+  const colors = getColorClasses(color);
+
   return (
-    <Card className="relative overflow-hidden backdrop-blur-sm bg-white/50 border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent" />
+    <Card className="relative overflow-hidden bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200">
+      <div className={`absolute top-0 left-0 w-full h-1 ${colors.bg}`} />
       
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
         <CardTitle className="text-sm font-medium text-gray-700">{title}</CardTitle>
-        <div className="p-2 bg-gradient-to-r from-blue-100 to-yellow-100 rounded-lg">
-          <Icon className="h-4 w-4 text-blue-600" />
+        <div className={`p-2 ${colors.iconBg} rounded-lg`}>
+          <Icon className={`h-4 w-4 ${colors.iconText}`} />
         </div>
       </CardHeader>
       

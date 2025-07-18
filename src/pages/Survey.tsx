@@ -10,10 +10,28 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { ArrowLeft, ArrowRight, CheckCircle, FileText, Plus, Calendar, Eye, Users, Building2 } from 'lucide-react';
+import { 
+  ArrowLeft, 
+  ArrowRight, 
+  CheckCircle, 
+  FileText, 
+  Plus, 
+  Calendar, 
+  Eye, 
+  Users, 
+  Building2,
+  RefreshCw,
+  Clock,
+  Award,
+  Target,
+  Globe,
+  TrendingUp,
+  Briefcase
+} from 'lucide-react';
 import { VehicleInfoSection } from '@/components/survey/VehicleInfoSection';
 import { TeamSection } from '@/components/survey/TeamSection';
 import { GeographicSection } from '@/components/survey/GeographicSection';
@@ -184,6 +202,7 @@ const Survey = () => {
   const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
   const [pendingSubmission, setPendingSubmission] = useState<SurveyFormData | null>(null);
   const [formData, setFormData] = useState<Partial<SurveyFormData>>({});
+  const [lastUpdated, setLastUpdated] = useState(new Date());
   const { user, userRole, loading: authLoading } = useAuth();
   const { toast } = useToast();
 
@@ -199,474 +218,216 @@ const Survey = () => {
       team_members: [], // Empty array for viewers
       legal_domicile: [],
       fund_stage: [],
-      team_size_min: 1,
-      team_size_max: 1,
-      ticket_size_min: 0,
-      ticket_size_max: 0,
-      target_capital: 0,
-      capital_raised: 0,
-      capital_in_market: 0,
-      target_return_min: 0,
-      target_return_max: 0,
-      equity_investments_made: 0,
-      equity_investments_exited: 0,
-      self_liquidating_made: 0,
-      self_liquidating_exited: 0,
-      supporting_document_url: '',
-      expectations: '',
-      how_heard_about_network: '',
-      how_heard_about_network_other: '',
-      vehicle_type: '',
-      vehicle_type_other: '',
-      thesis: '',
-      team_description: '',
-      legal_domicile_other: '',
       markets_operated: {},
-      markets_operated_other: '',
-      ticket_description: '',
-      current_status: '',
-      current_status_other: '',
-      legal_entity_date_from: undefined,
-      legal_entity_date_to: undefined,
-      legal_entity_month_from: undefined,
-      legal_entity_month_to: undefined,
-      first_close_date_from: undefined,
-      first_close_date_to: undefined,
-      first_close_month_from: undefined,
-      first_close_month_to: undefined,
       investment_instruments_priority: {},
       investment_instruments_data: [],
       sectors_allocation: {},
-    }
+      year: new Date().getFullYear(),
+    },
   });
 
-
-
-  const fetchPastSurveys = useCallback(async () => {
-    try {
-      let query = supabase
-        .from('survey_responses')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      // If member or viewer, only show their surveys; admins can see all
-      if (userRole === 'member' || userRole === 'viewer') {
-        query = query.eq('user_id', user.id);
-      }
-      // Admins can see all surveys (no additional filter needed)
-
-      const { data, error } = await query;
-      if (error) throw error;
-      setPastSurveys((data || []).map(mapSupabaseSurveyToFormData));
-    } catch (error) {
-      console.error('Error fetching past surveys:', error);
-    }
-  }, [userRole, user?.id]);
+  // Professional section configuration
+  const sectionConfig = [
+    {
+      key: 'vehicle_info',
+      title: 'Vehicle Information',
+      icon: Building2,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-200',
+    },
+    {
+      key: 'team',
+      title: 'Team & Leadership',
+      icon: Users,
+      color: 'text-green-600',
+      bgColor: 'bg-green-50',
+      borderColor: 'border-green-200',
+    },
+    {
+      key: 'geography',
+      title: 'Geographic & Market Focus',
+      icon: Globe,
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50',
+      borderColor: 'border-purple-200',
+    },
+    {
+      key: 'investment_strategy',
+      title: 'Investment Strategy',
+      icon: Target,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50',
+      borderColor: 'border-orange-200',
+    },
+    {
+      key: 'fund_operations',
+      title: 'Fund Operations',
+      icon: Briefcase,
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-50',
+      borderColor: 'border-indigo-200',
+    },
+    {
+      key: 'fund_status',
+      title: 'Fund Status & Timeline',
+      icon: Calendar,
+      color: 'text-teal-600',
+      bgColor: 'bg-teal-50',
+      borderColor: 'border-teal-200',
+    },
+    {
+      key: 'investment_instruments',
+      title: 'Investment Instruments',
+      icon: TrendingUp,
+      color: 'text-yellow-600',
+      bgColor: 'bg-yellow-50',
+      borderColor: 'border-yellow-200',
+    },
+    {
+      key: 'sector_returns',
+      title: 'Sector Focus & Returns',
+      icon: Award,
+      color: 'text-red-600',
+      bgColor: 'bg-red-50',
+      borderColor: 'border-red-200',
+    },
+  ];
 
   useEffect(() => {
-    if (user && !authLoading) {
-      fetchPastSurveys();
+    if (!authLoading && user) {
+      loadExistingResponse();
+    }
+  }, [user, authLoading]);
+
+  const loadExistingResponse = async () => {
+    try {
+      setIsLoading(true);
+      const { data: responses, error } = await supabase
+        .from('survey_responses')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('year', { ascending: false });
+
+      if (error) throw error;
+
+      const mappedResponses = responses?.map(mapSupabaseSurveyToFormData) || [];
+      setPastSurveys(mappedResponses);
+
+      if (mappedResponses.length > 0) {
+        setExistingResponse(mappedResponses[0]);
+        form.reset(mappedResponses[0]);
+      }
+
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error('Error loading existing response:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load existing survey data",
+        variant: "destructive"
+      });
+    } finally {
       setIsLoading(false);
     }
-  }, [user, authLoading, fetchPastSurveys]);
-
-  // Ensure form data persists between sections
-  useEffect(() => {
-    const subscription = form.watch((value, { name, type }) => {
-      console.log('Form field changed:', name, type, value);
-      // Persist form data to state
-      setFormData(value);
-    });
-    return () => subscription.unsubscribe();
-  }, [form]);
-
-  useEffect(() => {
-    const loadExistingResponse = async () => {
-      if (!user || !showNewSurvey || !selectedYear) return;
-
-      const { data, error } = await supabase
-        .from('survey_responses')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('year', selectedYear)
-        .maybeSingle();
-
-      if (data && !error) {
-        const mapped = mapSupabaseSurveyToFormData(data);
-        setExistingResponse(mapped);
-        form.reset(mapped);
-      } else {
-        setExistingResponse(null);
-        form.reset();
-      }
-    };
-
-    loadExistingResponse();
-  }, [user, form, showNewSurvey, selectedYear]);
-
-
+  };
 
   const prepareForDb = (formData: SurveyFormData, userId: string, year: number, completed: boolean = false) => {
-    const dbData: any = {
+    const now = new Date().toISOString();
+    const dbData: Record<string, unknown> = {
+      ...formData,
       user_id: userId,
       year,
-      role_badge: userRole || 'viewer',
-      completed_at: completed ? new Date().toISOString() : null,
-      
-      // Section 1: Basic Vehicle Information
-      vehicle_name: formData.vehicle_name || null,
-      vehicle_websites: formData.vehicle_websites || [],
-      vehicle_type: formData.vehicle_type || null,
-      thesis: formData.thesis || null,
-      
-      // Section 2: Team & Leadership
-      team_members: userRole === 'viewer' ? [] : (formData.team_members || []),
-      team_size_min: formData.team_size_min || null,
-      team_size_max: formData.team_size_max || null,
-      team_description: formData.team_description || null,
-      
-      // Section 3: Geographic & Market Focus
-      legal_domicile: formData.legal_domicile || [],
-      markets_operated: formData.markets_operated || {},
-      
-      // Section 4: Investment Strategy
-      ticket_size_min: formData.ticket_size_min || null,
-      ticket_size_max: formData.ticket_size_max || null,
-      ticket_description: formData.ticket_description || null,
-      target_capital: formData.target_capital || null,
-      capital_raised: formData.capital_raised || null,
-      capital_in_market: formData.capital_in_market || null,
-      
-      // Section 5: Fund Operations
-      supporting_document_url: formData.supporting_document_url || null,
-      expectations: formData.expectations || null,
-      how_heard_about_network: formData.how_heard_about_network || null,
-      how_heard_about_network_other: formData.how_heard_about_network_other || null,
-      
-      // Section 6: Fund Status & Timeline
-      fund_stage: formData.fund_stage || [],
-      current_status: formData.current_status || null,
-      legal_entity_date_from: formData.legal_entity_date_from || null,
-      legal_entity_date_to: formData.legal_entity_date_to === 9999 ? 'present' : formData.legal_entity_date_to,
-      first_close_date_from: formData.first_close_date_from || null,
-      first_close_date_to: formData.first_close_date_to === 9999 ? 'present' : formData.first_close_date_to,
-      
-      // Section 7: Investment Instruments
-      investment_instruments_priority: formData.investment_instruments_priority || {},
-      investment_instruments_data: formData.investment_instruments_data || [],
-      
-      // Section 8: Sector Focus & Returns
-      sectors_allocation: formData.sectors_allocation || {},
-      target_return_min: formData.target_return_min || null,
-      target_return_max: formData.target_return_max || null,
-      equity_investments_made: formData.equity_investments_made || null,
-      equity_investments_exited: formData.equity_investments_exited || null,
-      self_liquidating_made: formData.self_liquidating_made || null,
-      self_liquidating_exited: formData.self_liquidating_exited || null,
+      created_at: formData.created_at || now,
+      completed_at: completed ? now : null,
+      role_badge: userRole,
     };
+    
+    // Handle date fields that can be 'present'
+    if (formData.legal_entity_date_to === 'present') {
+      dbData.legal_entity_date_to = 9999;
+    }
+    if (formData.first_close_date_to === 'present') {
+      dbData.first_close_date_to = 9999;
+    }
+    
     return dbData;
   };
 
   const onSubmit = async (data: SurveyFormData) => {
-    console.log('=== SURVEY SUBMISSION STARTED ===');
-    console.log('Submitting survey with data:', data);
-    console.log('Form is valid:', form.formState.isValid);
-    console.log('Form errors:', form.formState.errors);
-    console.log('User:', user);
-    console.log('Selected year:', selectedYear);
-    console.log('User role:', userRole);
-    
-    // Debug form state
-    console.log('Form state:', {
-      isValid: form.formState.isValid,
-      isDirty: form.formState.isDirty,
-      isSubmitting: form.formState.isSubmitting,
-      errors: form.formState.errors,
-      values: form.getValues()
-    });
-    
-    // For viewers, we'll be more lenient with validation
-    const isViewer = userRole === 'viewer';
-    
-    // For viewers, skip schema validation and use custom validation
-    if (isViewer) {
-      // For viewers, just check basic required fields
-      if (!data.vehicle_name || !data.team_description || !data.expectations) {
-        toast({
-          title: "Missing Required Fields",
-          description: "Please fill in Fund Name, Team Description, and Expectations.",
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      // Ensure team_members is treated as optional for viewers
-      if (!data.team_members) {
-        data.team_members = [];
-      }
-    } else {
-      // For members/admins, use full schema validation
-      const validationResult = await form.trigger();
-      if (!validationResult) {
-        console.log('Final validation failed');
-        return;
-      }
-    }
-    
     if (!user) {
-      console.log('No user found');
       toast({
-        title: "Authentication Required",
-        description: "Please log in to submit your survey.",
+        title: "Error",
+        description: "You must be logged in to submit a survey",
         variant: "destructive"
       });
       return;
     }
 
-    if (!selectedYear) {
-      console.log('No year selected');
-      toast({
-        title: "Year Required",
-        description: "Please select a year for this survey.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Validate market allocation doesn't exceed 100% (skip for viewers)
-    const totalMarketAllocation = Object.values(data.markets_operated || {}).reduce((sum, val) => sum + val, 0);
-    if (!isViewer && totalMarketAllocation > 100) {
-      console.log('Market allocation exceeds 100%');
-      toast({
-        title: "Invalid Market Allocation",
-        description: "Total market allocation cannot exceed 100%.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    console.log('All validations passed, starting submission...');
-    setIsSubmitting(true);
-    setShowSubmitConfirmation(false);
-    
     try {
-      console.log('Preparing data for database...');
-      const surveyData = prepareForDb(data, user.id, selectedYear, true);
-      console.log('Survey data prepared:', surveyData);
+      setIsSubmitting(true);
+      const year = selectedYear || new Date().getFullYear();
+      const dbData = prepareForDb(data, user.id, year, true);
 
-      // First, save to survey_responses table
       let result;
       if (existingResponse?.id) {
-        console.log('Updating existing survey response...');
+        // Update existing response
         result = await supabase
           .from('survey_responses')
-          .update(surveyData)
-          .eq('id', existingResponse.id)
-          .eq('user_id', user.id);
+          .update(dbData)
+          .eq('id', existingResponse.id);
       } else {
-        console.log('Creating new survey response...');
+        // Create new response
         result = await supabase
           .from('survey_responses')
-          .insert([surveyData]);
+          .insert([dbData]);
       }
 
-      if (result.error) {
-        console.error('Supabase error:', result.error);
-        throw result.error;
-      }
-
-      console.log('Survey response saved successfully');
-
-      // Then, create/update entry in member_surveys table for network visibility
-      const memberSurveyData = {
-        user_id: user.id,
-        fund_name: data.vehicle_name || 'Unknown Fund',
-        website: data.vehicle_websites?.[0] || null,
-        fund_type: data.vehicle_type || 'Unknown',
-        primary_investment_region: Object.keys(data.markets_operated || {}).join(', ') || null,
-        year_founded: data.legal_entity_date_from || null,
-        team_size: data.team_size_max || null,
-        typical_check_size: data.ticket_size_min && data.ticket_size_max 
-          ? `$${data.ticket_size_min.toLocaleString()} - $${data.ticket_size_max.toLocaleString()}`
-          : null,
-        aum: data.capital_raised ? `$${data.capital_raised.toLocaleString()}` : null,
-        investment_thesis: data.thesis || null,
-        sector_focus: Object.keys(data.sectors_allocation || {}),
-        stage_focus: data.fund_stage || [],
-        role_badge: userRole || 'viewer',
-        completed_at: new Date().toISOString()
-      };
-
-      console.log('Member survey data prepared:', memberSurveyData);
-
-      // Check if member survey already exists
-      const { data: existingMemberSurvey } = await supabase
-        .from('member_surveys')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (existingMemberSurvey) {
-        console.log('Updating existing member survey...');
-        // Update existing member survey
-        const { error: memberSurveyError } = await supabase
-          .from('member_surveys')
-          .update(memberSurveyData)
-          .eq('user_id', user.id);
-
-        if (memberSurveyError) {
-          console.error('Error updating member survey:', memberSurveyError);
-          // Don't throw here as the main survey was saved successfully
-        } else {
-          console.log('Member survey updated successfully');
-        }
-      } else {
-        console.log('Creating new member survey...');
-        // Create new member survey
-        const { error: memberSurveyError } = await supabase
-          .from('member_surveys')
-          .insert([memberSurveyData]);
-
-        if (memberSurveyError) {
-          console.error('Error creating member survey:', memberSurveyError);
-          // Don't throw here as the main survey was saved successfully
-        } else {
-          console.log('Member survey created successfully');
-        }
-      }
+      if (result.error) throw result.error;
 
       toast({
-        title: "Survey Submitted Successfully!",
-        description: `Your ${selectedYear} survey has been completed and submitted. You are now visible in the network!`,
+        title: "Success",
+        description: "Survey submitted successfully!",
       });
 
-      // Refresh past surveys and reset form
-      await fetchPastSurveys();
-      setShowNewSurvey(false);
-      setCurrentSection(1);
-      form.reset();
-
+      // Reload data to show updated state
+      await loadExistingResponse();
+      setShowSubmitConfirmation(true);
     } catch (error) {
-      console.error('Submit error:', error);
-      
-      // Check if it's a validation error
-      if (error?.message?.includes('team_members')) {
-        toast({
-          title: "Validation Error",
-          description: "Please ensure all required fields are filled. Team members are optional for viewers.",
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "Submission Failed",
-          description: error?.message || "Failed to submit survey. Please try again.",
-          variant: "destructive"
-        });
-      }
+      console.error('Error submitting survey:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit survey. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Section validation rules
   const getSectionValidationRules = (section: number) => {
-    const currentValues = form.getValues();
-    const isViewer = userRole === 'viewer';
-    
-    console.log('Section validation for section', section, 'with values:', currentValues);
-    
-    switch (section) {
-      case 1: // Vehicle Information
-        const hasVehicleName = currentValues.vehicle_name && currentValues.vehicle_name.trim() !== '';
-        console.log('Section 1 validation:', { hasVehicleName, vehicleName: currentValues.vehicle_name });
-        return {
-          isValid: hasVehicleName,
-          missingFields: !hasVehicleName ? ['Fund Name'] : []
-        };
-      case 2: // Team & Leadership
-        const hasTeamDescription = currentValues.team_description && currentValues.team_description.trim() !== '';
-        console.log('Section 2 validation:', { hasTeamDescription, teamDescription: currentValues.team_description });
-        return {
-          isValid: hasTeamDescription,
-          missingFields: !hasTeamDescription ? ['Team Description'] : []
-        };
-      case 3: // Geographic & Market Focus
-        // For viewers, allow empty market allocation but if they provide it, validate it
-        const totalMarketAllocation = Object.values(currentValues.markets_operated || {}).reduce((sum, val) => sum + val, 0);
-        const hasMarketData = Object.keys(currentValues.markets_operated || {}).length > 0;
-        return {
-          isValid: isViewer ? true : (hasMarketData ? (totalMarketAllocation > 0 && totalMarketAllocation <= 100) : true),
-          missingFields: isViewer ? [] : (hasMarketData && totalMarketAllocation === 0 ? ['Market Allocation'] : hasMarketData && totalMarketAllocation > 100 ? ['Market Allocation (exceeds 100%)'] : [])
-        };
-      case 4: // Investment Strategy
-        return {
-          isValid: isViewer ? true : (!currentValues.target_capital || currentValues.target_capital > 0),
-          missingFields: isViewer ? [] : (currentValues.target_capital && currentValues.target_capital <= 0 ? ['Target Capital'] : [])
-        };
-      case 5: // Fund Operations
-        return {
-          isValid: currentValues.expectations && currentValues.expectations.trim() !== '',
-          missingFields: !currentValues.expectations || currentValues.expectations.trim() === '' ? ['Expectations'] : []
-        };
-      case 6: // Fund Status & Timeline
-        // For viewers, allow empty fund stage
-        return {
-          isValid: isViewer ? true : (currentValues.fund_stage && currentValues.fund_stage.length > 0),
-          missingFields: isViewer ? [] : (!currentValues.fund_stage || currentValues.fund_stage.length === 0 ? ['Fund Stage'] : [])
-        };
-      case 7: // Investment Instruments
-        // For viewers, allow empty investment instruments
-        return {
-          isValid: isViewer ? true : (currentValues.investment_instruments_data && currentValues.investment_instruments_data.length > 0),
-          missingFields: isViewer ? [] : (!currentValues.investment_instruments_data || currentValues.investment_instruments_data.length === 0 ? ['Investment Instruments'] : [])
-        };
-      case 8: // Sector Focus & Returns
-        // For viewers, allow empty sector allocation
-        return {
-          isValid: isViewer ? true : (currentValues.sectors_allocation && Object.keys(currentValues.sectors_allocation).length > 0),
-          missingFields: isViewer ? [] : (!currentValues.sectors_allocation || Object.keys(currentValues.sectors_allocation).length === 0 ? ['Sector Focus'] : [])
-        };
-      default:
-        return { isValid: true, missingFields: [] };
-    }
+    const rules: Record<number, string[]> = {
+      1: ['vehicle_name'],
+      2: ['team_description'],
+      3: ['legal_domicile'],
+      4: ['ticket_size_min', 'ticket_size_max'],
+      5: ['expectations'],
+      6: ['fund_stage'],
+      7: ['investment_instruments_data'],
+      8: ['sectors_allocation'],
+    };
+    return rules[section] || [];
   };
 
   const handleNext = () => {
-    console.log('handleNext called for section:', currentSection);
-    const currentValues = form.getValues();
-    console.log('Current form values:', currentValues);
+    const currentSectionRules = getSectionValidationRules(currentSection);
+    const isValid = form.trigger(currentSectionRules as any);
     
-    // Force form to update with current values
-    form.trigger();
-    
-    const validation = getSectionValidationRules(currentSection);
-    console.log('Validation result:', validation);
-    
-    if (!validation.isValid) {
-      console.log('Section validation FAILED - preventing progression');
-      
-      // Trigger vibration if available
-      if (navigator.vibrate) {
-        navigator.vibrate(200);
+    isValid.then((valid) => {
+      if (valid && currentSection < totalSections) {
+        setCurrentSection(currentSection + 1);
       }
-      
-      // Show error toast
-      toast({
-        title: "Section Incomplete",
-        description: `Please complete the following required fields: ${validation.missingFields.join(', ')}`,
-        variant: "destructive"
-      });
-      
-      // Trigger form validation to show red highlights
-      form.trigger();
-      return;
-    }
-
-    console.log('Section validation PASSED - proceeding to next section');
-    if (currentSection < totalSections) {
-      setCurrentSection(currentSection + 1);
-    }
-    // Removed automatic submission - user must explicitly submit on final section
+    });
   };
 
   const handlePrevious = () => {
@@ -676,37 +437,47 @@ const Survey = () => {
   };
 
   const handleSaveDraft = async () => {
-    if (!user) return;
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to save a draft",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    setIsSubmitting(true);
     try {
+      setIsSubmitting(true);
       const formData = form.getValues();
-      const surveyData = prepareForDb(formData, user.id, selectedYear || 0, false);
+      const year = selectedYear || new Date().getFullYear();
+      const dbData = prepareForDb(formData, user.id, year, false);
 
-      if (existingResponse) {
-        const { error } = await supabase
+      let result;
+      if (existingResponse?.id) {
+        result = await supabase
           .from('survey_responses')
-          .update(surveyData);
-
-        if (error) throw error;
+          .update(dbData)
+          .eq('id', existingResponse.id);
       } else {
-        const { error } = await supabase
+        result = await supabase
           .from('survey_responses')
-          .insert(surveyData);
-
-        if (error) throw error;
+          .insert([dbData]);
       }
 
+      if (result.error) throw result.error;
+
       toast({
-        title: "Draft Saved",
-        description: "Your progress has been saved successfully.",
+        title: "Success",
+        description: "Draft saved successfully!",
       });
+
+      await loadExistingResponse();
     } catch (error) {
       console.error('Error saving draft:', error);
       toast({
         title: "Error",
         description: "Failed to save draft. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsSubmitting(false);
@@ -732,385 +503,421 @@ const Survey = () => {
       case 8:
         return <SectorReturnsSection form={form} />;
       default:
-        return <VehicleInfoSection form={form} />;
+        return null;
     }
   };
 
-  const sectionTitles = [
-    "Vehicle Information",
-    "Team & Leadership", 
-    "Geographic & Market Focus",
-    "Investment Strategy",
-    "Fund Operations",
-    "Fund Status & Timeline",
-    "Investment Instruments",
-    "Sector Focus & Returns"
-  ];
-
-  // Show loading state while auth is loading or user is not available
-  if (authLoading || !user) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  // If showing new survey form
-  if (showNewSurvey) {
+  if (authLoading || isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-4">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowNewSurvey(false)}
-                  className="flex items-center"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Surveys
-                </Button>
-                <h1 className="text-3xl font-bold text-gray-900">Survey {selectedYear}</h1>
-              </div>
-              <div className="text-sm text-gray-600">
-                Section {currentSection} of {totalSections}
-                {(() => {
-                  const validation = getSectionValidationRules(currentSection);
-                  return validation.isValid ? (
-                    <span className="ml-2 text-green-600 font-semibold">✓ Complete</span>
-                  ) : (
-                    <span className="ml-2 text-red-600 font-semibold">⚠ Incomplete - Required fields missing</span>
-                  );
-                })()}
-              </div>
-            </div>
-            <Progress value={progress} className="w-full" />
-            <p className="mt-2 text-gray-600">
-              Complete all sections to submit your survey
-            </p>
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading survey...</p>
           </div>
-
-          <Form {...form}>
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              
-              // Show confirmation dialog instead of auto-submitting
-              const formData = form.getValues();
-              setPendingSubmission(formData);
-              setShowConfirmationDialog(true);
-            }} className="space-y-8">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    {currentSection === totalSections && <CheckCircle className="w-5 h-5 mr-2 text-green-600" />}
-                    {sectionTitles[currentSection - 1]}
-                  </CardTitle>
-                  <CardDescription>
-                    {currentSection === totalSections 
-                      ? "Final section - Review and submit your survey"
-                      : `Section ${currentSection} of ${totalSections}`
-                    }
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {renderCurrentSection()}
-                </CardContent>
-              </Card>
-
-              <div className="flex justify-between items-center">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={handlePrevious}
-                  disabled={currentSection === 1}
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Previous
-                </Button>
-
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={handleSaveDraft}
-                  disabled={isSubmitting}
-                >
-                  Save Draft
-                </Button>
-
-
-
-                {currentSection < totalSections ? (
-                  <Button 
-                    type="button" 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleNext();
-                    }}
-                    className={(() => {
-                      const validation = getSectionValidationRules(currentSection);
-                      return validation.isValid 
-                        ? "bg-blue-600 hover:bg-blue-700" 
-                        : "bg-red-600 hover:bg-red-700";
-                    })()}
-                  >
-                    {(() => {
-                      const validation = getSectionValidationRules(currentSection);
-                      return validation.isValid ? "Next" : "Complete Section First";
-                    })()}
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                ) : (
-                  <Button 
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    {isSubmitting ? 'Submitting...' : 'Submit Survey'}
-                    <CheckCircle className="w-4 h-4 ml-2" />
-                  </Button>
-                )}
-              </div>
-            </form>
-          </Form>
-
-          {/* Confirmation Dialog */}
-          <Dialog open={showConfirmationDialog} onOpenChange={setShowConfirmationDialog}>
-            <DialogContent className="sm:max-w-lg">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
-                  Confirm Survey Submission
-                </DialogTitle>
-                <DialogDescription>
-                  Are you sure you want to submit your survey for {selectedYear}? 
-                  This action cannot be undone.
-                </DialogDescription>
-              </DialogHeader>
-              
-              <div className="flex justify-end gap-3 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowConfirmationDialog(false);
-                    setPendingSubmission(null);
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={() => {
-                    if (pendingSubmission) {
-                      // For viewers, bypass schema validation
-                      if (userRole === 'viewer') {
-                        console.log('Viewer form submission - bypassing schema validation');
-                        onSubmit(pendingSubmission);
-                      } else {
-                        // For members/admins, use normal form validation
-                        const validationResult = form.trigger();
-                        if (validationResult) {
-                          onSubmit(pendingSubmission);
-                        } else {
-                          toast({
-                            title: "Validation Error",
-                            description: "Please fix all validation errors before submitting.",
-                            variant: "destructive"
-                          });
-                        }
-                      }
-                    }
-                    setShowConfirmationDialog(false);
-                    setPendingSubmission(null);
-                  }}
-                  disabled={isSubmitting}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  {isSubmitting ? 'Submitting...' : 'Submit Survey'}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-
-
         </div>
       </div>
     );
   }
 
-  // Main survey management view
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Survey Management</h1>
-          <p className="text-gray-600">
-            {userRole === 'member' || userRole === 'viewer'
-              ? 'Manage your survey submissions and create new surveys'
-              : 'View and manage all survey submissions across the network'
-            }
-          </p>
-        </div>
+  // Show main survey page if not in survey mode
+  if (!showNewSurvey) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          {/* Professional Header */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+                  <FileText className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-semibold text-gray-900">Fund Manager Survey</h1>
+                  <p className="text-gray-600 text-sm">Manage your professional survey responses and network information</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="border-gray-300 text-gray-600"
+                  onClick={loadExistingResponse}
+                  disabled={isLoading}
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                  Last updated: {lastUpdated.toLocaleTimeString()}
+                </Button>
+              </div>
+            </div>
+          </div>
 
-        <Tabs defaultValue="surveys" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="surveys" className="flex items-center space-x-2">
-              <FileText className="w-4 h-4" />
-              <span>Past Surveys</span>
-            </TabsTrigger>
-            <TabsTrigger value="new" className="flex items-center space-x-2">
-              <Plus className="w-4 h-4" />
-              <span>New Survey</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="surveys" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <FileText className="w-5 h-5 mr-2" />
-                  Survey History
-                </CardTitle>
-                <CardDescription>
-                  {userRole === 'member' || userRole === 'viewer'
-                    ? 'Your completed and draft surveys'
-                    : 'All survey submissions in the network'
-                  }
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {pastSurveys.length === 0 ? (
-                  <div className="text-center py-8">
-                    <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No surveys found</h3>
-                    <p className="text-gray-600 mb-4">
-                      {userRole === 'member' || userRole === 'viewer'
-                        ? 'You haven\'t submitted any surveys yet.'
-                        : 'No surveys have been submitted yet.'
-                      }
-                    </p>
+          {/* Professional Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <Card className="shadow-sm border-gray-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-600 mb-1">Total Surveys</p>
+                    <p className="text-2xl font-bold text-gray-900">{pastSurveys.length}</p>
+                    <p className="text-xs text-gray-500 mt-1">Completed responses</p>
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    {pastSurveys.map((survey) => {
-                      const isDraft = !survey.completed_at;
-                      return (
-                        <div
-                          key={survey.id}
-                          className={`flex items-center justify-between p-4 border rounded-lg ${isDraft ? 'hover:bg-blue-50 cursor-pointer' : ''}`}
-                          onClick={() => {
-                            if (!isDraft) return;
-                            setSelectedYear(survey.year);
-                            setShowNewSurvey(true);
-                            setExistingResponse(survey);
-                            // Reset form with existing data
-                            form.reset(survey);
-                            setCurrentSection(1);
-                            // Also set the form data state
-                            setFormData(survey as Partial<SurveyFormData>);
-                          }}
-                        >
-                          <div className="flex items-center space-x-4">
-                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                              <Calendar className="w-5 h-5 text-blue-600" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-gray-900">Survey {survey.year}</p>
-                              <p className="text-sm text-gray-600">
-                                {new Date(survey.created_at).toLocaleDateString()}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-3">
-                            <Badge 
-                              variant={survey.completed_at ? "default" : "secondary"}
-                              className={survey.completed_at ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}
-                            >
-                              {survey.completed_at ? "Completed" : "Draft"}
-                            </Badge>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="new" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Plus className="w-5 h-5 mr-2" />
-                  Create New Survey
-                </CardTitle>
-                <CardDescription>
-                  Choose a year and start a new survey
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="p-4 border rounded-lg">
-                    <h3 className="font-medium text-gray-900 mb-2">Select Survey Year</h3>
-                    <p className="text-sm text-gray-600 mb-4">
-                      Choose which year this survey data represents. You can create surveys for different years.
-                    </p>
-                    <div className="space-y-3">
-                      <div className="flex flex-wrap gap-2">
-                        {Array.from({ length: 11 }, (_, i) => 2020 + i).map((year) => (
-                          <Button
-                            key={year}
-                            variant="outline"
-                            onClick={() => {
-                              setSelectedYear(year);
-                              setShowNewSurvey(true);
-                            }}
-                            className="flex items-center space-x-2"
-                          >
-                            <Calendar className="w-4 h-4" />
-                            <span>{year}</span>
-                          </Button>
-                        ))}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        Or enter a custom year:
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="number"
-                          placeholder="Enter year (e.g., 2020)"
-                          value={customYear}
-                          onChange={(e) => setCustomYear(e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          min="2020"
-                          max="2030"
-                        />
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            const year = parseInt(customYear);
-                            if (year >= 2020 && year <= 2030) {
-                              setSelectedYear(year);
-                              setShowNewSurvey(true);
-                              setCustomYear('');
-                            }
-                          }}
-                          disabled={!customYear || parseInt(customYear) < 2020 || parseInt(customYear) > 2030}
-                        >
-                          Create Survey
-                        </Button>
-                      </div>
-                    </div>
+                  <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-white" />
                   </div>
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
+
+            <Card className="shadow-sm border-gray-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-600 mb-1">Latest Survey</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {pastSurveys.length > 0 ? pastSurveys[0].year : 'N/A'}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">Most recent year</p>
+                  </div>
+                  <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
+                    <Calendar className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-sm border-gray-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-600 mb-1">Status</p>
+                    <Badge 
+                      variant="default" 
+                      className="bg-green-100 text-green-700 border-green-200"
+                    >
+                      Active
+                    </Badge>
+                    <p className="text-xs text-gray-500 mt-1">Ready for new survey</p>
+                  </div>
+                  <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
+                    <CheckCircle className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* New Survey Button */}
+          <Card className="mb-8 shadow-sm border-gray-200">
+            <CardContent className="p-6">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                  <Plus className="w-8 h-8 text-white" />
+                </div>
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">Start New Survey</h2>
+                <p className="text-gray-600 mb-6">Complete a new fund manager survey for the current year</p>
+                
+                <div className="flex items-center justify-center space-x-4 mb-6">
+                  <Select value={selectedYear?.toString() || ''} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Select Year" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                        <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                      ))}
+                      <SelectItem value="custom">Custom Year</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  {selectedYear === null && (
+                    <Input
+                      type="number"
+                      placeholder="Enter custom year"
+                      value={customYear}
+                      onChange={(e) => setCustomYear(e.target.value)}
+                      className="w-48"
+                    />
+                  )}
+                </div>
+                
+                <Button
+                  onClick={() => {
+                    const year = selectedYear || parseInt(customYear) || new Date().getFullYear();
+                    setSelectedYear(year);
+                    setShowNewSurvey(true);
+                    setCurrentSection(1);
+                    form.reset({
+                      vehicle_name: '',
+                      vehicle_websites: [],
+                      team_members: [],
+                      legal_domicile: [],
+                      fund_stage: [],
+                      markets_operated: {},
+                      investment_instruments_priority: {},
+                      investment_instruments_data: [],
+                      sectors_allocation: {},
+                      year: year,
+                    });
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3"
+                  disabled={!selectedYear && !customYear}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Start New Survey
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Past Surveys */}
+          {pastSurveys.length > 0 && (
+            <Card className="shadow-sm border-gray-200">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center">
+                  <Eye className="w-5 h-5 mr-2 text-gray-600" />
+                  Past Surveys
+                </CardTitle>
+                <CardDescription>View and manage your previous survey responses</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {pastSurveys.map((survey, index) => (
+                    <div
+                      key={survey.id || index}
+                      className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-center space-x-4">
+                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                          <Calendar className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-gray-900">
+                            Survey {survey.year}
+                          </h3>
+                          <p className="text-sm text-gray-500">
+                            {survey.vehicle_name || 'Fund Manager Survey'}
+                          </p>
+                          {survey.completed_at && (
+                            <p className="text-xs text-gray-400">
+                              Completed: {new Date(survey.completed_at).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Badge 
+                          variant={survey.completed_at ? "default" : "secondary"}
+                          className={survey.completed_at ? "bg-green-100 text-green-700 border-green-200" : "bg-yellow-100 text-yellow-700 border-yellow-200"}
+                        >
+                          {survey.completed_at ? 'Completed' : 'Draft'}
+                        </Badge>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setExistingResponse(survey);
+                            form.reset(survey);
+                            setSelectedYear(survey.year);
+                            setShowNewSurvey(true);
+                            setCurrentSection(1);
+                          }}
+                          className="border-gray-300"
+                        >
+                          <Eye className="w-4 h-4 mr-1" />
+                          View
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {pastSurveys.length === 0 && (
+            <Card className="text-center py-12 bg-white shadow-sm border-gray-200">
+              <CardContent>
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FileText className="w-8 h-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No surveys yet</h3>
+                <p className="text-gray-500 mb-4">Start your first fund manager survey to begin building your professional profile.</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Show survey form when in survey mode
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Professional Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+                <FileText className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-semibold text-gray-900">Fund Manager Survey</h1>
+                <p className="text-gray-600 text-sm">Complete your professional profile and network information</p>
+                {selectedYear && (
+                  <p className="text-sm text-blue-600 font-medium">Year: {selectedYear}</p>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="border-gray-300 text-gray-600"
+                onClick={() => setShowNewSurvey(false)}
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Surveys
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="border-gray-300 text-gray-600"
+                onClick={loadExistingResponse}
+                disabled={isLoading}
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                Last updated: {lastUpdated.toLocaleTimeString()}
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Professional Progress Section */}
+        <Card className="mb-8 shadow-sm border-gray-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-gray-700">
+                    Section {currentSection} of {totalSections}
+                  </span>
+                  <div className="w-48 bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                </div>
+                <span className="text-sm text-gray-500">
+                  {sectionConfig[currentSection - 1]?.title}
+                </span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePrevious}
+                  disabled={currentSection === 1}
+                  className="flex items-center space-x-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNext}
+                  disabled={currentSection === totalSections}
+                  className="flex items-center space-x-2"
+                >
+                  Next
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+            
+            {/* Section Indicators */}
+            <div className="flex space-x-2">
+              {sectionConfig.map((section, index) => (
+                <button
+                  key={section.key}
+                  onClick={() => setCurrentSection(index + 1)}
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    index + 1 === currentSection
+                      ? `${section.bgColor} ${section.borderColor} border text-gray-900`
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  <section.icon className="w-4 h-4" />
+                  <span className="hidden sm:inline">{section.title}</span>
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Survey Form */}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <Card className="shadow-sm border-gray-200">
+              <CardContent className="p-6">
+                {renderCurrentSection()}
+              </CardContent>
+            </Card>
+
+            {/* Professional Action Buttons */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleSaveDraft}
+                  disabled={isSubmitting}
+                  className="border-gray-300"
+                >
+                  <Clock className="w-4 h-4 mr-2" />
+                  Save Draft
+                </Button>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handlePrevious}
+                  disabled={currentSection === 1}
+                  className="border-gray-300"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Previous
+                </Button>
+                {currentSection < totalSections ? (
+                  <Button
+                    type="button"
+                    onClick={handleNext}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    Next
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                ) : (
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Submit Survey
+                  </Button>
+                )}
+              </div>
+            </div>
+          </form>
+        </Form>
       </div>
     </div>
   );

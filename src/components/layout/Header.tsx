@@ -2,9 +2,11 @@
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, X, LogOut, Home, FileText, Network, BarChart3, Shield, User, Settings } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
+import { useLoadingStore } from "@/store/loading-store";
 
 interface HeaderProps {
   showNav?: boolean;
@@ -13,10 +15,36 @@ interface HeaderProps {
 const Header = ({ showNav = true }: HeaderProps) => {
   const { user, userRole, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [activePath, setActivePath] = useState(location.pathname);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const { setLoading } = useLoadingStore();
+
+  // Update active path when location changes
+  useEffect(() => {
+    setActivePath(location.pathname);
+  }, [location.pathname]);
+
+  // Handle navigation with transition
+  const handleNavigation = (to: string) => {
+    if (to === activePath) return; // Don't navigate if already on the page
+    
+    setIsTransitioning(true);
+    setLoading(true); // Show loading during navigation
+    
+    // Add a small delay for the transition effect
+    setTimeout(() => {
+      navigate(to);
+      setIsTransitioning(false);
+      // Loading will be hidden by the NavigationHandler hook
+    }, 150);
+  };
 
   const handleSignOut = async () => {
+    setLoading(true); // Show loading during sign out
     await signOut();
     navigate("/");
+    setLoading(false);
   };
 
   const navigationItems = [
@@ -31,14 +59,44 @@ const Header = ({ showNav = true }: HeaderProps) => {
     userRole && item.roles.includes(userRole)
   );
 
+  const isActive = (href: string) => {
+    // Handle exact matches and sub-routes
+    if (href === "/dashboard" && activePath === "/dashboard") return true;
+    if (href === "/network" && activePath === "/network") return true;
+    if (href === "/survey" && activePath === "/survey") return true;
+    if (href === "/analytics" && activePath === "/analytics") return true;
+    if (href === "/admin" && activePath.startsWith("/admin")) return true; // Admin pages
+    return false;
+  };
+
+  const getNavItemClasses = (href: string) => {
+    const active = isActive(href);
+    const baseClasses = "flex items-center space-x-2 px-4 py-2.5 rounded-lg text-sm font-medium";
+    
+    if (active) {
+      return `${baseClasses} text-white bg-blue-600`;
+    } else {
+      return `${baseClasses} text-gray-700 hover:text-blue-600 hover:bg-blue-50`;
+    }
+  };
+
+  const getMobileNavItemClasses = (href: string) => {
+    const active = isActive(href);
+    const baseClasses = "flex items-center space-x-3 px-4 py-3 rounded-lg font-medium";
+    
+    if (active) {
+      return `${baseClasses} text-white bg-blue-600`;
+    } else {
+      return `${baseClasses} text-gray-700 hover:text-blue-600 hover:bg-blue-50`;
+    }
+  };
+
   return (
     <header className="border-b border-gray-200 bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center space-x-3">
-            <img src="/logo.jpg" alt="CFF Logo" className="w-10 h-10 rounded-lg" />
-            <span className="text-xl font-bold text-black">Collaborative for Frontier Finance</span>
-          </div>
+          {/* Remove logo and name */}
+          <div />
 
           {showNav && user && (
             <>
@@ -46,15 +104,17 @@ const Header = ({ showNav = true }: HeaderProps) => {
               <nav className="hidden md:flex items-center space-x-1">
                 {filteredNavItems.map((item) => {
                   const Icon = item.icon;
+                  const active = isActive(item.href);
+                  
                   return (
-                    <Link
+                    <button
                       key={item.name}
-                      to={item.href}
-                      className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
+                      onClick={() => handleNavigation(item.href)}
+                      className={getNavItemClasses(item.href)}
                     >
-                      <Icon className="w-4 h-4" />
+                      <Icon className={`w-4 h-4 ${active ? 'text-white' : 'text-gray-600'}`} />
                       <span>{item.name}</span>
-                    </Link>
+                    </button>
                   );
                 })}
               </nav>
@@ -72,7 +132,7 @@ const Header = ({ showNav = true }: HeaderProps) => {
                   variant="outline"
                   size="sm"
                   onClick={handleSignOut}
-                  className="flex items-center space-x-2 border-gray-300 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all duration-200"
+                  className="flex items-center space-x-2 border-gray-300 hover:bg-red-50 hover:border-red-300 hover:text-red-600"
                 >
                   <LogOut className="w-4 h-4" />
                   <span>Sign Out</span>
@@ -89,27 +149,26 @@ const Header = ({ showNav = true }: HeaderProps) => {
                   </SheetTrigger>
                   <SheetContent side="right" className="w-80 bg-white">
                     <div className="flex flex-col h-full">
-                      {/* Header */}
+                      {/* Header - remove logo and name */}
                       <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
-                        <div className="flex items-center space-x-3">
-                          <img src="/logo.jpg" alt="CFF Logo" className="w-8 h-8 rounded-lg" />
-                          <span className="text-lg font-bold text-gray-900">Menu</span>
-                        </div>
+                        <span className="text-lg font-bold text-gray-900">Menu</span>
                       </div>
                       
                       {/* Navigation */}
                       <nav className="flex-1 space-y-1">
                         {filteredNavItems.map((item) => {
                           const Icon = item.icon;
+                          const active = isActive(item.href);
+                          
                           return (
-                            <Link
+                            <button
                               key={item.name}
-                              to={item.href}
-                              className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                              onClick={() => handleNavigation(item.href)}
+                              className={getMobileNavItemClasses(item.href)}
                             >
-                              <Icon className="w-5 h-5" />
+                              <Icon className={`w-5 h-5 ${active ? 'text-white' : 'text-gray-600'}`} />
                               <span className="font-medium">{item.name}</span>
-                            </Link>
+                            </button>
                           );
                         })}
                       </nav>
@@ -127,42 +186,15 @@ const Header = ({ showNav = true }: HeaderProps) => {
                           </div>
                         </div>
                         
-                        {/* Actions */}
-                        <div className="space-y-2">
-                          {userRole === 'member' && (
-                            <Link to="/profile">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-full justify-start border-gray-300 hover:bg-gray-50"
-                              >
-                                <Settings className="w-4 h-4 mr-2" />
-                                Settings
-                              </Button>
-                            </Link>
-                          )}
-                          {userRole === 'viewer' && (
-                            <Link to="/viewer-settings">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-full justify-start border-gray-300 hover:bg-gray-50"
-                              >
-                                <Settings className="w-4 h-4 mr-2" />
-                                Settings
-                              </Button>
-                            </Link>
-                          )}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={handleSignOut}
-                            className="w-full justify-start border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
-                          >
-                            <LogOut className="w-4 h-4 mr-2" />
-                            Sign Out
-                          </Button>
-                        </div>
+                        {/* Sign Out Button */}
+                        <Button
+                          variant="outline"
+                          onClick={handleSignOut}
+                          className="w-full border-gray-300 hover:bg-red-50 hover:border-red-300 hover:text-red-600"
+                        >
+                          <LogOut className="w-4 h-4 mr-2" />
+                          Sign Out
+                        </Button>
                       </div>
                     </div>
                   </SheetContent>

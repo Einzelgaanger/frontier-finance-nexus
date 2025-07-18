@@ -37,7 +37,11 @@ import {
   AlertTriangle,
   PieChart,
   CheckCircle,
-  Phone
+  Phone,
+  RefreshCw,
+  Eye,
+  BarChart3,
+  Network
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -125,16 +129,7 @@ interface FundManagerProfile {
   profile_picture_url?: string;
 }
 
-// 1. Remove gradients/colors/icons that look unprofessional
-// 2. Use a formal color palette and icon set
-// 3. Organize and render all survey data in clear, ordered sections, matching the survey/application popup
-// 4. Properly format all data types
-// 5. Add year selection if not present
-// 6. Use 'Not provided' for missing data
-// 7. Remove all gradients and childish UI elements
-
-// ---
-// Replace sectionConfig with a formal, professional config (no gradients, formal icons/colors)
+// Professional section configuration
 const sectionConfig = [
   {
     key: 'vehicle_info',
@@ -265,6 +260,7 @@ const FundManagerDetail = () => {
   const [activeSurvey, setActiveSurvey] = useState<SurveyResponse | null>(null);
   const [currentSection, setCurrentSection] = useState(0);
   const [expandedTexts, setExpandedTexts] = useState<Record<string, boolean>>({});
+  const [lastUpdated, setLastUpdated] = useState(new Date());
 
   // Determine which sections to show based on user role
   const getVisibleSections = () => {
@@ -288,7 +284,7 @@ const FundManagerDetail = () => {
 
   const fetchFundManagerData = async () => {
     try {
-      console.log('Fetching data for userId:', userId);
+      setLoading(true);
       
       // Fetch profile with better error handling
       let profileData = null;
@@ -308,8 +304,6 @@ const FundManagerDetail = () => {
         profileError = err;
       }
 
-      console.log('Profile data:', profileData, 'Profile error:', profileError);
-
       // Set profile even if there's an error (might be null)
       setProfile(profileData);
 
@@ -320,8 +314,6 @@ const FundManagerDetail = () => {
         .eq('user_id', userId)
         .not('completed_at', 'is', null)
         .order('year', { ascending: false });
-
-      console.log('Survey data:', surveyData, 'Survey error:', surveyError);
 
       if (surveyError) throw surveyError;
 
@@ -403,6 +395,8 @@ const FundManagerDetail = () => {
       if (typedSurveys.length > 0) {
         setActiveSurvey(typedSurveys[0]);
       }
+      
+      setLastUpdated(new Date());
     } catch (error) {
       console.error('Error fetching fund manager data:', error);
       toast({
@@ -495,38 +489,23 @@ const FundManagerDetail = () => {
             {value.map((member: any, i) => (
               <div key={i} className="p-4 bg-gray-50 rounded-lg border">
                 <div className="flex items-center space-x-3 mb-2">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-bold text-green-600">{i + 1}</span>
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-sm font-bold text-blue-600">{i + 1}</span>
                   </div>
                   <div className="flex-1">
-                    <div className="font-medium text-gray-900">{member.name || 'Unnamed Member'}</div>
+                    <div className="font-medium text-gray-900">
+                      {member.name || `Team Member ${i + 1}`}
+                    </div>
                     {member.role && (
                       <div className="text-sm text-gray-600">{member.role}</div>
                     )}
                   </div>
                 </div>
-                <div className="space-y-1 text-sm text-gray-600">
-                  {member.email && (
-                    <div className="flex items-center space-x-2">
-                      <Mail className="w-3 h-3" />
-                      <a href={`mailto:${member.email}`} className="text-blue-600 hover:underline">
-                        {member.email}
-                      </a>
-                    </div>
-                  )}
-                  {member.phone && (
-                    <div className="flex items-center space-x-2">
-                      <Phone className="w-3 h-3" />
-                      <span>{member.phone}</span>
-                    </div>
-                  )}
-                  {member.experience && (
-                    <div className="flex items-start space-x-2 mt-2">
-                      <Briefcase className="w-3 h-3 mt-0.5" />
-                      <span className="text-gray-700">{member.experience}</span>
-                    </div>
-                  )}
-                </div>
+                {member.bio && (
+                  <div className="text-sm text-gray-600 mt-2">
+                    {member.bio}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -534,147 +513,43 @@ const FundManagerDetail = () => {
       );
     }
     
-    if (fieldType === 'markets' && value && typeof value === 'object') {
-      // Sort by percentage in descending order
-      const sortedEntries = Object.entries(value).sort((a, b) => (b[1] as number) - (a[1] as number));
+    if (fieldType === 'markets' && typeof value === 'object') {
       return (
-        <div className="space-y-3">
-          <div className="text-sm text-gray-600 mb-3">
-            Markets operated by percentage
-          </div>
-          <div className="space-y-2">
-            {sortedEntries.map(([country, percent]: [string, any], i) => (
-              <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-bold text-purple-600">{i + 1}</span>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-900">{country}</span>
-                    <div className="text-xs text-gray-500">Market presence</div>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-20 bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-purple-500 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${Math.min(percent, 100)}%` }}
-                    />
-                  </div>
-                  <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-                    {percent}%
-                  </Badge>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-    
-    if (fieldType === 'instruments' && value && typeof value === 'object') {
-      // Sort by priority in descending order
-      const sortedEntries = Object.entries(value).sort((a, b) => (b[1] as number) - (a[1] as number));
-      return (
-        <div className="space-y-3">
-          <div className="text-sm text-gray-600 mb-3">
-            Investment instruments ranked by priority (higher number = higher priority)
-          </div>
-          <div className="space-y-2">
-            {sortedEntries.map(([instrument, priority], i) => (
-              <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-bold text-blue-600">{i + 1}</span>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-900">{instrument}</span>
-                    <div className="text-xs text-gray-500">Priority: {priority}</div>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                    Priority {priority}
-                  </Badge>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-    
-    if (fieldType === 'sectors' && value && typeof value === 'object') {
-      // Sort by percentage in descending order
-      const sortedEntries = Object.entries(value).sort((a, b) => (b[1] as number) - (a[1] as number));
-      return (
-        <div className="space-y-3">
-          <div className="text-sm text-gray-600 mb-3">
-            Sector allocation by percentage
-          </div>
-          <div className="space-y-2">
-            {sortedEntries.map(([sector, percent]: [string, any], i) => (
-              <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-bold text-green-600">{i + 1}</span>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-900">{sector}</span>
-                    <div className="text-xs text-gray-500">Allocation</div>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-20 bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-green-500 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${Math.min(percent, 100)}%` }}
-                    />
-                  </div>
-                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                    {percent}%
-                  </Badge>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-    
-    if (fieldType === 'url' && typeof value === 'string') {
-      // Handle base64 document format
-      try {
-        const doc = JSON.parse(value);
-        if (doc.fileName && doc.data) {
-          return (
-            <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-blue-600" />
-              <span className="text-sm font-medium text-gray-700">
-                {doc.fileName}
-              </span>
-              <span className="text-xs text-gray-500">
-                ({Math.round(doc.fileSize / 1024)}KB)
-              </span>
-              <button
-                onClick={() => {
-                  const link = document.createElement('a');
-                  link.href = doc.data;
-                  link.download = doc.fileName;
-                  link.click();
-                }}
-                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-              >
-                Download
-              </button>
+        <div className="space-y-2">
+          {Object.entries(value).map(([market, percentage]) => (
+            <div key={market} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+              <span className="text-sm font-medium text-gray-700">{market}</span>
+              <span className="text-sm text-gray-600">{percentage}%</span>
             </div>
-          );
-        }
-      } catch (e) {
-        // Fallback to regular URL
-        return <a href={value} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">{value}</a>;
-      }
-      return <a href={value} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">{value}</a>;
+          ))}
+        </div>
+      );
+    }
+    
+    if (fieldType === 'instruments' && typeof value === 'object') {
+      return (
+        <div className="space-y-2">
+          {Object.entries(value).map(([instrument, priority]) => (
+            <div key={instrument} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+              <span className="text-sm font-medium text-gray-700">{instrument}</span>
+              <span className="text-sm text-gray-600">Priority: {priority}</span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    
+    if (fieldType === 'sectors' && typeof value === 'object') {
+      return (
+        <div className="space-y-2">
+          {Object.entries(value).map(([sector, percentage]) => (
+            <div key={sector} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+              <span className="text-sm font-medium text-gray-700">{sector}</span>
+              <span className="text-sm text-gray-600">{percentage}%</span>
+            </div>
+          ))}
+        </div>
+      );
     }
     
     if (fieldType === 'currency' && typeof value === 'number') {
@@ -682,56 +557,84 @@ const FundManagerDetail = () => {
     }
     
     if (fieldType === 'number' && typeof value === 'number') {
-      return <span>{value}</span>;
+      return <span>{value.toLocaleString()}</span>;
     }
     
     if (fieldType === 'date' && typeof value === 'number') {
-      return formatSurveyDate(value);
+      return <span>{formatSurveyDate(value)}</span>;
+    }
+    
+    if (fieldType === 'url' && typeof value === 'string') {
+      return (
+        <a 
+          href={value.startsWith('http') ? value : `https://${value}`} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="text-blue-700 underline"
+        >
+          {value}
+        </a>
+      );
     }
     
     if (fieldType === 'text' && typeof value === 'string') {
-      // Show full text without truncation
-      return <span className="whitespace-pre-line text-gray-700 leading-relaxed">{value}</span>;
+      const isExpanded = expandedTexts[fieldKey];
+      const shouldTruncate = value.length > 200;
+      
+      return (
+        <div>
+          <div className={`text-gray-900 ${!isExpanded && shouldTruncate ? 'line-clamp-3' : ''}`}>
+            {value}
+          </div>
+          {shouldTruncate && (
+            <button
+              onClick={() => setExpandedTexts(prev => ({ ...prev, [fieldKey]: !isExpanded }))}
+              className="text-blue-600 hover:text-blue-800 text-sm mt-2"
+            >
+              {isExpanded ? 'Show less' : 'Show more'}
+            </button>
+          )}
+        </div>
+      );
     }
     
-    if (typeof value === 'string') {
-      return <span className="text-gray-700">{value}</span>;
-    }
-    
-    return <span className="text-gray-400 italic">Not provided</span>;
+    return <span className="text-gray-900">{String(value)}</span>;
   };
 
   const renderSection = (section: typeof sectionConfig[0], survey: SurveyResponse) => (
     <section key={section.key} className="mb-8">
-      <div className={`rounded-lg border ${section.borderColor} ${section.bgColor} p-6 shadow-sm`}>
-        <div className="flex items-center mb-4">
-          <div className={`p-2 rounded-lg ${section.bgColor} ${section.borderColor} border`}>
-            {section.icon && <section.icon className={`w-6 h-6 ${section.color}`} />}
+      <Card className="shadow-sm border-gray-200">
+        <CardHeader className="pb-4">
+          <div className="flex items-center">
+            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
+              <section.icon className={`w-5 h-5 ${section.color}`} />
+            </div>
+            <CardTitle className={`text-lg ${section.color}`}>{section.title}</CardTitle>
           </div>
-          <h2 className={`text-xl font-bold ${section.color} ml-3`}>{section.title}</h2>
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {section.fields.map(field => {
-            const value = survey[field.key as keyof SurveyResponse];
-            const hasValue = value !== null && value !== undefined && value !== '' && 
-              !(Array.isArray(value) && value.length === 0);
-            
-            return (
-              <div key={field.key} className={`p-4 rounded-lg border ${hasValue ? 'bg-white border-gray-200' : 'bg-gray-50 border-gray-100'}`}>
-                <dt className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                  {field.icon && <field.icon className="w-4 h-4 mr-2 text-gray-500" />}
-                  {field.label}
-                  {!hasValue && <span className="ml-2 text-xs text-gray-400">(Not provided)</span>}
-                </dt>
-                <dd className="text-base text-gray-900">
-                  {formatFieldValue(value, field.key, field.type, field.isLink)}
-                </dd>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {section.fields.map(field => {
+              const value = survey[field.key as keyof SurveyResponse];
+              const hasValue = value !== null && value !== undefined && value !== '' && 
+                !(Array.isArray(value) && value.length === 0);
+              
+              return (
+                <div key={field.key} className={`p-4 rounded-lg border ${hasValue ? 'bg-white border-gray-200' : 'bg-gray-50 border-gray-100'}`}>
+                  <dt className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                    <field.icon className="w-4 h-4 mr-2 text-gray-500" />
+                    {field.label}
+                    {!hasValue && <span className="ml-2 text-xs text-gray-400">(Not provided)</span>}
+                  </dt>
+                  <dd className="text-base text-gray-900">
+                    {formatFieldValue(value, field.key, field.type, field.isLink)}
+                  </dd>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
     </section>
   );
 
@@ -740,175 +643,121 @@ const FundManagerDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gray-50">
       <Header />
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Enhanced Header */}
-        <div className="mb-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center space-x-4 mb-4 md:mb-0">
-              {profile?.profile_picture_url ? (
-                <Avatar className="w-20 h-20 border-4 border-white shadow-lg">
-                  <AvatarImage src={profile.profile_picture_url} alt={profile.first_name} />
-                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xl font-bold">
-                    {profile.first_name?.[0]}{profile.last_name?.[0]}
-                  </AvatarFallback>
-                </Avatar>
-              ) : (
-                <Avatar className="w-20 h-20 border-4 border-white shadow-lg bg-gradient-to-br from-blue-500 to-purple-600">
-                  <AvatarFallback className="text-white text-xl font-bold">
-                    {profile?.first_name?.[0]}{profile?.last_name?.[0]}
-                  </AvatarFallback>
-                </Avatar>
-              )}
-              <div className="flex-1 min-w-0">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2 break-words">
-                  {profile?.first_name} {profile?.last_name}
-                </h1>
-                <div className="space-y-2">
-                  <div className="flex items-center text-gray-600">
-                    <Mail className="w-4 h-4 mr-2 flex-shrink-0" />
-                    <span className="text-sm break-all">{profile?.email}</span>
-                  </div>
-                  {activeSurvey?.vehicle_name && (
-                    <div className="flex items-center text-gray-600">
-                      <Building2 className="w-4 h-4 mr-2 flex-shrink-0" />
-                      <span className="text-sm break-words">{activeSurvey.vehicle_name}</span>
-                    </div>
-                  )}
-                  {activeSurvey?.vehicle_websites && activeSurvey.vehicle_websites.length > 0 && (
-                    <div className="flex items-center text-gray-600">
-                      <Globe className="w-4 h-4 mr-2 flex-shrink-0" />
-                      <div className="flex flex-wrap gap-2">
-                        {activeSurvey.vehicle_websites.map((website, index) => (
-                          <a
-                            key={index}
-                            href={website.startsWith('http') ? website : `https://${website}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800 text-sm break-all underline"
-                          >
-                            {website}
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {activeSurvey?.role_badge && (
-                    <div className="flex items-center">
-                      <Badge className={`capitalize text-xs px-3 py-1 font-semibold rounded-full ${
-                        activeSurvey.role_badge === 'viewer' 
-                          ? 'bg-purple-100 text-purple-800 border border-purple-200' 
-                          : 'bg-blue-100 text-blue-800 border border-blue-200'
-                      }`}>
-                        {activeSurvey.role_badge}
-                      </Badge>
-                    </div>
-                  )}
-                </div>
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Professional Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+                <User className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-semibold text-gray-900">Fund Manager Profile</h1>
+                <p className="text-gray-600 text-sm">Professional fund manager details and insights</p>
               </div>
             </div>
-            {surveys.length > 1 && (
-              <div className="flex items-center space-x-3 bg-gray-50 rounded-lg p-3">
-                <Calendar className="w-5 h-5 text-gray-600" />
-                <span className="text-gray-700 font-medium">Survey Year:</span>
-                <select
-                  className="border border-gray-300 rounded-md px-3 py-1 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                  value={activeSurvey?.year || ''}
-                  onChange={e => {
-                    const selected = surveys.find(s => s.year === Number(e.target.value));
-                    if (selected) setActiveSurvey(selected);
-                  }}
-                  aria-label="Select survey year"
-                >
-                  {surveys.map(s => (
-                    <option key={s.id} value={s.year}>{s.year}</option>
-                  ))}
-                </select>
-              </div>
-            )}
+            <div className="flex items-center space-x-3">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="border-gray-300 text-gray-600"
+                onClick={fetchFundManagerData}
+                disabled={loading}
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                Last updated: {lastUpdated.toLocaleTimeString()}
+              </Button>
+            </div>
           </div>
         </div>
 
         {loading ? (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Loading fund manager details...</h3>
-              <p className="text-gray-500">Please wait while we fetch the information.</p>
-            </div>
-          </div>
+          <Card className="shadow-sm border-gray-200">
+            <CardContent className="p-12">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Loading fund manager details...</h3>
+                <p className="text-gray-500">Please wait while we fetch the information.</p>
+              </div>
+            </CardContent>
+          </Card>
         ) : !activeSurvey ? (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12">
-            <div className="text-center">
-              <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No survey data found</h3>
-              <p className="text-gray-500">This fund manager hasn't completed any surveys yet.</p>
-            </div>
-          </div>
+          <Card className="shadow-sm border-gray-200">
+            <CardContent className="p-12">
+              <div className="text-center">
+                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No survey data found</h3>
+                <p className="text-gray-500">This fund manager hasn't completed any surveys yet.</p>
+              </div>
+            </CardContent>
+          </Card>
         ) : (
           <div className="space-y-6">
-            {/* Enhanced Section Navigation */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm font-medium text-gray-700">
-                      Section {currentSection + 1} of {totalSections}
-                    </span>
-                    <div className="w-48 bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${((currentSection + 1) / totalSections) * 100}%` }}
-                      />
+            {/* Professional Section Navigation */}
+            <Card className="shadow-sm border-gray-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm font-medium text-gray-700">
+                        Section {currentSection + 1} of {totalSections}
+                      </span>
+                      <div className="w-48 bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${((currentSection + 1) / totalSections) * 100}%` }}
+                        />
+                      </div>
                     </div>
+                    <span className="text-sm text-gray-500">
+                      {visibleSections[currentSection]?.title}
+                    </span>
                   </div>
-                  <span className="text-sm text-gray-500">
-                    {visibleSections[currentSection]?.title}
-                  </span>
+                  <div className="flex items-center space-x-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handlePreviousSection}
+                      disabled={currentSection === 0}
+                      className="flex items-center space-x-2"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      Previous
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleNextSection}
+                      disabled={currentSection === totalSections - 1}
+                      className="flex items-center space-x-2"
+                    >
+                      Next
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handlePreviousSection}
-                    disabled={currentSection === 0}
-                    className="flex items-center space-x-2"
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                    Previous
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleNextSection}
-                    disabled={currentSection === totalSections - 1}
-                    className="flex items-center space-x-2"
-                  >
-                    Next
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
+                
+                {/* Section Indicators */}
+                <div className="flex space-x-2">
+                  {visibleSections.map((section, index) => (
+                    <button
+                      key={section.key}
+                      onClick={() => setCurrentSection(index)}
+                      className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        index === currentSection
+                          ? `${section.bgColor} ${section.borderColor} border text-gray-900`
+                          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      <section.icon className="w-4 h-4" />
+                      <span className="hidden sm:inline">{section.title}</span>
+                    </button>
+                  ))}
                 </div>
-              </div>
-              
-              {/* Section Indicators */}
-              <div className="flex space-x-2">
-                {visibleSections.map((section, index) => (
-                  <button
-                    key={section.key}
-                    onClick={() => setCurrentSection(index)}
-                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                      index === currentSection
-                        ? `${section.bgColor} ${section.borderColor} border text-gray-900`
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    <section.icon className="w-4 h-4" />
-                    <span className="hidden sm:inline">{section.title}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Current Section */}
             <div className="transition-all duration-300 ease-in-out">

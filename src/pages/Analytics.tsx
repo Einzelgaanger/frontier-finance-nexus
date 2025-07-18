@@ -44,7 +44,14 @@ import {
   Zap,
   Award,
   MapPin,
-  Clock
+  Clock,
+  RefreshCw,
+  Eye,
+  TrendingUp as TrendingUpIcon,
+  BarChart3 as BarChart3Icon,
+  PieChart as PieChartIcon2,
+  LineChart as LineChartIcon,
+  CheckCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -59,6 +66,9 @@ const Analytics = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [showFilters, setShowFilters] = useState(false);
   const [timeRange, setTimeRange] = useState('all');
+  const [lastUpdated, setLastUpdated] = useState(new Date());
+  // Add new state for active tab
+  const [activeTab, setActiveTab] = useState('overview');
 
   const fetchSurveyData = useCallback(async () => {
     setLoading(true);
@@ -101,6 +111,7 @@ const Analytics = () => {
 
       if (error) throw error;
       setSurveyData(data || []);
+      setLastUpdated(new Date());
     } catch (error) {
       console.error('Error fetching survey data:', error);
       toast({
@@ -198,232 +209,107 @@ const Analytics = () => {
     const totalInvestments = totalEquityInvestments + totalSelfLiquidatingInvestments;
 
     // Fund stage metrics
-    const fundStages = surveyData.reduce((sum, fund) => {
+    const fundStages = surveyData.map(fund => {
       if (fund.fund_stage && Array.isArray(fund.fund_stage)) {
-        return sum + fund.fund_stage.length;
+        return fund.fund_stage.length;
       }
-      return sum;
-    }, 0);
+      return 0;
+    }).filter(stage => stage > 0);
     
-    const averageFundStage = totalFunds > 0 ? fundStages / totalFunds : 0;
+    const averageFundStage = fundStages.length > 0 
+      ? fundStages.reduce((sum, stage) => sum + stage, 0) / fundStages.length 
+      : 0;
 
     return {
       totalFunds,
       totalCapital,
-      capitalRaised,
-      capitalInMarket,
-      totalDryPowder,
       averageTicketSize,
       activeMarkets: uniqueMarkets.size,
       averageTeamSize,
       averageReturn,
       totalInvestments,
+      completionRate: 100, // All data is completed
       totalEquityInvestments,
       totalSelfLiquidatingInvestments,
       averageFundStage,
-      completionRate: 100 // All data is completed since we filter for completed_at
+      totalDryPowder
     };
-  };
-
-  const prepareChartData = () => {
-    const vehicleTypes = {};
-    const fundStages = {};
-    const marketData = {};
-    const sectorData = {};
-    const investmentInstruments = {};
-    const fundStatuses = {};
-    const informationSharing = {};
-    const howHeardAbout = {};
-    const currentStatuses = {};
-    const teamSizeRanges = {};
-    const ticketSizeRanges = {};
-    const returnRanges = {};
-
-    surveyData.forEach(fund => {
-      // Vehicle types
-      const vehicleType = fund.vehicle_type || 'Unknown';
-      vehicleTypes[vehicleType] = (vehicleTypes[vehicleType] || 0) + 1;
-
-      // Fund stages
-      if (fund.fund_stage && Array.isArray(fund.fund_stage)) {
-        fund.fund_stage.forEach(stage => {
-          fundStages[stage] = (fundStages[stage] || 0) + 1;
-        });
-      }
-
-      // Market data
-      if (fund.legal_domicile && Array.isArray(fund.legal_domicile)) {
-        fund.legal_domicile.forEach(market => {
-          marketData[market] = (marketData[market] || 0) + 1;
-        });
-      }
-
-      // Sector data
-      if (fund.sectors_allocation && typeof fund.sectors_allocation === 'object') {
-        Object.entries(fund.sectors_allocation).forEach(([sector, allocation]) => {
-          sectorData[sector] = (sectorData[sector] || 0) + (Number(allocation) || 0);
-        });
-      }
-
-      // Investment instruments
-      if (fund.investment_instruments_priority && typeof fund.investment_instruments_priority === 'object') {
-        Object.entries(fund.investment_instruments_priority).forEach(([instrument, priority]) => {
-          investmentInstruments[instrument] = (investmentInstruments[instrument] || 0) + (Number(priority) || 0);
-        });
-      }
-
-      // Fund statuses
-      const status = fund.current_status || 'Unknown';
-      fundStatuses[status] = (fundStatuses[status] || 0) + 1;
-
-      // Information sharing preferences
-      const sharing = fund.information_sharing || 'Unknown';
-      informationSharing[sharing] = (informationSharing[sharing] || 0) + 1;
-
-      // How heard about network
-      const heardAbout = fund.how_heard_about_network || 'Unknown';
-      howHeardAbout[heardAbout] = (howHeardAbout[heardAbout] || 0) + 1;
-
-      // Current status
-      const currentStatus = fund.current_status || 'Unknown';
-      currentStatuses[currentStatus] = (currentStatuses[currentStatus] || 0) + 1;
-
-      // Team size ranges
-      const teamSize = ((Number(fund.team_size_min) || 0) + (Number(fund.team_size_max) || 0)) / 2;
-      if (teamSize > 0) {
-        if (teamSize <= 5) teamSizeRanges['1-5'] = (teamSizeRanges['1-5'] || 0) + 1;
-        else if (teamSize <= 10) teamSizeRanges['6-10'] = (teamSizeRanges['6-10'] || 0) + 1;
-        else if (teamSize <= 20) teamSizeRanges['11-20'] = (teamSizeRanges['11-20'] || 0) + 1;
-        else teamSizeRanges['20+'] = (teamSizeRanges['20+'] || 0) + 1;
-      }
-
-      // Ticket size ranges
-      const ticketSize = ((Number(fund.ticket_size_min) || 0) + (Number(fund.ticket_size_max) || 0)) / 2;
-      if (ticketSize > 0) {
-        if (ticketSize <= 100000) ticketSizeRanges['$0-100K'] = (ticketSizeRanges['$0-100K'] || 0) + 1;
-        else if (ticketSize <= 500000) ticketSizeRanges['$100K-500K'] = (ticketSizeRanges['$100K-500K'] || 0) + 1;
-        else if (ticketSize <= 1000000) ticketSizeRanges['$500K-1M'] = (ticketSizeRanges['$500K-1M'] || 0) + 1;
-        else if (ticketSize <= 5000000) ticketSizeRanges['$1M-5M'] = (ticketSizeRanges['$1M-5M'] || 0) + 1;
-        else ticketSizeRanges['$5M+'] = (ticketSizeRanges['$5M+'] || 0) + 1;
-      }
-
-      // Return ranges
-      const returnRate = ((Number(fund.target_return_min) || 0) + (Number(fund.target_return_max) || 0)) / 2;
-      if (returnRate > 0) {
-        if (returnRate <= 15) returnRanges['0-15%'] = (returnRanges['0-15%'] || 0) + 1;
-        else if (returnRate <= 25) returnRanges['15-25%'] = (returnRanges['15-25%'] || 0) + 1;
-        else if (returnRate <= 35) returnRanges['25-35%'] = (returnRanges['25-35%'] || 0) + 1;
-        else returnRanges['35%+'] = (returnRanges['35%+'] || 0) + 1;
-      }
-    });
-
-    return {
-      vehicleTypes: Object.entries(vehicleTypes).map(([name, value]) => ({ name, value })),
-      fundStages: Object.entries(fundStages).map(([name, value]) => ({ name, value })),
-      marketData: Object.entries(marketData).map(([name, value]) => ({ name, value })),
-      sectorData: Object.entries(sectorData).map(([name, value]) => ({ name, value })),
-      investmentInstruments: Object.entries(investmentInstruments).map(([name, value]) => ({ name, value })),
-      fundStatuses: Object.entries(fundStatuses).map(([name, value]) => ({ name, value })),
-      informationSharing: Object.entries(informationSharing).map(([name, value]) => ({ name, value })),
-      howHeardAbout: Object.entries(howHeardAbout).map(([name, value]) => ({ name, value })),
-      currentStatuses: Object.entries(currentStatuses).map(([name, value]) => ({ name, value })),
-      teamSizeRanges: Object.entries(teamSizeRanges).map(([name, value]) => ({ name, value })),
-      ticketSizeRanges: Object.entries(ticketSizeRanges).map(([name, value]) => ({ name, value })),
-      returnRanges: Object.entries(returnRanges).map(([name, value]) => ({ name, value }))
-    };
-  };
-
-  const prepareCapitalData = () => {
-    return surveyData.map((fund, index) => ({
-      name: `Fund ${index + 1}`,
-      target: Number(fund.target_capital) || 0,
-      raised: Number(fund.capital_raised) || 0,
-      deployed: Number(fund.capital_in_market) || 0
-    }));
-  };
-
-  const preparePerformanceData = () => {
-    return surveyData.map((fund, index) => ({
-      name: `Fund ${index + 1}`,
-      ticketSize: ((Number(fund.ticket_size_min) || 0) + (Number(fund.ticket_size_max) || 0)) / 2,
-      teamSize: ((Number(fund.team_size_min) || 0) + (Number(fund.team_size_max) || 0)) / 2,
-      targetReturn: ((Number(fund.target_return_min) || 0) + (Number(fund.target_return_max) || 0)) / 2,
-      capitalEfficiency: Number(fund.capital_in_market) / (Number(fund.capital_raised) || 1)
-    }));
-  };
-
-  const prepareTrendData = () => {
-    const yearData: Record<number, {
-      year: number;
-      funds: number;
-      totalCapital: number;
-      averageTicket: number;
-      averageReturn: number;
-    }> = {};
-    
-    surveyData.forEach(fund => {
-      const year = fund.year;
-      if (!yearData[year]) {
-        yearData[year] = {
-          year,
-          funds: 0,
-          totalCapital: 0,
-          averageTicket: 0,
-          averageReturn: 0
-        };
-      }
-      
-      yearData[year].funds += 1;
-      yearData[year].totalCapital += Number(fund.target_capital) || 0;
-      
-      const ticketSize = ((Number(fund.ticket_size_min) || 0) + (Number(fund.ticket_size_max) || 0)) / 2;
-      yearData[year].averageTicket += ticketSize;
-      
-      const returnRate = ((Number(fund.target_return_min) || 0) + (Number(fund.target_return_max) || 0)) / 2;
-      yearData[year].averageReturn += returnRate;
-    });
-
-    return Object.values(yearData).map(data => ({
-      ...data,
-      averageTicket: data.averageTicket / data.funds,
-      averageReturn: data.averageReturn / data.funds
-    }));
   };
 
   const metrics = calculateMetrics();
-  const chartData = prepareChartData();
-  const capitalData = prepareCapitalData();
-  const performanceData = preparePerformanceData();
-  const trendData = prepareTrendData();
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FF6B6B', '#4ECDC4'];
+  const prepareChartData = () => {
+    if (!surveyData.length) return [];
+
+    // Group by fund stage
+    const stageData = {};
+    surveyData.forEach(fund => {
+      if (fund.fund_stage && Array.isArray(fund.fund_stage)) {
+        fund.fund_stage.forEach(stage => {
+          stageData[stage] = (stageData[stage] || 0) + 1;
+        });
+      }
+    });
+
+    return Object.entries(stageData).map(([stage, count]) => ({
+      name: stage,
+      value: count,
+      fill: getRandomColor()
+    }));
+  };
+
+  const prepareCapitalData = () => {
+    if (!surveyData.length) return [];
+
+    return surveyData.map(fund => ({
+      name: fund.vehicle_name || 'Unknown Fund',
+      targetCapital: Number(fund.target_capital) || 0,
+      capitalRaised: Number(fund.capital_raised) || 0,
+      capitalInMarket: Number(fund.capital_in_market) || 0
+    })).slice(0, 10); // Show top 10
+  };
+
+  const preparePerformanceData = () => {
+    if (!surveyData.length) return [];
+
+    return surveyData.map(fund => ({
+      name: fund.vehicle_name || 'Unknown Fund',
+      equityInvestments: Number(fund.equity_investments_made) || 0,
+      selfLiquidatingInvestments: Number(fund.self_liquidating_made) || 0,
+      targetReturn: ((Number(fund.target_return_min) || 0) + (Number(fund.target_return_max) || 0)) / 2
+    })).slice(0, 10);
+  };
+
+  const prepareTrendData = () => {
+    if (!surveyData.length) return [];
+
+    // Group by year
+    const yearData = {};
+    surveyData.forEach(fund => {
+      const year = fund.year || new Date().getFullYear();
+      yearData[year] = (yearData[year] || 0) + 1;
+    });
+
+    return Object.entries(yearData).map(([year, count]) => ({
+      year: parseInt(year),
+      funds: count
+    })).sort((a, b) => a.year - b.year);
+  };
+
+  const getRandomColor = () => {
+    const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#84CC16', '#F97316'];
+    return colors[Math.floor(Math.random() * colors.length)];
+  };
 
   if (userRole !== 'member' && userRole !== 'admin') {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="max-w-2xl mx-auto border-red-200 bg-red-50">
-            <CardHeader>
-              <CardTitle className="text-red-800">Access Restricted</CardTitle>
-              <CardDescription className="text-red-700">
-                You need Member access to view analytics data.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading analytics...</p>
+            <Eye className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h2 className="text-lg font-medium text-gray-900 mb-2">Access Restricted</h2>
+            <p className="text-gray-500">Analytics are only available to members and administrators.</p>
           </div>
         </div>
       </div>
@@ -433,533 +319,429 @@ const Analytics = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-        {/* Header Section */}
-        <div className="mb-6 sm:mb-8">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-black flex items-center">
-                <Activity className="w-6 h-6 sm:w-8 sm:h-8 mr-2 sm:mr-3 text-blue-600" />
-                Fund Analytics Dashboard
-              </h1>
-              <p className="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">
-                Comprehensive insights from {metrics.totalFunds} fund managers
-              </p>
-            </div>
-            
-            {/* Filters Section */}
-            <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
-              <Button
-                variant="outline"
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center justify-center sm:w-auto border-gray-300 bg-white"
-              >
-                <Filter className="w-4 h-4 mr-2" />
-                Filters
-                {showFilters ? <ChevronUp className="w-4 h-4 ml-2" /> : <ChevronDown className="w-4 h-4 ml-2" />}
-              </Button>
-            </div>
-          </div>
-
-          {/* Collapsible Filters */}
-          {showFilters && (
-            <div className="mt-4 p-4 bg-white rounded-lg border border-gray-200">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
-                  <Label className="text-sm font-medium text-gray-700">Year:</Label>
-                  <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
-                    <SelectTrigger className="w-full sm:w-[120px] border-gray-300 bg-white">
-                      <Calendar className="w-4 h-4 mr-2" />
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Years</SelectItem>
-                      {[2024, 2025, 2026, 2027].map(year => (
-                        <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
-                  <Label className="text-sm font-medium text-gray-700">Time Range:</Label>
-                  <Select value={timeRange} onValueChange={setTimeRange}>
-                    <SelectTrigger className="w-full sm:w-[140px] border-gray-300 bg-white">
-                      <Clock className="w-4 h-4 mr-2" />
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Time</SelectItem>
-                      <SelectItem value="last_30_days">Last 30 Days</SelectItem>
-                      <SelectItem value="last_90_days">Last 90 Days</SelectItem>
-                      <SelectItem value="last_6_months">Last 6 Months</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Key Metrics */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <Card className="bg-white border">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
-                <Building2 className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
-                <div className="ml-3 sm:ml-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total Funds</p>
-                  <p className="text-xl sm:text-2xl font-bold text-black">{metrics.totalFunds}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white border">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
-                <DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
-                <div className="ml-3 sm:ml-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total Capital</p>
-                  <p className="text-xl sm:text-2xl font-bold text-black">${(metrics.totalCapital / 1000000).toFixed(1)}M</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white border">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
-                <Target className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
-                <div className="ml-3 sm:ml-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Avg Ticket</p>
-                  <p className="text-xl sm:text-2xl font-bold text-black">${(metrics.averageTicketSize / 1000).toFixed(0)}K</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white border">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
-                <Globe className="w-6 h-6 sm:w-8 sm:h-8 text-orange-600" />
-                <div className="ml-3 sm:ml-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Markets</p>
-                  <p className="text-xl sm:text-2xl font-bold text-black">{metrics.activeMarkets}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Additional Metrics */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <Card className="bg-white border">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
-                <Users className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-600" />
-                <div className="ml-3 sm:ml-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Avg Team Size</p>
-                  <p className="text-xl sm:text-2xl font-bold text-black">{metrics.averageTeamSize.toFixed(1)}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white border">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
-                <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-600" />
-                <div className="ml-3 sm:ml-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Avg Return</p>
-                  <p className="text-xl sm:text-2xl font-bold text-black">{metrics.averageReturn.toFixed(1)}%</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white border">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
-                <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-600" />
-                <div className="ml-3 sm:ml-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total Investments</p>
-                  <p className="text-xl sm:text-2xl font-bold text-black">{metrics.totalInvestments}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white border">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
-                <Award className="w-6 h-6 sm:w-8 sm:h-8 text-pink-600" />
-                <div className="ml-3 sm:ml-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Capital Deployed</p>
-                  <p className="text-xl sm:text-2xl font-bold text-black">${(metrics.capitalInMarket / 1000000).toFixed(1)}M</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* New Analytics Metrics */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <Card className="bg-white border">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
-                <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-cyan-600" />
-                <div className="ml-3 sm:ml-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Dry Powder</p>
-                  <p className="text-xl sm:text-2xl font-bold text-black">${(metrics.totalDryPowder / 1000000).toFixed(1)}M</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white border">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
-                <MapPin className="w-6 h-6 sm:w-8 sm:h-8 text-red-600" />
-                <div className="ml-3 sm:ml-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Equity Investments</p>
-                  <p className="text-xl sm:text-2xl font-bold text-black">{metrics.totalEquityInvestments}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white border">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
-                <Activity className="w-6 h-6 sm:w-8 sm:h-8 text-violet-600" />
-                <div className="ml-3 sm:ml-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Self-Liquidating</p>
-                  <p className="text-xl sm:text-2xl font-bold text-black">{metrics.totalSelfLiquidatingInvestments}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white border">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
-                <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-teal-600" />
-                <div className="ml-3 sm:ml-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Avg Fund Stages</p>
-                  <p className="text-xl sm:text-2xl font-bold text-black">{metrics.averageFundStage.toFixed(1)}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Tabs Section */}
-        <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-7 bg-white h-auto p-1">
-            <TabsTrigger 
-              value="overview" 
-              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs sm:text-sm py-2 px-3"
-            >
-              Overview
-            </TabsTrigger>
-            <TabsTrigger 
-              value="capital" 
-              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs sm:text-sm py-2 px-3"
-            >
-              Capital
-            </TabsTrigger>
-            <TabsTrigger 
-              value="geography" 
-              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs sm:text-sm py-2 px-3"
-            >
-              Geography
-            </TabsTrigger>
-            <TabsTrigger 
-              value="performance" 
-              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs sm:text-sm py-2 px-3"
-            >
-              Performance
-            </TabsTrigger>
-            <TabsTrigger 
-              value="team" 
-              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs sm:text-sm py-2 px-3"
-            >
-              Team
-            </TabsTrigger>
-            <TabsTrigger 
-              value="investments" 
-              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs sm:text-sm py-2 px-3"
-            >
-              Investments
-            </TabsTrigger>
-            <TabsTrigger 
-              value="trends" 
-              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs sm:text-sm py-2 px-3"
-            >
-              Trends
-            </TabsTrigger>
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="mb-6 grid grid-cols-4 md:grid-cols-8 gap-2">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="team">Team</TabsTrigger>
+            <TabsTrigger value="geography">Geography</TabsTrigger>
+            <TabsTrigger value="capital">Capital</TabsTrigger>
+            <TabsTrigger value="instruments">Instruments</TabsTrigger>
+            <TabsTrigger value="sectors">Sectors</TabsTrigger>
+            <TabsTrigger value="timeline">Timeline</TabsTrigger>
+            <TabsTrigger value="engagement">Engagement</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-4 sm:space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-              <Card className="bg-white border">
-                <CardHeader>
-                  <CardTitle className="text-black text-lg sm:text-xl">Vehicle Types Distribution</CardTitle>
-                  <CardDescription>Breakdown of fund vehicle structures</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[250px] sm:h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={chartData.vehicleTypes}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                          outerRadius={60}
-                          fill="#8884d8"
-                          dataKey="value"
-                        >
-                          {chartData.vehicleTypes.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
+          <TabsContent value="overview">
+            {/* Executive Summary - expand to include all key metrics */}
+            <div className="mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <Card className="shadow-sm border-gray-200">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 mb-1">Total Funds</p>
+                        <p className="text-2xl font-bold text-gray-900">{metrics.totalFunds}</p>
+                      </div>
+                      <Building2 className="w-8 h-8 text-blue-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm border-gray-200">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 mb-1">Total Capital</p>
+                        <p className="text-2xl font-bold text-gray-900">${metrics.totalCapital.toLocaleString()}</p>
+                      </div>
+                      <DollarSign className="w-8 h-8 text-green-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm border-gray-200">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 mb-1">Avg. Ticket Size</p>
+                        <p className="text-2xl font-bold text-gray-900">${metrics.averageTicketSize.toLocaleString()}</p>
+                      </div>
+                      <Target className="w-8 h-8 text-orange-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm border-gray-200">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 mb-1">Avg. Team Size</p>
+                        <p className="text-2xl font-bold text-gray-900">{metrics.averageTeamSize.toFixed(1)}</p>
+                      </div>
+                      <Users className="w-8 h-8 text-purple-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm border-gray-200">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 mb-1">Avg. Return</p>
+                        <p className="text-2xl font-bold text-gray-900">{metrics.averageReturn.toFixed(2)}%</p>
+                      </div>
+                      <TrendingUp className="w-8 h-8 text-teal-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm border-gray-200">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 mb-1">Completion Rate</p>
+                        <p className="text-2xl font-bold text-gray-900">{metrics.completionRate.toFixed(1)}%</p>
+                      </div>
+                      <CheckCircle className="w-8 h-8 text-green-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm border-gray-200">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 mb-1">Data Freshness</p>
+                        <p className="text-2xl font-bold text-gray-900">{lastUpdated.toLocaleTimeString()}</p>
+                      </div>
+                      <RefreshCw className="w-8 h-8 text-gray-500" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+            {/* Professional Header */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+                    <BarChart3Icon className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-semibold text-gray-900">Network Analytics</h1>
+                    <p className="text-gray-600 text-sm">Comprehensive insights into fund manager network performance</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="border-gray-300 text-gray-600"
+                    onClick={fetchSurveyData}
+                    disabled={loading}
+                  >
+                    <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                    Last updated: {lastUpdated.toLocaleTimeString()}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Professional Filters */}
+            <Card className="mb-8 shadow-sm border-gray-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowFilters(!showFilters)}
+                      className="border-gray-300"
+                    >
+                      <Filter className="w-4 h-4 mr-2" />
+                      Filters
+                      {showFilters ? <ChevronUp className="w-4 h-4 ml-2" /> : <ChevronDown className="w-4 h-4 ml-2" />}
+                    </Button>
+                    {loading && (
+                      <div className="flex items-center text-sm text-gray-600">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                        Loading data...
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Label htmlFor="year-select" className="text-sm font-medium text-gray-700">Year:</Label>
+                    <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                          <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                {showFilters && (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <div className="flex items-center space-x-4">
+                      <Label htmlFor="time-range" className="text-sm font-medium text-gray-700">Time Range:</Label>
+                      <Select value={timeRange} onValueChange={setTimeRange}>
+                        <SelectTrigger className="w-48">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Time</SelectItem>
+                          <SelectItem value="last_30_days">Last 30 Days</SelectItem>
+                          <SelectItem value="last_90_days">Last 90 Days</SelectItem>
+                          <SelectItem value="last_6_months">Last 6 Months</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Professional Metrics Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <Card className="shadow-sm border-gray-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-600 mb-1">Total Funds</p>
+                      <p className="text-2xl font-bold text-gray-900">{metrics.totalFunds}</p>
+                      <p className="text-xs text-gray-500 mt-1">Active funds</p>
+                    </div>
+                    <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                      <Building2 className="w-6 h-6 text-white" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-white border">
-                <CardHeader>
-                  <CardTitle className="text-black text-lg sm:text-xl">Fund Stages</CardTitle>
-                  <CardDescription>Current stage distribution of funds</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[250px] sm:h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={chartData.fundStages}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                          outerRadius={60}
-                          fill="#8884d8"
-                          dataKey="value"
-                        >
-                          {chartData.fundStages.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
+              <Card className="shadow-sm border-gray-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-600 mb-1">Total Capital</p>
+                      <p className="text-2xl font-bold text-gray-900">${(metrics.totalCapital / 1000000).toFixed(1)}M</p>
+                      <p className="text-xs text-gray-500 mt-1">Target capital</p>
+                    </div>
+                    <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
+                      <DollarSign className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-sm border-gray-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-600 mb-1">Avg Ticket Size</p>
+                      <p className="text-2xl font-bold text-gray-900">${(metrics.averageTicketSize / 1000000).toFixed(1)}M</p>
+                      <p className="text-xs text-gray-500 mt-1">Per investment</p>
+                    </div>
+                    <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
+                      <Target className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-sm border-gray-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-600 mb-1">Active Markets</p>
+                      <p className="text-2xl font-bold text-gray-900">{metrics.activeMarkets}</p>
+                      <p className="text-xs text-gray-500 mt-1">Geographic reach</p>
+                    </div>
+                    <div className="w-12 h-12 bg-orange-600 rounded-lg flex items-center justify-center">
+                      <Globe className="w-6 h-6 text-white" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-              <Card className="bg-white border">
-                <CardHeader>
-                  <CardTitle className="text-black text-lg sm:text-xl">Sector Allocation</CardTitle>
-                  <CardDescription>Investment focus across sectors</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[250px] sm:h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={chartData.sectorData} layout="horizontal">
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis type="number" />
-                        <YAxis dataKey="name" type="category" width={80} />
-                        <Tooltip formatter={(value) => [`${value}%`, 'Allocation']} />
-                        <Bar dataKey="value" fill="#8884d8" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
+            {/* Professional Charts */}
+            <Tabs defaultValue="overview" className="space-y-6">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="overview" className="flex items-center space-x-2">
+                  <Eye className="w-4 h-4" />
+                  <span>Overview</span>
+                </TabsTrigger>
+                <TabsTrigger value="capital" className="flex items-center space-x-2">
+                  <DollarSign className="w-4 h-4" />
+                  <span>Capital</span>
+                </TabsTrigger>
+                <TabsTrigger value="performance" className="flex items-center space-x-2">
+                  <TrendingUpIcon className="w-4 h-4" />
+                  <span>Performance</span>
+                </TabsTrigger>
+                <TabsTrigger value="trends" className="flex items-center space-x-2">
+                  <LineChartIcon className="w-4 h-4" />
+                  <span>Trends</span>
+                </TabsTrigger>
+              </TabsList>
 
-              <Card className="bg-white border">
-                <CardHeader>
-                  <CardTitle className="text-black text-lg sm:text-xl">Investment Instruments</CardTitle>
-                  <CardDescription>Preferred investment instruments</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[250px] sm:h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={chartData.investmentInstruments} layout="horizontal">
+              <TabsContent value="overview" className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <Card className="shadow-sm border-gray-200">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-lg flex items-center">
+                        <PieChartIcon2 className="w-5 h-5 mr-2 text-blue-600" />
+                        Fund Stages Distribution
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <PieChart>
+                          <Pie
+                            data={prepareChartData()}
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={80}
+                            dataKey="value"
+                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          />
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="shadow-sm border-gray-200">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-lg flex items-center">
+                        <BarChart3Icon className="w-5 h-5 mr-2 text-green-600" />
+                        Network Metrics
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <span className="text-sm font-medium text-gray-700">Average Team Size</span>
+                          <span className="text-sm font-bold text-gray-900">{metrics.averageTeamSize.toFixed(1)}</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <span className="text-sm font-medium text-gray-700">Average Return Target</span>
+                          <span className="text-sm font-bold text-gray-900">{metrics.averageReturn.toFixed(1)}%</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <span className="text-sm font-medium text-gray-700">Total Investments</span>
+                          <span className="text-sm font-bold text-gray-900">{metrics.totalInvestments}</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <span className="text-sm font-medium text-gray-700">Dry Powder</span>
+                          <span className="text-sm font-bold text-gray-900">${(metrics.totalDryPowder / 1000000).toFixed(1)}M</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="capital" className="space-y-6">
+                <Card className="shadow-sm border-gray-200">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-lg flex items-center">
+                      <DollarSign className="w-5 h-5 mr-2 text-green-600" />
+                      Capital Allocation by Fund
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={400}>
+                      <BarChart data={prepareCapitalData()}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis type="number" />
-                        <YAxis dataKey="name" type="category" width={80} />
+                        <XAxis dataKey="name" />
+                        <YAxis />
                         <Tooltip />
-                        <Bar dataKey="value" fill="#82ca9d" />
+                        <Legend />
+                        <Bar dataKey="targetCapital" fill="#3B82F6" name="Target Capital" />
+                        <Bar dataKey="capitalRaised" fill="#10B981" name="Capital Raised" />
+                        <Bar dataKey="capitalInMarket" fill="#F59E0B" name="Capital in Market" />
                       </BarChart>
                     </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-          <TabsContent value="capital" className="space-y-4 sm:space-y-6">
-            <Card className="bg-white border">
-              <CardHeader>
-                <CardTitle className="text-black text-lg sm:text-xl">Capital Analysis</CardTitle>
-                <CardDescription>Target vs Raised vs Deployed Capital by Fund</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px] sm:h-[400px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={capitalData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
-                      <YAxis />
-                      <Tooltip formatter={(value) => [`$${(Number(value) / 1000000).toFixed(1)}M`, '']} />
-                      <Legend />
-                      <Bar dataKey="target" fill="#8884d8" name="Target Capital" />
-                      <Bar dataKey="raised" fill="#82ca9d" name="Raised Capital" />
-                      <Bar dataKey="deployed" fill="#ffc658" name="Deployed Capital" />
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="geography" className="space-y-4 sm:space-y-6">
-            <Card className="bg-white border">
-              <CardHeader>
-                <CardTitle className="text-black text-lg sm:text-xl">Geographic Distribution</CardTitle>
-                <CardDescription>Fund presence across different markets</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px] sm:h-[400px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData.marketData} layout="horizontal">
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" />
-                      <YAxis dataKey="name" type="category" width={80} />
-                      <Tooltip />
-                      <Bar dataKey="value" fill="#8884d8" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="performance" className="space-y-4 sm:space-y-6">
-            <Card className="bg-white border">
-              <CardHeader>
-                <CardTitle className="text-black text-lg sm:text-xl">Performance Metrics</CardTitle>
-                <CardDescription>Fund performance correlation analysis</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px] sm:h-[400px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ScatterChart data={performanceData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="ticketSize" name="Ticket Size ($)" />
-                      <YAxis dataKey="targetReturn" name="Target Return (%)" />
-                      <Tooltip formatter={(value, name) => [
-                        name === 'ticketSize' ? `$${(Number(value) / 1000).toFixed(0)}K` : `${value}%`,
-                        name === 'ticketSize' ? 'Ticket Size' : 'Target Return'
-                      ]} />
-                      <Scatter dataKey="targetReturn" fill="#8884d8" />
-                    </ScatterChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="team" className="space-y-4 sm:space-y-6">
-            <Card className="bg-white border">
-              <CardHeader>
-                <CardTitle className="text-black text-lg sm:text-xl">Team Size Distribution</CardTitle>
-                <CardDescription>Distribution of team sizes across funds</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px] sm:h-[400px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData.teamSizeRanges} layout="horizontal">
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" />
-                      <YAxis dataKey="name" type="category" width={80} />
-                      <Tooltip />
-                      <Bar dataKey="value" fill="#8884d8" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="investments" className="space-y-4 sm:space-y-6">
-            <Card className="bg-white border">
-              <CardHeader>
-                <CardTitle className="text-black text-lg sm:text-xl">Investment Patterns</CardTitle>
-                <CardDescription>Distribution of ticket sizes and return rates</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                  <div className="h-[250px] sm:h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={chartData.ticketSizeRanges} layout="horizontal">
+              <TabsContent value="performance" className="space-y-6">
+                <Card className="shadow-sm border-gray-200">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-lg flex items-center">
+                      <TrendingUpIcon className="w-5 h-5 mr-2 text-purple-600" />
+                      Investment Performance
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={400}>
+                      <ComposedChart data={preparePerformanceData()}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis type="number" />
-                        <YAxis dataKey="name" type="category" width={80} />
+                        <XAxis dataKey="name" />
+                        <YAxis yAxisId="left" />
+                        <YAxis yAxisId="right" orientation="right" />
                         <Tooltip />
-                        <Bar dataKey="value" fill="#82ca9d" />
-                      </BarChart>
+                        <Legend />
+                        <Bar yAxisId="left" dataKey="equityInvestments" fill="#3B82F6" name="Equity Investments" />
+                        <Bar yAxisId="left" dataKey="selfLiquidatingInvestments" fill="#10B981" name="Self Liquidating" />
+                        <Line yAxisId="right" type="monotone" dataKey="targetReturn" stroke="#EF4444" name="Target Return %" />
+                      </ComposedChart>
                     </ResponsiveContainer>
-                  </div>
-                  <div className="h-[250px] sm:h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={chartData.returnRanges} layout="horizontal">
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="trends" className="space-y-6">
+                <Card className="shadow-sm border-gray-200">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-lg flex items-center">
+                      <LineChartIcon className="w-5 h-5 mr-2 text-orange-600" />
+                      Fund Growth Trends
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={400}>
+                      <AreaChart data={prepareTrendData()}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis type="number" />
-                        <YAxis dataKey="name" type="category" width={80} />
+                        <XAxis dataKey="year" />
+                        <YAxis />
                         <Tooltip />
-                        <Bar dataKey="value" fill="#ffc658" />
-                      </BarChart>
+                        <Area type="monotone" dataKey="funds" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.3} />
+                      </AreaChart>
                     </ResponsiveContainer>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
-          <TabsContent value="trends" className="space-y-4 sm:space-y-6">
-            <Card className="bg-white border">
-              <CardHeader>
-                <CardTitle className="text-black text-lg sm:text-xl">Year-over-Year Trends</CardTitle>
-                <CardDescription>Evolution of fund metrics over time</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px] sm:h-[400px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={trendData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="year" />
-                      <YAxis yAxisId="left" />
-                      <YAxis yAxisId="right" orientation="right" />
-                      <Tooltip />
-                      <Legend />
-                      <Bar yAxisId="left" dataKey="funds" fill="#8884d8" name="Number of Funds" />
-                      <Line yAxisId="right" type="monotone" dataKey="averageReturn" stroke="#82ca9d" name="Avg Return (%)" />
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
+          <TabsContent value="team">
+            {/* Team analytics: team size, composition, experience, etc. */}
+          </TabsContent>
+
+          <TabsContent value="geography">
+            {/* Geography analytics: legal domicile, markets operated, etc. */}
+          </TabsContent>
+
+          <TabsContent value="capital">
+            {/* Capital analytics: target capital, capital raised, capital in market, dry powder, etc. */}
+          </TabsContent>
+
+          <TabsContent value="instruments">
+            {/* Investment instruments analytics: priorities, data, etc. */}
+          </TabsContent>
+
+          <TabsContent value="sectors">
+            {/* Sector allocation analytics */}
+          </TabsContent>
+
+          <TabsContent value="timeline">
+            {/* Timeline analytics: fund stage, status, legal entity dates, first close dates, etc. */}
+          </TabsContent>
+
+          <TabsContent value="engagement">
+            {/* Engagement analytics: expectations, how heard about network, document uploads, etc. */}
           </TabsContent>
         </Tabs>
       </div>

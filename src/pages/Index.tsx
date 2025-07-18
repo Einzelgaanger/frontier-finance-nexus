@@ -284,10 +284,10 @@ const Index = () => {
               <div>
                 <h4 className="text-white font-semibold mb-3 text-sm">Follow Us</h4>
                 <div className="flex space-x-3">
-                  <a href="#" className="w-8 h-8 bg-gray-800 hover:bg-blue-600 rounded flex items-center justify-center transition-all duration-300 hover:scale-110">
+                  <a href="https://twitter.com/CollabFFinance" target="_blank" rel="noopener noreferrer" className="w-8 h-8 bg-gray-800 hover:bg-blue-600 rounded flex items-center justify-center transition-all duration-300 hover:scale-110">
                     <Twitter className="w-4 h-4 text-white" />
                   </a>
-                  <a href="#" className="w-8 h-8 bg-gray-800 hover:bg-blue-700 rounded flex items-center justify-center transition-all duration-300 hover:scale-110">
+                  <a href="https://www.linkedin.com/company/collaborative-for-frontier-finance/" target="_blank" rel="noopener noreferrer" className="w-8 h-8 bg-gray-800 hover:bg-blue-700 rounded flex items-center justify-center transition-all duration-300 hover:scale-110">
                     <Linkedin className="w-4 h-4 text-white" />
                   </a>
                   <a href="#" className="w-8 h-8 bg-gray-800 hover:bg-blue-800 rounded flex items-center justify-center transition-all duration-300 hover:scale-110">

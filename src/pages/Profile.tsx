@@ -7,7 +7,19 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Mail, Phone, Camera } from 'lucide-react';
+import { 
+  User, 
+  Mail, 
+  Phone, 
+  Camera, 
+  Save, 
+  RefreshCw,
+  Shield,
+  Settings,
+  Key,
+  Eye,
+  Award
+} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -16,6 +28,7 @@ const Profile = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(new Date());
   const [profile, setProfile] = useState({
     first_name: '',
     last_name: '',
@@ -47,7 +60,7 @@ const Profile = () => {
           first_name: data.first_name || '',
           last_name: data.last_name || '',
           email: data.email || user.email || '',
-          phone: '', // Phone is not in the database schema yet
+          phone: data.phone || '',
           profile_picture_url: data.profile_picture_url || ''
         });
       } else {
@@ -60,6 +73,7 @@ const Profile = () => {
           profile_picture_url: ''
         });
       }
+      setLastUpdated(new Date());
     } catch (error) {
       console.error('Error fetching profile:', error);
       toast({
@@ -82,6 +96,7 @@ const Profile = () => {
           first_name: profile.first_name,
           last_name: profile.last_name,
           email: profile.email,
+          phone: profile.phone,
           profile_picture_url: profile.profile_picture_url,
           updated_at: new Date().toISOString()
         });
@@ -92,6 +107,7 @@ const Profile = () => {
         title: "Success",
         description: "Profile updated successfully",
       });
+      setLastUpdated(new Date());
     } catch (error) {
       console.error('Error saving profile:', error);
       toast({
@@ -140,13 +156,12 @@ const Profile = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="max-w-2xl mx-auto">
-            <CardHeader>
-              <CardTitle>Access Required</CardTitle>
-              <CardDescription>Please sign in to view your profile.</CardDescription>
-            </CardHeader>
-          </Card>
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <div className="text-center">
+            <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h2 className="text-lg font-medium text-gray-900 mb-2">Access Required</h2>
+            <p className="text-gray-500">Please sign in to view your profile.</p>
+          </div>
         </div>
       </div>
     );
@@ -156,10 +171,10 @@ const Profile = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading profile...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading profile...</p>
           </div>
         </div>
       </div>
@@ -170,24 +185,30 @@ const Profile = () => {
     <div className="min-h-screen bg-gray-50">
       <Header />
       
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Profile Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Profile Settings</h1>
-          <p className="text-gray-600">Manage your account information and preferences</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Profile</h1>
+          <p className="text-gray-600">Manage your account settings and preferences</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Profile Picture Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile Picture</CardTitle>
-              <CardDescription>Update your profile image</CardDescription>
+          <Card className="shadow-sm border-gray-200">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center">
+                <Camera className="w-5 h-5 mr-2 text-blue-600" />
+                Profile Picture
+              </CardTitle>
+              <CardDescription className="text-sm">
+                Update your profile image
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex flex-col items-center space-y-4">
-                <Avatar className="w-32 h-32">
+                <Avatar className="w-24 h-24 border-2 border-gray-200 shadow-sm">
                   <AvatarImage src={profile.profile_picture_url} />
-                  <AvatarFallback className="text-2xl">
+                  <AvatarFallback className="text-xl font-semibold bg-blue-600 text-white">
                     {profile.first_name?.[0]?.toUpperCase() || profile.email?.[0]?.toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>
@@ -200,122 +221,176 @@ const Profile = () => {
                     onChange={handleImageUpload}
                     className="hidden"
                   />
-                  <Button
-                    onClick={() => document.getElementById('image-upload')?.click()}
-                    variant="outline"
-                    className="flex items-center space-x-2"
+                  <label
+                    htmlFor="image-upload"
+                    className="cursor-pointer inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   >
-                    <Camera className="w-4 h-4" />
-                    <span>Change Photo</span>
-                  </Button>
+                    <Camera className="w-4 h-4 mr-2" />
+                    Upload Image
+                  </label>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Account Information */}
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle>Account Information</CardTitle>
-              <CardDescription>Update your personal details</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="first_name">First Name</Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+          <div className="lg:col-span-2 space-y-6">
+            <Card className="shadow-sm border-gray-200">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center">
+                  <User className="w-5 h-5 mr-2 text-green-600" />
+                  Account Information
+                </CardTitle>
+                <CardDescription className="text-sm">
+                  Update your personal details
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="first_name" className="text-sm font-medium text-gray-700">
+                      First Name
+                    </Label>
                     <Input
                       id="first_name"
-                      type="text"
                       value={profile.first_name}
-                      onChange={(e) => setProfile({...profile, first_name: e.target.value})}
-                      className="pl-10"
+                      onChange={(e) => setProfile({ ...profile, first_name: e.target.value })}
                       placeholder="Enter your first name"
+                      className="border-gray-300"
                     />
                   </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="last_name">Last Name</Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <div className="space-y-2">
+                    <Label htmlFor="last_name" className="text-sm font-medium text-gray-700">
+                      Last Name
+                    </Label>
                     <Input
                       id="last_name"
-                      type="text"
                       value={profile.last_name}
-                      onChange={(e) => setProfile({...profile, last_name: e.target.value})}
-                      className="pl-10"
+                      onChange={(e) => setProfile({ ...profile, last_name: e.target.value })}
                       placeholder="Enter your last name"
+                      className="border-gray-300"
                     />
                   </div>
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                    Email Address
+                  </Label>
                   <Input
                     id="email"
                     type="email"
                     value={profile.email}
-                    onChange={(e) => setProfile({...profile, email: e.target.value})}
-                    className="pl-10"
+                    onChange={(e) => setProfile({ ...profile, email: e.target.value })}
                     placeholder="Enter your email"
+                    className="border-gray-300"
                   />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
+                    Phone Number
+                  </Label>
                   <Input
                     id="phone"
                     type="tel"
                     value={profile.phone}
-                    onChange={(e) => setProfile({...profile, phone: e.target.value})}
-                    className="pl-10"
+                    onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
                     placeholder="Enter your phone number"
+                    className="border-gray-300"
                   />
                 </div>
-              </div>
+              </CardContent>
+            </Card>
 
-              <div className="pt-4">
-                <Button 
-                  onClick={handleSave} 
-                  disabled={saving}
-                  className="w-full md:w-auto"
-                >
-                  {saving ? 'Saving...' : 'Save Changes'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            {/* Account Status */}
+            <Card className="shadow-sm border-gray-200">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center">
+                  <Shield className="w-5 h-5 mr-2 text-purple-600" />
+                  Account Status
+                </CardTitle>
+                <CardDescription className="text-sm">
+                  Your current account information
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <User className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Account Type</p>
+                        <p className="text-xs text-gray-500">Your current access level</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {userRole === 'admin' && <Award className="w-4 h-4 text-yellow-600" />}
+                      {userRole === 'member' && <Key className="w-4 h-4 text-green-600" />}
+                      {userRole === 'viewer' && <Eye className="w-4 h-4 text-blue-600" />}
+                      <span className="text-sm font-medium text-gray-900 capitalize">{userRole}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                        <Mail className="w-4 h-4 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Email Verified</p>
+                        <p className="text-xs text-gray-500">Account verification status</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-sm font-medium text-gray-900">Verified</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <Settings className="w-4 h-4 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Profile Complete</p>
+                        <p className="text-xs text-gray-500">Information completion status</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-sm font-medium text-gray-900">Complete</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Account Status */}
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle>Account Status</CardTitle>
-            <CardDescription>Your current account information</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label>Account Type</Label>
-                <p className="text-sm text-gray-600 capitalize">{userRole}</p>
-              </div>
-              <div>
-                <Label>Member Since</Label>
-                <p className="text-sm text-gray-600">
-                  {new Date(user.created_at).toLocaleDateString()}
-                </p>
-              </div>
+            {/* Action Buttons */}
+            <div className="flex items-center justify-between">
+              <Button
+                variant="outline"
+                onClick={fetchProfile}
+                // disabled={loading} // Removed loading state
+                className="border-gray-300"
+              >
+                <RefreshCw className={`w-4 h-4 mr-2`} />
+                Refresh
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={saving}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {saving ? 'Saving...' : 'Save Changes'}
+              </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

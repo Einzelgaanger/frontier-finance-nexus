@@ -6,11 +6,33 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Building2, Globe, Users, DollarSign, Calendar, ExternalLink, Target, TrendingUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { 
+  Building2, 
+  Globe, 
+  Users, 
+  DollarSign, 
+  Calendar, 
+  ExternalLink, 
+  Target, 
+  TrendingUp,
+  Search,
+  Filter,
+  Network as NetworkIcon,
+  MapPin,
+  Award,
+  Briefcase,
+  PieChart,
+  BarChart3,
+  Eye,
+  Star,
+  CheckCircle,
+  Clock,
+  RefreshCw
+} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { NetworkCard } from '@/components/network/NetworkCard';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 
 interface FundManager {
   id: string;
@@ -43,10 +65,11 @@ const Network = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRegion, setFilterRegion] = useState('all');
   const [filterType, setFilterType] = useState('all');
-  const [approvedMembers, setApprovedMembers] = useState<any[]>([]); // For viewer
+  const [approvedMembers, setApprovedMembers] = useState<any[]>([]);
   const [viewerError, setViewerError] = useState<string | null>(null);
   const [membershipRequests, setMembershipRequests] = useState<any[]>([]);
   const [viewerLoading, setViewerLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(new Date());
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -207,12 +230,12 @@ const Network = () => {
         index === self.findIndex(m => m.user_id === manager.user_id)
       );
       
-      console.log('All managers with completed surveys:', uniqueManagers);
       setFundManagers(uniqueManagers);
-      setLoading(false);
+      setLastUpdated(new Date());
     } catch (error) {
       console.error('Error fetching fund managers:', error);
       setFundManagers([]);
+    } finally {
       setLoading(false);
     }
   };
@@ -291,8 +314,6 @@ const Network = () => {
     return types.sort();
   };
 
-
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -300,7 +321,7 @@ const Network = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading network directory...</p>
+            <p className="mt-4 text-gray-600">Loading professional network...</p>
           </div>
         </div>
       </div>
@@ -312,31 +333,101 @@ const Network = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-6 sm:py-8">
-          <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <h1 className="text-3xl font-bold text-gray-900">Approved Members Directory</h1>
-            <div className="flex items-center space-x-2">
-              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                Total Approved: {approvedMembers.length}
-              </Badge>
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          {/* Professional Header */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+                  <NetworkIcon className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-semibold text-gray-900">Approved Members Directory</h1>
+                  <p className="text-gray-600 text-sm">Professional network overview and connections</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="border-gray-300 text-gray-600"
+                  onClick={fetchApprovedMembers}
+                  disabled={viewerLoading}
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${viewerLoading ? 'animate-spin' : ''}`} />
+                  Last updated: {lastUpdated.toLocaleTimeString()}
+                </Button>
+              </div>
             </div>
           </div>
 
+          {/* Professional Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <Card className="shadow-sm border-gray-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-600 mb-1">Total Approved</p>
+                    <p className="text-2xl font-bold text-gray-900">{approvedMembers.length}</p>
+                    <p className="text-xs text-gray-500 mt-1">Active members</p>
+                  </div>
+                  <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
+                    <CheckCircle className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-sm border-gray-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-600 mb-1">Geographic Reach</p>
+                    <p className="text-2xl font-bold text-gray-900">15</p>
+                    <p className="text-xs text-gray-500 mt-1">Countries covered</p>
+                  </div>
+                  <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <Globe className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-sm border-gray-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-600 mb-1">Network Growth</p>
+                    <p className="text-2xl font-bold text-gray-900">+12%</p>
+                    <p className="text-xs text-gray-500 mt-1">This month</p>
+                  </div>
+                  <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           {viewerError && (
-            <div className="mb-4 text-red-600 bg-red-50 border border-red-200 rounded p-2">
-              {viewerError}
-            </div>
+            <Card className="mb-6 border-red-200 bg-red-50">
+              <CardContent className="p-4">
+                <p className="text-red-700 text-sm">{viewerError}</p>
+              </CardContent>
+            </Card>
           )}
 
           {viewerLoading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading approved members...</p>
-            </div>
+            <Card className="text-center py-12 bg-white shadow-sm border-gray-200">
+              <CardContent>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading approved members...</p>
+              </CardContent>
+            </Card>
           ) : (
             <>
               {approvedMembers.length === 0 ? (
-                <Card className="text-center py-12 bg-white">
+                <Card className="text-center py-12 bg-white shadow-sm border-gray-200">
                   <CardContent>
                     <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">No approved members found</h3>
@@ -384,7 +475,7 @@ const Network = () => {
                             </div>
                           )}
                           <div className="flex items-center gap-2">
-                            <Users className="w-4 h-4 text-gold-500" />
+                            <Users className="w-4 h-4 text-orange-500" />
                             <span className="truncate">{member.team_size || 'N/A'} team members</span>
                           </div>
                           <div className="flex items-center gap-2">
@@ -394,7 +485,7 @@ const Network = () => {
                           {member.investment_thesis && (
                             <div className="mt-3 pt-3 border-t border-gray-100">
                               <div className="flex items-start gap-2">
-                                <Target className="w-4 h-4 text-gold-500 mt-0.5 flex-shrink-0" />
+                                <Target className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
                                 <div className="flex-1 min-w-0">
                                   <p className="text-xs font-medium text-gray-700 mb-1">Investment Thesis</p>
                                   <p className="text-xs text-gray-600 line-clamp-4 leading-relaxed break-words">
@@ -442,47 +533,157 @@ const Network = () => {
     <div className="min-h-screen bg-gray-50">
       <Header />
       
-      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-6 sm:py-8">
-        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <h1 className="text-3xl font-bold text-gray-900">Network Directory</h1>
-          {userRole !== 'viewer' && (
-            <div className="flex flex-col md:flex-row gap-2 md:gap-4 items-start md:items-center">
-              <Input
-                type="text"
-                placeholder="Search by name, region, or type..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className="w-full md:w-64"
-              />
-              <Select value={filterRegion} onValueChange={setFilterRegion}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Filter by Region" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Regions</SelectItem>
-                  {getRegions().map(region => (
-                    <SelectItem key={region} value={region}>{region}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={filterType} onValueChange={setFilterType}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Filter by Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  {getFundTypes().map(type => (
-                    <SelectItem key={type} value={type}>{type}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Professional Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+                <NetworkIcon className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-semibold text-gray-900">Network Directory</h1>
+                <p className="text-gray-600 text-sm">Professional fund manager network and insights</p>
+              </div>
             </div>
-          )}
+            <div className="flex items-center space-x-3">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="border-blue-300 text-blue-700 bg-blue-50 hover:bg-blue-100"
+                onClick={fetchFundManagers}
+                disabled={loading}
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                Last updated: {lastUpdated.toLocaleTimeString()}
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Professional Search & Filters */}
+        {userRole !== 'viewer' && (
+          <Card className="mb-8 shadow-sm border-blue-200 bg-blue-50">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center text-blue-900">
+                <Search className="w-5 h-5 mr-2 text-blue-600" />
+                Search & Filter
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 w-4 h-4" />
+                  <Input
+                    type="text"
+                    placeholder="Search by name, region, or type..."
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    className="pl-10 border-blue-200 focus:border-blue-400"
+                  />
+                </div>
+                <Select value={filterRegion} onValueChange={setFilterRegion}>
+                  <SelectTrigger className="border-blue-200">
+                    <Filter className="w-4 h-4 mr-2 text-blue-600" />
+                    <SelectValue placeholder="Filter by Region" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Regions</SelectItem>
+                    {getRegions().map(region => (
+                      <SelectItem key={region} value={region}>{region}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={filterType} onValueChange={setFilterType}>
+                  <SelectTrigger className="border-blue-200">
+                    <Filter className="w-4 h-4 mr-2 text-blue-600" />
+                    <SelectValue placeholder="Filter by Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    {getFundTypes().map(type => (
+                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Professional Network Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card className="shadow-sm border-blue-200 bg-blue-50">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-blue-700 mb-1">Total Funds</p>
+                  <p className="text-2xl font-bold text-blue-900">{filteredManagers.length}</p>
+                  <p className="text-xs text-blue-600 mt-1">Active fund managers</p>
+                </div>
+                <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <Building2 className="w-6 h-6 text-white" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-sm border-green-200 bg-green-50">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-green-700 mb-1">Regions</p>
+                  <p className="text-2xl font-bold text-green-900">{getRegions().length}</p>
+                  <p className="text-xs text-green-600 mt-1">Geographic coverage</p>
+                </div>
+                <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
+                  <Globe className="w-6 h-6 text-white" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-sm border-purple-200 bg-purple-50">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-purple-700 mb-1">Fund Types</p>
+                  <p className="text-2xl font-bold text-purple-900">{getFundTypes().length}</p>
+                  <p className="text-xs text-purple-600 mt-1">Investment strategies</p>
+                </div>
+                <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-sm border-orange-200 bg-orange-50">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-orange-700 mb-1">Your Access</p>
+                  <Badge 
+                    variant={userRole === 'admin' ? 'default' : 'secondary'}
+                    className={userRole === 'admin' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-gray-100 text-gray-700 border-gray-200'}
+                  >
+                    {userRole === 'admin' ? 'Admin' : 'Member'}
+                  </Badge>
+                  <p className="text-xs text-orange-600 mt-1">
+                    {userRole === 'admin' ? 'Full access to all data' : 'Enhanced member access'}
+                  </p>
+                </div>
+                <div className="w-12 h-12 bg-orange-600 rounded-lg flex items-center justify-center">
+                  <Award className="w-6 h-6 text-white" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Debug Info - Only show for admins */}
         {userRole === 'admin' && (
-          <Card className="mb-6 bg-yellow-50 border-yellow-200">
+          <Card className="mb-6 bg-yellow-50 border-yellow-200 shadow-sm">
             <CardHeader>
               <CardTitle className="text-sm text-yellow-800">Debug Information</CardTitle>
             </CardHeader>
@@ -497,138 +698,97 @@ const Network = () => {
           </Card>
         )}
 
-        {/* Network Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-white border border-gray-200">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-700">Total Funds</CardTitle>
-              <Building2 className="h-4 w-4 text-gray-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{filteredManagers.length}</div>
-              <p className="text-sm text-gray-500">Active fund managers</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border border-gray-200">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-700">Regions</CardTitle>
-              <Globe className="h-4 w-4 text-gray-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{getRegions().length}</div>
-              <p className="text-sm text-gray-500">Geographic coverage</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border border-gray-200">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-700">Fund Types</CardTitle>
-              <Users className="h-4 w-4 text-gray-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{getFundTypes().length}</div>
-              <p className="text-sm text-gray-500">Investment strategies</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border border-gray-200">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-700">Your Access</CardTitle>
-              <Badge 
-                variant={userRole === 'admin' ? 'default' : 'secondary'}
-                className={userRole === 'admin' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-gray-100 text-gray-700 border-gray-200'}
-              >
-                {userRole === 'admin' ? 'Admin' : 'Member'}
-              </Badge>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-500">
-                {userRole === 'admin' ? 'Full access to all data' : 'Enhanced member access'}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Fund Managers Grid */}
+        {/* Professional Fund Managers Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredManagers.map((manager) => (
-            <Card
-              key={manager.id}
-              className="group bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer min-h-[280px]"
-              onClick={() => navigate(`/network/fund-manager/${manager.user_id}`)}
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between gap-2">
-                  <CardTitle className="text-lg font-semibold truncate text-gray-900 group-hover:text-blue-600">
-                    {manager.fund_name || 'Unknown Fund'}
-                  </CardTitle>
-                  <Badge 
-                    variant="default" 
-                    className={`text-xs ${
-                      manager.role_badge === 'viewer' 
-                        ? 'bg-blue-100 text-blue-700 border-blue-200' 
-                        : 'bg-green-100 text-green-700 border-green-200'
-                    }`}
-                  >
-                    {manager.role_badge === 'viewer' ? 'Viewer' : 'Member'}
-                  </Badge>
-                </div>
-                <CardDescription className="text-sm text-gray-500">
-                  {manager.profiles?.email || 'Unknown'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="space-y-3 text-sm text-gray-600">
-                  <div className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-blue-500" />
-                    <span className="truncate">{manager.primary_investment_region || 'Unknown Region'}</span>
+          {filteredManagers.map((manager, index) => {
+            const colorVariants = [
+              'border-blue-200 bg-blue-50',
+              'border-green-200 bg-green-50', 
+              'border-purple-200 bg-purple-50',
+              'border-orange-200 bg-orange-50',
+              'border-teal-200 bg-teal-50',
+              'border-indigo-200 bg-indigo-50'
+            ];
+            const colorVariant = colorVariants[index % colorVariants.length];
+            
+            return (
+              <Card
+                key={manager.id}
+                className={`group border rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer min-h-[280px] ${colorVariant}`}
+                onClick={() => navigate(`/network/fund-manager/${manager.user_id}`)}
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <CardTitle className="text-lg font-semibold truncate text-gray-900 group-hover:text-blue-600">
+                      {manager.fund_name || 'Unknown Fund'}
+                    </CardTitle>
+                    <Badge 
+                      variant="default" 
+                      className={`text-xs ${
+                        manager.role_badge === 'viewer' 
+                          ? 'bg-blue-100 text-blue-700 border-blue-200' 
+                          : 'bg-green-100 text-green-700 border-green-200'
+                      }`}
+                    >
+                      {manager.role_badge === 'viewer' ? 'Viewer' : 'Member'}
+                    </Badge>
                   </div>
-                  {manager.website && (
+                  <CardDescription className="text-sm text-gray-500">
+                    {manager.profiles?.email || 'Unknown'}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="space-y-3 text-sm text-gray-600">
                     <div className="flex items-center gap-2">
-                      <Globe className="w-4 h-4 text-green-500" />
-                      <a
-                        href={manager.website.startsWith('http') ? manager.website : `https://${manager.website}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline truncate"
-                        onClick={e => e.stopPropagation()}
-                      >
-                        {manager.website}
-                      </a>
+                      <Building2 className="w-4 h-4 text-blue-500" />
+                      <span className="truncate">{manager.primary_investment_region || 'Unknown Region'}</span>
                     </div>
-                  )}
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-gold-500" />
-                    <span className="truncate">{manager.team_size || 'N/A'} team members</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-green-500" />
-                    <span className="truncate">{manager.typical_check_size || 'N/A'} ticket size</span>
-                  </div>
-                  {manager.investment_thesis && (
-                    <div className="mt-3 pt-3 border-t border-gray-100">
-                      <div className="flex items-start gap-2">
-                        <Target className="w-4 h-4 text-gold-500 mt-0.5 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-gray-700 mb-1">Investment Thesis</p>
-                          <p className="text-xs text-gray-600 line-clamp-3 leading-relaxed break-words">
-                            {manager.investment_thesis}
-                          </p>
+                    {manager.website && (
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-green-500" />
+                        <a
+                          href={manager.website.startsWith('http') ? manager.website : `https://${manager.website}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline truncate"
+                          onClick={e => e.stopPropagation()}
+                        >
+                          {manager.website}
+                        </a>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-orange-500" />
+                      <span className="truncate">{manager.team_size || 'N/A'} team members</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="w-4 h-4 text-green-500" />
+                      <span className="truncate">{manager.typical_check_size || 'N/A'} ticket size</span>
+                    </div>
+                    {manager.investment_thesis && (
+                      <div className="mt-3 pt-3 border-t border-gray-100">
+                        <div className="flex items-start gap-2">
+                          <Target className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium text-gray-700 mb-1">Investment Thesis</p>
+                            <p className="text-xs text-gray-600 line-clamp-3 leading-relaxed break-words">
+                              {manager.investment_thesis}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )}
-                  {userRole === 'admin' && manager.aum && (
-                    <div className="flex items-center gap-2">
-                      <Target className="w-4 h-4 text-gold-500" />
-                      <span className="truncate">AUM: {manager.aum}</span>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                    )}
+                    {userRole === 'admin' && manager.aum && (
+                      <div className="flex items-center gap-2">
+                        <Target className="w-4 h-4 text-purple-500" />
+                        <span className="truncate">AUM: {manager.aum}</span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
     </div>
