@@ -1222,7 +1222,7 @@ const Admin = () => {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+              )))}
             </div>
           </TabsContent>
 
