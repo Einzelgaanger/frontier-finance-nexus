@@ -845,7 +845,11 @@ const Survey = () => {
                 {currentSection < totalSections ? (
                   <Button 
                     type="button" 
-                    onClick={handleNext}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleNext();
+                    }}
                     className={(() => {
                       const validation = getSectionValidationRules(currentSection);
                       return validation.isValid 

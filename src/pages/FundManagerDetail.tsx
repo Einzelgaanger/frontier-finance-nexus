@@ -28,7 +28,9 @@ import {
   Rocket,
   Shield,
   Heart,
-  Sparkles
+  Sparkles,
+  ArrowLeft,
+  ArrowRight
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -131,7 +133,9 @@ const sectionConfig = [
     key: 'vehicle_info',
     title: 'Vehicle Information',
     icon: Building2,
-    color: 'text-blue-700',
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50',
+    borderColor: 'border-blue-200',
     fields: [
       { key: 'vehicle_name', label: 'Fund Name' },
       { key: 'vehicle_websites', label: 'Vehicle Websites', type: 'array', isLink: true },
@@ -144,7 +148,9 @@ const sectionConfig = [
     key: 'team',
     title: 'Team & Leadership',
     icon: Users,
-    color: 'text-green-700',
+    color: 'text-green-600',
+    bgColor: 'bg-green-50',
+    borderColor: 'border-green-200',
     fields: [
       { key: 'team_members', label: 'Team Members', type: 'team' },
       { key: 'team_size_min', label: 'Team Size (Min)', type: 'number' },
@@ -156,7 +162,9 @@ const sectionConfig = [
     key: 'geography',
     title: 'Geographic & Market Focus',
     icon: Globe,
-    color: 'text-blue-900',
+    color: 'text-purple-600',
+    bgColor: 'bg-purple-50',
+    borderColor: 'border-purple-200',
     fields: [
       { key: 'legal_domicile', label: 'Legal Domicile', type: 'array' },
       { key: 'markets_operated', label: 'Markets Operated', type: 'markets' },
@@ -167,7 +175,9 @@ const sectionConfig = [
     key: 'investment_strategy',
     title: 'Investment Strategy',
     icon: Target,
-    color: 'text-gold-700',
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-50',
+    borderColor: 'border-orange-200',
     fields: [
       { key: 'ticket_size_min', label: 'Minimum Ticket Size (USD)', type: 'currency' },
       { key: 'ticket_size_max', label: 'Maximum Ticket Size (USD)', type: 'currency' },
@@ -181,7 +191,9 @@ const sectionConfig = [
     key: 'fund_operations',
     title: 'Fund Operations',
     icon: Briefcase,
-    color: 'text-black',
+    color: 'text-indigo-600',
+    bgColor: 'bg-indigo-50',
+    borderColor: 'border-indigo-200',
     fields: [
       { key: 'supporting_document_url', label: 'Supporting Document', type: 'url' },
       { key: 'expectations', label: 'Expectations', type: 'text' },
@@ -193,43 +205,45 @@ const sectionConfig = [
     key: 'fund_status',
     title: 'Fund Status & Timeline',
     icon: Calendar,
-    color: 'text-blue-700',
+    color: 'text-teal-600',
+    bgColor: 'bg-teal-50',
+    borderColor: 'border-teal-200',
     fields: [
       { key: 'fund_stage', label: 'Fund Stage', type: 'array' },
       { key: 'current_status', label: 'Current Status' },
       { key: 'current_status_other', label: 'Other Status' },
-      { key: 'legal_entity_date_from', label: 'Legal Entity Date From', type: 'number' },
-      { key: 'legal_entity_date_to', label: 'Legal Entity Date To', type: 'number' },
-      { key: 'legal_entity_month_from', label: 'Legal Entity Month From', type: 'number' },
-      { key: 'legal_entity_month_to', label: 'Legal Entity Month To', type: 'number' },
-      { key: 'first_close_date_from', label: 'First Close Date From', type: 'number' },
-      { key: 'first_close_date_to', label: 'First Close Date To', type: 'number' },
-      { key: 'first_close_month_from', label: 'First Close Month From', type: 'number' },
-      { key: 'first_close_month_to', label: 'First Close Month To', type: 'number' },
+      { key: 'legal_entity_date_from', label: 'Legal Entity Date From', type: 'date' },
+      { key: 'legal_entity_date_to', label: 'Legal Entity Date To', type: 'date' },
+      { key: 'first_close_date_from', label: 'First Close Date From', type: 'date' },
+      { key: 'first_close_date_to', label: 'First Close Date To', type: 'date' },
     ],
   },
   {
     key: 'investment_instruments',
     title: 'Investment Instruments',
-    icon: DollarSign,
-    color: 'text-gold-700',
+    icon: Zap,
+    color: 'text-yellow-600',
+    bgColor: 'bg-yellow-50',
+    borderColor: 'border-yellow-200',
     fields: [
-      { key: 'investment_instruments_priority', label: 'Investment Instruments (Priority Order)', type: 'instruments' },
+      { key: 'investment_instruments_priority', label: 'Investment Instruments Priority', type: 'instruments' },
     ],
   },
   {
     key: 'sector_returns',
     title: 'Sector Focus & Returns',
     icon: TrendingUp,
-    color: 'text-green-700',
+    color: 'text-red-600',
+    bgColor: 'bg-red-50',
+    borderColor: 'border-red-200',
     fields: [
       { key: 'sectors_allocation', label: 'Sectors Allocation', type: 'sectors' },
-      { key: 'target_return_min', label: 'Range Minimum (%)', type: 'number' },
-      { key: 'target_return_max', label: 'Range Maximum (%)', type: 'number' },
-      { key: 'equity_investments_made', label: 'Number of Equity Investments Made', type: 'number' },
-      { key: 'equity_investments_exited', label: 'Number of Equity Investments Exited', type: 'number' },
-      { key: 'self_liquidating_made', label: 'Number of Self-Liquidating Made', type: 'number' },
-      { key: 'self_liquidating_exited', label: 'Number of Self-Liquidating Exited', type: 'number' },
+      { key: 'target_return_min', label: 'Target Return Min (%)', type: 'number' },
+      { key: 'target_return_max', label: 'Target Return Max (%)', type: 'number' },
+      { key: 'equity_investments_made', label: 'Equity Investments Made', type: 'number' },
+      { key: 'equity_investments_exited', label: 'Equity Investments Exited', type: 'number' },
+      { key: 'self_liquidating_made', label: 'Self Liquidating Made', type: 'number' },
+      { key: 'self_liquidating_exited', label: 'Self Liquidating Exited', type: 'number' },
     ],
   },
 ];
@@ -243,6 +257,7 @@ const FundManagerDetail = () => {
   const [surveys, setSurveys] = useState<SurveyResponse[]>([]);
   const [activeSurvey, setActiveSurvey] = useState<SurveyResponse | null>(null);
   const [currentSection, setCurrentSection] = useState(0);
+  const [expandedTexts, setExpandedTexts] = useState<Record<string, boolean>>({});
 
   // Determine which sections to show based on user role
   const getVisibleSections = () => {
@@ -405,6 +420,15 @@ const FundManagerDetail = () => {
     }
   };
 
+  const formatDate = (year: number, month?: number) => {
+    if (!year) return 'Not provided';
+    if (month) {
+      const date = new Date(year, month - 1);
+      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+    }
+    return year.toString();
+  };
+
   const formatFieldValue = (value: any, fieldKey: string, fieldType?: string, isLink?: boolean): React.ReactNode => {
     if (value === null || value === undefined || value === '' || (Array.isArray(value) && value.length === 0)) {
       return <span className="text-gray-400 italic">Not provided</span>;
@@ -518,25 +542,30 @@ const FundManagerDetail = () => {
       return <span>{value}</span>;
     }
     
+    if (fieldType === 'date' && typeof value === 'number') {
+      const year = Math.floor(value / 10000);
+      const month = Math.floor((value % 10000) / 100);
+      return formatDate(year, month);
+    }
+    
     if (fieldType === 'text' && typeof value === 'string') {
-      // Truncate long text descriptions
-      if (value.length > 200) {
-        return (
-          <div>
-            <span className="text-gray-600 line-clamp-4">{value}</span>
+      const isExpanded = expandedTexts[fieldKey] || false;
+      const textToShow = isExpanded ? value : value.substring(0, 200); // Show first 200 characters
+      const showMoreButton = value.length > 200;
+
+      return (
+        <div>
+          <span className="text-gray-600 line-clamp-4">{textToShow}</span>
+          {showMoreButton && (
             <button 
-              onClick={() => {
-                // Toggle full view - you can implement this with state
-                console.log('Show full text');
-              }}
+              onClick={() => setExpandedTexts(prev => ({ ...prev, [fieldKey]: !isExpanded }))}
               className="text-blue-600 text-sm mt-1 hover:underline"
             >
-              Show more
+              {isExpanded ? 'Show less' : 'Show more'}
             </button>
-          </div>
-        );
-      }
-      return <span className="whitespace-pre-line">{value}</span>;
+          )}
+        </div>
+      );
     }
     
     if (typeof value === 'string') {
@@ -548,21 +577,34 @@ const FundManagerDetail = () => {
 
   const renderSection = (section: typeof sectionConfig[0], survey: SurveyResponse) => (
     <section key={section.key} className="mb-8">
-      <div className="flex items-center mb-2">
-        {section.icon && <section.icon className={`w-5 h-5 mr-2 ${section.color}`} />}
-        <h2 className="text-lg font-semibold text-black tracking-tight">{section.title}</h2>
-      </div>
-      <div className="border-b border-gray-200 mb-4" />
-      <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-        {section.fields.map(field => (
-          <div key={field.key} className="flex flex-col mb-2">
-            <dt className="text-sm font-medium text-gray-700 mb-1">{field.label}</dt>
-            <dd className="text-base text-gray-900">
-              {formatFieldValue(survey[field.key as keyof SurveyResponse], field.key, field.type, field.isLink)}
-            </dd>
+      <div className={`rounded-lg border ${section.borderColor} ${section.bgColor} p-6 shadow-sm`}>
+        <div className="flex items-center mb-4">
+          <div className={`p-2 rounded-lg ${section.bgColor} ${section.borderColor} border`}>
+            {section.icon && <section.icon className={`w-6 h-6 ${section.color}`} />}
           </div>
-        ))}
-      </dl>
+          <h2 className={`text-xl font-bold ${section.color} ml-3`}>{section.title}</h2>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {section.fields.map(field => {
+            const value = survey[field.key as keyof SurveyResponse];
+            const hasValue = value !== null && value !== undefined && value !== '' && 
+              !(Array.isArray(value) && value.length === 0);
+            
+            return (
+              <div key={field.key} className={`p-4 rounded-lg border ${hasValue ? 'bg-white border-gray-200' : 'bg-gray-50 border-gray-100'}`}>
+                <dt className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                  {field.label}
+                  {!hasValue && <span className="ml-2 text-xs text-gray-400">(Not provided)</span>}
+                </dt>
+                <dd className="text-base text-gray-900">
+                  {formatFieldValue(value, field.key, field.type, field.isLink)}
+                </dd>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </section>
   );
 
@@ -571,90 +613,147 @@ const FundManagerDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <Header />
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center space-x-4 mb-4 md:mb-0">
-            {profile?.profile_picture_url ? (
-              <Avatar className="w-16 h-16">
-                <AvatarImage src={profile.profile_picture_url} alt={profile.first_name} />
-                <AvatarFallback>{profile.first_name?.[0]}{profile.last_name?.[0]}</AvatarFallback>
-              </Avatar>
-            ) : (
-              <Avatar className="w-16 h-16 bg-gray-200">
-                <AvatarFallback>{profile?.first_name?.[0]}{profile?.last_name?.[0]}</AvatarFallback>
-              </Avatar>
-            )}
-            <div>
-              <h1 className="text-2xl font-bold text-black">{profile?.first_name} {profile?.last_name}</h1>
-              <div className="flex items-center space-x-2 mt-1">
-                <span className="text-gray-600 text-sm">{profile?.email}</span>
-                {activeSurvey?.role_badge && (
-                  <Badge className="ml-2 capitalize text-xs px-2 py-1 bg-gold-500 text-white font-semibold rounded">
-                    {activeSurvey.role_badge}
-                  </Badge>
-                )}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Enhanced Header */}
+        <div className="mb-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center space-x-4 mb-4 md:mb-0">
+              {profile?.profile_picture_url ? (
+                <Avatar className="w-20 h-20 border-4 border-white shadow-lg">
+                  <AvatarImage src={profile.profile_picture_url} alt={profile.first_name} />
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xl font-bold">
+                    {profile.first_name?.[0]}{profile.last_name?.[0]}
+                  </AvatarFallback>
+                </Avatar>
+              ) : (
+                <Avatar className="w-20 h-20 border-4 border-white shadow-lg bg-gradient-to-br from-blue-500 to-purple-600">
+                  <AvatarFallback className="text-white text-xl font-bold">
+                    {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+                  </AvatarFallback>
+                </Avatar>
+              )}
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 mb-1">
+                  {profile?.first_name} {profile?.last_name}
+                </h1>
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center text-gray-600">
+                    <Mail className="w-4 h-4 mr-2" />
+                    <span className="text-sm">{profile?.email}</span>
+                  </div>
+                  {activeSurvey?.role_badge && (
+                    <Badge className={`capitalize text-xs px-3 py-1 font-semibold rounded-full ${
+                      activeSurvey.role_badge === 'viewer' 
+                        ? 'bg-purple-100 text-purple-800 border border-purple-200' 
+                        : 'bg-blue-100 text-blue-800 border border-blue-200'
+                    }`}>
+                      {activeSurvey.role_badge}
+                    </Badge>
+                  )}
+                </div>
               </div>
             </div>
+            {surveys.length > 1 && (
+              <div className="flex items-center space-x-3 bg-gray-50 rounded-lg p-3">
+                <Calendar className="w-5 h-5 text-gray-600" />
+                <span className="text-gray-700 font-medium">Survey Year:</span>
+                <select
+                  className="border border-gray-300 rounded-md px-3 py-1 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  value={activeSurvey?.year || ''}
+                  onChange={e => {
+                    const selected = surveys.find(s => s.year === Number(e.target.value));
+                    if (selected) setActiveSurvey(selected);
+                  }}
+                  aria-label="Select survey year"
+                >
+                  {surveys.map(s => (
+                    <option key={s.id} value={s.year}>{s.year}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
-          {surveys.length > 1 && (
-            <div className="flex items-center space-x-2">
-              <label htmlFor="survey-year" className="sr-only">Survey Year</label>
-              <span className="text-gray-700 font-medium">Survey Year:</span>
-              <select
-                id="survey-year"
-                className="border border-gray-300 rounded px-2 py-1 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={activeSurvey?.year || ''}
-                onChange={e => {
-                  const selected = surveys.find(s => s.year === Number(e.target.value));
-                  if (selected) setActiveSurvey(selected);
-                }}
-              >
-                {surveys.map(s => (
-                  <option key={s.id} value={s.year}>{s.year}</option>
-                ))}
-              </select>
-            </div>
-          )}
         </div>
 
         {loading ? (
-          <div className="text-center py-16 text-lg text-gray-500">Loading fund manager details...</div>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Loading fund manager details...</h3>
+              <p className="text-gray-500">Please wait while we fetch the information.</p>
+            </div>
+          </div>
         ) : !activeSurvey ? (
-          <div className="text-center py-16 text-lg text-gray-500">No survey data found for this fund manager.</div>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12">
+            <div className="text-center">
+              <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No survey data found</h3>
+              <p className="text-gray-500">This fund manager hasn't completed any surveys yet.</p>
+            </div>
+          </div>
         ) : (
           <div className="space-y-6">
-            {/* Section Navigation */}
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600">
-                  Section {currentSection + 1} of {totalSections}
-                </span>
-                <div className="w-32 bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${((currentSection + 1) / totalSections) * 100}%` }}
-                  />
+            {/* Enhanced Section Navigation */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-medium text-gray-700">
+                      Section {currentSection + 1} of {totalSections}
+                    </span>
+                    <div className="w-48 bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${((currentSection + 1) / totalSections) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                  <span className="text-sm text-gray-500">
+                    {visibleSections[currentSection]?.title}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePreviousSection}
+                    disabled={currentSection === 0}
+                    className="flex items-center space-x-2"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNextSection}
+                    disabled={currentSection === totalSections - 1}
+                    className="flex items-center space-x-2"
+                  >
+                    Next
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handlePreviousSection}
-                  disabled={currentSection === 0}
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleNextSection}
-                  disabled={currentSection === totalSections - 1}
-                >
-                  Next
-                </Button>
+              
+              {/* Section Indicators */}
+              <div className="flex space-x-2">
+                {visibleSections.map((section, index) => (
+                  <button
+                    key={section.key}
+                    onClick={() => setCurrentSection(index)}
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      index === currentSection
+                        ? `${section.bgColor} ${section.borderColor} border text-gray-900`
+                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <section.icon className="w-4 h-4" />
+                    <span className="hidden sm:inline">{section.title}</span>
+                  </button>
+                ))}
               </div>
             </div>
 
