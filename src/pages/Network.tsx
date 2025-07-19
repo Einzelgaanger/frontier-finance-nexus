@@ -745,102 +745,14 @@ const Network = () => {
 
         {/* Professional Fund Managers Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredManagers.map((manager, index) => {
-            // Create different bright colors for each card
-            const cardColors = [
-              'from-blue-50/80 to-blue-100/80 border-blue-200',
-              'from-green-50/80 to-green-100/80 border-green-200',
-              'from-yellow-50/80 to-yellow-100/80 border-yellow-200',
-              'from-orange-50/80 to-orange-100/80 border-orange-200',
-              'from-purple-50/80 to-purple-100/80 border-purple-200',
-              'from-pink-50/80 to-pink-100/80 border-pink-200',
-              'from-indigo-50/80 to-indigo-100/80 border-indigo-200',
-              'from-teal-50/80 to-teal-100/80 border-teal-200',
-              'from-cyan-50/80 to-cyan-100/80 border-cyan-200',
-              'from-rose-50/80 to-rose-100/80 border-rose-200',
-              'from-violet-50/80 to-violet-100/80 border-violet-200',
-              'from-amber-50/80 to-amber-100/80 border-amber-200'
-            ];
-            const colorClass = cardColors[index % cardColors.length];
-            
-            return (
-              <Card
-                key={manager.id}
-                className={`group bg-gradient-to-br ${colorClass} backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer min-h-[280px]`}
-                onClick={() => navigate(`/network/fund-manager/${manager.user_id}`)}
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <CardTitle className="text-lg font-semibold truncate text-gray-900 group-hover:text-blue-600">
-                      {manager.fund_name || 'Unknown Fund'}
-                    </CardTitle>
-                    <Badge 
-                      variant="default" 
-                      className={`text-xs ${
-                        manager.role_badge === 'viewer' 
-                          ? 'bg-blue-100/80 text-blue-700 border-blue-200' 
-                          : 'bg-green-100/80 text-green-700 border-green-200'
-                      }`}
-                    >
-                      {manager.role_badge === 'viewer' ? 'Viewer' : 'Member'}
-                    </Badge>
-                  </div>
-                  <CardDescription className="text-sm text-gray-500">
-                    {manager.profiles?.email || 'Email not available'}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-3 text-sm text-gray-600">
-                    <div className="flex items-center gap-2">
-                      <Building2 className="w-4 h-4 text-blue-500" />
-                      <span className="truncate">{manager.primary_investment_region || 'Unknown Region'}</span>
-                    </div>
-                    {manager.website && (
-                      <div className="flex items-center gap-2">
-                        <Globe className="w-4 h-4 text-green-500" />
-                        <a
-                          href={manager.website.startsWith('http') ? manager.website : `https://${manager.website}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline truncate"
-                          onClick={e => e.stopPropagation()}
-                        >
-                          {manager.website}
-                        </a>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4 text-orange-500" />
-                      <span className="truncate">{manager.team_size || 'N/A'} team members</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="w-4 h-4 text-green-500" />
-                      <span className="truncate">{manager.typical_check_size || 'N/A'} ticket size</span>
-                    </div>
-                    {manager.investment_thesis && (
-                      <div className="mt-3 pt-3 border-t border-gray-100">
-                        <div className="flex items-start gap-2">
-                          <Target className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-medium text-gray-700 mb-1">Investment Thesis</p>
-                            <p className="text-xs text-gray-600 line-clamp-3 leading-relaxed break-words">
-                              {manager.investment_thesis}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    {userRole === 'admin' && manager.aum && (
-                      <div className="flex items-center gap-2">
-                        <Target className="w-4 h-4 text-purple-500" />
-                        <span className="truncate">AUM: {manager.aum}</span>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+          {filteredManagers.map((manager) => (
+            <NetworkCard
+              key={manager.id}
+              manager={manager}
+              userRole={userRole}
+              showDetails={userRole === 'admin' || userRole === 'member'}
+            />
+          ))}
         </div>
       </div>
     </div>

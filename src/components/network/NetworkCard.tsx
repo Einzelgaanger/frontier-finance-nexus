@@ -107,95 +107,90 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
       </CardHeader>
       
       <CardContent>
-        {/* Viewer Details - Show for viewers */}
-        {isViewer && (
-          <>
-            {/* Vehicle Name - Already has Building2 icon in header */}
-            
-            {/* Website */}
-            {manager.website && (
-              <div className="flex items-center text-sm text-gray-600">
-                <Globe className={`w-4 h-4 mr-2 ${iconColor}`} />
-                <a 
-                  href={manager.website.startsWith('http') ? manager.website : `https://${manager.website}`}
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline truncate"
-                >
-                  {manager.website}
-                </a>
-              </div>
-            )}
+        {/* All cards show colored icons - Show different details based on user role */}
+        
+        {/* Website */}
+        {manager.website && (
+          <div className="flex items-center text-sm text-gray-600">
+            <Globe className={`w-4 h-4 mr-2 ${iconColor}`} />
+            <a 
+              href={manager.website.startsWith('http') ? manager.website : `https://${manager.website}`}
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline truncate"
+            >
+              {manager.website}
+            </a>
+          </div>
+        )}
 
-            {/* Team Size */}
-            {manager.team_size && (
-              <div className="flex items-center text-sm text-gray-600">
-                <Users className={`w-4 h-4 mr-2 ${iconColor}`} />
-                <span>Team Size: {manager.team_size} members</span>
-              </div>
-            )}
+        {/* Team Size */}
+        {manager.team_size && (
+          <div className="flex items-center text-sm text-gray-600">
+            <Users className={`w-4 h-4 mr-2 ${iconColor}`} />
+            <span>Team Size: {manager.team_size} members</span>
+          </div>
+        )}
 
-            {/* Ticket Size */}
-            {manager.typical_check_size && (
-              <div className="flex items-center text-sm text-gray-600">
-                <DollarSign className={`w-4 h-4 mr-2 ${iconColor}`} />
-                <span>Ticket Size: {manager.typical_check_size}</span>
-              </div>
-            )}
+        {/* Ticket Size */}
+        {manager.typical_check_size && (
+          <div className="flex items-center text-sm text-gray-600">
+            <DollarSign className={`w-4 h-4 mr-2 ${iconColor}`} />
+            <span>Ticket Size: {manager.typical_check_size}</span>
+          </div>
+        )}
 
-            {/* Capital Raised */}
-            {manager.aum && (
-              <div className="flex items-center text-sm text-gray-600">
-                <TrendingUp className={`w-4 h-4 mr-2 ${iconColor}`} />
-                <span>Capital Raised: {manager.aum}</span>
-              </div>
-            )}
+        {/* Capital Raised */}
+        {manager.aum && (
+          <div className="flex items-center text-sm text-gray-600">
+            <TrendingUp className={`w-4 h-4 mr-2 ${iconColor}`} />
+            <span>Capital Raised: {manager.aum}</span>
+          </div>
+        )}
 
-            {/* Investment Thesis */}
-            {manager.investment_thesis && (
-              <div className="text-sm text-gray-600">
-                <div className="font-medium mb-1 flex items-center">
-                  <Target className={`w-4 h-4 mr-2 ${iconColor}`} />
-                  Investment Thesis:
-                </div>
-                <div className="text-xs text-gray-500 line-clamp-2 ml-6">
-                  {manager.investment_thesis}
-                </div>
-              </div>
-            )}
+        {/* Investment Thesis */}
+        {manager.investment_thesis && (
+          <div className="text-sm text-gray-600">
+            <div className="font-medium mb-1 flex items-center">
+              <Target className={`w-4 h-4 mr-2 ${iconColor}`} />
+              Investment Thesis:
+            </div>
+            <div className="text-xs text-gray-500 line-clamp-2 ml-6">
+              {manager.investment_thesis}
+            </div>
+          </div>
+        )}
 
-            {/* Fund Type */}
-            {manager.fund_type && (
-              <div className="flex items-center text-sm text-gray-600">
-                <Briefcase className={`w-4 h-4 mr-2 ${iconColor}`} />
-                <span>Fund Type: {manager.fund_type}</span>
-              </div>
-            )}
+        {/* Fund Type */}
+        {manager.fund_type && (
+          <div className="flex items-center text-sm text-gray-600">
+            <Briefcase className={`w-4 h-4 mr-2 ${iconColor}`} />
+            <span>Fund Type: {manager.fund_type}</span>
+          </div>
+        )}
 
-            {/* Geographic Region */}
-            {manager.primary_investment_region && (
-              <div className="flex items-center text-sm text-gray-600">
-                <MapPin className={`w-4 h-4 mr-2 ${iconColor}`} />
-                <span>Region: {manager.primary_investment_region}</span>
-              </div>
-            )}
+        {/* Geographic Region */}
+        {manager.primary_investment_region && (
+          <div className="flex items-center text-sm text-gray-600">
+            <MapPin className={`w-4 h-4 mr-2 ${iconColor}`} />
+            <span>Region: {manager.primary_investment_region}</span>
+          </div>
+        )}
 
-            {/* Year Founded */}
-            {manager.year_founded && (
-              <div className="flex items-center text-sm text-gray-600">
-                <Calendar className={`w-4 h-4 mr-2 ${iconColor}`} />
-                <span>Founded: {manager.year_founded}</span>
-              </div>
-            )}
+        {/* Year Founded */}
+        {manager.year_founded && (
+          <div className="flex items-center text-sm text-gray-600">
+            <Calendar className={`w-4 h-4 mr-2 ${iconColor}`} />
+            <span>Founded: {manager.year_founded}</span>
+          </div>
+        )}
 
-            {/* Completion Date */}
-            {manager.completed_at && (
-              <div className="text-xs text-gray-500 flex items-center">
-                <FileText className={`w-3 h-3 mr-1 ${iconColor}`} />
-                Approved: {new Date(manager.completed_at).toLocaleDateString()}
-              </div>
-            )}
-          </>
+        {/* Completion Date */}
+        {manager.completed_at && (
+          <div className="text-xs text-gray-500 flex items-center">
+            <FileText className={`w-3 h-3 mr-1 ${iconColor}`} />
+            Approved: {new Date(manager.completed_at).toLocaleDateString()}
+          </div>
         )}
 
         {/* Member Details - Show for members and admins */}
