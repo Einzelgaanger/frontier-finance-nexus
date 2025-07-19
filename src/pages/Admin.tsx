@@ -101,7 +101,7 @@ interface ActivityLogDetails {
   old_role?: string;
   new_role?: string;
   target_user_id?: string;
-  [key: string]: string | number | boolean | null | undefined;
+  [key: string]: string | number | boolean | null | undefined | Record<string, unknown>;
 }
 
 interface ActivityLog {
@@ -1005,44 +1005,110 @@ const Admin = () => {
           </TabsList>
 
           <TabsContent value="applications" className="space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <h2 className="text-xl font-semibold text-gray-900">Membership Applications</h2>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  onClick={() => setShowCreateUserModal(true)}
-                  className="bg-purple-600 hover:bg-purple-700 text-white"
-                >
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  Create User
-                </Button>
-                <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                  Pending: {membershipRequests.filter(r => r.status === 'pending').length}
-                </Badge>
-                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                  Approved: {membershipRequests.filter(r => r.status === 'approved').length}
-                </Badge>
-                <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
-                  Rejected: {membershipRequests.filter(r => r.status === 'rejected').length}
-                </Badge>
+            {/* Professional Header */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+                    <FileText className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-semibold text-gray-900">Membership Applications</h2>
+                    <p className="text-gray-600 text-sm">Review and manage pending membership requests</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Button
+                    onClick={() => setShowCreateUserModal(true)}
+                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                  >
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    Create User
+                  </Button>
+                </div>
+              </div>
+
+              {/* Professional Stats Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <Card className="shadow-sm border-gray-200">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-600 mb-1">Pending Applications</p>
+                        <p className="text-2xl font-bold text-yellow-600">{membershipRequests.filter(r => r.status === 'pending').length}</p>
+                        <p className="text-xs text-gray-500 mt-1">Awaiting review</p>
+                      </div>
+                      <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                        <Clock className="w-6 h-6 text-yellow-600" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="shadow-sm border-gray-200">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-600 mb-1">Approved Members</p>
+                        <p className="text-2xl font-bold text-green-600">{membershipRequests.filter(r => r.status === 'approved').length}</p>
+                        <p className="text-xs text-gray-500 mt-1">Active members</p>
+                      </div>
+                      <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <Users className="w-6 h-6 text-green-600" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="shadow-sm border-gray-200">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-600 mb-1">Rejected Applications</p>
+                        <p className="text-2xl font-bold text-red-600">{membershipRequests.filter(r => r.status === 'rejected').length}</p>
+                        <p className="text-xs text-gray-500 mt-1">Not approved</p>
+                      </div>
+                      <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                        <XCircle className="w-6 h-6 text-red-600" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="shadow-sm border-gray-200">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-600 mb-1">Total Applications</p>
+                        <p className="text-2xl font-bold text-blue-600">{membershipRequests.length}</p>
+                        <p className="text-xs text-gray-500 mt-1">All time</p>
+                      </div>
+                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <FileText className="w-6 h-6 text-blue-600" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Professional Applications Grid */}
+            <div className="space-y-6">
               {applicationsLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                   {[...Array(6)].map((_, i) => (
-                    <Card key={i} className="animate-pulse">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="h-4 bg-gray-200 rounded flex-1"></div>
-                          <div className="h-6 w-16 bg-gray-200 rounded"></div>
+                    <Card key={i} className="animate-pulse shadow-sm border-gray-200">
+                      <CardHeader className="pb-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="h-5 bg-gray-200 rounded flex-1"></div>
+                          <div className="h-7 w-20 bg-gray-200 rounded"></div>
                         </div>
-                        <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                       </CardHeader>
                       <CardContent className="pt-0">
-                        <div className="space-y-2">
-                          {[...Array(3)].map((_, j) => (
-                            <div key={j} className="h-3 bg-gray-200 rounded"></div>
+                        <div className="space-y-3">
+                          {[...Array(4)].map((_, j) => (
+                            <div key={j} className="h-4 bg-gray-200 rounded"></div>
                           ))}
                         </div>
                       </CardContent>
@@ -1050,54 +1116,135 @@ const Admin = () => {
                   ))}
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                   {membershipRequests.map((request) => (
-                    <Card key={request.id} className="hover:shadow-lg transition-all duration-200 cursor-pointer" onClick={() => handleViewApplication(request)}>
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between gap-2">
-                          <CardTitle className="text-sm font-medium truncate flex-1">{request.applicant_name}</CardTitle>
+                    <Card 
+                      key={request.id} 
+                      className="group bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer min-h-[320px]"
+                      onClick={() => handleViewApplication(request)}
+                    >
+                      <CardHeader className="pb-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <CardTitle className="text-lg font-semibold truncate text-gray-900 group-hover:text-blue-600 flex-1">
+                            {request.applicant_name}
+                          </CardTitle>
                           <Badge 
-                            variant={request.status === 'pending' ? 'secondary' : request.status === 'approved' ? 'default' : 'destructive'}
-                            className={`flex-shrink-0 ${
-                              request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                              request.status === 'approved' ? 'bg-green-100 text-green-800' : 
-                              'bg-red-100 text-red-800'
+                            variant="default" 
+                            className={`text-xs font-medium ${
+                              request.status === 'pending' 
+                                ? 'bg-yellow-100 text-yellow-700 border-yellow-200' 
+                                : request.status === 'approved' 
+                                ? 'bg-green-100 text-green-700 border-green-200' 
+                                : 'bg-red-100 text-red-700 border-red-200'
                             }`}
                           >
                             {request.status === 'pending' ? 'Pending' : request.status === 'approved' ? 'Approved' : 'Rejected'}
                           </Badge>
                         </div>
-                        <CardDescription className="text-xs truncate">{request.email}</CardDescription>
+                        <CardDescription className="text-sm text-gray-500">
+                          {request.email}
+                        </CardDescription>
                       </CardHeader>
                       <CardContent className="pt-0">
-                        <div className="space-y-2 text-xs text-gray-600">
-                          <div className="flex items-center gap-2">
-                            <Building2 className="w-3 h-3 flex-shrink-0" />
-                            <span className="truncate">{request.vehicle_name}</span>
+                        <div className="space-y-4 text-sm text-gray-600">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <Building2 className="w-4 h-4 text-blue-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-gray-700 mb-1">Fund Name</p>
+                              <p className="text-gray-600 truncate">{request.vehicle_name}</p>
+                            </div>
                           </div>
+
                           {request.vehicle_website && (
-                            <div className="flex items-center gap-2">
-                              <Globe className="w-3 h-3 flex-shrink-0" />
-                              <a 
-                                href={request.vehicle_website.startsWith('http') ? request.vehicle_website : 'https://' + request.vehicle_website}
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:underline truncate block"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                {request.vehicle_website}
-                              </a>
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <Globe className="w-4 h-4 text-green-600" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-gray-700 mb-1">Website</p>
+                                <a 
+                                  href={request.vehicle_website.startsWith('http') ? request.vehicle_website : 'https://' + request.vehicle_website}
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:underline truncate block"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {request.vehicle_website}
+                                </a>
+                              </div>
                             </div>
                           )}
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-3 h-3 flex-shrink-0" />
-                            <span className="truncate">{request.created_at ? new Date(request.created_at).toLocaleDateString() : 'N/A'}</span>
+
+                          {request.team_size && (
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <Users className="w-4 h-4 text-purple-600" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-gray-700 mb-1">Team Size</p>
+                                <p className="text-gray-600 truncate">{request.team_size}</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {request.ticket_size && (
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <DollarSign className="w-4 h-4 text-orange-600" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-gray-700 mb-1">Ticket Size</p>
+                                <p className="text-gray-600 truncate">{request.ticket_size}</p>
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <Calendar className="w-4 h-4 text-gray-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-gray-700 mb-1">Applied</p>
+                              <p className="text-gray-600 truncate">
+                                {request.created_at ? new Date(request.created_at).toLocaleDateString() : 'N/A'}
+                              </p>
+                            </div>
                           </div>
+
+                          {request.thesis && (
+                            <div className="mt-4 pt-4 border-t border-gray-100">
+                              <div className="flex items-start gap-3">
+                                <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                  <Target className="w-4 h-4 text-indigo-600" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-gray-700 mb-1">Investment Thesis</p>
+                                  <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed break-words">
+                                    {request.thesis}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
                   ))}
                 </div>
+              )}
+
+              {membershipRequests.length === 0 && !applicationsLoading && (
+                <Card className="text-center py-12 bg-white shadow-sm border-gray-200">
+                  <CardContent>
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <FileText className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No applications yet</h3>
+                    <p className="text-gray-500 mb-4">No membership applications have been submitted.</p>
+                  </CardContent>
+                </Card>
               )}
             </div>
           </TabsContent>

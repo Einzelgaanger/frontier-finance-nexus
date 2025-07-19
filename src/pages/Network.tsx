@@ -108,7 +108,7 @@ const Network = () => {
       if (surveysError) throw surveysError;
       if (memberSurveysError) throw memberSurveysError;
 
-      // Get approved membership requests
+      // Get approved membership requests for reference
       const { data: approved, error: approvedError } = await supabase
         .from('membership_requests')
         .select('user_id')
@@ -120,9 +120,9 @@ const Network = () => {
       
       let managersWithProfiles: FundManager[] = [];
       
-      // Process survey_responses (members)
+      // Process survey_responses (members and viewers)
       for (const item of surveys || []) {
-        if (!item || !item.user_id || !approvedIds.has(item.user_id)) continue;
+        if (!item || !item.user_id) continue;
         
         let profile = null;
         try {
@@ -179,7 +179,7 @@ const Network = () => {
           investment_thesis: item.thesis || null,
           sector_focus: sectorFocus,
           stage_focus: stageFocus,
-          role_badge: item.role_badge || 'member',
+          role_badge: item.role_badge || (approvedIds.has(item.user_id) ? 'member' : 'viewer'),
           profiles: profile || null
         };
         managersWithProfiles.push(manager);
@@ -219,16 +219,18 @@ const Network = () => {
           investment_thesis: item.investment_thesis || null,
           sector_focus: item.sector_focus || [],
           stage_focus: item.stage_focus || [],
-          role_badge: item.role_badge || 'viewer',
+          role_badge: item.role_badge || (approvedIds.has(item.user_id) ? 'member' : 'viewer'),
           profiles: profile || null
         };
         managersWithProfiles.push(manager);
       }
       
-      // Remove duplicates based on user_id
-      const uniqueManagers = managersWithProfiles.filter((manager, index, self) => 
-        index === self.findIndex(m => m.user_id === manager.user_id)
-      );
+      // Remove duplicates based on user_id, keeping the most recent one
+      const uniqueManagers = managersWithProfiles
+        .sort((a, b) => new Date(b.completed_at || '').getTime() - new Date(a.completed_at || '').getTime())
+        .filter((manager, index, self) => 
+          index === self.findIndex(m => m.user_id === manager.user_id)
+        );
       
       setFundManagers(uniqueManagers);
       setLastUpdated(new Date());
@@ -331,15 +333,15 @@ const Network = () => {
   // Viewer-specific network page
   if (userRole === 'viewer') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="min-h-screen bg-gray-50">
         <Header />
         
         <div className="max-w-7xl mx-auto px-6 py-8">
-          {/* Professional Header with Colorful Design */}
+          {/* Professional Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+                <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
                   <NetworkIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -369,63 +371,63 @@ const Network = () => {
             </div>
           </div>
 
-          {/* Colorful Network Stats */}
+          {/* Network Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+            <Card className="shadow-sm border-gray-200 bg-white">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-blue-100 mb-1">Approved Members</p>
-                    <p className="text-2xl font-bold text-white">{approvedMembers.length}</p>
-                    <p className="text-xs text-blue-200 mt-1">Active fund managers</p>
+                    <p className="text-sm font-medium text-gray-600 mb-1">Approved Members</p>
+                    <p className="text-2xl font-bold text-gray-900">{approvedMembers.length}</p>
+                    <p className="text-xs text-gray-500 mt-1">Active fund managers</p>
                   </div>
-                  <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                    <Building2 className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Building2 className="w-6 h-6 text-blue-600" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="shadow-lg border-0 bg-gradient-to-br from-green-500 to-green-600 text-white">
+            <Card className="shadow-sm border-gray-200 bg-white">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-green-100 mb-1">Geographic Reach</p>
-                    <p className="text-2xl font-bold text-white">30+</p>
-                    <p className="text-xs text-green-200 mt-1">Countries represented</p>
+                    <p className="text-sm font-medium text-gray-600 mb-1">Geographic Reach</p>
+                    <p className="text-2xl font-bold text-gray-900">30+</p>
+                    <p className="text-xs text-gray-500 mt-1">Countries represented</p>
                   </div>
-                  <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                    <Globe className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <Globe className="w-6 h-6 text-green-600" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="shadow-lg border-0 bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+            <Card className="shadow-sm border-gray-200 bg-white">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-purple-100 mb-1">Investment Focus</p>
-                    <p className="text-2xl font-bold text-white">Frontier</p>
-                    <p className="text-xs text-purple-200 mt-1">Emerging markets</p>
+                    <p className="text-sm font-medium text-gray-600 mb-1">Investment Focus</p>
+                    <p className="text-2xl font-bold text-gray-900">Frontier</p>
+                    <p className="text-xs text-gray-500 mt-1">Emerging markets</p>
                   </div>
-                  <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                    <DollarSign className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <DollarSign className="w-6 h-6 text-purple-600" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="shadow-lg border-0 bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+            <Card className="shadow-sm border-gray-200 bg-white">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-orange-100 mb-1">Network Growth</p>
-                    <p className="text-2xl font-bold text-white">+12%</p>
-                    <p className="text-xs text-orange-200 mt-1">This month</p>
+                    <p className="text-sm font-medium text-gray-600 mb-1">Network Growth</p>
+                    <p className="text-2xl font-bold text-gray-900">+12%</p>
+                    <p className="text-xs text-gray-500 mt-1">This month</p>
                   </div>
-                  <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                    <TrendingUp className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="w-6 h-6 text-orange-600" />
                   </div>
                 </div>
               </CardContent>
@@ -441,7 +443,7 @@ const Network = () => {
           )}
 
           {viewerLoading ? (
-            <Card className="text-center py-12 bg-white shadow-lg border-0">
+            <Card className="text-center py-12 bg-white shadow-sm border-gray-200">
               <CardContent>
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                 <p className="text-gray-600">Loading approved members...</p>
@@ -450,9 +452,9 @@ const Network = () => {
           ) : (
             <>
               {approvedMembers.length === 0 ? (
-                <Card className="text-center py-12 bg-white shadow-lg border-0">
+                <Card className="text-center py-12 bg-white shadow-sm border-gray-200">
                   <CardContent>
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <Building2 className="h-8 w-8 text-blue-600" />
                     </div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">No approved members found</h3>
@@ -472,9 +474,8 @@ const Network = () => {
                   {approvedMembers.map((member: any) => (
                     <Card 
                       key={member.id} 
-                      className="group bg-white border-0 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer min-h-[320px] overflow-hidden"
+                      className="group bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer min-h-[320px]"
                     >
-                      <div className="h-2 bg-gradient-to-r from-blue-500 to-purple-500"></div>
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between gap-2">
                           <CardTitle className="text-lg font-semibold truncate text-gray-900 group-hover:text-blue-600 transition-colors">
@@ -730,22 +731,7 @@ const Network = () => {
           </Card>
         </div>
 
-        {/* Debug Info - Only show for admins */}
-        {userRole === 'admin' && (
-          <Card className="mb-6 bg-yellow-50 border-yellow-200 shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-sm text-yellow-800">Debug Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xs text-yellow-700 space-y-1">
-                <p>Total fund managers: {fundManagers.length}</p>
-                <p>Filtered managers: {filteredManagers.length}</p>
-                <p>User role: {userRole}</p>
-                <p>Loading state: {loading ? 'true' : 'false'}</p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+
 
         {/* Professional Fund Managers Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

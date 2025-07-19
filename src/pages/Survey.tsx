@@ -364,8 +364,14 @@ const Survey = () => {
       return;
     }
 
+    // Show confirmation dialog for final submission
+    if (currentSection === totalSections) {
+      setShowSubmitConfirmation(true);
+      return;
+    }
+
     try {
-    setIsSubmitting(true);
+      setIsSubmitting(true);
       const year = selectedYear || new Date().getFullYear();
       const dbData = prepareForDb(data, user.id, year, true);
 
@@ -374,13 +380,13 @@ const Survey = () => {
         // Update existing response
         result = await supabase
           .from('survey_responses')
-          .update(dbData)
+          .update(dbData as any)
           .eq('id', existingResponse.id);
       } else {
         // Create new response
         result = await supabase
           .from('survey_responses')
-          .insert([dbData]);
+          .insert([dbData as any]);
       }
 
       if (result.error) throw result.error;
@@ -395,11 +401,171 @@ const Survey = () => {
       setShowSubmitConfirmation(true);
     } catch (error) {
       console.error('Error submitting survey:', error);
-        toast({
+      toast({
         title: "Error",
         description: "Failed to submit survey. Please try again.",
-          variant: "destructive"
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleConfirmSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      const formData = form.getValues();
+      const year = selectedYear || new Date().getFullYear();
+      
+      // Check if user is a viewer
+      const { data: userRoleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user!.id)
+        .single();
+
+      const isViewer = userRoleData?.role === 'viewer';
+
+      if (isViewer) {
+        // For viewers, use the special database function
+        const surveyData = {
+          vehicle_name: formData.vehicle_name,
+          vehicle_websites: formData.vehicle_websites || [],
+          vehicle_type: formData.vehicle_type,
+          vehicle_type_other: formData.vehicle_type_other,
+          thesis: formData.thesis,
+          team_members: formData.team_members || [],
+          team_size_min: formData.team_size_min,
+          team_size_max: formData.team_size_max,
+          team_description: formData.team_description,
+          legal_domicile: formData.legal_domicile || [],
+          legal_domicile_other: formData.legal_domicile_other,
+          markets_operated: formData.markets_operated || {},
+          markets_operated_other: formData.markets_operated_other,
+          ticket_size_min: formData.ticket_size_min,
+          ticket_size_max: formData.ticket_size_max,
+          ticket_description: formData.ticket_description,
+          target_capital: formData.target_capital,
+          capital_raised: formData.capital_raised,
+          capital_in_market: formData.capital_in_market,
+          supporting_document_url: formData.supporting_document_url,
+          expectations: formData.expectations,
+          how_heard_about_network: formData.how_heard_about_network,
+          how_heard_about_network_other: formData.how_heard_about_network_other,
+          fund_stage: formData.fund_stage || [],
+          current_status: formData.current_status,
+          current_status_other: formData.current_status_other,
+          legal_entity_date_from: formData.legal_entity_date_from,
+          legal_entity_date_to: formData.legal_entity_date_to,
+          legal_entity_month_from: formData.legal_entity_month_from,
+          legal_entity_month_to: formData.legal_entity_month_to,
+          first_close_date_from: formData.first_close_date_from,
+          first_close_date_to: formData.first_close_date_to,
+          first_close_month_from: formData.first_close_month_from,
+          first_close_month_to: formData.first_close_month_to,
+          investment_instruments_priority: formData.investment_instruments_priority || {},
+          investment_instruments_data: (formData.investment_instruments_data || []).map((item: any) => ({
+            name: item.name ?? '',
+            committed: item.committed ?? 0,
+            committedPercentage: item.committedPercentage ?? 0,
+            deployed: item.deployed ?? 0,
+            deployedValue: item.deployedValue ?? 0,
+            priority: item.priority ?? 0,
+          })),
+          sectors_allocation: formData.sectors_allocation || {},
+          target_return_min: formData.target_return_min,
+          target_return_max: formData.target_return_max,
+          equity_investments_made: formData.equity_investments_made,
+          equity_investments_exited: formData.equity_investments_exited,
+          self_liquidating_made: formData.self_liquidating_made,
+          self_liquidating_exited: formData.self_liquidating_exited,
+        };
+
+        // Call the database function for viewers
+        const { data: result, error } = await supabase.rpc('create_viewer_survey_data' as any, {
+          p_user_id: user!.id,
+          p_survey_data: surveyData,
+          p_survey_year: year
         });
+
+        if (error) throw error;
+      } else {
+        // For members, use the regular submission process
+        const dbData = prepareForDb(formData, user!.id, year, true);
+
+        let result;
+        if (existingResponse?.id) {
+          // Update existing response
+          result = await supabase
+            .from('survey_responses')
+            .update(dbData as any)
+            .eq('id', existingResponse.id);
+        } else {
+          // Create new response
+          result = await supabase
+            .from('survey_responses')
+            .insert([dbData as any]);
+        }
+
+        if (result.error) throw result.error;
+
+        // Also create/update member_surveys entry for members
+        const memberSurveyData = {
+          user_id: user!.id,
+          fund_name: formData.vehicle_name || 'Unknown Fund',
+          website: formData.vehicle_websites?.[0] || null,
+          fund_type: formData.vehicle_type || 'Unknown',
+          primary_investment_region: formData.legal_domicile?.join(', ') || 'Unknown',
+          year_founded: formData.legal_entity_date_from || null,
+          team_size: formData.team_size_max || null,
+          typical_check_size: formData.ticket_size_min && formData.ticket_size_max 
+            ? `$${formData.ticket_size_min.toLocaleString()} - $${formData.ticket_size_max.toLocaleString()}`
+            : null,
+          aum: formData.capital_raised ? `$${formData.capital_raised.toLocaleString()}` : null,
+          investment_thesis: formData.thesis || null,
+          sector_focus: formData.sectors_allocation ? Object.keys(formData.sectors_allocation) : [],
+          stage_focus: formData.fund_stage || [],
+          role_badge: 'member',
+          completed_at: new Date().toISOString()
+        };
+
+        // Check if member survey already exists
+        const { data: existingMemberSurvey } = await supabase
+          .from('member_surveys')
+          .select('id')
+          .eq('user_id', user!.id)
+          .single();
+
+        if (existingMemberSurvey) {
+          // Update existing member survey
+          await supabase
+            .from('member_surveys')
+            .update(memberSurveyData as any)
+            .eq('user_id', user!.id);
+        } else {
+          // Create new member survey
+          await supabase
+            .from('member_surveys')
+            .insert([memberSurveyData as any]);
+        }
+      }
+
+      toast({
+        title: "Success",
+        description: "Survey submitted successfully!",
+      });
+
+      // Reload data to show updated state
+      await loadExistingResponse();
+      setShowSubmitConfirmation(false);
+      setShowNewSurvey(false);
+    } catch (error) {
+      console.error('Error submitting survey:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit survey. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -456,12 +622,12 @@ const Survey = () => {
       if (existingResponse?.id) {
         result = await supabase
           .from('survey_responses')
-          .update(dbData)
+          .update(dbData as any)
           .eq('id', existingResponse.id);
       } else {
         result = await supabase
           .from('survey_responses')
-          .insert([dbData]);
+          .insert([dbData as any]);
       }
 
       if (result.error) throw result.error;
@@ -863,7 +1029,7 @@ const Survey = () => {
 
         {/* Survey Form */}
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form className="space-y-6">
             <Card className="shadow-sm border-gray-200">
               <CardContent className="p-6">
                 {renderCurrentSection()}
@@ -906,7 +1072,8 @@ const Survey = () => {
                   </Button>
                 ) : (
                   <Button
-                    type="submit"
+                    type="button"
+                    onClick={() => setShowSubmitConfirmation(true)}
                     disabled={isSubmitting}
                     className="bg-green-600 hover:bg-green-700 text-white"
                   >
@@ -918,6 +1085,37 @@ const Survey = () => {
             </div>
           </form>
         </Form>
+
+        {/* Submit Confirmation Dialog */}
+        <Dialog open={showSubmitConfirmation} onOpenChange={setShowSubmitConfirmation}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                Confirm Survey Submission
+              </DialogTitle>
+              <DialogDescription>
+                Are you sure you want to submit this survey? This action cannot be undone and will make your information visible to other network members.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end gap-3 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowSubmitConfirmation(false)}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleConfirmSubmit}
+                disabled={isSubmitting}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {isSubmitting ? 'Submitting...' : 'Confirm Submit'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
