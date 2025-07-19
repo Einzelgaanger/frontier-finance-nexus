@@ -908,20 +908,20 @@ const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
-              <p className="text-gray-600">Manage applications, members, and network activities</p>
+              <h1 className="text-3xl font-bold text-slate-800 mb-2">Admin Dashboard</h1>
+              <p className="text-slate-600">Manage applications, members, and network activities</p>
             </div>
             <Button
               onClick={refreshData}
               disabled={loading}
               variant="outline"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 bg-white/70 backdrop-blur-sm border-slate-200 text-slate-700 hover:bg-white/90"
             >
               <Activity className="w-4 h-4" />
               {loading ? 'Refreshing...' : 'Refresh Data'}
@@ -931,65 +931,65 @@ const Admin = () => {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card className="bg-white border-l-4 border-blue-500">
+          <Card className="bg-gradient-to-br from-sky-50 to-sky-100 border border-sky-200 shadow-sm hover:shadow-md transition-all duration-200">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Pending Applications</p>
-                  <p className="text-2xl font-bold text-blue-600">
+                  <p className="text-sm font-medium text-sky-700">Pending Applications</p>
+                  <p className="text-2xl font-bold text-sky-800">
                     {membershipRequests.filter(r => r.status === 'pending').length}
                   </p>
                 </div>
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-blue-600" />
+                <div className="w-10 h-10 bg-sky-200 rounded-full flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-sky-600" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white border-l-4 border-green-500">
+          <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 shadow-sm hover:shadow-md transition-all duration-200">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Approved Members</p>
-                  <p className="text-2xl font-bold text-green-600">
+                  <p className="text-sm font-medium text-emerald-700">Approved Members</p>
+                  <p className="text-2xl font-bold text-emerald-800">
                     {membershipRequests.filter(r => r.status === 'approved').length}
                   </p>
                 </div>
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <Users className="w-5 h-5 text-green-600" />
+                <div className="w-10 h-10 bg-emerald-200 rounded-full flex items-center justify-center">
+                  <Users className="w-5 h-5 text-emerald-600" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white border-l-4 border-yellow-500">
+          <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 shadow-sm hover:shadow-md transition-all duration-200">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Applications</p>
-                  <p className="text-2xl font-bold text-yellow-600">
+                  <p className="text-sm font-medium text-amber-700">Total Applications</p>
+                  <p className="text-2xl font-bold text-amber-800">
                     {membershipRequests.length}
                   </p>
                 </div>
-                <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
-                  <FileText className="w-5 h-5 text-yellow-600" />
+                <div className="w-10 h-10 bg-amber-200 rounded-full flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-amber-600" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white border-l-4 border-purple-500">
+          <Card className="bg-gradient-to-br from-violet-50 to-violet-100 border border-violet-200 shadow-sm hover:shadow-md transition-all duration-200">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Recent Activities</p>
-                  <p className="text-2xl font-bold text-purple-600">
+                  <p className="text-sm font-medium text-violet-700">Recent Activities</p>
+                  <p className="text-2xl font-bold text-violet-800">
                     {activityLogs.length}
                   </p>
                 </div>
-                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                  <Activity className="w-5 h-5 text-purple-600" />
+                <div className="w-10 h-10 bg-violet-200 rounded-full flex items-center justify-center">
+                  <Activity className="w-5 h-5 text-violet-600" />
                 </div>
               </div>
             </CardContent>
@@ -997,11 +997,11 @@ const Admin = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="applications">Applications</TabsTrigger>
-            <TabsTrigger value="members">Members</TabsTrigger>
-            <TabsTrigger value="viewers">Created Users</TabsTrigger>
-            <TabsTrigger value="activity">Activity Logs</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 bg-white/70 backdrop-blur-sm border border-slate-200">
+            <TabsTrigger value="applications" className="data-[state=active]:bg-slate-100 data-[state=active]:text-slate-800">Applications</TabsTrigger>
+            <TabsTrigger value="members" className="data-[state=active]:bg-slate-100 data-[state=active]:text-slate-800">Members</TabsTrigger>
+            <TabsTrigger value="viewers" className="data-[state=active]:bg-slate-100 data-[state=active]:text-slate-800">Created Users</TabsTrigger>
+            <TabsTrigger value="activity" className="data-[state=active]:bg-slate-100 data-[state=active]:text-slate-800">Activity Logs</TabsTrigger>
           </TabsList>
 
           <TabsContent value="applications" className="space-y-6">
@@ -1009,18 +1009,18 @@ const Admin = () => {
             <div className="mb-8">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+                  <div className="w-12 h-12 bg-sky-500 rounded-lg flex items-center justify-center shadow-sm">
                     <FileText className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-semibold text-gray-900">Membership Applications</h2>
-                    <p className="text-gray-600 text-sm">Review and manage pending membership requests</p>
+                    <h2 className="text-2xl font-semibold text-slate-800">Membership Applications</h2>
+                    <p className="text-slate-600 text-sm">Review and manage pending membership requests</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
                   <Button
                     onClick={() => setShowCreateUserModal(true)}
-                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                    className="bg-violet-500 hover:bg-violet-600 text-white shadow-sm"
                   >
                     <UserPlus className="w-4 h-4 mr-2" />
                     Create User
@@ -1030,61 +1030,61 @@ const Admin = () => {
 
               {/* Professional Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <Card className="shadow-sm border-gray-200">
+                <Card className="bg-white/80 backdrop-blur-sm border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-600 mb-1">Pending Applications</p>
-                        <p className="text-2xl font-bold text-yellow-600">{membershipRequests.filter(r => r.status === 'pending').length}</p>
-                        <p className="text-xs text-gray-500 mt-1">Awaiting review</p>
+                        <p className="text-sm font-medium text-slate-600 mb-1">Pending Applications</p>
+                        <p className="text-2xl font-bold text-amber-600">{membershipRequests.filter(r => r.status === 'pending').length}</p>
+                        <p className="text-xs text-slate-500 mt-1">Awaiting review</p>
                       </div>
-                      <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                        <Clock className="w-6 h-6 text-yellow-600" />
+                      <div className="w-12 h-12 bg-amber-50 rounded-lg flex items-center justify-center">
+                        <Clock className="w-6 h-6 text-amber-500" />
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="shadow-sm border-gray-200">
+                <Card className="bg-white/80 backdrop-blur-sm border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-600 mb-1">Approved Members</p>
-                        <p className="text-2xl font-bold text-green-600">{membershipRequests.filter(r => r.status === 'approved').length}</p>
-                        <p className="text-xs text-gray-500 mt-1">Active members</p>
+                        <p className="text-sm font-medium text-slate-600 mb-1">Approved Members</p>
+                        <p className="text-2xl font-bold text-emerald-600">{membershipRequests.filter(r => r.status === 'approved').length}</p>
+                        <p className="text-xs text-slate-500 mt-1">Active members</p>
                       </div>
-                      <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                        <Users className="w-6 h-6 text-green-600" />
+                      <div className="w-12 h-12 bg-emerald-50 rounded-lg flex items-center justify-center">
+                        <Users className="w-6 h-6 text-emerald-500" />
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="shadow-sm border-gray-200">
+                <Card className="bg-white/80 backdrop-blur-sm border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-600 mb-1">Rejected Applications</p>
-                        <p className="text-2xl font-bold text-red-600">{membershipRequests.filter(r => r.status === 'rejected').length}</p>
-                        <p className="text-xs text-gray-500 mt-1">Not approved</p>
+                        <p className="text-sm font-medium text-slate-600 mb-1">Rejected Applications</p>
+                        <p className="text-2xl font-bold text-rose-600">{membershipRequests.filter(r => r.status === 'rejected').length}</p>
+                        <p className="text-xs text-slate-500 mt-1">Not approved</p>
                       </div>
-                      <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                        <XCircle className="w-6 h-6 text-red-600" />
+                      <div className="w-12 h-12 bg-rose-50 rounded-lg flex items-center justify-center">
+                        <XCircle className="w-6 h-6 text-rose-500" />
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="shadow-sm border-gray-200">
+                <Card className="bg-white/80 backdrop-blur-sm border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-600 mb-1">Total Applications</p>
-                        <p className="text-2xl font-bold text-blue-600">{membershipRequests.length}</p>
-                        <p className="text-xs text-gray-500 mt-1">All time</p>
+                        <p className="text-sm font-medium text-slate-600 mb-1">Total Applications</p>
+                        <p className="text-2xl font-bold text-sky-600">{membershipRequests.length}</p>
+                        <p className="text-xs text-slate-500 mt-1">All time</p>
                       </div>
-                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <FileText className="w-6 h-6 text-blue-600" />
+                      <div className="w-12 h-12 bg-sky-50 rounded-lg flex items-center justify-center">
+                        <FileText className="w-6 h-6 text-sky-500" />
                       </div>
                     </div>
                   </CardContent>
@@ -1117,121 +1117,98 @@ const Admin = () => {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {membershipRequests.map((request) => (
-                    <Card 
-                      key={request.id} 
-                      className="group bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer min-h-[320px]"
-                      onClick={() => handleViewApplication(request)}
-                    >
-                      <CardHeader className="pb-4">
-                        <div className="flex items-center justify-between gap-3">
-                          <CardTitle className="text-lg font-semibold truncate text-gray-900 group-hover:text-blue-600 flex-1">
-                            {request.applicant_name}
-                          </CardTitle>
-                          <Badge 
-                            variant="default" 
-                            className={`text-xs font-medium ${
-                              request.status === 'pending' 
-                                ? 'bg-yellow-100 text-yellow-700 border-yellow-200' 
-                                : request.status === 'approved' 
-                                ? 'bg-green-100 text-green-700 border-green-200' 
-                                : 'bg-red-100 text-red-700 border-red-200'
-                            }`}
-                          >
-                            {request.status === 'pending' ? 'Pending' : request.status === 'approved' ? 'Approved' : 'Rejected'}
-                          </Badge>
-                        </div>
-                        <CardDescription className="text-sm text-gray-500">
-                          {request.email}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <div className="space-y-4 text-sm text-gray-600">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                              <Building2 className="w-4 h-4 text-blue-600" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-gray-700 mb-1">Fund Name</p>
-                              <p className="text-gray-600 truncate">{request.vehicle_name}</p>
-                            </div>
+                  {membershipRequests.map((request, index) => {
+                    // Create different bright colors for each application card
+                    const cardColors = [
+                      'from-blue-50/80 to-blue-100/80 border-blue-200',
+                      'from-green-50/80 to-green-100/80 border-green-200',
+                      'from-yellow-50/80 to-yellow-100/80 border-yellow-200',
+                      'from-orange-50/80 to-orange-100/80 border-orange-200',
+                      'from-purple-50/80 to-purple-100/80 border-purple-200',
+                      'from-pink-50/80 to-pink-100/80 border-pink-200',
+                      'from-indigo-50/80 to-indigo-100/80 border-indigo-200',
+                      'from-teal-50/80 to-teal-100/80 border-teal-200',
+                      'from-cyan-50/80 to-cyan-100/80 border-cyan-200',
+                      'from-rose-50/80 to-rose-100/80 border-rose-200',
+                      'from-violet-50/80 to-violet-100/80 border-violet-200',
+                      'from-amber-50/80 to-amber-100/80 border-amber-200'
+                    ];
+                    const colorClass = cardColors[index % cardColors.length];
+                    
+                    return (
+                      <Card 
+                        key={request.id} 
+                        className={`group bg-gradient-to-br ${colorClass} backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer min-h-[320px]`}
+                        onClick={() => handleViewApplication(request)}
+                      >
+                        <CardHeader className="pb-4">
+                          <div className="flex items-center justify-between gap-3">
+                            <CardTitle className="text-lg font-semibold truncate text-gray-900 group-hover:text-blue-600 flex-1">
+                              {request.applicant_name}
+                            </CardTitle>
+                            <Badge 
+                              variant="default" 
+                              className={`text-xs font-medium ${
+                                request.status === 'pending' 
+                                  ? 'bg-yellow-100/80 text-yellow-700 border-yellow-200' 
+                                  : request.status === 'approved' 
+                                  ? 'bg-green-100/80 text-green-700 border-green-200' 
+                                  : 'bg-red-100/80 text-red-700 border-red-200'
+                              }`}
+                            >
+                              {request.status === 'pending' ? 'Pending' : request.status === 'approved' ? 'Approved' : 'Rejected'}
+                            </Badge>
                           </div>
-
-                          {request.vehicle_website && (
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <Globe className="w-4 h-4 text-green-600" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-gray-700 mb-1">Website</p>
+                          <CardDescription className="text-sm text-gray-500">
+                            {request.email}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="pt-0">
+                          <div className="space-y-3 text-sm text-gray-600">
+                            <div className="flex items-center gap-2">
+                              <Building2 className="w-4 h-4 text-blue-500" />
+                              <span className="truncate">{request.vehicle_name || 'Unknown Fund'}</span>
+                            </div>
+                            {request.vehicle_website && (
+                              <div className="flex items-center gap-2">
+                                <Globe className="w-4 h-4 text-green-500" />
                                 <a 
                                   href={request.vehicle_website.startsWith('http') ? request.vehicle_website : 'https://' + request.vehicle_website}
                                   target="_blank" 
                                   rel="noopener noreferrer"
                                   className="text-blue-600 hover:underline truncate block"
-                                  onClick={(e) => e.stopPropagation()}
+                                  onClick={e => e.stopPropagation()}
                                 >
                                   {request.vehicle_website}
                                 </a>
                               </div>
+                            )}
+                            <div className="flex items-center gap-2">
+                              <Users className="w-4 h-4 text-orange-500" />
+                              <span className="truncate">{request.team_size || 'N/A'} team members</span>
                             </div>
-                          )}
-
-                          {request.team_size && (
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <Users className="w-4 h-4 text-purple-600" />
+                            <div className="flex items-center gap-2">
+                              <DollarSign className="w-4 h-4 text-green-500" />
+                              <span className="truncate">{request.ticket_size || 'N/A'} ticket size</span>
+                            </div>
+                            {request.thesis && (
+                              <div className="mt-3 pt-3 border-t border-gray-100">
+                                <div className="flex items-start gap-2">
+                                  <Target className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-medium text-gray-700 mb-1">Investment Thesis</p>
+                                    <p className="text-xs text-gray-600 line-clamp-3 leading-relaxed break-words">
+                                      {request.thesis}
+                                    </p>
+                                  </div>
+                                </div>
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-gray-700 mb-1">Team Size</p>
-                                <p className="text-gray-600 truncate">{request.team_size}</p>
-                              </div>
-                            </div>
-                          )}
-
-                          {request.ticket_size && (
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <DollarSign className="w-4 h-4 text-orange-600" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-gray-700 mb-1">Ticket Size</p>
-                                <p className="text-gray-600 truncate">{request.ticket_size}</p>
-                              </div>
-                            </div>
-                          )}
-
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                              <Calendar className="w-4 h-4 text-gray-600" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-gray-700 mb-1">Applied</p>
-                              <p className="text-gray-600 truncate">
-                                {request.created_at ? new Date(request.created_at).toLocaleDateString() : 'N/A'}
-                              </p>
-                            </div>
+                            )}
                           </div>
-
-                          {request.thesis && (
-                            <div className="mt-4 pt-4 border-t border-gray-100">
-                              <div className="flex items-start gap-3">
-                                <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                  <Target className="w-4 h-4 text-indigo-600" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-medium text-gray-700 mb-1">Investment Thesis</p>
-                                  <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed break-words">
-                                    {request.thesis}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               )}
 
@@ -1280,46 +1257,65 @@ const Admin = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {membershipRequests.filter(r => r.status === 'approved').map((request) => (
-                  <Card key={request.id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-green-500">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <CardTitle className="text-sm font-medium truncate flex-1">{request.applicant_name}</CardTitle>
-                        <Badge variant="default" className="bg-green-100 text-green-800 flex-shrink-0">Member</Badge>
-                      </div>
-                      <CardDescription className="text-xs truncate">{request.email}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="space-y-2 text-xs text-gray-600">
-                        <div className="flex items-center gap-2">
-                          <Building2 className="w-3 h-3 flex-shrink-0" />
-                          <span className="truncate">{request.vehicle_name}</span>
+                {membershipRequests.filter(r => r.status === 'approved').map((request, index) => {
+                  // Create different bright colors for each member card
+                  const cardColors = [
+                    'from-green-50/80 to-green-100/80 border-green-200',
+                    'from-emerald-50/80 to-emerald-100/80 border-emerald-200',
+                    'from-teal-50/80 to-teal-100/80 border-teal-200',
+                    'from-cyan-50/80 to-cyan-100/80 border-cyan-200',
+                    'from-blue-50/80 to-blue-100/80 border-blue-200',
+                    'from-indigo-50/80 to-indigo-100/80 border-indigo-200',
+                    'from-purple-50/80 to-purple-100/80 border-purple-200',
+                    'from-violet-50/80 to-violet-100/80 border-violet-200',
+                    'from-fuchsia-50/80 to-fuchsia-100/80 border-fuchsia-200',
+                    'from-pink-50/80 to-pink-100/80 border-pink-200',
+                    'from-rose-50/80 to-rose-100/80 border-rose-200',
+                    'from-orange-50/80 to-orange-100/80 border-orange-200'
+                  ];
+                  const colorClass = cardColors[index % cardColors.length];
+                  
+                  return (
+                    <Card key={request.id} className={`hover:shadow-lg transition-all duration-200 bg-gradient-to-br ${colorClass} backdrop-blur-sm`}>
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <CardTitle className="text-sm font-medium truncate flex-1">{request.applicant_name}</CardTitle>
+                          <Badge variant="default" className="bg-green-100/80 text-green-800 flex-shrink-0">Member</Badge>
                         </div>
-                        {request.vehicle_website && (
+                        <CardDescription className="text-xs truncate">{request.email}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="space-y-2 text-xs text-gray-600">
                           <div className="flex items-center gap-2">
-                            <Globe className="w-3 h-3 flex-shrink-0" />
-                            <a 
-                              href={request.vehicle_website.startsWith('http') ? request.vehicle_website : 'https://' + request.vehicle_website}
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:underline truncate block"
-                            >
-                              {request.vehicle_website}
-                            </a>
+                            <Building2 className="w-3 h-3 flex-shrink-0" />
+                            <span className="truncate">{request.vehicle_name}</span>
                           </div>
-                        )}
-                        <div className="flex items-center gap-2">
-                          <Users className="w-3 h-3 flex-shrink-0" />
-                          <span className="truncate">{request.team_size || 'N/A'}</span>
+                          {request.vehicle_website && (
+                            <div className="flex items-center gap-2">
+                              <Globe className="w-3 h-3 flex-shrink-0" />
+                              <a 
+                                href={request.vehicle_website.startsWith('http') ? request.vehicle_website : 'https://' + request.vehicle_website}
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline truncate block"
+                              >
+                                {request.vehicle_website}
+                              </a>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2">
+                            <Users className="w-3 h-3 flex-shrink-0" />
+                            <span className="truncate">{request.team_size || 'N/A'}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <DollarSign className="w-3 h-3 flex-shrink-0" />
+                            <span className="truncate">{request.ticket_size || 'N/A'}</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <DollarSign className="w-3 h-3 flex-shrink-0" />
-                          <span className="truncate">{request.ticket_size || 'N/A'}</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </TabsContent>
@@ -1355,25 +1351,44 @@ const Admin = () => {
                   ))}
                 </div>
               ) : (
-                createdViewers.map((viewer) => (
-                  <Card key={viewer.user_id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-purple-500">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <CardTitle className="text-sm font-medium truncate flex-1">{viewer.profiles?.full_name || 'No Name'}</CardTitle>
-                        <Badge variant="default" className="bg-purple-100 text-purple-800 flex-shrink-0">User</Badge>
-                      </div>
-                      <CardDescription className="text-xs truncate">{viewer.profiles?.email || 'No Email'}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="space-y-2 text-xs text-gray-600">
-                        <div className="flex items-center gap-2">
-                          <User className="w-3 h-3 flex-shrink-0" />
-                          <span className="truncate">User ID: {viewer.user_id}</span>
+                createdViewers.map((viewer, index) => {
+                  // Create different bright colors for each viewer card
+                  const cardColors = [
+                    'from-purple-50/80 to-purple-100/80 border-purple-200',
+                    'from-violet-50/80 to-violet-100/80 border-violet-200',
+                    'from-fuchsia-50/80 to-fuchsia-100/80 border-fuchsia-200',
+                    'from-pink-50/80 to-pink-100/80 border-pink-200',
+                    'from-rose-50/80 to-rose-100/80 border-rose-200',
+                    'from-indigo-50/80 to-indigo-100/80 border-indigo-200',
+                    'from-blue-50/80 to-blue-100/80 border-blue-200',
+                    'from-cyan-50/80 to-cyan-100/80 border-cyan-200',
+                    'from-teal-50/80 to-teal-100/80 border-teal-200',
+                    'from-emerald-50/80 to-emerald-100/80 border-emerald-200',
+                    'from-green-50/80 to-green-100/80 border-green-200',
+                    'from-yellow-50/80 to-yellow-100/80 border-yellow-200'
+                  ];
+                  const colorClass = cardColors[index % cardColors.length];
+                  
+                  return (
+                    <Card key={viewer.user_id} className={`hover:shadow-lg transition-all duration-200 bg-gradient-to-br ${colorClass} backdrop-blur-sm`}>
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <CardTitle className="text-sm font-medium truncate flex-1">{viewer.profiles?.full_name || 'No Name'}</CardTitle>
+                          <Badge variant="default" className="bg-purple-100/80 text-purple-800 flex-shrink-0">User</Badge>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
+                        <CardDescription className="text-xs truncate">{viewer.profiles?.email || 'No Email'}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="space-y-2 text-xs text-gray-600">
+                          <div className="flex items-center gap-2">
+                            <User className="w-3 h-3 flex-shrink-0" />
+                            <span className="truncate">User ID: {viewer.user_id}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })
               )}
             </div>
           </TabsContent>

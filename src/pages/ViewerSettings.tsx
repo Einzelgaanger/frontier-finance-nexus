@@ -125,21 +125,21 @@ const ViewerSettings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-rose-50 to-pink-50">
       <Header />
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Settings</h1>
-          <p className="text-gray-600">Manage your account settings and preferences</p>
+          <h1 className="text-3xl font-bold text-slate-800 mb-2">Settings</h1>
+          <p className="text-slate-600">Manage your account settings and preferences</p>
         </div>
 
-        <Card>
+        <Card className="bg-gradient-to-br from-rose-50 to-pink-100 border border-rose-200 shadow-sm">
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <Lock className="w-5 h-5 mr-2" />
+            <CardTitle className="flex items-center text-rose-800">
+              <Lock className="w-5 h-5 mr-2 text-rose-600" />
               Change Password
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-rose-700">
               Update your password to keep your account secure. Your new password must be at least 8 characters long and include uppercase, lowercase, number, and special character.
             </CardDescription>
           </CardHeader>
@@ -151,20 +151,20 @@ const ViewerSettings = () => {
                   name="currentPassword"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Current Password</FormLabel>
+                      <FormLabel className="text-rose-700">Current Password</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
                             {...field}
                             type={showCurrentPassword ? "text" : "password"}
                             placeholder="Enter your current password"
-                            className="pr-10"
+                            className="pr-10 bg-white/70 backdrop-blur-sm border-rose-200 focus:border-rose-400"
                           />
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-rose-500"
                             onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                           >
                             {showCurrentPassword ? (
@@ -185,20 +185,20 @@ const ViewerSettings = () => {
                   name="newPassword"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>New Password</FormLabel>
+                      <FormLabel className="text-rose-700">New Password</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
                             {...field}
                             type={showNewPassword ? "text" : "password"}
                             placeholder="Enter your new password"
-                            className="pr-10"
+                            className="pr-10 bg-white/70 backdrop-blur-sm border-rose-200 focus:border-rose-400"
                           />
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-rose-500"
                             onClick={() => setShowNewPassword(!showNewPassword)}
                           >
                             {showNewPassword ? (
@@ -219,20 +219,20 @@ const ViewerSettings = () => {
                   name="confirmPassword"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Confirm New Password</FormLabel>
+                      <FormLabel className="text-rose-700">Confirm New Password</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
                             {...field}
                             type={showConfirmPassword ? "text" : "password"}
                             placeholder="Confirm your new password"
-                            className="pr-10"
+                            className="pr-10 bg-white/70 backdrop-blur-sm border-rose-200 focus:border-rose-400"
                           />
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-rose-500"
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                           >
                             {showConfirmPassword ? (
@@ -248,25 +248,23 @@ const ViewerSettings = () => {
                   )}
                 />
 
-                <div className="flex justify-end">
-                  <Button
-                    type="submit"
-                    disabled={isUpdating}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    {isUpdating ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Updating...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        Update Password
-                      </>
-                    )}
-                  </Button>
-                </div>
+                <Button 
+                  type="submit" 
+                  disabled={isUpdating}
+                  className="w-full bg-rose-500 hover:bg-rose-600 text-white shadow-sm"
+                >
+                  {isUpdating ? (
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Updating...
+                    </div>
+                  ) : (
+                    <div className="flex items-center">
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Update Password
+                    </div>
+                  )}
+                </Button>
               </form>
             </Form>
           </CardContent>

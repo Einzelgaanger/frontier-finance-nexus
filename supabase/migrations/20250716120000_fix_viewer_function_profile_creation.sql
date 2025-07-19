@@ -1,6 +1,4 @@
--- Completely rewrite the create_viewer_survey_data function to avoid ambiguous references
-DROP FUNCTION IF EXISTS create_viewer_survey_data(UUID, JSONB, INTEGER);
-
+-- Fix viewer function to include profile creation
 CREATE OR REPLACE FUNCTION create_viewer_survey_data(
   p_user_id UUID,
   p_survey_data JSONB,
@@ -92,17 +90,17 @@ BEGIN
     NOW(),
     NOW(),
     p_survey_data->>'vehicle_name',
-    (p_survey_data->'vehicle_websites')::TEXT[],
+    p_survey_data->>'vehicle_websites',
     p_survey_data->>'vehicle_type',
     p_survey_data->>'vehicle_type_other',
     p_survey_data->>'thesis',
-    p_survey_data->'team_members',
+    p_survey_data->>'team_members',
     (p_survey_data->>'team_size_min')::INTEGER,
     (p_survey_data->>'team_size_max')::INTEGER,
     p_survey_data->>'team_description',
-    (p_survey_data->'legal_domicile')::TEXT[],
+    p_survey_data->>'legal_domicile',
     p_survey_data->>'legal_domicile_other',
-    p_survey_data->'markets_operated',
+    p_survey_data->>'markets_operated',
     p_survey_data->>'markets_operated_other',
     (p_survey_data->>'ticket_size_min')::NUMERIC,
     (p_survey_data->>'ticket_size_max')::NUMERIC,
@@ -114,7 +112,7 @@ BEGIN
     p_survey_data->>'expectations',
     p_survey_data->>'how_heard_about_network',
     p_survey_data->>'how_heard_about_network_other',
-    (p_survey_data->'fund_stage')::TEXT[],
+    p_survey_data->>'fund_stage',
     p_survey_data->>'current_status',
     p_survey_data->>'current_status_other',
     (p_survey_data->>'legal_entity_date_from')::INTEGER,
@@ -125,9 +123,9 @@ BEGIN
     (p_survey_data->>'first_close_date_to')::INTEGER,
     (p_survey_data->>'first_close_month_from')::INTEGER,
     (p_survey_data->>'first_close_month_to')::INTEGER,
-    p_survey_data->'investment_instruments_priority',
-    p_survey_data->'investment_instruments_data',
-    p_survey_data->'sectors_allocation',
+    p_survey_data->>'investment_instruments_priority',
+    p_survey_data->>'investment_instruments_data',
+    p_survey_data->>'sectors_allocation',
     (p_survey_data->>'target_return_min')::NUMERIC,
     (p_survey_data->>'target_return_max')::NUMERIC,
     (p_survey_data->>'equity_investments_made')::INTEGER,
@@ -136,7 +134,7 @@ BEGIN
     (p_survey_data->>'self_liquidating_exited')::INTEGER
   ) RETURNING id INTO v_survey_id;
 
-  -- Create member_surveys entry with updated structure
+  -- Create member_surveys entry
   INSERT INTO public.member_surveys (
     user_id,
     fund_name,
@@ -157,42 +155,25 @@ BEGIN
   ) VALUES (
     p_user_id,
     COALESCE(p_survey_data->>'vehicle_name', 'Unknown Fund'),
-    (p_survey_data->'vehicle_websites')::TEXT[],
+    p_survey_data->>'vehicle_websites',
     p_survey_data->>'vehicle_type',
     p_survey_data->>'primary_investment_region',
     (p_survey_data->>'year_founded')::INTEGER,
     (p_survey_data->>'team_size')::INTEGER,
     p_survey_data->>'typical_check_size',
     p_survey_data->>'aum',
-    p_survey_data->>'thesis',
-    p_survey_data->'sectors_allocation',
-    (p_survey_data->'fund_stage')::TEXT[],
+    p_survey_data->>'investment_thesis',
+    p_survey_data->>'sector_focus',
+    p_survey_data->>'stage_focus',
     'viewer',
     NOW(),
     NOW(),
     NOW()
   );
 
-  -- Log the activity (only if current_user_id is not null)
-  IF v_current_user_id IS NOT NULL THEN
-    INSERT INTO public.activity_logs (
-      user_id,
-      action,
-      details
-    ) VALUES (
-      v_current_user_id,
-      'viewer_survey_created',
-      jsonb_build_object(
-        'survey_year', p_survey_year,
-        'target_user_id', p_user_id,
-        'vehicle_name', p_survey_data->>'vehicle_name'
-      )
-    );
-  END IF;
-
   RETURN v_survey_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Grant execute permission to authenticated users (for admin use)
-GRANT EXECUTE ON FUNCTION create_viewer_survey_data TO authenticated;
+-- Grant execute permission to authenticated users
+GRANT EXECUTE ON FUNCTION create_viewer_survey_data TO authenticated; 

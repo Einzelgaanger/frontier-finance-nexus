@@ -17,6 +17,20 @@ BEGIN
   VALUES (p_user_id, 'viewer')
   ON CONFLICT (user_id, role) DO NOTHING;
 
+  -- Ensure profile exists with correct email
+  INSERT INTO public.profiles (id, email, first_name, last_name)
+  VALUES (
+    p_user_id,
+    COALESCE(p_survey_data->>'email', 'viewer@example.com'),
+    COALESCE(p_survey_data->>'vehicle_name', 'Viewer'),
+    'User'
+  )
+  ON CONFLICT (id) DO UPDATE SET
+    email = EXCLUDED.email,
+    first_name = EXCLUDED.first_name,
+    last_name = EXCLUDED.last_name,
+    updated_at = NOW();
+
   -- Create survey response with updated structure
   INSERT INTO public.survey_responses (
     user_id,

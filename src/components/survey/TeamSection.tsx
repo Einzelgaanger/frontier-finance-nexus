@@ -157,10 +157,10 @@ export function TeamSection({ form }: TeamSectionProps) {
             <div>
               <CardTitle className="flex items-center text-orange-900">
                 <User className="w-5 h-5 mr-2" />
-                Key Team Members
+                GP Partners
               </CardTitle>
               <CardDescription className="text-orange-700">
-                Add details for key team members and leadership
+                Add details for key GP partners and leadership
               </CardDescription>
             </div>
             <Button 
@@ -170,7 +170,7 @@ export function TeamSection({ form }: TeamSectionProps) {
               className="border-orange-300 text-orange-700 hover:bg-orange-50 hover:border-orange-400"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Add Member
+              Add Partner
             </Button>
           </div>
         </CardHeader>
@@ -178,7 +178,7 @@ export function TeamSection({ form }: TeamSectionProps) {
           {teamMembers.map((member, index) => (
             <Card key={index} className="border-orange-100 bg-white">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm text-orange-800">Team Member {index + 1}</CardTitle>
+                <CardTitle className="text-sm text-orange-800">GP Partner {index + 1}</CardTitle>
                 <Button
                   type="button"
                   variant="outline"

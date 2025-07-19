@@ -41,7 +41,15 @@ import {
   RefreshCw,
   Eye,
   BarChart3,
-  Network
+  Network,
+  Leaf,
+  Monitor,
+  Factory,
+  Truck,
+  Store,
+  GraduationCap,
+  Wifi,
+  ShoppingBag
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -99,6 +107,7 @@ interface SurveyResponse {
   
   // Section 7: Investment Instruments
   investment_instruments_priority?: Record<string, number>; // JSONB object
+  investment_instruments_data?: { name: string; committed: number; deployed: number; deployedValue: number; priority: number }[]; // New field for detailed data
   
   // Section 8: Sector Focus & Returns
   sectors_allocation?: Record<string, number>; // JSONB object
@@ -154,7 +163,7 @@ const sectionConfig = [
     bgColor: 'bg-green-50',
     borderColor: 'border-green-200',
     fields: [
-      { key: 'team_members', label: 'Team Members', type: 'team', icon: Users },
+      { key: 'team_members', label: 'GP Partners', type: 'team', icon: Users },
       { key: 'team_size_min', label: 'Team Size (Min)', type: 'number', icon: User },
       { key: 'team_size_max', label: 'Team Size (Max)', type: 'number', icon: Users },
       { key: 'team_description', label: 'Team Description', type: 'text', icon: MessageSquare },
@@ -371,6 +380,7 @@ const FundManagerDetail = () => {
         
         // Section 7: Investment Instruments
         investment_instruments_priority: survey.investment_instruments_priority,
+        investment_instruments_data: survey.investment_instruments_data,
         
         // Section 8: Sector Focus & Returns
         sectors_allocation: survey.sectors_allocation,
@@ -430,11 +440,20 @@ const FundManagerDetail = () => {
     return year.toString();
   };
 
-  const formatSurveyDate = (dateValue: any) => {
-    if (!dateValue) return 'Not provided';
+  const formatSurveyDate = (dateValue: any, monthValue?: any) => {
+    if (!dateValue) return null;
     
     // Handle different date formats from survey
     if (typeof dateValue === 'number') {
+      // If we have both year and month values
+      if (monthValue && typeof monthValue === 'number' && monthValue > 0 && monthValue <= 12) {
+        const date = new Date(dateValue, monthValue - 1);
+        return date.toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long' 
+        });
+      }
+      
       // If it's a number like 202401 (year + month)
       const year = Math.floor(dateValue / 100);
       const month = dateValue % 100;
@@ -444,7 +463,11 @@ const FundManagerDetail = () => {
           month: 'long' 
         });
       }
-      return year.toString();
+      
+      // If it's just a year
+      if (dateValue >= 1900 && dateValue <= 2100) {
+        return dateValue.toString();
+      }
     }
     
     if (typeof dateValue === 'string') {
@@ -458,12 +481,74 @@ const FundManagerDetail = () => {
       }
     }
     
-    return 'Not provided';
+    return null;
   };
 
-  const formatFieldValue = (value: any, fieldKey: string, fieldType?: string, isLink?: boolean): React.ReactNode => {
+  // Helper function to get sector icons
+  const getSectorIcon = (sector: string) => {
+    const sectorLower = sector.toLowerCase();
+    
+    if (sectorLower.includes('agri') || sectorLower.includes('food') || sectorLower.includes('agriculture')) {
+      return <Leaf className="w-4 h-4 text-green-600" />;
+    }
+    if (sectorLower.includes('software') || sectorLower.includes('saas') || sectorLower.includes('tech')) {
+      return <Monitor className="w-4 h-4 text-blue-600" />;
+    }
+    if (sectorLower.includes('energy') || sectorLower.includes('renewable') || sectorLower.includes('clean')) {
+      return <Zap className="w-4 h-4 text-yellow-600" />;
+    }
+    if (sectorLower.includes('manufacturing') || sectorLower.includes('industrial')) {
+      return <Factory className="w-4 h-4 text-gray-600" />;
+    }
+    if (sectorLower.includes('health') || sectorLower.includes('medical')) {
+      return <Heart className="w-4 h-4 text-red-600" />;
+    }
+    if (sectorLower.includes('education') || sectorLower.includes('learning')) {
+      return <GraduationCap className="w-4 h-4 text-purple-600" />;
+    }
+    if (sectorLower.includes('telecom') || sectorLower.includes('data') || sectorLower.includes('infrastructure')) {
+      return <Wifi className="w-4 h-4 text-cyan-600" />;
+    }
+    if (sectorLower.includes('fmcg') || sectorLower.includes('consumer')) {
+      return <ShoppingBag className="w-4 h-4 text-orange-600" />;
+    }
+    if (sectorLower.includes('logistics') || sectorLower.includes('transport') || sectorLower.includes('distribution')) {
+      return <Truck className="w-4 h-4 text-indigo-600" />;
+    }
+    if (sectorLower.includes('retail') || sectorLower.includes('merchandising')) {
+      return <Store className="w-4 h-4 text-pink-600" />;
+    }
+    
+    // Default icon
+    return <Building2 className="w-4 h-4 text-gray-600" />;
+  };
+
+  const formatFieldValue = (value: any, fieldKey: string, fieldType?: string, isLink?: boolean, survey?: SurveyResponse): React.ReactNode => {
+    // Special handling for date fields that need to combine year and month
+    if (fieldType === 'date' && typeof value === 'number' && survey) {
+      let monthValue = null;
+      
+      // Get corresponding month field
+      if (fieldKey === 'legal_entity_date_from') {
+        monthValue = survey.legal_entity_month_from;
+      } else if (fieldKey === 'legal_entity_date_to') {
+        monthValue = survey.legal_entity_month_to;
+      } else if (fieldKey === 'first_close_date_from') {
+        monthValue = survey.first_close_month_from;
+      } else if (fieldKey === 'first_close_date_to') {
+        monthValue = survey.first_close_month_to;
+      }
+      
+      const formattedDate = formatSurveyDate(value, monthValue);
+      if (formattedDate) {
+        return <span className="text-gray-900">{formattedDate}</span>;
+      }
+    }
+    
+    // Handle empty values - only show "Not provided" for required fields or when explicitly needed
     if (value === null || value === undefined || value === '' || (Array.isArray(value) && value.length === 0)) {
-      return <span className="text-gray-400 italic">Not provided</span>;
+      // Don't show "Not provided" for optional fields that are intentionally empty
+      return null;
     }
     
     if (fieldType === 'array' && Array.isArray(value)) {
@@ -483,26 +568,47 @@ const FundManagerDetail = () => {
       return (
         <div className="space-y-3">
           <div className="text-sm text-gray-600 mb-3">
-            Team members and their details
+            GP Partners and their contact details
           </div>
           <div className="space-y-3">
             {value.map((member: any, i) => (
               <div key={i} className="p-4 bg-gray-50 rounded-lg border">
-                <div className="flex items-center space-x-3 mb-2">
+                <div className="flex items-center space-x-3 mb-3">
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                     <span className="text-sm font-bold text-blue-600">{i + 1}</span>
                   </div>
                   <div className="flex-1">
                     <div className="font-medium text-gray-900">
-                      {member.name || `Team Member ${i + 1}`}
+                      {member.name || `GP Partner ${i + 1}`}
                     </div>
                     {member.role && (
                       <div className="text-sm text-gray-600">{member.role}</div>
                     )}
                   </div>
                 </div>
+                
+                {/* Contact Information */}
+                <div className="space-y-2 ml-11">
+                  {member.email && (
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Mail className="w-4 h-4 mr-2 text-gray-500" />
+                      <a href={`mailto:${member.email}`} className="text-blue-600 hover:text-blue-800 underline">
+                        {member.email}
+                      </a>
+                    </div>
+                  )}
+                  {member.phone && (
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Phone className="w-4 h-4 mr-2 text-gray-500" />
+                      <a href={`tel:${member.phone}`} className="text-blue-600 hover:text-blue-800 underline">
+                        {member.phone}
+                      </a>
+                    </div>
+                  )}
+                </div>
+                
                 {member.bio && (
-                  <div className="text-sm text-gray-600 mt-2">
+                  <div className="text-sm text-gray-600 mt-3 ml-11">
                     {member.bio}
                   </div>
                 )}
@@ -515,18 +621,262 @@ const FundManagerDetail = () => {
     
     if (fieldType === 'markets' && typeof value === 'object') {
       return (
-        <div className="space-y-2">
-          {Object.entries(value).map(([market, percentage]) => (
-            <div key={market} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-              <span className="text-sm font-medium text-gray-700">{market}</span>
-              <span className="text-sm text-gray-600">{percentage}%</span>
-            </div>
-          ))}
+        <div className="space-y-3">
+          {Object.entries(value).map(([market, percentage], index) => {
+            // Ensure percentage is a number
+            const percentageValue = typeof percentage === 'number' ? percentage : Number(percentage) || 0;
+            
+            // Create different gradient colors for each market
+            const gradients = [
+              'from-blue-500 to-cyan-500',
+              'from-purple-500 to-pink-500',
+              'from-green-500 to-emerald-500',
+              'from-orange-500 to-red-500',
+              'from-indigo-500 to-purple-500',
+              'from-teal-500 to-blue-500',
+              'from-pink-500 to-rose-500',
+              'from-yellow-500 to-orange-500',
+              'from-violet-500 to-purple-500',
+              'from-cyan-500 to-blue-500',
+              'from-emerald-500 to-green-500',
+              'from-rose-500 to-pink-500'
+            ];
+            const gradientClass = gradients[index % gradients.length];
+            
+            return (
+              <div key={market} className="relative w-full h-12 bg-gray-100 rounded-lg overflow-hidden shadow-sm">
+                {/* Background gradient that fills based on percentage */}
+                <div 
+                  className={`absolute inset-0 bg-gradient-to-r ${gradientClass} transition-all duration-500 ease-out`}
+                  style={{ width: `${percentageValue}%` }}
+                />
+                
+                {/* Content overlay */}
+                <div className="relative z-10 flex items-center justify-between h-full px-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                      <Globe className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="text-sm font-semibold text-white drop-shadow-sm">
+                      {market}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-bold text-white drop-shadow-sm">
+                      {percentageValue}%
+                    </span>
+                    <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                      <span className="text-xs font-bold text-white">
+                        {Math.round(percentageValue)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Subtle border for definition */}
+                <div className="absolute inset-0 border border-white/20 rounded-lg pointer-events-none" />
+              </div>
+            );
+          })}
         </div>
       );
     }
     
     if (fieldType === 'instruments' && typeof value === 'object') {
+      // Check if we have detailed investment instruments data
+      const instrumentsData = survey?.investment_instruments_data;
+      
+      if (instrumentsData && Array.isArray(instrumentsData) && instrumentsData.length > 0) {
+        // Sort by committed value (highest first)
+        const sortedInstruments = [...instrumentsData].sort((a, b) => b.committed - a.committed);
+        
+        return (
+          <div className="space-y-4">
+            {/* Summary Statistics */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-4 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm opacity-90">Total Committed</p>
+                    <p className="text-2xl font-bold">
+                      ${sortedInstruments.reduce((sum, inst) => sum + (inst.committed || 0), 0).toLocaleString()}
+                    </p>
+                  </div>
+                  <DollarSign className="w-8 h-8 opacity-80" />
+                </div>
+              </div>
+              
+              <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-4 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm opacity-90">Total Deployed</p>
+                    <p className="text-2xl font-bold">
+                      ${sortedInstruments.reduce((sum, inst) => sum + (inst.deployedValue || 0), 0).toLocaleString()}
+                    </p>
+                  </div>
+                  <TrendingUp className="w-8 h-8 opacity-80" />
+                </div>
+              </div>
+              
+              <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-4 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm opacity-90">Avg Deployment</p>
+                    <p className="text-2xl font-bold">
+                      {Math.round(sortedInstruments.reduce((sum, inst) => sum + (inst.deployed || 0), 0) / sortedInstruments.length)}%
+                    </p>
+                  </div>
+                  <BarChart3 className="w-8 h-8 opacity-80" />
+                </div>
+              </div>
+            </div>
+            
+            {/* Instruments Table */}
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Instrument
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Committed
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Deployed %
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Deployed Value
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Priority
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {sortedInstruments.map((instrument, index) => {
+                      const deploymentPercentage = instrument.deployed || 0;
+                      const deployedValue = instrument.deployedValue || 0;
+                      const committedValue = instrument.committed || 0;
+                      
+                      return (
+                        <tr key={instrument.name} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-4">
+                            <div className="flex items-center">
+                              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                <span className="text-sm font-bold text-blue-600">{index + 1}</span>
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">{instrument.name}</p>
+                              </div>
+                            </div>
+                          </td>
+                          
+                          <td className="px-4 py-4">
+                            <div className="text-sm text-gray-900">
+                              ${committedValue.toLocaleString()}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {((committedValue / sortedInstruments.reduce((sum, inst) => sum + (inst.committed || 0), 0)) * 100).toFixed(1)}% of total
+                            </div>
+                          </td>
+                          
+                          <td className="px-4 py-4">
+                            <div className="flex items-center space-x-2">
+                              <div className="flex-1 bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full transition-all duration-300"
+                                  style={{ width: `${deploymentPercentage}%` }}
+                                />
+                              </div>
+                              <span className="text-sm font-medium text-gray-900 min-w-[3rem]">
+                                {deploymentPercentage.toFixed(1)}%
+                              </span>
+                            </div>
+                          </td>
+                          
+                          <td className="px-4 py-4">
+                            <div className="text-sm text-gray-900">
+                              ${deployedValue.toLocaleString()}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {deploymentPercentage > 0 ? `${((deployedValue / committedValue) * 100).toFixed(1)}%` : '0%'} of committed
+                            </div>
+                          </td>
+                          
+                          <td className="px-4 py-4">
+                            <div className="flex items-center">
+                              <Badge 
+                                variant={instrument.priority <= 3 ? "default" : "secondary"}
+                                className={instrument.priority <= 3 ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-800"}
+                              >
+                                #{instrument.priority}
+                              </Badge>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            
+            {/* Deployment Overview */}
+            <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4">
+              <h4 className="text-sm font-medium text-gray-700 mb-3">Deployment Overview</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                                         <span className="text-gray-600">Fully Deployed (&gt;80%)</span>
+                    <span className="font-medium text-green-600">
+                      {sortedInstruments.filter(inst => (inst.deployed || 0) > 80).length} instruments
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Partially Deployed (20-80%)</span>
+                    <span className="font-medium text-yellow-600">
+                      {sortedInstruments.filter(inst => (inst.deployed || 0) >= 20 && (inst.deployed || 0) <= 80).length} instruments
+                    </span>
+                  </div>
+                                     <div className="flex justify-between text-sm">
+                     <span className="text-gray-600">Minimally Deployed (&lt;20%)</span>
+                     <span className="font-medium text-red-600">
+                       {sortedInstruments.filter(inst => (inst.deployed || 0) < 20).length} instruments
+                     </span>
+                   </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Total Dry Powder</span>
+                    <span className="font-medium text-blue-600">
+                      ${(sortedInstruments.reduce((sum, inst) => sum + (inst.committed || 0), 0) - 
+                         sortedInstruments.reduce((sum, inst) => sum + (inst.deployedValue || 0), 0)).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Average Deployment</span>
+                    <span className="font-medium text-purple-600">
+                      {Math.round(sortedInstruments.reduce((sum, inst) => sum + (inst.deployed || 0), 0) / sortedInstruments.length)}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Instruments Used</span>
+                    <span className="font-medium text-gray-900">
+                      {sortedInstruments.length} types
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+      
+      // Fallback to old priority-only display
       return (
         <div className="space-y-2">
           {Object.entries(value).map(([instrument, priority]) => (
@@ -540,14 +890,185 @@ const FundManagerDetail = () => {
     }
     
     if (fieldType === 'sectors' && typeof value === 'object') {
+      // Sort sectors by percentage (highest to lowest)
+      const sortedSectors = Object.entries(value)
+        .sort(([, a], [, b]) => (b as number) - (a as number))
+        .filter(([, percentage]) => percentage > 0);
+      
+      const totalAllocation = sortedSectors.reduce((sum, [, percentage]) => sum + (percentage as number), 0);
+      const topSector = sortedSectors[0];
+      const averageAllocation = sortedSectors.length > 0 ? totalAllocation / sortedSectors.length : 0;
+      
       return (
-        <div className="space-y-2">
-          {Object.entries(value).map(([sector, percentage]) => (
-            <div key={sector} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-              <span className="text-sm font-medium text-gray-700">{sector}</span>
-              <span className="text-sm text-gray-600">{percentage}%</span>
+        <div className="space-y-4">
+          {/* Summary Statistics */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg p-4 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm opacity-90">Total Allocation</p>
+                  <p className="text-2xl font-bold">
+                    {totalAllocation.toFixed(1)}%
+                  </p>
+                </div>
+                <PieChart className="w-8 h-8 opacity-80" />
+              </div>
             </div>
-          ))}
+            
+            <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-lg p-4 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm opacity-90">Primary Focus</p>
+                  <p className="text-lg font-bold truncate">
+                    {topSector ? topSector[0] : 'None'}
+                  </p>
+                  <p className="text-sm opacity-90">
+                    {topSector ? `${topSector[1]}%` : '0%'}
+                  </p>
+                </div>
+                <Target className="w-8 h-8 opacity-80" />
+              </div>
+            </div>
+            
+            <div className="bg-gradient-to-r from-violet-500 to-violet-600 rounded-lg p-4 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm opacity-90">Avg Allocation</p>
+                  <p className="text-2xl font-bold">
+                    {averageAllocation.toFixed(1)}%
+                  </p>
+                </div>
+                <BarChart3 className="w-8 h-8 opacity-80" />
+              </div>
+            </div>
+          </div>
+          
+          {/* Sectors Table */}
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Sector
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Allocation
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Percentage
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Rank
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {sortedSectors.map(([sector, percentage], index) => {
+                    const percentageValue = percentage as number;
+                    const sectorIcon = getSectorIcon(sector);
+                    
+                    return (
+                      <tr key={sector} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-4">
+                          <div className="flex items-center">
+                            <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-3">
+                              {sectorIcon}
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">{sector}</p>
+                            </div>
+                          </div>
+                        </td>
+                        
+                        <td className="px-4 py-4">
+                          <div className="flex items-center space-x-2">
+                            <div className="flex-1 bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-gradient-to-r from-indigo-400 to-indigo-600 h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${percentageValue}%` }}
+                              />
+                            </div>
+                            <span className="text-sm font-medium text-gray-900 min-w-[3rem]">
+                              {percentageValue.toFixed(1)}%
+                            </span>
+                          </div>
+                        </td>
+                        
+                        <td className="px-4 py-4">
+                          <div className="text-sm text-gray-900">
+                            {percentageValue.toFixed(1)}%
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {((percentageValue / totalAllocation) * 100).toFixed(1)}% of total
+                          </div>
+                        </td>
+                        
+                        <td className="px-4 py-4">
+                          <div className="flex items-center">
+                            <Badge 
+                              variant={index < 3 ? "default" : "secondary"}
+                              className={index < 3 ? "bg-indigo-100 text-indigo-800" : "bg-gray-100 text-gray-800"}
+                            >
+                              #{index + 1}
+                            </Badge>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+          {/* Sector Analysis */}
+          <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4">
+            <h4 className="text-sm font-medium text-gray-700 mb-3">Sector Analysis</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">High Focus (&gt;20%)</span>
+                  <span className="font-medium text-indigo-600">
+                    {sortedSectors.filter(([, percentage]) => (percentage as number) > 20).length} sectors
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Medium Focus (10-20%)</span>
+                  <span className="font-medium text-emerald-600">
+                    {sortedSectors.filter(([, percentage]) => (percentage as number) >= 10 && (percentage as number) <= 20).length} sectors
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Low Focus (&lt;10%)</span>
+                  <span className="font-medium text-yellow-600">
+                    {sortedSectors.filter(([, percentage]) => (percentage as number) < 10).length} sectors
+                  </span>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Sectors Covered</span>
+                  <span className="font-medium text-gray-900">
+                    {sortedSectors.length} sectors
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Average Allocation</span>
+                  <span className="font-medium text-violet-600">
+                    {averageAllocation.toFixed(1)}%
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Top 3 Concentration</span>
+                  <span className="font-medium text-indigo-600">
+                    {sortedSectors.slice(0, 3).reduce((sum, [, percentage]) => sum + (percentage as number), 0).toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       );
     }
@@ -560,20 +1081,97 @@ const FundManagerDetail = () => {
       return <span>{value.toLocaleString()}</span>;
     }
     
-    if (fieldType === 'date' && typeof value === 'number') {
-      return <span>{formatSurveyDate(value)}</span>;
-    }
-    
     if (fieldType === 'url' && typeof value === 'string') {
+      // Special handling for supporting documents
+      if (fieldKey === 'supporting_document_url') {
+        const fileName = value.split('/').pop() || 'Document';
+        const truncatedUrl = value.length > 50 ? value.substring(0, 50) + '...' : value;
+        
+        return (
+          <div className="space-y-3">
+            {/* Truncated URL display */}
+            <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg border">
+              <FileText className="w-4 h-4 text-gray-500 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-700 truncate">
+                  {fileName}
+                </p>
+                <p className="text-xs text-gray-500 truncate">
+                  {truncatedUrl}
+                </p>
+              </div>
+            </div>
+            
+            {/* Download button in prominent position */}
+            <div className="flex items-center justify-between">
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-400"
+                onClick={() => {
+                  try {
+                    // Simple approach like in admin - just open the link
+                    const url = value.startsWith('http') ? value : `https://${value}`;
+                    window.open(url, '_blank', 'noopener,noreferrer');
+                  } catch (error) {
+                    console.error('Failed to open document:', error);
+                  }
+                }}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Open Document
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-gray-600 hover:text-gray-800"
+                onClick={() => {
+                  try {
+                    const url = value.startsWith('http') ? value : `https://${value}`;
+                    window.open(url, '_blank', 'noopener,noreferrer');
+                  } catch (error) {
+                    console.error('Failed to open link:', error);
+                  }
+                }}
+              >
+                <ExternalLink className="w-4 h-4 mr-2" />
+                View Online
+              </Button>
+            </div>
+          </div>
+        );
+      }
+      
+      // Regular URL handling for other fields
+      const truncatedUrl = value.length > 60 ? value.substring(0, 60) + '...' : value;
+      
       return (
-        <a 
-          href={value.startsWith('http') ? value : `https://${value}`} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="text-blue-700 underline"
-        >
-          {value}
-        </a>
+        <div className="flex items-center space-x-2">
+          <a 
+            href={value.startsWith('http') ? value : `https://${value}`} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-blue-700 hover:text-blue-800 underline truncate flex-1"
+            title={value}
+          >
+            {truncatedUrl}
+          </a>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-gray-600 hover:text-gray-800 flex-shrink-0"
+            onClick={() => {
+              try {
+                window.open(value.startsWith('http') ? value : `https://${value}`, '_blank', 'noopener,noreferrer');
+              } catch (error) {
+                console.error('Failed to open link:', error);
+              }
+            }}
+          >
+            <ExternalLink className="w-4 h-4" />
+          </Button>
+        </div>
       );
     }
     
@@ -619,6 +1217,40 @@ const FundManagerDetail = () => {
               const hasValue = value !== null && value !== undefined && value !== '' && 
                 !(Array.isArray(value) && value.length === 0);
               
+              // Special handling for vehicle_type_other - only show if vehicle_type is not provided or is "Other"
+              if (field.key === 'vehicle_type_other') {
+                const vehicleType = survey.vehicle_type;
+                const shouldShowOther = !vehicleType || vehicleType === 'Other' || vehicleType === 'other';
+                if (!shouldShowOther) {
+                  return null; // Don't render this field
+                }
+              }
+              
+              // Special handling for markets_operated_other - only show if someone actually input something
+              if (field.key === 'markets_operated_other') {
+                const otherMarkets = survey.markets_operated_other;
+                const hasOtherMarkets = otherMarkets && otherMarkets.trim() !== '';
+                if (!hasOtherMarkets) {
+                  return null; // Don't render this field
+                }
+              }
+              
+              // Special handling for current_status_other - only show if current_status is "Other"
+              if (field.key === 'current_status_other') {
+                const currentStatus = survey.current_status;
+                const shouldShowOther = currentStatus === 'Other' || currentStatus === 'other';
+                if (!shouldShowOther) {
+                  return null; // Don't render this field
+                }
+              }
+              
+              const formattedValue = formatFieldValue(value, field.key, field.type, field.isLink, survey);
+              
+              // Don't render fields that return null (empty optional fields)
+              if (formattedValue === null) {
+                return null;
+              }
+              
               return (
                 <div key={field.key} className={`p-4 rounded-lg border ${hasValue ? 'bg-white border-gray-200' : 'bg-gray-50 border-gray-100'}`}>
                   <dt className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
@@ -627,7 +1259,7 @@ const FundManagerDetail = () => {
                     {!hasValue && <span className="ml-2 text-xs text-gray-400">(Not provided)</span>}
                   </dt>
                   <dd className="text-base text-gray-900">
-                    {formatFieldValue(value, field.key, field.type, field.isLink)}
+                    {formattedValue}
                   </dd>
                 </div>
               );
@@ -696,20 +1328,29 @@ const FundManagerDetail = () => {
                   <h2 className="text-xl font-semibold text-gray-900 mb-2 break-words">
                     {profile?.first_name} {profile?.last_name}
                   </h2>
-                  <div className="space-y-2">
-                    <div className="flex items-center text-gray-600">
-                      <Mail className="w-4 h-4 mr-2 flex-shrink-0" />
-                      <span className="text-sm break-all">{profile?.email}</span>
-                    </div>
+                  
+                  {/* Clear header information in order: Vehicle Name, Email, Website */}
+                  <div className="space-y-3">
+                    {/* Vehicle Name - Most prominent */}
                     {activeSurvey?.vehicle_name && (
-                      <div className="flex items-center text-gray-600">
-                        <Building2 className="w-4 h-4 mr-2 flex-shrink-0" />
-                        <span className="text-sm break-words">{activeSurvey.vehicle_name}</span>
+                      <div className="flex items-center text-gray-900">
+                        <Building2 className="w-5 h-5 mr-3 flex-shrink-0 text-blue-600" />
+                        <span className="text-lg font-medium break-words">{activeSurvey.vehicle_name}</span>
                       </div>
                     )}
+                    
+                    {/* Email */}
+                    {profile?.email && (
+                      <div className="flex items-center text-gray-700">
+                        <Mail className="w-4 h-4 mr-3 flex-shrink-0 text-gray-600" />
+                        <span className="text-base break-all">{profile.email}</span>
+                      </div>
+                    )}
+                    
+                    {/* Website */}
                     {activeSurvey?.vehicle_websites && activeSurvey.vehicle_websites.length > 0 && (
-                      <div className="flex items-center text-gray-600">
-                        <Globe className="w-4 h-4 mr-2 flex-shrink-0" />
+                      <div className="flex items-center text-gray-700">
+                        <Globe className="w-4 h-4 mr-3 flex-shrink-0 text-gray-600" />
                         <div className="flex flex-wrap gap-2">
                           {activeSurvey.vehicle_websites.map((website, index) => (
                             <a
@@ -717,7 +1358,7 @@ const FundManagerDetail = () => {
                               href={website.startsWith('http') ? website : `https://${website}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-blue-600 hover:text-blue-800 text-sm break-all underline"
+                              className="text-blue-600 hover:text-blue-800 text-base break-all underline font-medium"
                             >
                               {website}
                             </a>
@@ -725,8 +1366,10 @@ const FundManagerDetail = () => {
                         </div>
                       </div>
                     )}
+                    
+                    {/* Role Badge */}
                     {activeSurvey?.role_badge && (
-                      <div className="flex items-center">
+                      <div className="flex items-center mt-3">
                         <Badge className={`capitalize text-xs px-3 py-1 font-semibold rounded-full ${
                           activeSurvey.role_badge === 'viewer' 
                             ? 'bg-purple-100 text-purple-800 border border-purple-200' 

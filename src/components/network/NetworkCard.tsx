@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Building2, Globe, Users, Eye, MapPin, Calendar, DollarSign, Target, Briefcase, Award, TrendingUp, FileText } from 'lucide-react';
+import { Building2, Globe, Users, Eye, MapPin, Calendar, DollarSign, Target, Briefcase, Award, TrendingUp, FileText, PieChart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface NetworkCardProps {
@@ -42,8 +42,31 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
   const isAdmin = userRole === 'admin';
   const isViewer = userRole === 'viewer';
 
+  // Create different bright colors for each card
+  const cardColors = [
+    'from-blue-50/80 to-blue-100/80 border-blue-200',
+    'from-green-50/80 to-green-100/80 border-green-200',
+    'from-yellow-50/80 to-yellow-100/80 border-yellow-200',
+    'from-orange-50/80 to-orange-100/80 border-orange-200',
+    'from-purple-50/80 to-purple-100/80 border-purple-200',
+    'from-pink-50/80 to-pink-100/80 border-pink-200',
+    'from-indigo-50/80 to-indigo-100/80 border-indigo-200',
+    'from-teal-50/80 to-teal-100/80 border-teal-200',
+    'from-cyan-50/80 to-cyan-100/80 border-cyan-200',
+    'from-rose-50/80 to-rose-100/80 border-rose-200',
+    'from-violet-50/80 to-violet-100/80 border-violet-200',
+    'from-amber-50/80 to-amber-100/80 border-amber-200'
+  ];
+  
+  // Simple hash function to get consistent color for each manager
+  const hash = manager.id.split('').reduce((a, b) => {
+    a = ((a << 5) - a) + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+  const colorClass = cardColors[Math.abs(hash) % cardColors.length];
+
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card className={`hover:shadow-lg transition-shadow bg-gradient-to-br ${colorClass} backdrop-blur-sm`}>
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -65,30 +88,8 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-3">
-        {/* Basic Info - Visible to all */}
-        {manager.website && (
-          <div className="flex items-center text-sm text-gray-600">
-            <Globe className="w-4 h-4 mr-2" />
-            <a 
-              href={manager.website.startsWith('http') ? manager.website : `https://${manager.website}`}
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:underline truncate"
-            >
-              {manager.website}
-            </a>
-          </div>
-        )}
-
-        {manager.primary_investment_region && (
-          <div className="flex items-center text-sm text-gray-600">
-            <MapPin className="w-4 h-4 mr-2" />
-            <span>{manager.primary_investment_region}</span>
-          </div>
-        )}
-
-        {/* For viewers, show basic application info */}
+      <CardContent>
+        {/* Viewer Details - Show for viewers */}
         {isViewer && (
           <>
             {manager.typical_check_size && (
@@ -127,7 +128,7 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
         )}
 
         {/* Member Details - Show for members and admins */}
-        {!isViewer && (
+        {canViewDetails && (
           <>
             {/* For members, show only basic info */}
             {userRole === 'member' && (
@@ -156,7 +157,7 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
             )}
 
             {/* For admins, show full details */}
-            {userRole === 'admin' && (
+            {isAdmin && (
               <>
                 {manager.team_size && (
                   <div className="flex items-center text-sm text-gray-600">
@@ -182,61 +183,35 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
                 {/* Survey Data - Show more detailed information */}
                 {manager.sector_focus && manager.sector_focus.length > 0 && (
                   <div className="text-sm text-gray-600">
-                    <div className="flex items-center mb-1">
-                      <Target className="w-4 h-4 mr-2" />
-                      <span className="font-medium">Sectors:</span>
+                    <div className="font-medium mb-1 flex items-center">
+                      <PieChart className="w-4 h-4 mr-2" />
+                      Sector Focus:
                     </div>
-                    <div className="flex flex-wrap gap-1 ml-6">
-                      {manager.sector_focus.slice(0, 3).map((sector, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {sector}
-                        </Badge>
-                      ))}
-                      {manager.sector_focus.length > 3 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{manager.sector_focus.length - 3} more
-                        </Badge>
-                      )}
+                    <div className="text-xs text-gray-500 ml-6">
+                      {manager.sector_focus.join(', ')}
                     </div>
                   </div>
                 )}
 
                 {manager.stage_focus && manager.stage_focus.length > 0 && (
                   <div className="text-sm text-gray-600">
-                    <div className="flex items-center mb-1">
-                      <Briefcase className="w-4 h-4 mr-2" />
-                      <span className="font-medium">Stages:</span>
+                    <div className="font-medium mb-1 flex items-center">
+                      <Target className="w-4 h-4 mr-2" />
+                      Stage Focus:
                     </div>
-                    <div className="flex flex-wrap gap-1 ml-6">
-                      {manager.stage_focus.slice(0, 3).map((stage, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {stage}
-                        </Badge>
-                      ))}
-                      {manager.stage_focus.length > 3 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{manager.stage_focus.length - 3} more
-                        </Badge>
-                      )}
+                    <div className="text-xs text-gray-500 ml-6">
+                      {manager.stage_focus.join(', ')}
                     </div>
-                  </div>
-                )}
-
-                {/* Admin-only details */}
-                {manager.aum && (
-                  <div className="flex items-center text-sm text-gray-600">
-                    <TrendingUp className="w-4 h-4 mr-2" />
-                    <span>AUM: {manager.aum}</span>
                   </div>
                 )}
 
                 {manager.investment_thesis && (
                   <div className="text-sm text-gray-600">
                     <div className="font-medium mb-1 flex items-center">
-                      <Award className="w-4 h-4 mr-2" />
+                      <Target className="w-4 h-4 mr-2" />
                       Investment Thesis:
                     </div>
-                    <div className="text-xs text-gray-500 line-clamp-2 ml-6">
+                    <div className="text-xs text-gray-500 line-clamp-3 ml-6">
                       {manager.investment_thesis}
                     </div>
                   </div>

@@ -429,6 +429,7 @@ const Survey = () => {
       if (isViewer) {
         // For viewers, use the special database function
         const surveyData = {
+          email: user!.email, // Include email for profile creation
           vehicle_name: formData.vehicle_name,
           vehicle_websites: formData.vehicle_websites || [],
           vehicle_type: formData.vehicle_type,
