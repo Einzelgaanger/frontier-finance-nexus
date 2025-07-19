@@ -82,6 +82,7 @@ interface MembershipRequest {
   country_of_operation?: string | null;
   role_job_title?: string | null;
   team_size?: string | null;
+  team_description?: string | null;
   location?: string | null;
   thesis?: string | null;
   ticket_size?: string | null;
@@ -1203,10 +1204,17 @@ const Admin = () => {
                                 </a>
                               </div>
                             )}
-                            <div className="flex items-center gap-2">
-                              <Users className="w-4 h-4 text-orange-500" />
-                              <span className="truncate">{request.team_size || 'N/A'} team members</span>
-                            </div>
+                            {request.team_description && (
+                              <div className="flex items-start gap-2">
+                                <Users className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-medium text-gray-700 mb-1">Team Description</p>
+                                  <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed break-words">
+                                    {request.team_description}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
                             <div className="flex items-center gap-2">
                               <DollarSign className="w-4 h-4 text-green-500" />
                               <span className="truncate">{request.ticket_size || 'N/A'} ticket size</span>

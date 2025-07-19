@@ -941,15 +941,15 @@ const Survey = () => {
               </div>
             </div>
             <div className="flex items-center space-x-3">
-                          <Button
-                            variant="outline"
+              <Button
+                variant="outline"
                 size="sm"
                 className="border-gray-300 text-gray-600"
                 onClick={() => setShowNewSurvey(false)}
-                          >
+              >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Surveys
-                          </Button>
+              </Button>
               <Button 
                 variant="outline" 
                 size="sm"
@@ -960,7 +960,7 @@ const Survey = () => {
                 <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
                 Last updated: {lastUpdated.toLocaleTimeString()}
               </Button>
-                      </div>
+            </div>
                       </div>
         </div>
 

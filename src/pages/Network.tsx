@@ -471,122 +471,37 @@ const Network = () => {
                 </Card>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {approvedMembers.map((member: any, index: number) => {
-                    // Create different bright colors for each card
-                    const cardColors = [
-                      'from-blue-50/80 to-blue-100/80 border-blue-200',
-                      'from-green-50/80 to-green-100/80 border-green-200',
-                      'from-yellow-50/80 to-yellow-100/80 border-yellow-200',
-                      'from-orange-50/80 to-orange-100/80 border-orange-200',
-                      'from-purple-50/80 to-purple-100/80 border-purple-200',
-                      'from-pink-50/80 to-pink-100/80 border-pink-200',
-                      'from-indigo-50/80 to-indigo-100/80 border-indigo-200',
-                      'from-teal-50/80 to-teal-100/80 border-teal-200',
-                      'from-cyan-50/80 to-cyan-100/80 border-cyan-200',
-                      'from-rose-50/80 to-rose-100/80 border-rose-200',
-                      'from-violet-50/80 to-violet-100/80 border-violet-200',
-                      'from-amber-50/80 to-amber-100/80 border-amber-200'
-                    ];
-                    const colorClass = cardColors[index % cardColors.length];
+                  {approvedMembers.map((member: any) => {
+                    // Convert member data to match NetworkCard interface
+                    const managerData = {
+                      id: member.id,
+                      user_id: member.user_id,
+                      fund_name: member.vehicle_name || 'Unknown Fund',
+                      website: member.vehicle_website,
+                      primary_investment_region: member.legal_domicile,
+                      fund_type: member.vehicle_type,
+                      year_founded: member.legal_entity_date_from,
+                      team_size: member.team_size,
+                      typical_check_size: member.ticket_size,
+                      completed_at: member.completed_at,
+                      aum: member.capital_raised,
+                      investment_thesis: member.investment_thesis,
+                      sector_focus: member.sectors_allocation ? Object.keys(member.sectors_allocation) : [],
+                      stage_focus: member.fund_stage || [],
+                      profiles: {
+                        first_name: member.applicant_name?.split(' ')[0] || '',
+                        last_name: member.applicant_name?.split(' ').slice(1).join(' ') || '',
+                        email: member.email || ''
+                      }
+                    };
                     
                     return (
-                      <Card 
-                        key={member.id} 
-                        className={`group bg-gradient-to-br ${colorClass} backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer min-h-[320px]`}
-                      >
-                        <CardHeader className="pb-3">
-                          <div className="flex items-center justify-between gap-2">
-                            <CardTitle className="text-lg font-semibold truncate text-slate-800 group-hover:text-blue-600 transition-colors">
-                              {member.applicant_name || 'Unknown Member'}
-                            </CardTitle>
-                            <Badge variant="default" className="bg-emerald-100/80 text-emerald-700 border-emerald-200 text-xs shadow-sm">
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              Approved Member
-                            </Badge>
-                          </div>
-                          <CardDescription className="text-sm text-slate-600">
-                            {member.email || 'No email provided'}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent className="pt-0">
-                          <div className="space-y-3 text-sm text-slate-600">
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
-                                <Building2 className="w-4 h-4 text-slate-600" />
-                              </div>
-                              <span className="truncate font-medium">{member.vehicle_name || 'Unknown Fund'}</span>
-                            </div>
-                            {member.vehicle_website && (
-                              <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
-                                  <Globe className="w-4 h-4 text-slate-600" />
-                                </div>
-                                <a
-                                  href={member.vehicle_website.startsWith('http') ? member.vehicle_website : `https://${member.vehicle_website}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-blue-600 hover:text-blue-800 underline truncate font-medium"
-                                  onClick={e => e.stopPropagation()}
-                                >
-                                  {member.vehicle_website}
-                                </a>
-                              </div>
-                            )}
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
-                                <Users className="w-4 h-4 text-slate-600" />
-                              </div>
-                              <span className="truncate">{member.team_size || 'N/A'} team members</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
-                                <DollarSign className="w-4 h-4 text-slate-600" />
-                              </div>
-                              <span className="truncate">{member.ticket_size || 'N/A'} ticket size</span>
-                            </div>
-                            {member.investment_thesis && (
-                              <div className="mt-4 pt-4 border-t border-slate-200">
-                                <div className="flex items-start gap-2">
-                                  <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <Target className="w-4 h-4 text-slate-600" />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-medium text-slate-700 mb-1">Investment Thesis</p>
-                                    <p className="text-xs text-slate-600 line-clamp-4 leading-relaxed break-words">
-                                      {member.investment_thesis}
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                            {member.team_overview && (
-                              <div className="mt-3 pt-3 border-t border-slate-200">
-                                <div className="flex items-start gap-2">
-                                  <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <Users className="w-4 h-4 text-slate-600" />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-medium text-slate-700 mb-1">Team Overview</p>
-                                    <p className="text-xs text-slate-600 line-clamp-4 leading-relaxed break-words">
-                                      {member.team_overview}
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                            {member.completed_at && (
-                              <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-200">
-                                <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
-                                  <Calendar className="w-4 h-4 text-slate-600" />
-                                </div>
-                                <span className="truncate text-xs text-slate-500">
-                                  Approved: {new Date(member.completed_at).toLocaleDateString()}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
+                      <NetworkCard 
+                        key={member.id}
+                        manager={managerData}
+                        userRole={userRole}
+                        showDetails={false}
+                      />
                     );
                   })}
                 </div>

@@ -1,4 +1,4 @@
--- Completely rewrite the create_viewer_survey_data function to avoid ambiguous references
+-- Fix JSONB to TEXT[] casting issues in viewer survey function
 DROP FUNCTION IF EXISTS create_viewer_survey_data(UUID, JSONB, INTEGER);
 
 CREATE OR REPLACE FUNCTION create_viewer_survey_data(
@@ -33,7 +33,7 @@ BEGIN
     last_name = EXCLUDED.last_name,
     updated_at = NOW();
 
-  -- Create survey response with updated structure
+  -- Create survey response with proper JSONB to TEXT[] casting
   INSERT INTO public.survey_responses (
     user_id,
     year,
@@ -152,7 +152,7 @@ BEGIN
     (p_survey_data->>'self_liquidating_exited')::INTEGER
   ) RETURNING id INTO v_survey_id;
 
-  -- Create member_surveys entry with updated structure
+  -- Create member_surveys entry with proper JSONB to TEXT[] casting
   INSERT INTO public.member_surveys (
     user_id,
     fund_name,
@@ -219,4 +219,4 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Grant execute permission to authenticated users (for admin use)
-GRANT EXECUTE ON FUNCTION create_viewer_survey_data TO authenticated;
+GRANT EXECUTE ON FUNCTION create_viewer_survey_data TO authenticated; 

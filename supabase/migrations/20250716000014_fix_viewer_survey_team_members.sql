@@ -1,4 +1,4 @@
--- Completely rewrite the create_viewer_survey_data function to avoid ambiguous references
+-- Fix team_members data type issue in viewer survey function
 DROP FUNCTION IF EXISTS create_viewer_survey_data(UUID, JSONB, INTEGER);
 
 CREATE OR REPLACE FUNCTION create_viewer_survey_data(
@@ -33,7 +33,7 @@ BEGIN
     last_name = EXCLUDED.last_name,
     updated_at = NOW();
 
-  -- Create survey response with updated structure
+  -- Create survey response with proper data types
   INSERT INTO public.survey_responses (
     user_id,
     year,
@@ -100,11 +100,7 @@ BEGIN
     p_survey_data->>'vehicle_type',
     p_survey_data->>'vehicle_type_other',
     p_survey_data->>'thesis',
-    CASE 
-      WHEN p_survey_data->'team_members' IS NOT NULL 
-      THEN ARRAY(SELECT jsonb_array_elements_text(p_survey_data->'team_members'))
-      ELSE NULL
-    END,
+    p_survey_data->'team_members',
     (p_survey_data->>'team_size_min')::INTEGER,
     (p_survey_data->>'team_size_max')::INTEGER,
     p_survey_data->>'team_description',
@@ -152,7 +148,7 @@ BEGIN
     (p_survey_data->>'self_liquidating_exited')::INTEGER
   ) RETURNING id INTO v_survey_id;
 
-  -- Create member_surveys entry with updated structure
+  -- Create member_surveys entry with proper JSONB to TEXT[] casting
   INSERT INTO public.member_surveys (
     user_id,
     fund_name,
@@ -219,4 +215,4 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Grant execute permission to authenticated users (for admin use)
-GRANT EXECUTE ON FUNCTION create_viewer_survey_data TO authenticated;
+GRANT EXECUTE ON FUNCTION create_viewer_survey_data TO authenticated; 

@@ -293,16 +293,43 @@ const CreateViewerModal = ({ open, onClose, onSuccess }: CreateViewerModalProps)
 
       console.log('Calling database function with survey data:', surveyData);
 
-      // For now, we'll create a simple viewer account without password
-      // The admin will need to manually create the user in Supabase dashboard
-      // or use a different approach
+      // Call the Supabase Edge Function to create the user
+      const { data: { session } } = await supabase.auth.getSession();
       
-      // Create a temporary user ID for the survey data
-      const tempUserId = crypto.randomUUID();
-      
-      // Call the database function to create survey data
+      if (!session) {
+        throw new Error('No active session found');
+      }
+
+      // First, create the user account
+      const userResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+          role: 'viewer',
+          user_metadata: {
+            first_name: data.vehicle_name || 'Viewer',
+            last_name: 'User',
+            vehicle_name: data.vehicle_name
+          }
+        })
+      });
+
+      const userResult = await userResponse.json();
+
+      if (!userResponse.ok) {
+        throw new Error(userResult.error || 'Failed to create user account');
+      }
+
+      console.log('User created successfully:', userResult);
+
+      // Now create the survey data for the user
       const { data: result, error: surveyError } = await supabase.rpc('create_viewer_survey_data', {
-        p_user_id: tempUserId,
+        p_user_id: userResult.user.id,
         p_survey_data: surveyData,
         p_survey_year: data.survey_year
       });
@@ -320,8 +347,8 @@ const CreateViewerModal = ({ open, onClose, onSuccess }: CreateViewerModalProps)
       console.log('Survey data created successfully:', result);
 
       toast({
-        title: "Survey Data Created",
-        description: `Survey data created for ${data.email}. You will need to manually create the user account in Supabase dashboard with email: ${data.email} and password: ${data.password}`,
+        title: "Viewer Created Successfully",
+        description: `Viewer account created for ${data.email} with complete survey data. They can now log in and access the platform.`,
       });
 
       form.reset();

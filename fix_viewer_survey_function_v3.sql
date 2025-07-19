@@ -1,4 +1,4 @@
--- Completely rewrite the create_viewer_survey_data function to avoid ambiguous references
+-- Fix viewer survey function to handle existing responses
 DROP FUNCTION IF EXISTS create_viewer_survey_data(UUID, JSONB, INTEGER);
 
 CREATE OR REPLACE FUNCTION create_viewer_survey_data(
@@ -33,7 +33,7 @@ BEGIN
     last_name = EXCLUDED.last_name,
     updated_at = NOW();
 
-  -- Create survey response with updated structure
+  -- Create or update survey response with UPSERT
   INSERT INTO public.survey_responses (
     user_id,
     year,
@@ -100,11 +100,7 @@ BEGIN
     p_survey_data->>'vehicle_type',
     p_survey_data->>'vehicle_type_other',
     p_survey_data->>'thesis',
-    CASE 
-      WHEN p_survey_data->'team_members' IS NOT NULL 
-      THEN ARRAY(SELECT jsonb_array_elements_text(p_survey_data->'team_members'))
-      ELSE NULL
-    END,
+    p_survey_data->'team_members',
     (p_survey_data->>'team_size_min')::INTEGER,
     (p_survey_data->>'team_size_max')::INTEGER,
     p_survey_data->>'team_description',
@@ -150,9 +146,57 @@ BEGIN
     (p_survey_data->>'equity_investments_exited')::INTEGER,
     (p_survey_data->>'self_liquidating_made')::INTEGER,
     (p_survey_data->>'self_liquidating_exited')::INTEGER
-  ) RETURNING id INTO v_survey_id;
+  ) 
+  ON CONFLICT (user_id, year) DO UPDATE SET
+    role_badge = EXCLUDED.role_badge,
+    completed_at = EXCLUDED.completed_at,
+    updated_at = EXCLUDED.updated_at,
+    vehicle_name = EXCLUDED.vehicle_name,
+    vehicle_websites = EXCLUDED.vehicle_websites,
+    vehicle_type = EXCLUDED.vehicle_type,
+    vehicle_type_other = EXCLUDED.vehicle_type_other,
+    thesis = EXCLUDED.thesis,
+    team_members = EXCLUDED.team_members,
+    team_size_min = EXCLUDED.team_size_min,
+    team_size_max = EXCLUDED.team_size_max,
+    team_description = EXCLUDED.team_description,
+    legal_domicile = EXCLUDED.legal_domicile,
+    legal_domicile_other = EXCLUDED.legal_domicile_other,
+    markets_operated = EXCLUDED.markets_operated,
+    markets_operated_other = EXCLUDED.markets_operated_other,
+    ticket_size_min = EXCLUDED.ticket_size_min,
+    ticket_size_max = EXCLUDED.ticket_size_max,
+    ticket_description = EXCLUDED.ticket_description,
+    target_capital = EXCLUDED.target_capital,
+    capital_raised = EXCLUDED.capital_raised,
+    capital_in_market = EXCLUDED.capital_in_market,
+    supporting_document_url = EXCLUDED.supporting_document_url,
+    expectations = EXCLUDED.expectations,
+    how_heard_about_network = EXCLUDED.how_heard_about_network,
+    how_heard_about_network_other = EXCLUDED.how_heard_about_network_other,
+    fund_stage = EXCLUDED.fund_stage,
+    current_status = EXCLUDED.current_status,
+    current_status_other = EXCLUDED.current_status_other,
+    legal_entity_date_from = EXCLUDED.legal_entity_date_from,
+    legal_entity_date_to = EXCLUDED.legal_entity_date_to,
+    legal_entity_month_from = EXCLUDED.legal_entity_month_from,
+    legal_entity_month_to = EXCLUDED.legal_entity_month_to,
+    first_close_date_from = EXCLUDED.first_close_date_from,
+    first_close_date_to = EXCLUDED.first_close_date_to,
+    first_close_month_from = EXCLUDED.first_close_month_from,
+    first_close_month_to = EXCLUDED.first_close_month_to,
+    investment_instruments_priority = EXCLUDED.investment_instruments_priority,
+    investment_instruments_data = EXCLUDED.investment_instruments_data,
+    sectors_allocation = EXCLUDED.sectors_allocation,
+    target_return_min = EXCLUDED.target_return_min,
+    target_return_max = EXCLUDED.target_return_max,
+    equity_investments_made = EXCLUDED.equity_investments_made,
+    equity_investments_exited = EXCLUDED.equity_investments_exited,
+    self_liquidating_made = EXCLUDED.self_liquidating_made,
+    self_liquidating_exited = EXCLUDED.self_liquidating_exited
+  RETURNING id INTO v_survey_id;
 
-  -- Create member_surveys entry with updated structure
+  -- Create or update member_surveys entry
   INSERT INTO public.member_surveys (
     user_id,
     fund_name,
@@ -185,7 +229,11 @@ BEGIN
     p_survey_data->>'typical_check_size',
     p_survey_data->>'aum',
     p_survey_data->>'thesis',
-    p_survey_data->'sectors_allocation',
+    CASE 
+      WHEN p_survey_data->'sectors_allocation' IS NOT NULL 
+      THEN ARRAY(SELECT jsonb_object_keys(p_survey_data->'sectors_allocation'))
+      ELSE NULL
+    END,
     CASE 
       WHEN p_survey_data->'fund_stage' IS NOT NULL 
       THEN ARRAY(SELECT jsonb_array_elements_text(p_survey_data->'fund_stage'))
@@ -195,9 +243,24 @@ BEGIN
     NOW(),
     NOW(),
     NOW()
-  );
+  )
+  ON CONFLICT (user_id) DO UPDATE SET
+    fund_name = EXCLUDED.fund_name,
+    website = EXCLUDED.website,
+    fund_type = EXCLUDED.fund_type,
+    primary_investment_region = EXCLUDED.primary_investment_region,
+    year_founded = EXCLUDED.year_founded,
+    team_size = EXCLUDED.team_size,
+    typical_check_size = EXCLUDED.typical_check_size,
+    aum = EXCLUDED.aum,
+    investment_thesis = EXCLUDED.investment_thesis,
+    sector_focus = EXCLUDED.sector_focus,
+    stage_focus = EXCLUDED.stage_focus,
+    role_badge = EXCLUDED.role_badge,
+    completed_at = EXCLUDED.completed_at,
+    updated_at = EXCLUDED.updated_at;
 
-  -- Log the activity (only if current_user_id is not null)
+  -- Log the activity
   IF v_current_user_id IS NOT NULL THEN
     INSERT INTO public.activity_logs (
       user_id,
@@ -218,5 +281,5 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Grant execute permission to authenticated users (for admin use)
-GRANT EXECUTE ON FUNCTION create_viewer_survey_data TO authenticated;
+-- Grant execute permission to authenticated users
+GRANT EXECUTE ON FUNCTION create_viewer_survey_data TO authenticated; 

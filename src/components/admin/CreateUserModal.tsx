@@ -51,14 +51,41 @@ const CreateUserModal = ({ open, onClose, onSuccess }: CreateUserModalProps) => 
     setIsCreating(true);
 
     try {
-      // For now, we'll provide instructions for manual user creation
-      // since the admin API is not available in client-side code
+      // Call the Supabase Edge Function to create the user
+      const { data: { session } } = await supabase.auth.getSession();
       
-      console.log('User creation data:', data);
+      if (!session) {
+        throw new Error('No active session found');
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+          role: 'viewer', // Default role for new users
+          user_metadata: {
+            first_name: data.firstName,
+            last_name: data.lastName
+          }
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to create user');
+      }
+
+      console.log('User created successfully:', result);
 
       toast({
-        title: "Manual User Creation Required",
-        description: `Please create the user manually in Supabase Dashboard:\n\nEmail: ${data.email}\nPassword: ${data.password}\nFirst Name: ${data.firstName}\nLast Name: ${data.lastName}\n\nGo to Authentication → Users → Add User`,
+        title: "User Created Successfully",
+        description: `User account created for ${data.email} with role: ${result.user.role}`,
       });
 
       form.reset();
@@ -68,8 +95,8 @@ const CreateUserModal = ({ open, onClose, onSuccess }: CreateUserModalProps) => 
     } catch (error) {
       console.error('Error creating user:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
+        title: "Error Creating User",
+        description: error instanceof Error ? error.message : "An unexpected error occurred. Please try again.",
         variant: "destructive"
       });
     } finally {
