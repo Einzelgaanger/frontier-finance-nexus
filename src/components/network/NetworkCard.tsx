@@ -58,12 +58,30 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
     'from-amber-50/80 to-amber-100/80 border-amber-200'
   ];
   
+  // Icon colors that match the card themes
+  const iconColors = [
+    'text-blue-600',
+    'text-green-600',
+    'text-yellow-600',
+    'text-orange-600',
+    'text-purple-600',
+    'text-pink-600',
+    'text-indigo-600',
+    'text-teal-600',
+    'text-cyan-600',
+    'text-rose-600',
+    'text-violet-600',
+    'text-amber-600'
+  ];
+  
   // Simple hash function to get consistent color for each manager
   const hash = manager.id.split('').reduce((a, b) => {
     a = ((a << 5) - a) + b.charCodeAt(0);
     return a & a;
   }, 0);
-  const colorClass = cardColors[Math.abs(hash) % cardColors.length];
+  const colorIndex = Math.abs(hash) % cardColors.length;
+  const colorClass = cardColors[colorIndex];
+  const iconColor = iconColors[colorIndex];
 
   return (
     <Card className={`hover:shadow-lg transition-shadow bg-gradient-to-br ${colorClass} backdrop-blur-sm`}>
@@ -71,7 +89,7 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <CardTitle className="text-lg flex items-center">
-              <Building2 className="w-5 h-5 mr-2 text-blue-600" />
+              <Building2 className={`w-5 h-5 mr-2 ${iconColor}`} />
               {manager.fund_name || 'Unknown Fund'}
             </CardTitle>
             {manager.profiles && (
@@ -94,14 +112,14 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
           <>
             {manager.typical_check_size && (
               <div className="flex items-center text-sm text-gray-600">
-                <DollarSign className="w-4 h-4 mr-2" />
+                <DollarSign className={`w-4 h-4 mr-2 ${iconColor}`} />
                 <span>Ticket Size: {manager.typical_check_size}</span>
               </div>
             )}
 
             {manager.aum && (
               <div className="flex items-center text-sm text-gray-600">
-                <TrendingUp className="w-4 h-4 mr-2" />
+                <TrendingUp className={`w-4 h-4 mr-2 ${iconColor}`} />
                 <span>Capital Raised: {manager.aum}</span>
               </div>
             )}
@@ -109,7 +127,7 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
             {manager.investment_thesis && (
               <div className="text-sm text-gray-600">
                 <div className="font-medium mb-1 flex items-center">
-                  <Target className="w-4 h-4 mr-2" />
+                  <Target className={`w-4 h-4 mr-2 ${iconColor}`} />
                   Investment Thesis:
                 </div>
                 <div className="text-xs text-gray-500 line-clamp-2 ml-6">
@@ -120,7 +138,7 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
 
             {manager.completed_at && (
               <div className="text-xs text-gray-500 flex items-center">
-                <FileText className="w-3 h-3 mr-1" />
+                <FileText className={`w-3 h-3 mr-1 ${iconColor}`} />
                 Approved: {new Date(manager.completed_at).toLocaleDateString()}
               </div>
             )}
@@ -135,7 +153,7 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
               <>
                 {manager.website && (
                   <div className="flex items-center text-sm text-gray-600">
-                    <Globe className="w-4 h-4 mr-2" />
+                    <Globe className={`w-4 h-4 mr-2 ${iconColor}`} />
                     <a 
                       href={manager.website.startsWith('http') ? manager.website : `https://${manager.website}`}
                       target="_blank" 
@@ -149,7 +167,7 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
 
                 {manager.primary_investment_region && (
                   <div className="flex items-center text-sm text-gray-600">
-                    <MapPin className="w-4 h-4 mr-2" />
+                    <MapPin className={`w-4 h-4 mr-2 ${iconColor}`} />
                     <span>Legal Domicile: {manager.primary_investment_region}</span>
                   </div>
                 )}
@@ -161,21 +179,21 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
               <>
                 {manager.team_size && (
                   <div className="flex items-center text-sm text-gray-600">
-                    <Users className="w-4 h-4 mr-2" />
+                    <Users className={`w-4 h-4 mr-2 ${iconColor}`} />
                     <span>{manager.team_size} team members</span>
                   </div>
                 )}
 
                 {manager.typical_check_size && (
                   <div className="flex items-center text-sm text-gray-600">
-                    <DollarSign className="w-4 h-4 mr-2" />
+                    <DollarSign className={`w-4 h-4 mr-2 ${iconColor}`} />
                     <span>Typical Check: {manager.typical_check_size}</span>
                   </div>
                 )}
 
                 {manager.year_founded && (
                   <div className="flex items-center text-sm text-gray-600">
-                    <Calendar className="w-4 h-4 mr-2" />
+                    <Calendar className={`w-4 h-4 mr-2 ${iconColor}`} />
                     <span>Founded {manager.year_founded}</span>
                   </div>
                 )}
@@ -184,7 +202,7 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
                 {manager.sector_focus && manager.sector_focus.length > 0 && (
                   <div className="text-sm text-gray-600">
                     <div className="font-medium mb-1 flex items-center">
-                      <PieChart className="w-4 h-4 mr-2" />
+                      <PieChart className={`w-4 h-4 mr-2 ${iconColor}`} />
                       Sector Focus:
                     </div>
                     <div className="text-xs text-gray-500 ml-6">
@@ -196,7 +214,7 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
                 {manager.stage_focus && manager.stage_focus.length > 0 && (
                   <div className="text-sm text-gray-600">
                     <div className="font-medium mb-1 flex items-center">
-                      <Target className="w-4 h-4 mr-2" />
+                      <Target className={`w-4 h-4 mr-2 ${iconColor}`} />
                       Stage Focus:
                     </div>
                     <div className="text-xs text-gray-500 ml-6">
@@ -208,7 +226,7 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
                 {manager.investment_thesis && (
                   <div className="text-sm text-gray-600">
                     <div className="font-medium mb-1 flex items-center">
-                      <Target className="w-4 h-4 mr-2" />
+                      <Target className={`w-4 h-4 mr-2 ${iconColor}`} />
                       Investment Thesis:
                     </div>
                     <div className="text-xs text-gray-500 line-clamp-3 ml-6">
@@ -219,7 +237,7 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
 
                 {manager.completed_at && (
                   <div className="text-xs text-gray-500 flex items-center">
-                    <FileText className="w-3 h-3 mr-1" />
+                    <FileText className={`w-3 h-3 mr-1 ${iconColor}`} />
                     Profile completed: {new Date(manager.completed_at).toLocaleDateString()}
                   </div>
                 )}

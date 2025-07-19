@@ -8,6 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, UserPlus, Eye, EyeOff } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const userSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -50,31 +51,28 @@ const CreateUserModal = ({ open, onClose, onSuccess }: CreateUserModalProps) => 
     setIsCreating(true);
 
     try {
-      // Create the user through our backend API
-      const response = await fetch('http://localhost:4000/create-viewer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: data.email,
-          password: data.password,
-          firstName: data.firstName,
-          lastName: data.lastName
-        })
+      // Create the user directly using Supabase client-side admin functions
+      const { data: userData, error } = await supabase.auth.admin.createUser({
+        email: data.email,
+        password: data.password,
+        email_confirm: true,
+        user_metadata: {
+          first_name: data.firstName,
+          last_name: data.lastName
+        }
       });
 
-      const result = await response.json();
-      
-      if (!response.ok) {
-        console.error('Error creating user:', result.error);
+      if (error) {
+        console.error('Error creating user:', error);
         toast({
           title: "Error Creating User",
-          description: result.error || 'Failed to create user. Make sure the backend server is running on port 4000.',
+          description: error.message || 'Failed to create user account.',
           variant: "destructive"
         });
         return;
       }
 
-      console.log('User created successfully:', result);
+      console.log('User created successfully:', userData);
 
       toast({
         title: "User Created Successfully",

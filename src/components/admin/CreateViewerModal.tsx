@@ -237,30 +237,28 @@ const CreateViewerModal = ({ open, onClose, onSuccess }: CreateViewerModalProps)
     setIsCreating(true);
 
     try {
-      // First, create the user through our backend API
-      const response = await fetch('http://localhost:4000/create-viewer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: data.email,
-          password: data.password,
-          vehicle_name: data.vehicle_name
-        })
+      // Create the user directly using Supabase client-side admin functions
+      const { data: userData, error } = await supabase.auth.admin.createUser({
+        email: data.email,
+        password: data.password,
+        email_confirm: true,
+        user_metadata: {
+          first_name: data.vehicle_name || 'Viewer',
+          last_name: 'User'
+        }
       });
 
-      const result = await response.json();
-      
-      if (!response.ok) {
-        console.error('Error creating user:', result.error);
+      if (error) {
+        console.error('Error creating user:', error);
         toast({
           title: "Error Creating User",
-          description: result.error || 'Failed to create user. Make sure the backend server is running on port 4000.',
+          description: error.message || 'Failed to create user account.',
           variant: "destructive"
         });
         return;
       }
 
-      const userId = result.user.id;
+      const userId = userData.user.id;
       console.log('User created with ID:', userId);
 
       // Prepare survey data for the database function
@@ -320,19 +318,19 @@ const CreateViewerModal = ({ open, onClose, onSuccess }: CreateViewerModalProps)
       console.log('Calling database function with survey data:', surveyData);
 
       // Call the database function to create survey data for the existing user
-      const { data: result2, error } = await supabase.rpc('create_viewer_survey_data', {
+      const { data: result2, error: surveyError } = await supabase.rpc('create_viewer_survey_data', {
         p_user_id: userId,
         p_survey_data: surveyData,
         p_survey_year: data.survey_year
       });
 
-      console.log('Database response:', { result: result2, error });
+      console.log('Database response:', { result: result2, error: surveyError });
 
-      if (error) {
-        console.error('Error creating survey data:', error);
+      if (surveyError) {
+        console.error('Error creating survey data:', surveyError);
         toast({
           title: "Error Creating Survey Data",
-          description: error.message,
+          description: surveyError.message,
           variant: "destructive"
         });
         return;

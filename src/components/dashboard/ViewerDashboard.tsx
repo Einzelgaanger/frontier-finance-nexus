@@ -37,6 +37,7 @@ import {
   DollarSign
 } from 'lucide-react';
 import { ESCPApplicationModal } from './ESCPApplicationModal';
+import { supabase } from '@/integrations/supabase/client';
 
 const LoadingScreen = () => {
   const [progress, setProgress] = useState(0);
@@ -73,39 +74,24 @@ const LoadingScreen = () => {
   }, [loadingTips.length]);
 
   return (
-    <div className="fixed inset-0 bg-gray-50 flex items-center justify-center z-50">
-      <div className="max-w-md w-full mx-4">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-blue-100 mb-4 shadow-sm">
-            {React.createElement(loadingTips[currentTip].icon, {
-              className: "w-8 h-8 text-blue-600"
-            })}
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="max-w-md w-full mx-auto text-center">
+        <div className="mb-8">
+          <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Network className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-            Loading ESCP Network
-          </h2>
-          <p className="text-gray-600 text-lg">
-            {loadingTips[currentTip].text}
-          </p>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Loading ESCP Network</h2>
+          <p className="text-gray-600">Preparing your dashboard...</p>
         </div>
         
-        <div className="space-y-4">
-          <Progress value={progress} className="h-2 w-full" />
-          <div className="flex justify-between text-sm text-gray-600">
-            <span>Loading progress</span>
-            <span>{progress}%</span>
-          </div>
-          
-          <div className="grid grid-cols-5 gap-2 mt-8">
-            {loadingTips.map((tip, index) => (
-              <div
-                key={index}
-                className={`w-full h-1 rounded-full transition-all duration-300 ${
-                  index === currentTip ? 'bg-blue-600' : 'bg-gray-200'
-                }`}
-              />
-            ))}
-          </div>
+        <div className="mb-6">
+          <Progress value={progress} className="w-full" />
+          <p className="text-sm text-gray-500 mt-2">{progress}% complete</p>
+        </div>
+        
+        <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
+          {React.createElement(loadingTips[currentTip].icon, { className: "w-4 h-4" })}
+          <span>{loadingTips[currentTip].text}</span>
         </div>
       </div>
     </div>
@@ -116,12 +102,102 @@ const ViewerDashboard = () => {
   const [showApplicationModal, setShowApplicationModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [analyticsData, setAnalyticsData] = useState({
+    networkSize: 0,
+    geographicReach: 0,
+    totalCapital: 0,
+    averageTicketSize: 0,
+    activeMarkets: [] as string[],
+    fundsByType: [] as { name: string; value: number }[]
+  });
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
+
+  const fetchAnalyticsData = async () => {
+    setAnalyticsLoading(true);
+    try {
+      // Fetch approved member surveys (completed surveys)
+      const { data: surveys, error } = await supabase
+        .from('member_surveys')
+        .select('*')
+        .not('completed_at', 'is', null)
+        .limit(1000);
+
+      if (error) throw error;
+
+      if (surveys && surveys.length > 0) {
+        // Calculate network size (total approved members)
+        const networkSize = surveys.length;
+
+        // Calculate geographic reach (unique regions)
+        const uniqueRegions = new Set();
+        surveys.forEach(survey => {
+          if (survey.primary_investment_region) {
+            uniqueRegions.add(survey.primary_investment_region);
+          }
+        });
+        const geographicReach = uniqueRegions.size;
+
+        // Calculate total capital (sum of AUM)
+        const totalCapital = surveys.reduce((sum, survey) => {
+          if (survey.aum) {
+            const amount = parseFloat(survey.aum.replace(/[^0-9.]/g, ''));
+            return sum + (isNaN(amount) ? 0 : amount);
+          }
+          return sum;
+        }, 0);
+
+        // Calculate average ticket size
+        const ticketSizes = surveys
+          .map(s => s.typical_check_size)
+          .filter(Boolean)
+          .map(size => {
+            const match = size.match(/[\d,]+/);
+            return match ? parseFloat(match[0].replace(/,/g, '')) : 0;
+          })
+          .filter(size => size > 0);
+        
+        const averageTicketSize = ticketSizes.length > 0 
+          ? ticketSizes.reduce((sum, size) => sum + size, 0) / ticketSizes.length 
+          : 0;
+
+        // Get active markets
+        const activeMarkets = Array.from(uniqueRegions);
+
+        // Calculate funds by type
+        const typeCount = surveys.reduce((acc, survey) => {
+          const type = survey.fund_type || 'Unknown';
+          acc[type] = (acc[type] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+
+        const fundsByType = Object.entries(typeCount).map(([name, value]) => ({
+          name, value
+        }));
+
+        setAnalyticsData({
+          networkSize,
+          geographicReach,
+          totalCapital,
+          averageTicketSize,
+          activeMarkets,
+          fundsByType
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching analytics data:', error);
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  };
 
   useEffect(() => {
     // Simulate loading time
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 3000);
+    }, 2000);
+
+    // Fetch real analytics data
+    fetchAnalyticsData();
 
     return () => clearTimeout(timer);
   }, []);
@@ -150,8 +226,10 @@ const ViewerDashboard = () => {
                 variant="outline" 
                 size="sm"
                 className="border-gray-300 text-gray-600"
+                onClick={fetchAnalyticsData}
+                disabled={analyticsLoading}
               >
-                <RefreshCw className="w-4 h-4 mr-2" />
+                <RefreshCw className={`w-4 h-4 mr-2 ${analyticsLoading ? 'animate-spin' : ''}`} />
                 Last updated: {lastUpdated.toLocaleTimeString()}
               </Button>
               <Badge 
@@ -172,8 +250,17 @@ const ViewerDashboard = () => {
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-600 mb-1">Network Size</p>
-                  <p className="text-2xl font-bold text-gray-900">120+</p>
-                  <p className="text-xs text-gray-500 mt-1">Fund managers</p>
+                  {analyticsLoading ? (
+                    <div className="animate-pulse">
+                      <div className="h-8 bg-gray-200 rounded mb-1"></div>
+                      <div className="h-3 bg-gray-200 rounded"></div>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-2xl font-bold text-gray-900">{analyticsData.networkSize}+</p>
+                      <p className="text-xs text-gray-500 mt-1">Fund managers</p>
+                    </>
+                  )}
                 </div>
                 <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
                   <Users className="w-6 h-6 text-white" />
@@ -187,8 +274,17 @@ const ViewerDashboard = () => {
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-600 mb-1">Geographic Reach</p>
-                  <p className="text-2xl font-bold text-gray-900">30+</p>
-                  <p className="text-xs text-gray-500 mt-1">Countries</p>
+                  {analyticsLoading ? (
+                    <div className="animate-pulse">
+                      <div className="h-8 bg-gray-200 rounded mb-1"></div>
+                      <div className="h-3 bg-gray-200 rounded"></div>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-2xl font-bold text-gray-900">{analyticsData.geographicReach}+</p>
+                      <p className="text-xs text-gray-500 mt-1">Countries</p>
+                    </>
+                  )}
                 </div>
                 <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
                   <Globe className="w-6 h-6 text-white" />
@@ -201,9 +297,18 @@ const ViewerDashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 mb-1">Investment Focus</p>
-                  <p className="text-2xl font-bold text-gray-900">Frontier</p>
-                  <p className="text-xs text-gray-500 mt-1">Markets</p>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Total Capital</p>
+                  {analyticsLoading ? (
+                    <div className="animate-pulse">
+                      <div className="h-8 bg-gray-200 rounded mb-1"></div>
+                      <div className="h-3 bg-gray-200 rounded"></div>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-2xl font-bold text-gray-900">${(analyticsData.totalCapital / 1000000).toFixed(1)}M</p>
+                      <p className="text-xs text-gray-500 mt-1">Under management</p>
+                    </>
+                  )}
                 </div>
                 <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
                   <DollarSign className="w-6 h-6 text-white" />
@@ -216,11 +321,18 @@ const ViewerDashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 mb-1">Your Status</p>
-                  <Badge className="bg-gray-100 text-gray-700 border-gray-200">
-                    Visitor
-                  </Badge>
-                  <p className="text-xs text-gray-500 mt-1">Apply for membership</p>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Avg Ticket Size</p>
+                  {analyticsLoading ? (
+                    <div className="animate-pulse">
+                      <div className="h-8 bg-gray-200 rounded mb-1"></div>
+                      <div className="h-3 bg-gray-200 rounded"></div>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-2xl font-bold text-gray-900">${(analyticsData.averageTicketSize / 1000000).toFixed(1)}M</p>
+                      <p className="text-xs text-gray-500 mt-1">Per investment</p>
+                    </>
+                  )}
                 </div>
                 <div className="w-12 h-12 bg-orange-600 rounded-lg flex items-center justify-center">
                   <Award className="w-6 h-6 text-white" />

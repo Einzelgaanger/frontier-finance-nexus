@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import Header from '@/components/layout/Header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -35,7 +35,9 @@ import {
   Award,
   MessageSquare,
   User,
-  Mail
+  Mail,
+  RefreshCw,
+  Loader2
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Link as RouterLink } from 'react-router-dom';
@@ -87,7 +89,7 @@ interface MembershipRequest {
   capital_raised?: string | null;
   supporting_documents?: string | null;
   supporting_document_links?: string | null;
-  information_sharing?: any; // JSON field from database
+  information_sharing?: Record<string, unknown>; // JSON field from database
   expectations?: string | null;
   how_heard_about_network?: string | null;
   status: string;
@@ -126,7 +128,7 @@ const Admin = () => {
   const [pendingRoleChange, setPendingRoleChange] = useState<{requestId: string, newRole: 'viewer' | 'member'} | null>(null);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [showCreateUserModal, setShowCreateUserModal] = useState(false);
-  const [createdViewers, setCreatedViewers] = useState<any[]>([]);
+  const [createdViewers, setCreatedViewers] = useState<Array<{ user_id: string; role: string }>>([]);
   const [analyticsData, setAnalyticsData] = useState({
     totalFunds: 0,
     totalCapital: 0,
@@ -141,29 +143,30 @@ const Admin = () => {
       totalInvestments: 0
     }
   });
-  const [analyticsLoading, setAnalyticsLoading] = useState(false);
   
-  // Add loading states for individual sections
+  // Optimized loading states
   const [applicationsLoading, setApplicationsLoading] = useState(false);
   const [membersLoading, setMembersLoading] = useState(false);
   const [activityLoading, setActivityLoading] = useState(false);
   const [viewersLoading, setViewersLoading] = useState(false);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
   
-  // Add data cache
-  const [dataCache, setDataCache] = useState<Record<string, { data: any; timestamp: number }>>({});
+  // Data cache with longer TTL for better performance
+  const [dataCache, setDataCache] = useState<Record<string, { data: unknown; timestamp: number }>>({});
 
-  // Add function to clear cache
+  // Memoized cache clear function
   const clearCache = useCallback(() => {
     setDataCache({});
   }, []);
 
+  // Optimized fund managers fetch with longer cache
   const fetchFundManagers = useCallback(async () => {
     const cacheKey = 'fundManagers';
     const cache = dataCache[cacheKey];
     const now = Date.now();
     
-    // Return cached data if it's less than 5 minutes old
-    if (cache && (now - cache.timestamp) < 5 * 60 * 1000) {
+    // Return cached data if it's less than 10 minutes old (increased from 5)
+    if (cache && (now - cache.timestamp) < 10 * 60 * 1000) {
       setFundManagers(cache.data);
       return;
     }
@@ -174,7 +177,7 @@ const Admin = () => {
         .from('member_surveys')
         .select('id, user_id, fund_name, website')
         .not('completed_at', 'is', null)
-        .limit(100); // Limit to prevent overwhelming
+        .limit(50); // Reduced limit for better performance
 
       if (error) throw error;
       
@@ -193,13 +196,14 @@ const Admin = () => {
     }
   }, [dataCache]);
 
+  // Optimized membership requests fetch
   const fetchMembershipRequests = useCallback(async () => {
     const cacheKey = 'membershipRequests';
     const cache = dataCache[cacheKey];
     const now = Date.now();
     
-    // Return cached data if it's less than 2 minutes old
-    if (cache && (now - cache.timestamp) < 2 * 60 * 1000) {
+    // Return cached data if it's less than 5 minutes old (increased from 2)
+    if (cache && (now - cache.timestamp) < 5 * 60 * 1000) {
       setMembershipRequests(cache.data);
       return;
     }
@@ -210,7 +214,7 @@ const Admin = () => {
         .from('membership_requests')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(50); // Limit to prevent overwhelming
+        .limit(25); // Reduced limit for better performance
 
       if (error) throw error;
       
@@ -229,13 +233,14 @@ const Admin = () => {
     }
   }, [dataCache]);
 
+  // Optimized activity logs fetch
   const fetchActivityLogs = useCallback(async () => {
     const cacheKey = 'activityLogs';
     const cache = dataCache[cacheKey];
     const now = Date.now();
     
-    // Return cached data if it's less than 1 minute old
-    if (cache && (now - cache.timestamp) < 1 * 60 * 1000) {
+    // Return cached data if it's less than 3 minutes old (increased from 1)
+    if (cache && (now - cache.timestamp) < 3 * 60 * 1000) {
       setActivityLogs(cache.data);
       return;
     }
@@ -246,7 +251,7 @@ const Admin = () => {
         .from('activity_logs')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(25); // Limit to prevent overwhelming
+        .limit(15); // Reduced limit for better performance
 
       if (error) throw error;
       
@@ -265,13 +270,14 @@ const Admin = () => {
     }
   }, [dataCache]);
 
+  // Optimized viewers fetch
   const fetchCreatedViewers = useCallback(async () => {
     const cacheKey = 'createdViewers';
     const cache = dataCache[cacheKey];
     const now = Date.now();
     
-    // Return cached data if it's less than 3 minutes old
-    if (cache && (now - cache.timestamp) < 3 * 60 * 1000) {
+    // Return cached data if it's less than 5 minutes old (increased from 3)
+    if (cache && (now - cache.timestamp) < 5 * 60 * 1000) {
       setCreatedViewers(cache.data);
       return;
     }
@@ -285,7 +291,7 @@ const Admin = () => {
           role
         `)
         .eq('role', 'viewer')
-        .limit(50); // Limit to prevent overwhelming
+        .limit(25); // Reduced limit for better performance
 
       if (error) throw error;
       
@@ -304,18 +310,23 @@ const Admin = () => {
     }
   }, [dataCache]);
 
+  // Optimized initial load - only load essential data
   useEffect(() => {
     if (userRole === 'admin') {
       setLoading(true);
-      // Only load essential data initially
-      Promise.all([
-        fetchMembershipRequests(), // Always load applications first
-        fetchAnalyticsData() // Load analytics for dashboard
-      ]).finally(() => {
+      // Only load applications initially - everything else is lazy loaded
+      fetchMembershipRequests().finally(() => {
         setLoading(false);
       });
     }
   }, [userRole, fetchMembershipRequests]);
+
+  // Lazy load analytics only when needed
+  useEffect(() => {
+    if (userRole === 'admin' && activeTab === 'analytics') {
+      fetchAnalyticsData();
+    }
+  }, [userRole, activeTab, selectedYear]);
 
   // Lazy load other data when tabs are accessed
   useEffect(() => {
@@ -336,38 +347,33 @@ const Admin = () => {
     }
   }, [userRole, activeTab, fetchCreatedViewers]);
 
-  useEffect(() => {
-    if (userRole === 'admin') {
-      fetchAnalyticsData();
-    }
-  }, [userRole, selectedYear]);
-
-  const fetchAnalyticsData = async () => {
+  // Optimized analytics data fetch with better caching
+  const fetchAnalyticsData = useCallback(async () => {
     const cacheKey = `analytics_${selectedYear}`;
     const cache = dataCache[cacheKey];
     const now = Date.now();
     
-    // Return cached data if it's less than 10 minutes old
-    if (cache && (now - cache.timestamp) < 10 * 60 * 1000) {
+    // Return cached data if it's less than 15 minutes old (increased from 10)
+    if (cache && (now - cache.timestamp) < 15 * 60 * 1000) {
       setAnalyticsData(cache.data);
       return;
     }
 
     setAnalyticsLoading(true);
     try {
-      // Use a more efficient query with aggregation
+      // More efficient query with specific fields only
       const { data: surveys, error } = await supabase
         .from('member_surveys')
         .select('aum, typical_check_size, primary_investment_region, fund_type, created_at, number_of_investments')
         .not('completed_at', 'is', null)
         .gte('created_at', `${selectedYear}-01-01`)
         .lt('created_at', `${selectedYear + 1}-01-01`)
-        .limit(1000); // Reasonable limit
+        .limit(500); // Reduced limit for better performance
 
       if (error) throw error;
 
       if (surveys && surveys.length > 0) {
-        // Use more efficient calculations
+        // Optimized calculations
         const totalFunds = surveys.length;
         
         // Simplified total capital calculation
@@ -520,21 +526,35 @@ const Admin = () => {
     } finally {
       setAnalyticsLoading(false);
     }
-  };
+  }, [selectedYear, dataCache]);
 
-  // Add function to refresh data
+  // Optimized refresh function
   const refreshData = useCallback(async () => {
     clearCache();
     setLoading(true);
     try {
-      await Promise.all([
-        fetchMembershipRequests(),
-        fetchAnalyticsData()
-      ]);
+      // Only refresh current tab data
+      switch (activeTab) {
+        case 'applications':
+          await fetchMembershipRequests();
+          break;
+        case 'analytics':
+          await fetchAnalyticsData();
+          break;
+        case 'members':
+          await fetchFundManagers();
+          break;
+        case 'activity':
+          await fetchActivityLogs();
+          break;
+        case 'viewers':
+          await fetchCreatedViewers();
+          break;
+      }
     } finally {
       setLoading(false);
     }
-  }, [clearCache, fetchMembershipRequests]);
+  }, [clearCache, activeTab, fetchMembershipRequests, fetchAnalyticsData, fetchFundManagers, fetchActivityLogs, fetchCreatedViewers]);
 
   const handleRoleChange = async (requestId: string, newRole: 'viewer' | 'member') => {
     setPendingRoleChange({ requestId, newRole });
@@ -614,7 +634,7 @@ const Admin = () => {
         .insert({
           user_id: user?.id,
           action,
-          details,
+          details: details as Json,
           user_agent: navigator.userAgent
         });
 
@@ -923,7 +943,7 @@ const Admin = () => {
               variant="outline"
               className="flex items-center gap-2 bg-white/70 backdrop-blur-sm border-slate-200 text-slate-700 hover:bg-white/90"
             >
-              <Activity className="w-4 h-4" />
+              <RefreshCw className="w-4 h-4" />
               {loading ? 'Refreshing...' : 'Refresh Data'}
             </Button>
           </div>
