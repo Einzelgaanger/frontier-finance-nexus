@@ -350,7 +350,7 @@ const Analytics = () => {
       name: country,
       value: count,
       fill: getRandomColor()
-    })).sort((a, b) => b.value - a.value);
+    })).sort((a, b) => (b.value as number) - (a.value as number));
   };
 
   const prepareMarketsOperatedData = () => {
@@ -369,7 +369,7 @@ const Analytics = () => {
       name: market,
       value: count,
       fill: getRandomColor()
-    })).sort((a, b) => b.value - a.value);
+    })).sort((a, b) => (b.value as number) - (a.value as number));
   };
 
   // Capital Analytics Functions
@@ -492,7 +492,7 @@ const Analytics = () => {
       averageAllocation: data.totalPercentage / data.count,
       fundCount: data.count,
       fill: getRandomColor()
-    })).sort((a, b) => b.averageAllocation - a.averageAllocation);
+    })).sort((a, b) => (b.averageAllocation as number) - (a.averageAllocation as number));
   };
 
   // Timeline Analytics Functions
@@ -1124,7 +1124,7 @@ const Analytics = () => {
                         <p className="text-sm font-medium text-gray-600 mb-1">Markets Operated</p>
                         <p className="text-2xl font-bold text-gray-900">{prepareMarketsOperatedData().length}</p>
                       </div>
-                      <Globe className="w-8 h-8 text-orange-600" />
+                      <Building2 className="w-8 h-8 text-orange-600" />
                     </div>
                   </CardContent>
                 </Card>
@@ -1134,7 +1134,7 @@ const Analytics = () => {
                 <Card className="shadow-sm border-gray-200">
                   <CardHeader className="pb-4">
                     <CardTitle className="text-lg flex items-center">
-                      <MapPin className="w-5 h-5 mr-2 text-green-600" />
+                      <MapPin className="w-5 h-5 mr-2 text-blue-600" />
                       Legal Domicile Distribution
                     </CardTitle>
                   </CardHeader>
@@ -1158,7 +1158,7 @@ const Analytics = () => {
                 <Card className="shadow-sm border-gray-200">
                   <CardHeader className="pb-4">
                     <CardTitle className="text-lg flex items-center">
-                      <Globe className="w-5 h-5 mr-2 text-orange-600" />
+                      <Globe className="w-5 h-5 mr-2 text-green-600" />
                       Markets Operated
                     </CardTitle>
                   </CardHeader>
@@ -1169,12 +1169,57 @@ const Analytics = () => {
                         <XAxis dataKey="name" />
                         <YAxis />
                         <Tooltip />
-                        <Bar dataKey="value" fill="#F59E0B" />
+                        <Bar dataKey="value" fill="#10B981" />
                       </BarChart>
                     </ResponsiveContainer>
                   </CardContent>
                 </Card>
               </div>
+
+              {/* Geographic Coverage Details */}
+              <Card className="shadow-sm border-gray-200">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg flex items-center">
+                    <Building2 className="w-5 h-5 mr-2 text-purple-600" />
+                    Geographic Coverage Analysis
+                  </CardTitle>
+                  <CardDescription>
+                    Detailed breakdown of fund manager geographic presence and market coverage
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-3">Top Legal Domiciles</h4>
+                      <div className="space-y-2">
+                        {prepareGeographyData()
+                          .sort((a, b) => (b.value as number) - (a.value as number))
+                          .slice(0, 5)
+                          .map((item, index) => (
+                            <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                              <span className="text-sm text-gray-700">{item.name}</span>
+                              <span className="text-sm font-medium text-gray-900">{item.value as number} funds</span>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-3">Most Active Markets</h4>
+                      <div className="space-y-2">
+                        {prepareMarketsOperatedData()
+                          .sort((a, b) => (b.value as number) - (a.value as number))
+                          .slice(0, 5)
+                          .map((item, index) => (
+                            <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                              <span className="text-sm text-gray-700">{item.name}</span>
+                              <span className="text-sm font-medium text-gray-900">{item.value as number} operations</span>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
@@ -1551,7 +1596,9 @@ const Analytics = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-gray-600 mb-1">Document Uploads</p>
-                        <p className="text-2xl font-bold text-gray-900">{Array.isArray(prepareEngagementData()) ? 0 : prepareEngagementData().documentUploads}</p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {Array.isArray(prepareEngagementData()) ? 0 : (prepareEngagementData() as any).documentUploads}
+                        </p>
                       </div>
                       <Eye className="w-8 h-8 text-blue-600" />
                     </div>
