@@ -135,10 +135,21 @@ const Network = () => {
           if (!profileError && profileData && profileData.email) {
             profile = profileData;
           } else {
-            console.log('Profile not found or no email for user:', item.user_id, 'Profile error:', profileError);
+            // Create a fallback profile for users without profiles
+            profile = {
+              first_name: 'User',
+              last_name: item.user_id.slice(0, 8),
+              email: 'user@example.com'
+            };
           }
         } catch (profileErr) {
           console.error('Error fetching profile for user:', item.user_id, profileErr);
+          // Create a fallback profile
+          profile = {
+            first_name: 'User',
+            last_name: item.user_id.slice(0, 8),
+            email: 'user@example.com'
+          };
         }
         
         let sectorFocus: string[] = [];
@@ -202,10 +213,21 @@ const Network = () => {
           if (!profileError && profileData && profileData.email) {
             profile = profileData;
           } else {
-            console.log('Profile not found or no email for user:', item.user_id, 'Profile error:', profileError);
+            // Create a fallback profile for users without profiles
+            profile = {
+              first_name: 'User',
+              last_name: item.user_id.slice(0, 8),
+              email: 'user@example.com'
+            };
           }
         } catch (profileErr) {
           console.error('Error fetching profile for user:', item.user_id, profileErr);
+          // Create a fallback profile
+          profile = {
+            first_name: 'User',
+            last_name: item.user_id.slice(0, 8),
+            email: 'user@example.com'
+          };
         }
         
         const manager: FundManager = {

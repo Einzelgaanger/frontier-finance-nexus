@@ -67,6 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let mounted = true;
     let roleFetchTimeout: NodeJS.Timeout;
+    let lastUserId: string | null = null;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -78,25 +79,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Clear any existing timeout
-          if (roleFetchTimeout) {
-            clearTimeout(roleFetchTimeout);
-          }
-          
-          // Wait for the trigger to complete if it's a new signup
-          if (event === 'SIGNED_IN' && !user) {
-            roleFetchTimeout = setTimeout(() => {
-              if (mounted) {
-                fetchUserRole(session.user.id);
-              }
-            }, 2000);
-          } else {
-            // Debounce role fetching to avoid multiple rapid calls
-            roleFetchTimeout = setTimeout(() => {
-              if (mounted) {
-                fetchUserRole(session.user.id);
-              }
-            }, 500);
+          // Only fetch role if user ID changed or it's a new signup
+          if (lastUserId !== session.user.id || event === 'SIGNED_IN') {
+            lastUserId = session.user.id;
+            
+            // Clear any existing timeout
+            if (roleFetchTimeout) {
+              clearTimeout(roleFetchTimeout);
+            }
+            
+            // Wait for the trigger to complete if it's a new signup
+            if (event === 'SIGNED_IN') {
+              roleFetchTimeout = setTimeout(() => {
+                if (mounted) {
+                  fetchUserRole(session.user.id);
+                }
+              }, 2000);
+            } else {
+              // Debounce role fetching to avoid multiple rapid calls
+              roleFetchTimeout = setTimeout(() => {
+                if (mounted) {
+                  fetchUserRole(session.user.id);
+                }
+              }, 500);
+            }
           }
 
           // Handle redirect after successful authentication
@@ -106,6 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         } else {
           setUserRole(null);
+          lastUserId = null;
         }
         
         if (mounted) {

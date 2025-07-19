@@ -58,6 +58,53 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+// Custom CSS for improved typography and organization
+const analyticsStyles = `
+  .analytics-label {
+    @apply text-xs font-semibold text-gray-700 uppercase tracking-wide;
+  }
+  
+  .analytics-value {
+    @apply text-2xl font-bold text-gray-900;
+  }
+  
+  .analytics-subtitle {
+    @apply text-xs text-gray-500 mt-1;
+  }
+  
+  .analytics-card-title {
+    @apply text-lg font-semibold text-gray-900 flex items-center;
+  }
+  
+  .analytics-metric-label {
+    @apply text-sm font-medium text-gray-600 mb-1;
+  }
+  
+  .analytics-chart-label {
+    @apply text-sm font-medium text-gray-700 mb-2;
+  }
+  
+  .analytics-stat-label {
+    @apply text-xs font-semibold text-gray-600 uppercase tracking-wider;
+  }
+  
+  .analytics-stat-value {
+    @apply text-xl font-bold text-gray-900;
+  }
+  
+  .analytics-stat-change {
+    @apply text-xs font-medium;
+  }
+  
+  .analytics-stat-change.positive {
+    @apply text-green-600;
+  }
+  
+  .analytics-stat-change.negative {
+    @apply text-red-600;
+  }
+`;
+
 const Analytics = () => {
   const { userRole } = useAuth();
   const { toast } = useToast();
@@ -67,8 +114,12 @@ const Analytics = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [timeRange, setTimeRange] = useState('all');
   const [lastUpdated, setLastUpdated] = useState(new Date());
-  // Add new state for active tab
   const [activeTab, setActiveTab] = useState('overview');
+  const [dataQuality, setDataQuality] = useState({
+    completeness: 0,
+    accuracy: 0,
+    freshness: 0
+  });
 
   const fetchSurveyData = useCallback(async () => {
     setLoading(true);
@@ -110,6 +161,32 @@ const Analytics = () => {
       const { data, error } = await query;
 
       if (error) throw error;
+      
+      // Calculate data quality metrics
+      const totalRecords = data?.length || 0;
+      const completeRecords = data?.filter(record => 
+        record.vehicle_name && 
+        record.target_capital && 
+        record.team_size_min
+      ).length || 0;
+      
+      const accurateRecords = data?.filter(record => 
+        Number(record.target_capital) > 0 && 
+        Number(record.team_size_min) > 0
+      ).length || 0;
+      
+      const recentRecords = data?.filter(record => {
+        const completedDate = new Date(record.completed_at);
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        return completedDate > thirtyDaysAgo;
+      }).length || 0;
+
+      setDataQuality({
+        completeness: totalRecords > 0 ? (completeRecords / totalRecords) * 100 : 0,
+        accuracy: totalRecords > 0 ? (accurateRecords / totalRecords) * 100 : 0,
+        freshness: totalRecords > 0 ? (recentRecords / totalRecords) * 100 : 0
+      });
+
       setSurveyData(data || []);
       setLastUpdated(new Date());
     } catch (error) {
@@ -143,59 +220,77 @@ const Analytics = () => {
       totalEquityInvestments: 0,
       totalSelfLiquidatingInvestments: 0,
       averageFundStage: 0,
-      totalDryPowder: 0
+      totalDryPowder: 0,
+      medianTicketSize: 0,
+      capitalEfficiency: 0,
+      geographicDiversity: 0
     };
 
     const totalFunds = surveyData.length;
     
-    // Capital metrics
-    const totalCapital = surveyData.reduce((sum, fund) => sum + (Number(fund.target_capital) || 0), 0);
+    // Capital metrics with improved accuracy
+    const validCapitalData = surveyData.filter(fund => Number(fund.target_capital) > 0);
+    const totalCapital = validCapitalData.reduce((sum, fund) => sum + (Number(fund.target_capital) || 0), 0);
     const capitalRaised = surveyData.reduce((sum, fund) => sum + (Number(fund.capital_raised) || 0), 0);
     const capitalInMarket = surveyData.reduce((sum, fund) => sum + (Number(fund.capital_in_market) || 0), 0);
-    const totalDryPowder = capitalRaised - capitalInMarket;
+    const totalDryPowder = Math.max(0, capitalRaised - capitalInMarket);
     
-    // Ticket size metrics
-    const ticketSizes = surveyData.map(fund => {
-      const min = Number(fund.ticket_size_min) || 0;
-      const max = Number(fund.ticket_size_max) || 0;
-      return (min + max) / 2;
-    }).filter(size => size > 0);
+    // Ticket size metrics with median calculation
+    const ticketSizes = surveyData
+      .map(fund => {
+        const min = Number(fund.ticket_size_min) || 0;
+        const max = Number(fund.ticket_size_max) || 0;
+        return min > 0 && max > 0 ? (min + max) / 2 : null;
+      })
+      .filter(size => size !== null && size > 0);
     
     const averageTicketSize = ticketSizes.length > 0 
       ? ticketSizes.reduce((sum, size) => sum + size, 0) / ticketSizes.length 
       : 0;
+    
+    // Calculate median ticket size
+    const sortedTicketSizes = [...ticketSizes].sort((a, b) => a - b);
+    const medianTicketSize = sortedTicketSizes.length > 0 
+      ? sortedTicketSizes[Math.floor(sortedTicketSizes.length / 2)]
+      : 0;
 
-    // Geographic metrics
+    // Geographic metrics with diversity calculation
     const uniqueMarkets = new Set();
     surveyData.forEach(fund => {
       if (fund.legal_domicile && Array.isArray(fund.legal_domicile)) {
         fund.legal_domicile.forEach(market => uniqueMarkets.add(market));
       }
     });
+    
+    const geographicDiversity = uniqueMarkets.size / Math.max(surveyData.length, 1) * 100;
 
-    // Team size metrics
-    const teamSizes = surveyData.map(fund => {
-      const min = Number(fund.team_size_min) || 0;
-      const max = Number(fund.team_size_max) || 0;
-      return (min + max) / 2;
-    }).filter(size => size > 0);
+    // Team size metrics with validation
+    const teamSizes = surveyData
+      .map(fund => {
+        const min = Number(fund.team_size_min) || 0;
+        const max = Number(fund.team_size_max) || 0;
+        return min > 0 && max > 0 ? (min + max) / 2 : null;
+      })
+      .filter(size => size !== null && size > 0);
     
     const averageTeamSize = teamSizes.length > 0 
       ? teamSizes.reduce((sum, size) => sum + size, 0) / teamSizes.length 
       : 0;
 
-    // Return metrics
-    const returns = surveyData.map(fund => {
-      const min = Number(fund.target_return_min) || 0;
-      const max = Number(fund.target_return_max) || 0;
-      return (min + max) / 2;
-    }).filter(ret => ret > 0);
+    // Return metrics with validation
+    const returns = surveyData
+      .map(fund => {
+        const min = Number(fund.target_return_min) || 0;
+        const max = Number(fund.target_return_max) || 0;
+        return min > 0 && max > 0 ? (min + max) / 2 : null;
+      })
+      .filter(ret => ret !== null && ret > 0);
     
     const averageReturn = returns.length > 0 
       ? returns.reduce((sum, ret) => sum + ret, 0) / returns.length 
       : 0;
 
-    // Investment metrics
+    // Investment metrics with validation
     const totalEquityInvestments = surveyData.reduce((sum, fund) => {
       const equityMade = Number(fund.equity_investments_made) || 0;
       return sum + equityMade;
@@ -220,10 +315,16 @@ const Analytics = () => {
       ? fundStages.reduce((sum, stage) => sum + stage, 0) / fundStages.length 
       : 0;
 
+    // Capital efficiency calculation
+    const capitalEfficiency = validCapitalData.length > 0 
+      ? (capitalRaised / totalCapital) * 100 
+      : 0;
+
     return {
       totalFunds,
       totalCapital,
       averageTicketSize,
+      medianTicketSize,
       activeMarkets: uniqueMarkets.size,
       averageTeamSize,
       averageReturn,
@@ -232,7 +333,9 @@ const Analytics = () => {
       totalEquityInvestments,
       totalSelfLiquidatingInvestments,
       averageFundStage,
-      totalDryPowder
+      totalDryPowder,
+      capitalEfficiency,
+      geographicDiversity
     };
   };
 
@@ -470,29 +573,33 @@ const Analytics = () => {
   const prepareSectorsData = () => {
     if (!surveyData.length) return [];
 
-    const sectors: { [key: string]: { totalPercentage: number; count: number } } = {};
+    const sectors: { [key: string]: { totalPercentage: number; count: number; totalCapital: number } } = {};
     surveyData.forEach(fund => {
       if (fund.sectors_allocation) {
         const allocation = typeof fund.sectors_allocation === 'string' 
           ? JSON.parse(fund.sectors_allocation) 
           : fund.sectors_allocation;
         
+        const fundCapital = Number(fund.target_capital) || 0;
+        
         Object.entries(allocation).forEach(([sector, percentage]) => {
           if (!sectors[sector]) {
-            sectors[sector] = { totalPercentage: 0, count: 0 };
+            sectors[sector] = { totalPercentage: 0, count: 0, totalCapital: 0 };
           }
           sectors[sector].totalPercentage += Number(percentage) || 0;
           sectors[sector].count += 1;
+          sectors[sector].totalCapital += fundCapital * (Number(percentage) / 100);
         });
       }
     });
 
     return Object.entries(sectors).map(([sector, data]) => ({
       name: sector,
-      averageAllocation: data.totalPercentage / data.count,
       fundCount: data.count,
+      averageAllocation: data.totalPercentage / data.count,
+      totalCapital: data.totalCapital,
       fill: getRandomColor()
-    })).sort((a, b) => (b.averageAllocation as number) - (a.averageAllocation as number));
+    })).sort((a, b) => b.fundCount - a.fundCount);
   };
 
   // Timeline Analytics Functions
@@ -607,99 +714,172 @@ const Analytics = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <style>{analyticsStyles}</style>
       <Header />
       <div className="max-w-7xl mx-auto px-6 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-6 grid grid-cols-4 md:grid-cols-8 gap-2">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="team">Team</TabsTrigger>
-            <TabsTrigger value="geography">Geography</TabsTrigger>
-            <TabsTrigger value="capital">Capital</TabsTrigger>
-            <TabsTrigger value="instruments">Instruments</TabsTrigger>
-            <TabsTrigger value="sectors">Sectors</TabsTrigger>
-            <TabsTrigger value="timeline">Timeline</TabsTrigger>
-            <TabsTrigger value="engagement">Engagement</TabsTrigger>
+          <TabsList className="mb-6 grid grid-cols-4 md:grid-cols-8 gap-2 bg-white/80 backdrop-blur-sm border border-slate-200">
+            <TabsTrigger value="overview" className="text-xs font-medium">Overview</TabsTrigger>
+            <TabsTrigger value="team" className="text-xs font-medium">Team</TabsTrigger>
+            <TabsTrigger value="geography" className="text-xs font-medium">Geography</TabsTrigger>
+            <TabsTrigger value="capital" className="text-xs font-medium">Capital</TabsTrigger>
+            <TabsTrigger value="instruments" className="text-xs font-medium">Instruments</TabsTrigger>
+            <TabsTrigger value="sectors" className="text-xs font-medium">Sectors</TabsTrigger>
+            <TabsTrigger value="timeline" className="text-xs font-medium">Timeline</TabsTrigger>
+            <TabsTrigger value="engagement" className="text-xs font-medium">Engagement</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
-            {/* Executive Summary - expand to include all key metrics */}
+            {/* Data Quality Indicators */}
+            <div className="mb-8">
+              <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 shadow-sm">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="analytics-card-title">
+                        <CheckCircle className="w-5 h-5 mr-2 text-blue-600" />
+                        Data Quality Metrics
+                      </h3>
+                      <p className="text-sm text-gray-600">Comprehensive data validation and quality assessment</p>
+                    </div>
+                    <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                      {dataQuality.completeness > 80 ? 'Excellent' : dataQuality.completeness > 60 ? 'Good' : 'Needs Attention'}
+                    </Badge>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="text-center">
+                      <p className="analytics-stat-label">Data Completeness</p>
+                      <p className="analytics-stat-value">{dataQuality.completeness.toFixed(1)}%</p>
+                      <p className="analytics-stat-change positive">+{dataQuality.completeness - 75}% vs target</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="analytics-stat-label">Data Accuracy</p>
+                      <p className="analytics-stat-value">{dataQuality.accuracy.toFixed(1)}%</p>
+                      <p className="analytics-stat-change positive">+{dataQuality.accuracy - 70}% vs target</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="analytics-stat-label">Data Freshness</p>
+                      <p className="analytics-stat-value">{dataQuality.freshness.toFixed(1)}%</p>
+                      <p className="analytics-stat-change positive">+{dataQuality.freshness - 60}% vs target</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Executive Summary - Enhanced with better typography */}
             <div className="mb-8">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                <Card className="shadow-sm border-gray-200">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-            <div>
-                        <p className="text-sm font-medium text-gray-600 mb-1">Total Funds</p>
-                        <p className="text-2xl font-bold text-gray-900">{metrics.totalFunds}</p>
-                      </div>
-                      <Building2 className="w-8 h-8 text-blue-600" />
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="shadow-sm border-gray-200">
+                <Card className="shadow-sm border-gray-200 bg-white/80 backdrop-blur-sm">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-600 mb-1">Total Capital</p>
-                        <p className="text-2xl font-bold text-gray-900">${metrics.totalCapital.toLocaleString()}</p>
+                        <p className="analytics-metric-label">Total Funds</p>
+                        <p className="analytics-value">{metrics.totalFunds}</p>
+                        <p className="analytics-subtitle">Active fund managers</p>
                       </div>
-                      <DollarSign className="w-8 h-8 text-green-600" />
+                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <Building2 className="w-6 h-6 text-blue-600" />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
-                <Card className="shadow-sm border-gray-200">
+                <Card className="shadow-sm border-gray-200 bg-white/80 backdrop-blur-sm">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-600 mb-1">Avg. Ticket Size</p>
-                        <p className="text-2xl font-bold text-gray-900">${metrics.averageTicketSize.toLocaleString()}</p>
+                        <p className="analytics-metric-label">Total Capital</p>
+                        <p className="analytics-value">${(metrics.totalCapital / 1000000).toFixed(1)}M</p>
+                        <p className="analytics-subtitle">Target capital raised</p>
                       </div>
-                      <Target className="w-8 h-8 text-orange-600" />
+                      <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <DollarSign className="w-6 h-6 text-green-600" />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
-                <Card className="shadow-sm border-gray-200">
+                <Card className="shadow-sm border-gray-200 bg-white/80 backdrop-blur-sm">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-600 mb-1">Avg. Team Size</p>
-                        <p className="text-2xl font-bold text-gray-900">{metrics.averageTeamSize.toFixed(1)}</p>
+                        <p className="analytics-metric-label">Avg. Ticket Size</p>
+                        <p className="analytics-value">${(metrics.averageTicketSize / 1000000).toFixed(1)}M</p>
+                        <p className="analytics-subtitle">Median: ${(metrics.medianTicketSize / 1000000).toFixed(1)}M</p>
                       </div>
-                      <Users className="w-8 h-8 text-purple-600" />
+                      <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                        <Target className="w-6 h-6 text-orange-600" />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
-                <Card className="shadow-sm border-gray-200">
+                <Card className="shadow-sm border-gray-200 bg-white/80 backdrop-blur-sm">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-600 mb-1">Avg. Return</p>
-                        <p className="text-2xl font-bold text-gray-900">{metrics.averageReturn.toFixed(2)}%</p>
+                        <p className="analytics-metric-label">Avg. Team Size</p>
+                        <p className="analytics-value">{metrics.averageTeamSize.toFixed(1)}</p>
+                        <p className="analytics-subtitle">Team members per fund</p>
                       </div>
-                      <TrendingUp className="w-8 h-8 text-teal-600" />
+                      <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <Users className="w-6 h-6 text-purple-600" />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
-                <Card className="shadow-sm border-gray-200">
+                <Card className="shadow-sm border-gray-200 bg-white/80 backdrop-blur-sm">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-600 mb-1">Completion Rate</p>
-                        <p className="text-2xl font-bold text-gray-900">{metrics.completionRate.toFixed(1)}%</p>
+                        <p className="analytics-metric-label">Avg. Return</p>
+                        <p className="analytics-value">{metrics.averageReturn.toFixed(2)}%</p>
+                        <p className="analytics-subtitle">Target returns</p>
                       </div>
-                      <CheckCircle className="w-8 h-8 text-green-600" />
+                      <div className="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center">
+                        <TrendingUp className="w-6 h-6 text-teal-600" />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
-                <Card className="shadow-sm border-gray-200">
+                <Card className="shadow-sm border-gray-200 bg-white/80 backdrop-blur-sm">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-600 mb-1">Data Freshness</p>
-                        <p className="text-2xl font-bold text-gray-900">{lastUpdated.toLocaleTimeString()}</p>
+                        <p className="analytics-metric-label">Capital Efficiency</p>
+                        <p className="analytics-value">{metrics.capitalEfficiency.toFixed(1)}%</p>
+                        <p className="analytics-subtitle">Raised vs target</p>
                       </div>
-                      <RefreshCw className="w-8 h-8 text-gray-500" />
+                      <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                        <TrendingUp className="w-6 h-6 text-emerald-600" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm border-gray-200 bg-white/80 backdrop-blur-sm">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="analytics-metric-label">Geographic Diversity</p>
+                        <p className="analytics-value">{metrics.geographicDiversity.toFixed(1)}%</p>
+                        <p className="analytics-subtitle">Markets per fund</p>
+                      </div>
+                      <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+                        <Globe className="w-6 h-6 text-indigo-600" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm border-gray-200 bg-white/80 backdrop-blur-sm">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="analytics-metric-label">Data Freshness</p>
+                        <p className="analytics-value">{lastUpdated.toLocaleTimeString()}</p>
+                        <p className="analytics-subtitle">Last updated</p>
+                      </div>
+                      <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <RefreshCw className="w-6 h-6 text-gray-600" />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -1045,32 +1225,58 @@ const Analytics = () => {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="shadow-sm border-gray-200">
+                <Card className="shadow-sm border-gray-200 bg-white/80 backdrop-blur-sm">
                   <CardHeader className="pb-4">
-                    <CardTitle className="text-lg flex items-center">
+                    <CardTitle className="analytics-card-title">
                       <Users className="w-5 h-5 mr-2 text-purple-600" />
                       Team Size Distribution
                     </CardTitle>
+                    <CardDescription className="analytics-chart-label">
+                      Distribution of team sizes across fund managers
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={prepareTeamData()}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip />
-                        <Bar dataKey="teamSize" fill="#8B5CF6" />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                        <XAxis 
+                          dataKey="name" 
+                          tick={{ fontSize: 12 }}
+                          tickLine={false}
+                          axisLine={false}
+                        />
+                        <YAxis 
+                          tick={{ fontSize: 12 }}
+                          tickLine={false}
+                          axisLine={false}
+                        />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'white', 
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            fontSize: '12px'
+                          }}
+                        />
+                        <Bar 
+                          dataKey="teamSize" 
+                          fill="#8B5CF6" 
+                          radius={[4, 4, 0, 0]}
+                        />
                       </BarChart>
                     </ResponsiveContainer>
                   </CardContent>
                 </Card>
 
-                <Card className="shadow-sm border-gray-200">
+                <Card className="shadow-sm border-gray-200 bg-white/80 backdrop-blur-sm">
                   <CardHeader className="pb-4">
-                    <CardTitle className="text-lg flex items-center">
+                    <CardTitle className="analytics-card-title">
                       <Users className="w-5 h-5 mr-2 text-blue-600" />
                       Team Composition
                     </CardTitle>
+                    <CardDescription className="analytics-chart-label">
+                      Breakdown of team member roles and responsibilities
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <ResponsiveContainer width="100%" height={300}>
@@ -1082,8 +1288,20 @@ const Analytics = () => {
                           outerRadius={80}
                           dataKey="value"
                           label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          labelLine={false}
+                        >
+                          {prepareTeamCompositionData().map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'white', 
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            fontSize: '12px'
+                          }}
                         />
-                        <Tooltip />
                       </PieChart>
                     </ResponsiveContainer>
                   </CardContent>

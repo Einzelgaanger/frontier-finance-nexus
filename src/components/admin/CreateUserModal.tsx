@@ -75,10 +75,17 @@ const CreateUserModal = ({ open, onClose, onSuccess }: CreateUserModalProps) => 
         })
       });
 
-      const result = await response.json();
+      let result;
+      try {
+        result = await response.json();
+      } catch (jsonError) {
+        console.error('Failed to parse response:', jsonError);
+        throw new Error('Invalid response from server');
+      }
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to create user');
+        const errorMessage = result?.error || result?.message || `HTTP ${response.status}: ${response.statusText}`;
+        throw new Error(errorMessage);
       }
 
       console.log('User created successfully:', result);
