@@ -26,6 +26,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchUserRole = async (userId: string) => {
     try {
       console.log('Fetching user role for:', userId);
+      
+      // First try to get the role from user_roles table
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
@@ -34,7 +36,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (error) {
         console.error('Error fetching user role:', error);
-        setUserRole('viewer');
+        // If there's an error, try to create a default role
+        const { error: insertError } = await supabase
+          .from('user_roles')
+          .insert({ user_id: userId, role: 'viewer' });
+        
+        if (insertError) {
+          console.error('Error creating default role:', insertError);
+          // If we can't create a role, default to viewer
+          setUserRole('viewer');
+        } else {
+          setUserRole('viewer');
+        }
         return;
       }
 
@@ -46,8 +59,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (insertError) {
           console.error('Error creating default role:', insertError);
+          setUserRole('viewer');
+        } else {
+          setUserRole('viewer');
         }
-        setUserRole('viewer');
       } else {
         console.log('User role fetched:', data.role);
         setUserRole(data.role);
@@ -68,6 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true;
     let roleFetchTimeout: NodeJS.Timeout;
     let lastUserId: string | null = null;
+    let isFetchingRole = false;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -79,8 +95,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Only fetch role if user ID changed or it's a new signup
-          if (lastUserId !== session.user.id || event === 'SIGNED_IN') {
+          // Only fetch role if user ID changed, it's a new signup, or we haven't fetched yet
+          if (lastUserId !== session.user.id || event === 'SIGNED_IN' || !isFetchingRole) {
             lastUserId = session.user.id;
             
             // Clear any existing timeout
@@ -88,20 +104,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               clearTimeout(roleFetchTimeout);
             }
             
-            // Wait for the trigger to complete if it's a new signup
-            if (event === 'SIGNED_IN') {
-              roleFetchTimeout = setTimeout(() => {
-                if (mounted) {
-                  fetchUserRole(session.user.id);
-                }
-              }, 2000);
-            } else {
-              // Debounce role fetching to avoid multiple rapid calls
-              roleFetchTimeout = setTimeout(() => {
-                if (mounted) {
-                  fetchUserRole(session.user.id);
-                }
-              }, 500);
+            // Prevent multiple simultaneous role fetches
+            if (!isFetchingRole) {
+              isFetchingRole = true;
+              
+              // Wait for the trigger to complete if it's a new signup
+              if (event === 'SIGNED_IN') {
+                roleFetchTimeout = setTimeout(async () => {
+                  if (mounted) {
+                    await fetchUserRole(session.user.id);
+                    isFetchingRole = false;
+                  }
+                }, 2000);
+              } else {
+                // Debounce role fetching to avoid multiple rapid calls
+                roleFetchTimeout = setTimeout(async () => {
+                  if (mounted) {
+                    await fetchUserRole(session.user.id);
+                    isFetchingRole = false;
+                  }
+                }, 500);
+              }
             }
           }
 
@@ -113,6 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else {
           setUserRole(null);
           lastUserId = null;
+          isFetchingRole = false;
         }
         
         if (mounted) {
@@ -138,11 +162,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setSession(session);
           setUser(session?.user ?? null);
           
-          if (session?.user) {
+          if (session?.user && !isFetchingRole) {
+            lastUserId = session.user.id;
+            isFetchingRole = true;
             // Debounce the initial role fetch
-            roleFetchTimeout = setTimeout(() => {
+            roleFetchTimeout = setTimeout(async () => {
               if (mounted) {
-                fetchUserRole(session.user.id);
+                await fetchUserRole(session.user.id);
+                isFetchingRole = false;
               }
             }, 500);
           }
