@@ -84,6 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let roleFetchTimeout: NodeJS.Timeout;
     let lastUserId: string | null = null;
     let isFetchingRole = false;
+    let lastFetchTime = 0;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -95,8 +96,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Only fetch role if user ID changed, it's a new signup, or we haven't fetched yet
-          if (lastUserId !== session.user.id || event === 'SIGNED_IN' || !isFetchingRole) {
+          const now = Date.now();
+          const timeSinceLastFetch = now - lastFetchTime;
+          
+          // Only fetch role if:
+          // 1. User ID changed
+          // 2. It's a new signup (SIGNED_IN)
+          // 3. We haven't fetched yet
+          // 4. It's been more than 5 seconds since last fetch (increased)
+          if (lastUserId !== session.user.id || 
+              event === 'SIGNED_IN' || 
+              !isFetchingRole ||
+              timeSinceLastFetch > 5000) {
+            
             lastUserId = session.user.id;
             
             // Clear any existing timeout
@@ -107,6 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Prevent multiple simultaneous role fetches
             if (!isFetchingRole) {
               isFetchingRole = true;
+              lastFetchTime = now;
               
               // Wait for the trigger to complete if it's a new signup
               if (event === 'SIGNED_IN') {
@@ -115,7 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     await fetchUserRole(session.user.id);
                     isFetchingRole = false;
                   }
-                }, 2000);
+                }, 3000); // Increased wait time
               } else {
                 // Debounce role fetching to avoid multiple rapid calls
                 roleFetchTimeout = setTimeout(async () => {
@@ -123,7 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     await fetchUserRole(session.user.id);
                     isFetchingRole = false;
                   }
-                }, 500);
+                }, 2000); // Increased debounce time
               }
             }
           }
@@ -137,6 +150,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUserRole(null);
           lastUserId = null;
           isFetchingRole = false;
+          lastFetchTime = 0;
         }
         
         if (mounted) {

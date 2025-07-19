@@ -150,12 +150,12 @@ const AdminDashboard = () => {
         // Get recent user registrations (from user_roles)
         const { data: recentUsers } = await supabase
           .from('user_roles')
-          .select('user_id, created_at')
-          .order('created_at', { ascending: false })
+          .select('user_id')
           .limit(1);
 
         if (recentUsers && recentUsers.length > 0) {
-          const timeAgo = getTimeAgo(new Date(recentUsers[0].created_at));
+          // Since user_roles doesn't have created_at, use current time
+          const timeAgo = getTimeAgo(new Date());
           activities.push({
             id: recentUsers[0].user_id,
             type: 'user_registration',

@@ -13,16 +13,49 @@ serve(async (req) => {
   }
 
   try {
-    // Create a Supabase client with the service role key
+    // Create a Supabase client with the Auth context of the function
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
           headers: { Authorization: req.headers.get('Authorization')! },
         },
       }
     )
+
+    // Get the user from the request
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseClient.auth.getUser()
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    // Check if the user is an admin
+    const { data: userRole, error: roleError } = await supabaseClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single()
+
+    if (roleError || userRole?.role !== 'admin') {
+      return new Response(
+        JSON.stringify({ error: 'Admin access required' }),
+        { 
+          status: 403, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
 
     // Get the request body
     const { email, password, role = 'viewer', user_metadata = {} } = await req.json()
@@ -37,8 +70,13 @@ serve(async (req) => {
       )
     }
 
-    // Create the user using the admin API
-    const { data: userData, error: createError } = await supabaseClient.auth.admin.createUser({
+    // Create the user using the service role key
+    const serviceRoleClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
+    const { data: userData, error: createError } = await serviceRoleClient.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
@@ -61,7 +99,7 @@ serve(async (req) => {
     }
 
     // Assign the role to the user
-    const { error: roleError } = await supabaseClient
+    const { error: roleError } = await serviceRoleClient
       .from('user_roles')
       .insert({
         user_id: userData.user.id,

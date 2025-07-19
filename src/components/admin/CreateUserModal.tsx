@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, UserPlus, Eye, EyeOff } from 'lucide-react';
+import { Loader2, UserPlus, Eye, EyeOff, Save } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 const userSchema = z.object({
@@ -35,6 +35,7 @@ const CreateUserModal = ({ open, onClose, onSuccess }: CreateUserModalProps) => 
   const [isCreating, setIsCreating] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [hasDraft, setHasDraft] = useState(false);
 
   const form = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
@@ -47,31 +48,73 @@ const CreateUserModal = ({ open, onClose, onSuccess }: CreateUserModalProps) => 
     }
   });
 
+  // Load draft on modal open
+  useEffect(() => {
+    if (open) {
+      const draft = localStorage.getItem('createUserDraft');
+      if (draft) {
+        try {
+          const draftData = JSON.parse(draft);
+          form.reset(draftData);
+          setHasDraft(true);
+        } catch (error) {
+          console.error('Error loading draft:', error);
+          localStorage.removeItem('createUserDraft');
+        }
+      }
+    }
+  }, [open, form]);
+
+  // Save draft when form changes
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      if (open && (value.email || value.firstName || value.lastName)) {
+        const draftData = {
+          email: value.email || '',
+          firstName: value.firstName || '',
+          lastName: value.lastName || '',
+          password: '',
+          confirmPassword: '',
+        };
+        localStorage.setItem('createUserDraft', JSON.stringify(draftData));
+        setHasDraft(true);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form, open]);
+
+  const clearDraft = () => {
+    localStorage.removeItem('createUserDraft');
+    setHasDraft(false);
+    form.reset();
+  };
+
   const onSubmit = async (data: UserFormData) => {
     setIsCreating(true);
 
     try {
-      // Call the Supabase Edge Function to create the user
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        throw new Error('No active session found');
+      // Get the Supabase URL from the client
+      const supabaseUrl = supabase.supabaseUrl;
+      if (!supabaseUrl) {
+        throw new Error('Supabase URL not configured');
       }
 
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-user`, {
+      // Use the existing create-viewer Edge Function
+      const response = await fetch(`${supabaseUrl}/functions/v1/create-viewer`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
         },
         body: JSON.stringify({
           email: data.email,
           password: data.password,
-          role: 'viewer', // Default role for new users
-          user_metadata: {
+          survey_data: {
+            vehicle_name: `${data.firstName} ${data.lastName}`,
             first_name: data.firstName,
             last_name: data.lastName
-          }
+          },
+          survey_year: new Date().getFullYear()
         })
       });
 
@@ -92,10 +135,10 @@ const CreateUserModal = ({ open, onClose, onSuccess }: CreateUserModalProps) => 
 
       toast({
         title: "User Created Successfully",
-        description: `User account created for ${data.email} with role: ${result.user.role}`,
+        description: `User account created for ${data.email} with role: viewer`,
       });
 
-      form.reset();
+      clearDraft(); // Clear the draft after successful creation
       onSuccess();
       onClose();
 
@@ -115,12 +158,27 @@ const CreateUserModal = ({ open, onClose, onSuccess }: CreateUserModalProps) => 
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center">
-            <UserPlus className="w-5 h-5 mr-2" />
-            Create User Account
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <UserPlus className="w-5 h-5 mr-2" />
+              <DialogTitle>Create User Account</DialogTitle>
+            </div>
+            {hasDraft && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={clearDraft}
+                className="text-xs"
+              >
+                <Save className="w-3 h-3 mr-1" />
+                Clear Draft
+              </Button>
+            )}
+          </div>
           <DialogDescription>
             Create a new user account. The user will be able to log in and complete surveys.
+            {hasDraft && <span className="text-blue-600"> Draft loaded from previous session.</span>}
           </DialogDescription>
         </DialogHeader>
 
