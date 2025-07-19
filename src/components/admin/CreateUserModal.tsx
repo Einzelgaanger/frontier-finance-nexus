@@ -51,32 +51,14 @@ const CreateUserModal = ({ open, onClose, onSuccess }: CreateUserModalProps) => 
     setIsCreating(true);
 
     try {
-      // Create the user directly using Supabase client-side admin functions
-      const { data: userData, error } = await supabase.auth.admin.createUser({
-        email: data.email,
-        password: data.password,
-        email_confirm: true,
-        user_metadata: {
-          first_name: data.firstName,
-          last_name: data.lastName
-        }
-      });
-
-      if (error) {
-        console.error('Error creating user:', error);
-        toast({
-          title: "Error Creating User",
-          description: error.message || 'Failed to create user account.',
-          variant: "destructive"
-        });
-        return;
-      }
-
-      console.log('User created successfully:', userData);
+      // For now, we'll provide instructions for manual user creation
+      // since the admin API is not available in client-side code
+      
+      console.log('User creation data:', data);
 
       toast({
-        title: "User Created Successfully",
-        description: `User account created for ${data.email}. They can now log in and complete surveys.`,
+        title: "Manual User Creation Required",
+        description: `Please create the user manually in Supabase Dashboard:\n\nEmail: ${data.email}\nPassword: ${data.password}\nFirst Name: ${data.firstName}\nLast Name: ${data.lastName}\n\nGo to Authentication → Users → Add User`,
       });
 
       form.reset();
