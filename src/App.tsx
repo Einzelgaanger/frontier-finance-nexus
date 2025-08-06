@@ -17,6 +17,7 @@ import Survey from "./pages/Survey";
 import Profile from "./pages/Profile";
 import ViewerSettings from "./pages/ViewerSettings";
 import ResetPassword from "./pages/ResetPassword";
+import ForgotPassword from "./pages/ForgotPassword";
 import Admin from "./pages/Admin";
 import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
@@ -68,6 +69,7 @@ const App = () => {
               </ProtectedRoute>
             } />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/admin" element={
               <ProtectedRoute requiredRole="admin">
                 <Admin />

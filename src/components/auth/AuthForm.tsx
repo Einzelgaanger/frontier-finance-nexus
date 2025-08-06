@@ -33,7 +33,6 @@ export default function AuthForm() {
   const [showSignInPassword, setShowSignInPassword] = useState(false);
   const [showSignUpPassword, setShowSignUpPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [signInForm, setSignInForm] = useState({ email: '', password: '' });
   const [signUpForm, setSignUpForm] = useState({ 
     email: '', 
@@ -42,7 +41,6 @@ export default function AuthForm() {
     firstName: '', 
     lastName: '' 
   });
-  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   
   const { signIn, signUp, signInWithGoogle } = useAuth();
   const { toast } = useToast();
@@ -196,93 +194,6 @@ export default function AuthForm() {
     }
   };
 
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
-        redirectTo: `${window.location.origin}/auth?type=recovery`,
-      });
-
-      if (error) {
-        const errorMessage = getErrorMessage(error);
-        toast({
-          title: "Password Reset Failed",
-          description: errorMessage,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Password Reset Email Sent",
-          description: "Please check your email for password reset instructions.",
-        });
-        setShowForgotPassword(false);
-        setForgotPasswordEmail('');
-      }
-    } catch (error: unknown) {
-      const errorMessage = getErrorMessage(error);
-      toast({
-        title: "Password Reset Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Show forgot password form
-  if (showForgotPassword) {
-    return (
-      <div className="min-h-screen bg-cover bg-center bg-fixed flex items-center justify-center p-4" style={{ backgroundImage: 'url(/auth.jpg)' }}>
-        <Card className="w-full max-w-md border border-blue-600/40 bg-blue-700/30 backdrop-blur-md relative z-10 shadow-2xl">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-white">
-              Reset Password
-            </CardTitle>
-            <CardDescription className="text-white/90">
-              Enter your email to receive password reset instructions
-            </CardDescription>
-          </CardHeader>
-          
-          <CardContent>
-            <form onSubmit={handleForgotPassword} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="forgot-email" className="text-white font-medium">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-100/90 w-4 h-4" />
-                  <Input
-                    id="forgot-email"
-                    type="email"
-                    placeholder="Enter your email"
-                    className="pl-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60"
-                    value={forgotPasswordEmail}
-                    onChange={(e) => setForgotPasswordEmail(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-              
-              <Button type="submit" className="w-full bg-blue-600/80 hover:bg-blue-600 text-white backdrop-blur-sm" disabled={isLoading}>
-                {isLoading ? 'Sending...' : 'Send Reset Instructions'}
-              </Button>
-              
-              <Button 
-                type="button" 
-                variant="ghost" 
-                className="w-full text-white hover:bg-blue-700/20"
-                onClick={() => setShowForgotPassword(false)}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Sign In
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-cover bg-center bg-fixed flex items-center justify-center p-4" style={{ backgroundImage: 'url(/auth.jpg)' }}>
@@ -368,7 +279,7 @@ export default function AuthForm() {
                   <button
                     type="button"
                     className="text-sm text-blue-100/90 hover:text-blue-100 underline"
-                    onClick={() => setShowForgotPassword(true)}
+                    onClick={() => navigate('/forgot-password')}
                   >
                     Forgot password?
                   </button>
