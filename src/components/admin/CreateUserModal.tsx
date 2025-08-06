@@ -93,8 +93,8 @@ const CreateUserModal = ({ open, onClose, onSuccess }: CreateUserModalProps) => 
     setIsCreating(true);
 
     try {
-      // Get the Supabase URL from the client
-      const supabaseUrl = supabase.supabaseUrl;
+      // Use the project URL directly since supabaseUrl is protected
+      const supabaseUrl = 'https://qiqxdivyyjcbegdlptuq.supabase.co';
       if (!supabaseUrl) {
         throw new Error('Supabase URL not configured');
       }

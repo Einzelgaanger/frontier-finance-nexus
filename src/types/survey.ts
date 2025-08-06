@@ -44,12 +44,12 @@ export interface SurveyFormData {
   first_close_month_to?: number;
   investment_instruments_priority?: Record<string, number>;
   investment_instruments_data?: Array<{
-    name: string;
-    committed: number;
-    committedPercentage: number;
-    deployed: number;
-    deployedValue: number;
-    priority: number;
+    name?: string;
+    committed?: number;
+    committedPercentage?: number;
+    deployed?: number;
+    deployedValue?: number;
+    priority?: number;
   }>;
   sectors_allocation?: Record<string, number>;
   target_return_min?: number;
