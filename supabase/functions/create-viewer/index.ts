@@ -76,14 +76,18 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    const userMetadata = {
+      first_name: survey_data?.first_name || 'Viewer',
+      last_name: survey_data?.last_name || 'User'
+    };
+    
+    console.log('Creating user with metadata:', userMetadata);
+    
     const { data: newUser, error: createError } = await serviceRoleClient.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
-      user_metadata: {
-        first_name: survey_data?.vehicle_name || 'Viewer',
-        last_name: 'User'
-      }
+      user_metadata: userMetadata
     })
 
     if (createError) {
@@ -94,6 +98,44 @@ serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       )
+    }
+
+                   // Manually create profile and role since trigger may not work with service role
+         console.log('Creating profile and role manually for user:', newUser.user.id);
+         
+         const emailName = email.split('@')[0];
+         const firstName = survey_data?.first_name || emailName || 'Viewer';
+         const lastName = survey_data?.last_name || 'User';
+         
+         // Create profile
+         const { error: profileError } = await serviceRoleClient
+           .from('profiles')
+           .insert({
+             id: newUser.user.id,
+             email: email,
+             first_name: firstName,
+             last_name: lastName
+           });
+           
+         if (profileError) {
+           console.error('Profile creation error:', profileError);
+         } else {
+           console.log('Profile created successfully for user:', newUser.user.id);
+         }
+         
+         // Create role
+         const { error: roleError } = await serviceRoleClient
+           .from('user_roles')
+           .insert({
+             user_id: newUser.user.id,
+             role: 'viewer'
+           });
+           
+         if (roleError) {
+           console.error('Role creation error:', roleError);
+         } else {
+           console.log('Role created successfully for user:', newUser.user.id);
+         }
     }
 
     // Create survey data using the database function

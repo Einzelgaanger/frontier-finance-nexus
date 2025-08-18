@@ -1,0 +1,366 @@
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
+import { useToast } from '@/hooks/use-toast';
+import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+
+// Schema for the 2024 MSME Financing Survey - First 10 Questions
+const survey2024Schema = z.object({
+  // Section 1: Introduction & Context (Questions 1-5)
+  email_address: z.string().email(),
+  investment_networks: z.array(z.string()).min(1),
+  investment_networks_other: z.string().optional(),
+  organisation_name: z.string().min(1),
+  funds_raising_investing: z.string().min(1),
+  fund_name: z.string().min(1),
+  
+  // Section 2: Organizational Background and Team (Questions 6-10)
+  legal_entity_achieved: z.string().optional(),
+  first_close_achieved: z.string().optional(),
+  first_investment_achieved: z.string().optional(),
+  geographic_markets: z.array(z.string()).min(1),
+  geographic_markets_other: z.string().optional(),
+  team_based: z.array(z.string()).min(1),
+  team_based_other: z.string().optional(),
+  fte_staff_2023_actual: z.number().int().min(0).optional(),
+  fte_staff_current: z.number().int().min(0).optional(),
+  fte_staff_2025_forecast: z.number().int().min(0).optional(),
+  investment_approval: z.array(z.string()).min(1),
+  investment_approval_other: z.string().optional(),
+  principals_total: z.number().int().min(0).optional(),
+  principals_women: z.number().int().min(0).optional(),
+  gender_inclusion: z.array(z.string()).min(1),
+  gender_inclusion_other: z.string().optional(),
+  team_experience_investments: z.record(z.string(), z.string()).optional(),
+  team_experience_exits: z.record(z.string(), z.string()).optional()
+});
+
+type Survey2024FormData = z.infer<typeof survey2024Schema>;
+
+export default function Survey2024() {
+  const [currentSection, setCurrentSection] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const totalSections = 2;
+  const { toast } = useToast();
+
+  const form = useForm<Survey2024FormData>({
+    resolver: zodResolver(survey2024Schema),
+    defaultValues: {
+      // Section 1: Introduction & Context
+      email_address: '',
+      investment_networks: [],
+      investment_networks_other: '',
+      organisation_name: '',
+      funds_raising_investing: '',
+      fund_name: '',
+      
+      // Section 2: Organizational Background and Team
+      legal_entity_achieved: '',
+      first_close_achieved: '',
+      first_investment_achieved: '',
+      geographic_markets: [],
+      geographic_markets_other: '',
+      team_based: [],
+      team_based_other: '',
+      fte_staff_2023_actual: undefined,
+      fte_staff_current: undefined,
+      fte_staff_2025_forecast: undefined,
+      investment_approval: [],
+      investment_approval_other: '',
+      principals_total: undefined,
+      principals_women: undefined,
+      gender_inclusion: [],
+      gender_inclusion_other: '',
+      team_experience_investments: {},
+      team_experience_exits: {}
+    }
+  });
+
+  const handleNext = () => {
+    if (currentSection < totalSections) {
+      setCurrentSection(currentSection + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentSection > 1) {
+      setCurrentSection(currentSection - 1);
+    }
+  };
+
+  const saveDraft = async () => {
+    setSaving(true);
+    try {
+      const formData = form.getValues();
+      const { error } = await supabase
+        .from('survey_responses_2024')
+        .upsert({
+          user_id: (await supabase.auth.getUser()).data.user?.id,
+          ...formData,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+      toast({
+        title: "Draft saved successfully",
+        description: "Your progress has been saved.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error saving draft",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSubmit = async (data: Survey2024FormData) => {
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('survey_responses_2024')
+        .upsert({
+          user_id: (await supabase.auth.getUser()).data.user?.id,
+          ...data,
+          completed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+      toast({
+        title: "Survey submitted successfully",
+        description: "Thank you for completing the 2024 MSME Financing Survey.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error submitting survey",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getSectionTitle = (section: number) => {
+    const titles = {
+      1: "Introduction & Context",
+      2: "Organizational Background and Team"
+    };
+    return titles[section as keyof typeof titles] || "Unknown Section";
+  };
+
+  const renderIntroductoryBriefing = () => (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle className="text-2xl font-bold text-center">
+          2024 MSME Financing Survey
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4 text-sm leading-relaxed">
+        <div className="space-y-3">
+          <p>
+            <strong>Introduction and Context</strong>
+          </p>
+          <p>
+            Micro, Small, and Medium-Sized Enterprises (MSMEs), often called "small and growing businesses" (SGBs), are vital for job creation and economic growth in Africa and the Middle East. They employ up to 70% of the workforce and generate at least 40% of GDP across economies within these regions. Yet, these businesses frequently face a financing gap: they are too large for microfinance but too small for traditional bank loans and private equity, earning them the nickname "missing middle."
+          </p>
+          <p>
+            The Collaborative for Frontier Finance has launched a survey to examine the SGB financing landscape in these regions. We aim to explore the role of Local Capital Providers (LCPs)—local fund managers who use innovative approaches to invest in SGBs. This survey seeks respondents that manage regulated and unregulated firms that prioritize financing or investing in small and growing businesses, including but not limited to venture capital firms, PE, small business growth funds, leasing, fintech, and factoring. Geographic focus is pan-Africa, North Africa and Middle East.
+          </p>
+          <p>
+            This survey will provide insights into the business models of LCPs, the current market conditions, and future trends, while also comparing these findings to our 2023 survey. This initial version covers the first 10 questions across two sections:
+          </p>
+          <ol className="list-decimal list-inside space-y-1 ml-4">
+            <li>Introduction & Context (Questions 1-5)</li>
+            <li>Organizational Background and Team (Questions 6-10)</li>
+          </ol>
+          <p>
+            We appreciate your candor and accuracy. We estimate the survey will take approximately 20 minutes to complete.
+          </p>
+          <p>
+            Note that given the innovative nature of this sector, we refer to the terms "fund" and "investment vehicle" interchangeably.
+          </p>
+          <p>
+            Thank you in advance for your participation and sharing your valuable insights.
+          </p>
+          <p className="font-semibold">
+            The Collaborative for Frontier Finance team.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderSection1 = () => (
+    <div className="space-y-6">
+      <h3 className="text-xl font-semibold">Section 1: Introduction & Context</h3>
+      
+      <FormField
+        control={form.control}
+        name="email_address"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>1. Email address (note: all responses are anonymized. We have learned through the years that many respondents' answers trigger interesting follow-on discussions, which we use to improve the survey and CFF's overall understanding of the small business finance marketplace) *</FormLabel>
+            <FormControl>
+              <Input {...field} type="email" placeholder="Enter your email address" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="investment_networks"
+        render={() => (
+          <FormItem>
+            <FormLabel>2. Please check all investment networks or associations that you are a part of. If they are not listed, please include them in the textbox. *</FormLabel>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {[
+                'CFF', 'ABAN', 'AVCA', 'AWI', 'Capria Network', 'WAI'
+              ].map((network) => (
+                <FormField
+                  key={network}
+                  control={form.control}
+                  name="investment_networks"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value?.includes(network)}
+                          onCheckedChange={(checked) => {
+                            return checked
+                              ? field.onChange([...field.value, network])
+                              : field.onChange(field.value?.filter((value) => value !== network))
+                          }}
+                        />
+                      </FormControl>
+                      <FormLabel className="text-sm font-normal">{network}</FormLabel>
+                    </FormItem>
+                  )}
+                />
+              ))}
+            </div>
+            <FormField
+              control={form.control}
+              name="investment_networks_other"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input {...field} placeholder="Other (please specify)" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="organisation_name"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>3. Name of your organization *</FormLabel>
+            <FormControl>
+              <Input {...field} placeholder="Enter organisation name" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="funds_raising_investing"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>4. How many funds are you currently raising and/or investing? *</FormLabel>
+            <Select onValueChange={field.onChange} value={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select number of funds" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="1">1</SelectItem>
+                <SelectItem value="2">2</SelectItem>
+                <SelectItem value="≥3">≥3</SelectItem>
+                <SelectItem value="None of the above">None of the above</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="fund_name"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>5. Name of Fund to which this survey applies (that is Fund 1) *</FormLabel>
+            <FormControl>
+              <Input {...field} placeholder="Enter fund name" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
+  );
+
+  return (
+    <Form {...form}>
+      <div className="container mx-auto p-4">
+        <h1 className="text-3xl font-bold mb-4">2024 MSME Financing Survey</h1>
+        {renderIntroductoryBriefing()}
+        
+        <div className="flex justify-between items-center mb-6">
+          <Button
+            onClick={handlePrevious}
+            disabled={currentSection === 1}
+            variant="outline"
+          >
+            Previous
+          </Button>
+          
+          <div className="flex items-center space-x-4">
+            <Button onClick={saveDraft} disabled={saving} variant="outline">
+              {saving ? 'Saving...' : 'Save Draft'}
+            </Button>
+            
+            <Button onClick={handleNext} disabled={currentSection === totalSections}>
+              Next
+            </Button>
+          </div>
+        </div>
+
+        <Progress value={(currentSection / totalSections) * 100} className="mb-6" />
+        
+        <div className="mt-8">
+          <h2 className="text-2xl font-bold mb-4">Section {currentSection}: {getSectionTitle(currentSection)}</h2>
+          {currentSection === 1 && renderSection1()}
+          {/* Add other sections here */}
+        </div>
+      </div>
+    </Form>
+  );
+} 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/layout/Header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -118,6 +119,7 @@ interface ActivityLog {
 
 const Admin = () => {
   const { user, userRole } = useAuth();
+  const { toast } = useToast();
   const [fundManagers, setFundManagers] = useState<FundManager[]>([]);
   const [loading, setLoading] = useState(true);
   const [membershipRequests, setMembershipRequests] = useState<MembershipRequest[]>([]);
@@ -130,20 +132,7 @@ const Admin = () => {
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [showCreateUserModal, setShowCreateUserModal] = useState(false);
   const [createdViewers, setCreatedViewers] = useState<Array<{ user_id: string; role: string }>>([]);
-  const [analyticsData, setAnalyticsData] = useState({
-    totalFunds: 0,
-    totalCapital: 0,
-    averageTicketSize: 0,
-    activeMarkets: [] as string[],
-    fundsByType: [] as { name: string; value: number }[],
-    fundsByRegion: [] as { name: string; value: number }[],
-    capitalTrends: [] as { month: string; amount: number }[],
-    growthMetrics: {
-      monthlyGrowth: 0,
-      newFundsThisMonth: 0,
-      totalInvestments: 0
-    }
-  });
+  const [analyticsData, setAnalyticsData] = useState<{ surveys: any[] }>({ surveys: [] });
   
   // Optimized loading states
   const [applicationsLoading, setApplicationsLoading] = useState(false);
@@ -152,368 +141,154 @@ const Admin = () => {
   const [viewersLoading, setViewersLoading] = useState(false);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   
-  // Data cache with longer TTL for better performance
-  const [dataCache, setDataCache] = useState<Record<string, { data: unknown; timestamp: number }>>({});
 
-  // Memoized cache clear function
-  const clearCache = useCallback(() => {
-    setDataCache({});
-  }, []);
 
-  // Optimized fund managers fetch with longer cache
-  const fetchFundManagers = useCallback(async () => {
-    const cacheKey = 'fundManagers';
-    const cache = dataCache[cacheKey];
-    const now = Date.now();
-    
-    // Return cached data if it's less than 10 minutes old (increased from 5)
-    if (cache && (now - cache.timestamp) < 10 * 60 * 1000) {
-      setFundManagers(cache.data);
-      return;
-    }
+  // Simplified data fetching with error handling and retry logic
+  const fetchAllAdminData = useCallback(async () => {
+    const maxRetries = 3;
+    let retryCount = 0;
 
-    try {
-      setMembersLoading(true);
-      const { data, error } = await supabase
-        .from('member_surveys')
-        .select('id, user_id, fund_name, website')
-        .not('completed_at', 'is', null)
-        .limit(50); // Reduced limit for better performance
-
-      if (error) throw error;
-      
-      const managers = data || [];
-      setFundManagers(managers);
-      
-      // Cache the data
-      setDataCache(prev => ({
-        ...prev,
-        [cacheKey]: { data: managers, timestamp: now }
-      }));
-    } catch (error) {
-      console.error('Error fetching fund managers:', error);
-    } finally {
-      setMembersLoading(false);
-    }
-  }, [dataCache]);
-
-  // Optimized membership requests fetch
-  const fetchMembershipRequests = useCallback(async () => {
-    const cacheKey = 'membershipRequests';
-    const cache = dataCache[cacheKey];
-    const now = Date.now();
-    
-    // Return cached data if it's less than 5 minutes old (increased from 2)
-    if (cache && (now - cache.timestamp) < 5 * 60 * 1000) {
-      setMembershipRequests(cache.data);
-      return;
-    }
-
-    try {
-      setApplicationsLoading(true);
-      const { data, error } = await supabase
-        .from('membership_requests')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(25); // Reduced limit for better performance
-
-      if (error) throw error;
-      
-      const requests = data || [];
-      setMembershipRequests(requests);
-      
-      // Cache the data
-      setDataCache(prev => ({
-        ...prev,
-        [cacheKey]: { data: requests, timestamp: now }
-      }));
-    } catch (error) {
-      console.error('Error fetching membership requests:', error);
-    } finally {
-      setApplicationsLoading(false);
-    }
-  }, [dataCache]);
-
-  // Optimized activity logs fetch
-  const fetchActivityLogs = useCallback(async () => {
-    const cacheKey = 'activityLogs';
-    const cache = dataCache[cacheKey];
-    const now = Date.now();
-    
-    // Return cached data if it's less than 3 minutes old (increased from 1)
-    if (cache && (now - cache.timestamp) < 3 * 60 * 1000) {
-      setActivityLogs(cache.data);
-      return;
-    }
-
-    try {
-      setActivityLoading(true);
-      const { data, error } = await supabase
-        .from('activity_logs')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(15); // Reduced limit for better performance
-
-      if (error) throw error;
-      
-      const logs = (data || []) as ActivityLog[];
-      setActivityLogs(logs);
-      
-      // Cache the data
-      setDataCache(prev => ({
-        ...prev,
-        [cacheKey]: { data: logs, timestamp: now }
-      }));
-    } catch (error) {
-      console.error('Error fetching activity logs:', error);
-    } finally {
-      setActivityLoading(false);
-    }
-  }, [dataCache]);
-
-  // Optimized viewers fetch
-  const fetchCreatedViewers = useCallback(async () => {
-    const cacheKey = 'createdViewers';
-    const cache = dataCache[cacheKey];
-    const now = Date.now();
-    
-    // Return cached data if it's less than 5 minutes old (increased from 3)
-    if (cache && (now - cache.timestamp) < 5 * 60 * 1000) {
-      setCreatedViewers(cache.data);
-      return;
-    }
-
-    try {
-      setViewersLoading(true);
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select(`
-          user_id,
-          role
-        `)
-        .eq('role', 'viewer')
-        .limit(25); // Reduced limit for better performance
-
-      if (error) throw error;
-      
-      const viewers = data || [];
-      setCreatedViewers(viewers);
-      
-      // Cache the data
-      setDataCache(prev => ({
-        ...prev,
-        [cacheKey]: { data: viewers, timestamp: now }
-      }));
-    } catch (error) {
-      console.error('Error fetching created viewers:', error);
-    } finally {
-      setViewersLoading(false);
-    }
-  }, [dataCache]);
-
-  // Optimized initial load - only load essential data
-  useEffect(() => {
-    if (userRole === 'admin') {
-      setLoading(true);
-      // Only load applications initially - everything else is lazy loaded
-      fetchMembershipRequests().finally(() => {
-        setLoading(false);
-      });
-    }
-  }, [userRole, fetchMembershipRequests]);
-
-  // Lazy load analytics only when needed
-  useEffect(() => {
-    if (userRole === 'admin' && activeTab === 'analytics') {
-      fetchAnalyticsData();
-    }
-  }, [userRole, activeTab, selectedYear]);
-
-  // Lazy load other data when tabs are accessed
-  useEffect(() => {
-    if (userRole === 'admin' && activeTab === 'members') {
-      fetchFundManagers();
-    }
-  }, [userRole, activeTab, fetchFundManagers]);
-
-  useEffect(() => {
-    if (userRole === 'admin' && activeTab === 'activity') {
-      fetchActivityLogs();
-    }
-  }, [userRole, activeTab, fetchActivityLogs]);
-
-  useEffect(() => {
-    if (userRole === 'admin' && activeTab === 'viewers') {
-      fetchCreatedViewers();
-    }
-  }, [userRole, activeTab, fetchCreatedViewers]);
-
-  // Optimized analytics data fetch with better caching
-  const fetchAnalyticsData = useCallback(async () => {
-    const cacheKey = `analytics_${selectedYear}`;
-    const cache = dataCache[cacheKey];
-    const now = Date.now();
-    
-    // Return cached data if it's less than 15 minutes old (increased from 10)
-    if (cache && (now - cache.timestamp) < 15 * 60 * 1000) {
-      setAnalyticsData(cache.data);
-      return;
-    }
-
-    setAnalyticsLoading(true);
-    try {
-      // More efficient query with specific fields only
-      const { data: surveys, error } = await supabase
-        .from('member_surveys')
-        .select('aum, typical_check_size, primary_investment_region, fund_type, created_at, number_of_investments')
-        .not('completed_at', 'is', null)
-        .gte('created_at', `${selectedYear}-01-01`)
-        .lt('created_at', `${selectedYear + 1}-01-01`)
-        .limit(500); // Reduced limit for better performance
-
-      if (error) throw error;
-
-      if (surveys && surveys.length > 0) {
-        // Optimized calculations
-        const totalFunds = surveys.length;
+    const fetchWithRetry = async () => {
+      try {
+        setLoading(true);
         
-        // Simplified total capital calculation
-        const totalCapital = surveys.reduce((sum, survey) => {
-          if (survey.aum) {
-            const amount = parseFloat(survey.aum.replace(/[^0-9.]/g, ''));
-            return sum + (isNaN(amount) ? 0 : amount);
-          }
-          return sum;
-        }, 0);
+        // Sequential fetching to avoid QUIC protocol errors
+        const applicationsResult = await supabase
+          .from('membership_requests')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(15);
 
-        // Simplified average ticket size
-        const ticketSizes = surveys
-          .map(s => s.typical_check_size)
-          .filter(Boolean)
-          .map(size => {
-            const match = size.match(/[\d,]+/);
-            return match ? parseFloat(match[0].replace(/,/g, '')) : 0;
-          })
-          .filter(size => size > 0);
-        
-        const averageTicketSize = ticketSizes.length > 0 
-          ? ticketSizes.reduce((sum, size) => sum + size, 0) / ticketSizes.length 
-          : 0;
+        // Small delay between requests to prevent QUIC errors
+        await new Promise(resolve => setTimeout(resolve, 100));
 
-        // Simplified active markets
-        const activeMarkets = [...new Set(
-          surveys
-            .map(s => s.primary_investment_region)
-            .filter(Boolean)
-        )];
+        const membersResult = await supabase
+          .from('survey_responses')
+          .select('id, user_id, vehicle_name, vehicle_websites')
+          .not('completed_at', 'is', null)
+          .limit(20);
 
-        // Simplified funds by type
-        const typeCount = surveys.reduce((acc, survey) => {
-          const type = survey.fund_type || 'Unknown';
-          acc[type] = (acc[type] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>);
+        await new Promise(resolve => setTimeout(resolve, 100));
 
-        const fundsByType = Object.entries(typeCount).map(([name, value]) => ({
-          name, value
+        const viewersResult = await supabase
+          .from('user_roles')
+          .select('user_id, role, assigned_at')
+          .eq('role', 'viewer')
+          .order('assigned_at', { ascending: false })
+          .limit(15);
+
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        const profilesResult = await supabase
+          .from('profiles')
+          .select('id, email, first_name, last_name');
+
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        const activityResult = await supabase
+          .from('activity_logs')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(20);
+
+        // Create a map of user_id to profile data for efficient lookup
+        const profilesMap = new Map();
+        (profilesResult.data || []).forEach(profile => {
+          profilesMap.set(profile.id, profile);
+        });
+
+        // Join viewer roles with profile data
+        const viewersWithProfiles = (viewersResult.data || []).map(viewer => ({
+          ...viewer,
+          profiles: profilesMap.get(viewer.user_id) || { first_name: 'Unknown', last_name: 'User', email: 'unknown@example.com' }
         }));
 
-        // Simplified funds by region
-        const regionCount = surveys.reduce((acc, survey) => {
-          const region = survey.primary_investment_region || 'Unknown';
-          acc[region] = (acc[region] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>);
-
-        const fundsByRegion = Object.entries(regionCount).map(([name, value]) => ({
-          name, value
-        }));
-
-        // Simplified growth metrics
-        const currentDate = new Date();
-        const currentMonth = currentDate.getMonth();
-        const currentYear = currentDate.getFullYear();
+        // Set all data at once
+        setMembershipRequests(applicationsResult.data || []);
+        setFundManagers(membersResult.data || []);
+        setCreatedViewers(viewersWithProfiles);
+        setActivityLogs(activityResult.data || []);
         
-        const newFundsThisMonth = surveys.filter(survey => {
-          if (survey.created_at) {
-            const createdDate = new Date(survey.created_at);
-            return createdDate.getMonth() === currentMonth && 
-                   createdDate.getFullYear() === currentYear;
-          }
-          return false;
-        }).length;
-
-        const totalInvestments = surveys.reduce((sum, survey) => 
-          sum + (survey.number_of_investments || 0), 0);
-
-        const monthlyGrowth = newFundsThisMonth > 0 
-          ? (newFundsThisMonth / Math.max(totalFunds - newFundsThisMonth, 1)) * 100 
-          : 0;
-
-        // Simplified capital trends - just last 6 months
-        const capitalTrends = [];
-        for (let i = 5; i >= 0; i--) {
-          const date = new Date();
-          date.setMonth(date.getMonth() - i);
-          capitalTrends.push({
-            month: date.toLocaleDateString('en-US', { month: 'short' }),
-            amount: Math.round(Math.random() * 1000000) // Simplified for performance
+      } catch (error) {
+        console.error(`Error fetching admin dashboard (attempt ${retryCount + 1}):`, error);
+        
+        if (retryCount < maxRetries - 1) {
+          retryCount++;
+          // Wait before retrying (exponential backoff)
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
+          return fetchWithRetry();
+        } else {
+          console.error('Max retries reached for admin dashboard fetch');
+          toast({
+            title: "Error",
+            description: "Failed to load admin data. Please try refreshing the page.",
+            variant: "destructive",
           });
         }
-
-        const analyticsResult = {
-          totalFunds,
-          totalCapital,
-          averageTicketSize,
-          activeMarkets,
-          fundsByType,
-          fundsByRegion,
-          capitalTrends,
-          growthMetrics: {
-            monthlyGrowth,
-            newFundsThisMonth,
-            totalInvestments
-          }
-        };
-
-        setAnalyticsData(analyticsResult);
-        
-        // Cache the result
-        setDataCache(prev => ({
-          ...prev,
-          [cacheKey]: { data: analyticsResult, timestamp: now }
-        }));
-      } else {
-        const defaultData = {
-          totalFunds: 0,
-          totalCapital: 0,
-          averageTicketSize: 0,
-          activeMarkets: [],
-          fundsByType: [],
-          fundsByRegion: [],
-          capitalTrends: [],
-          growthMetrics: {
-            monthlyGrowth: 0,
-            newFundsThisMonth: 0,
-            totalInvestments: 0
-          }
-        };
-        setAnalyticsData(defaultData);
-        
-        // Cache the default data
-        setDataCache(prev => ({
-          ...prev,
-          [cacheKey]: { data: defaultData, timestamp: now }
-        }));
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error fetching analytics data:', error);
-      // Set default data on error
-      const defaultData = {
+    };
+
+    await fetchWithRetry();
+  }, [toast]);
+
+  // Simplified analytics data fetch with error handling and retry logic
+  const fetchAnalyticsData = useCallback(async () => {
+    const maxRetries = 3;
+    let retryCount = 0;
+
+    const fetchWithRetry = async () => {
+      try {
+        setAnalyticsLoading(true);
+        
+        const { data: surveys, error } = await supabase
+          .from('survey_responses')
+          .select('target_capital, ticket_size_min, ticket_size_max, legal_domicile, vehicle_type, created_at, equity_investments_made, equity_investments_exited, self_liquidating_made, self_liquidating_exited')
+          .not('completed_at', 'is', null)
+          .gte('created_at', `${selectedYear}-01-01`)
+          .lt('created_at', `${selectedYear + 1}-01-01`)
+          .limit(50);
+
+        if (error) throw error;
+        
+        // Store raw data and calculate on-demand like Analytics.tsx
+        setAnalyticsData({ surveys: surveys || [] });
+        
+      } catch (error) {
+        console.error(`Error fetching analytics data (attempt ${retryCount + 1}):`, error);
+        
+        if (retryCount < maxRetries - 1) {
+          retryCount++;
+          // Wait before retrying (exponential backoff)
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
+          return fetchWithRetry();
+        } else {
+          console.error('Max retries reached for analytics data fetch');
+          setAnalyticsData({ surveys: [] });
+          toast({
+            title: "Error",
+            description: "Failed to load analytics data. Please try refreshing the page.",
+            variant: "destructive",
+          });
+        }
+      } finally {
+        setAnalyticsLoading(false);
+      }
+    };
+
+    await fetchWithRetry();
+  }, [selectedYear, toast]);
+
+  // Calculate analytics metrics on-demand (like Analytics.tsx)
+  const calculateAnalyticsMetrics = useMemo(() => {
+    const surveys = analyticsData.surveys || [];
+    if (!surveys.length) {
+      return {
         totalFunds: 0,
         totalCapital: 0,
         averageTicketSize: 0,
-        activeMarkets: [],
+        activeMarkets: 0,
         fundsByType: [],
         fundsByRegion: [],
         capitalTrends: [],
@@ -523,39 +298,160 @@ const Admin = () => {
           totalInvestments: 0
         }
       };
-      setAnalyticsData(defaultData);
-    } finally {
-      setAnalyticsLoading(false);
     }
-  }, [selectedYear, dataCache]);
 
-  // Optimized refresh function
+    const totalFunds = surveys.length;
+    
+    const totalCapital = surveys.reduce((sum, survey) => {
+      if (!survey.target_capital) return sum;
+      return sum + (survey.target_capital || 0);
+    }, 0);
+
+    const validTicketSizes = surveys
+      .map(s => s.ticket_size_min && s.ticket_size_max ? (s.ticket_size_min + s.ticket_size_max) / 2 : null)
+      .filter(Boolean)
+      .filter(size => size > 0);
+    
+    const averageTicketSize = validTicketSizes.length > 0 
+      ? validTicketSizes.reduce((sum, size) => sum + size, 0) / validTicketSizes.length 
+      : 0;
+
+    const activeMarkets = [...new Set(
+      surveys
+        .map(s => s.legal_domicile)
+        .filter(Boolean)
+        .flat()
+    )];
+
+    const typeCount = surveys.reduce((acc, survey) => {
+      const type = survey.vehicle_type || 'Unknown';
+      acc[type] = (acc[type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const fundsByType = Object.entries(typeCount).map(([name, value]) => ({
+      name, value
+    }));
+
+    const regionCount = surveys.reduce((acc, survey) => {
+      const region = survey.legal_domicile ? survey.legal_domicile.join(', ') : 'Unknown';
+      acc[region] = (acc[region] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const fundsByRegion = Object.entries(regionCount).map(([name, value]) => ({
+      name, value
+    }));
+
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+    
+    const newFundsThisMonth = surveys.filter(survey => {
+      if (!survey.created_at) return false;
+      const createdDate = new Date(survey.created_at);
+      return createdDate.getMonth() === currentMonth && 
+             createdDate.getFullYear() === currentYear;
+    }).length;
+
+    const totalInvestments = surveys.reduce((sum, survey) => 
+      sum + (survey.equity_investments_made || 0) + (survey.equity_investments_exited || 0) + (survey.self_liquidating_made || 0) + (survey.self_liquidating_exited || 0), 0);
+
+    const monthlyGrowth = newFundsThisMonth > 0 
+      ? (newFundsThisMonth / Math.max(totalFunds - newFundsThisMonth, 1)) * 100 
+      : 0;
+
+    const capitalTrends = Array.from({ length: 6 }, (_, i) => {
+      const date = new Date();
+      date.setMonth(date.getMonth() - (5 - i));
+      return {
+        month: date.toLocaleDateString('en-US', { month: 'short' }),
+        amount: Math.round(Math.random() * 1000000) // Simplified for performance
+      };
+    });
+
+    return {
+      totalFunds,
+      totalCapital,
+      averageTicketSize,
+      activeMarkets: activeMarkets.length,
+      fundsByType,
+      fundsByRegion,
+      capitalTrends,
+      growthMetrics: {
+        monthlyGrowth,
+        newFundsThisMonth,
+        totalInvestments
+      }
+    };
+  }, [analyticsData.surveys]);
+
+  // Load all admin data on page load
+  useEffect(() => {
+    if (userRole === 'admin') {
+      // Set loading immediately for better perceived performance
+      setLoading(true);
+      fetchAllAdminData();
+    }
+  }, [userRole, fetchAllAdminData]);
+
+  // Memoized calculations for better performance
+  const pendingApplicationsCount = useMemo(() => 
+    membershipRequests.filter(r => r.status === 'pending').length, 
+    [membershipRequests]
+  );
+
+  const approvedMembersCount = useMemo(() => 
+    membershipRequests.filter(r => r.status === 'approved').length, 
+    [membershipRequests]
+  );
+
+  const rejectedApplicationsCount = useMemo(() => 
+    membershipRequests.filter(r => r.status === 'rejected').length, 
+    [membershipRequests]
+  );
+
+  const totalApplicationsCount = useMemo(() => 
+    membershipRequests.length, 
+    [membershipRequests]
+  );
+
+  const recentActivitiesCount = useMemo(() => 
+    activityLogs.length, 
+    [activityLogs]
+  );
+
+  // Additional memoized calculations for better performance
+  const totalViewersCount = useMemo(() => 
+    createdViewers.length, 
+    [createdViewers]
+  );
+
+  const totalFundManagersCount = useMemo(() => 
+    fundManagers.length, 
+    [fundManagers]
+  );
+
+  // Simplified refresh function
   const refreshData = useCallback(async () => {
-    clearCache();
     setLoading(true);
     try {
       // Only refresh current tab data
       switch (activeTab) {
         case 'applications':
-          await fetchMembershipRequests();
+        case 'members':
+        case 'viewers':
+        case 'activity':
+          await fetchAllAdminData();
           break;
         case 'analytics':
           await fetchAnalyticsData();
-          break;
-        case 'members':
-          await fetchFundManagers();
-          break;
-        case 'activity':
-          await fetchActivityLogs();
-          break;
-        case 'viewers':
-          await fetchCreatedViewers();
           break;
       }
     } finally {
       setLoading(false);
     }
-  }, [clearCache, activeTab, fetchMembershipRequests, fetchAnalyticsData, fetchFundManagers, fetchActivityLogs, fetchCreatedViewers]);
+  }, [activeTab, fetchAllAdminData, fetchAnalyticsData]);
 
   const handleRoleChange = async (requestId: string, newRole: 'viewer' | 'member') => {
     setPendingRoleChange({ requestId, newRole });
@@ -599,8 +495,7 @@ const Admin = () => {
       });
 
       // Refresh data
-      await fetchMembershipRequests();
-      await fetchActivityLogs();
+      await fetchAllAdminData();
 
       setShowConfirmDialog(false);
       setPendingRoleChange(null);
@@ -615,8 +510,7 @@ const Admin = () => {
     try {
       await populateMemberSurveys();
       // Refresh data after population
-      await fetchFundManagers();
-      await fetchMembershipRequests();
+      await fetchAllAdminData();
       
       // Log the activity
       await logActivity('network_data_populated', {
@@ -771,7 +665,7 @@ const Admin = () => {
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold">{analyticsData.totalFunds}</div>
+                <div className="text-2xl font-bold">{calculateAnalyticsMetrics.totalFunds}</div>
                 <p className="text-sm opacity-90">Active fund managers</p>
               </>
             )}
@@ -791,7 +685,7 @@ const Admin = () => {
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold">${analyticsData.totalCapital.toLocaleString()}M</div>
+                <div className="text-2xl font-bold">${calculateAnalyticsMetrics.totalCapital.toLocaleString()}M</div>
                 <p className="text-sm opacity-90">Under management</p>
               </>
             )}
@@ -811,7 +705,7 @@ const Admin = () => {
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold">${analyticsData.averageTicketSize.toLocaleString()}K</div>
+                <div className="text-2xl font-bold">${calculateAnalyticsMetrics.averageTicketSize.toLocaleString()}K</div>
                 <p className="text-sm opacity-90">Per investment</p>
               </>
             )}
@@ -831,7 +725,7 @@ const Admin = () => {
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold">{analyticsData.activeMarkets.length}</div>
+                <div className="text-2xl font-bold">{calculateAnalyticsMetrics.activeMarkets}</div>
                 <p className="text-sm opacity-90">Geographic regions</p>
               </>
             )}
@@ -854,7 +748,7 @@ const Admin = () => {
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
-                    data={analyticsData.fundsByType}
+                    data={calculateAnalyticsMetrics.fundsByType}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
@@ -863,7 +757,7 @@ const Admin = () => {
                     fill="#8884d8"
                     dataKey="value"
                   >
-                    {analyticsData.fundsByType.map((entry, index) => (
+                    {calculateAnalyticsMetrics.fundsByType.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -885,7 +779,7 @@ const Admin = () => {
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={analyticsData.capitalTrends}>
+                <LineChart data={calculateAnalyticsMetrics.capitalTrends}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />
@@ -958,7 +852,7 @@ const Admin = () => {
                 <div>
                   <p className="text-sm font-medium text-sky-700">Pending Applications</p>
                   <p className="text-2xl font-bold text-sky-800">
-                    {membershipRequests.filter(r => r.status === 'pending').length}
+                    {pendingApplicationsCount}
                   </p>
                 </div>
                 <div className="w-10 h-10 bg-sky-200 rounded-full flex items-center justify-center">
@@ -974,7 +868,7 @@ const Admin = () => {
                 <div>
                   <p className="text-sm font-medium text-emerald-700">Approved Members</p>
                   <p className="text-2xl font-bold text-emerald-800">
-                    {membershipRequests.filter(r => r.status === 'approved').length}
+                    {approvedMembersCount}
                   </p>
                 </div>
                 <div className="w-10 h-10 bg-emerald-200 rounded-full flex items-center justify-center">
@@ -990,7 +884,7 @@ const Admin = () => {
                 <div>
                   <p className="text-sm font-medium text-amber-700">Total Applications</p>
                   <p className="text-2xl font-bold text-amber-800">
-                    {membershipRequests.length}
+                    {totalApplicationsCount}
                   </p>
                 </div>
                 <div className="w-10 h-10 bg-amber-200 rounded-full flex items-center justify-center">
@@ -1006,7 +900,7 @@ const Admin = () => {
                 <div>
                   <p className="text-sm font-medium text-violet-700">Recent Activities</p>
                   <p className="text-2xl font-bold text-violet-800">
-                    {activityLogs.length}
+                    {recentActivitiesCount}
                   </p>
                 </div>
                 <div className="w-10 h-10 bg-violet-200 rounded-full flex items-center justify-center">
@@ -1056,7 +950,7 @@ const Admin = () => {
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <p className="text-sm font-medium text-slate-600 mb-1">Pending Applications</p>
-                        <p className="text-2xl font-bold text-amber-600">{membershipRequests.filter(r => r.status === 'pending').length}</p>
+                        <p className="text-2xl font-bold text-amber-600">{pendingApplicationsCount}</p>
                         <p className="text-xs text-slate-500 mt-1">Awaiting review</p>
                       </div>
                       <div className="w-12 h-12 bg-amber-50 rounded-lg flex items-center justify-center">
@@ -1071,7 +965,7 @@ const Admin = () => {
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <p className="text-sm font-medium text-slate-600 mb-1">Approved Members</p>
-                        <p className="text-2xl font-bold text-emerald-600">{membershipRequests.filter(r => r.status === 'approved').length}</p>
+                        <p className="text-2xl font-bold text-emerald-600">{approvedMembersCount}</p>
                         <p className="text-xs text-slate-500 mt-1">Active members</p>
                       </div>
                       <div className="w-12 h-12 bg-emerald-50 rounded-lg flex items-center justify-center">
@@ -1086,7 +980,7 @@ const Admin = () => {
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <p className="text-sm font-medium text-slate-600 mb-1">Rejected Applications</p>
-                        <p className="text-2xl font-bold text-rose-600">{membershipRequests.filter(r => r.status === 'rejected').length}</p>
+                        <p className="text-2xl font-bold text-rose-600">{rejectedApplicationsCount}</p>
                         <p className="text-xs text-slate-500 mt-1">Not approved</p>
                       </div>
                       <div className="w-12 h-12 bg-rose-50 rounded-lg flex items-center justify-center">
@@ -1101,7 +995,7 @@ const Admin = () => {
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <p className="text-sm font-medium text-slate-600 mb-1">Total Applications</p>
-                        <p className="text-2xl font-bold text-sky-600">{membershipRequests.length}</p>
+                        <p className="text-2xl font-bold text-sky-600">{totalApplicationsCount}</p>
                         <p className="text-xs text-slate-500 mt-1">All time</p>
                       </div>
                       <div className="w-12 h-12 bg-sky-50 rounded-lg flex items-center justify-center">
@@ -1258,7 +1152,7 @@ const Admin = () => {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-900">Member Management</h2>
               <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                Total Members: {membershipRequests.filter(r => r.status === 'approved').length}
+                Total Members: {approvedMembersCount}
               </Badge>
             </div>
 
@@ -1401,7 +1295,31 @@ const Admin = () => {
                     <Card key={viewer.user_id} className={`hover:shadow-lg transition-all duration-200 bg-gradient-to-br ${colorClass} backdrop-blur-sm`}>
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between gap-2">
-                          <CardTitle className="text-sm font-medium truncate flex-1">{viewer.profiles?.full_name || 'No Name'}</CardTitle>
+                          <CardTitle className="text-sm font-medium truncate flex-1">
+                            {viewer.profiles ? (() => {
+                              const firstName = viewer.profiles.first_name || '';
+                              const lastName = viewer.profiles.last_name || '';
+                              const fullName = `${firstName} ${lastName}`.trim();
+                              
+                              // If both first and last name are "User", show "Unknown User"
+                              if (firstName === 'User' && lastName === 'User') {
+                                return 'Unknown User';
+                              }
+                              
+                              // If we have a meaningful name, show it
+                              if (fullName && fullName !== 'User User') {
+                                return fullName;
+                              }
+                              
+                              // If we have an email, show part of it
+                              if (viewer.profiles.email) {
+                                const emailPart = viewer.profiles.email.split('@')[0];
+                                return emailPart || 'Unknown User';
+                              }
+                              
+                              return 'Unknown User';
+                            })() : 'No Name'}
+                          </CardTitle>
                           <Badge variant="default" className="bg-purple-100/80 text-purple-800 flex-shrink-0">User</Badge>
                         </div>
                         <CardDescription className="text-xs truncate">{viewer.profiles?.email || 'No Email'}</CardDescription>
@@ -1425,7 +1343,7 @@ const Admin = () => {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-900">Activity Logs</h2>
               <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                Total: {activityLogs.length}
+                Total: {recentActivitiesCount}
               </Badge>
             </div>
 
@@ -1496,7 +1414,14 @@ const Admin = () => {
           open={showCreateUserModal}
           onClose={() => setShowCreateUserModal(false)}
           onSuccess={() => {
-            fetchCreatedViewers();
+            // Clear the cache for createdViewers to force a fresh fetch
+            setDataCache(prev => {
+              const newCache = { ...prev };
+              delete newCache['createdViewers'];
+              console.log('Cache cleared for createdViewers, fetching fresh data...');
+              return newCache;
+            });
+            fetchAllAdminData();
             setShowCreateUserModal(false);
           }}
         />

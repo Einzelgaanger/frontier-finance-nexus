@@ -65,6 +65,7 @@ const Network = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRegion, setFilterRegion] = useState('all');
   const [filterType, setFilterType] = useState('all');
+  const [selectedYear, setSelectedYear] = useState(2025);
   const [approvedMembers, setApprovedMembers] = useState<any[]>([]);
   const [viewerError, setViewerError] = useState<string | null>(null);
   const [membershipRequests, setMembershipRequests] = useState<any[]>([]);
@@ -78,7 +79,7 @@ const Network = () => {
       fetchApprovedMembers();
       fetchMembershipRequests();
     }
-  }, [userRole]);
+  }, [userRole, selectedYear]);
 
   useEffect(() => {
     if (userRole === 'viewer') {
@@ -92,173 +93,162 @@ const Network = () => {
     try {
       setLoading(true);
       
-      // Fetch from both survey_responses and member_surveys tables
-      const { data: surveys, error: surveysError } = await supabase
-        .from('survey_responses')
-        .select('*')
-        .not('completed_at', 'is', null)
-        .order('completed_at', { ascending: false });
-        
-      const { data: memberSurveys, error: memberSurveysError } = await supabase
-        .from('member_surveys')
-        .select('*')
-        .not('completed_at', 'is', null)
-        .order('completed_at', { ascending: false });
-
-      if (surveysError) throw surveysError;
-      if (memberSurveysError) throw memberSurveysError;
-
-      // Get approved membership requests for reference
-      const { data: approved, error: approvedError } = await supabase
-        .from('membership_requests')
-        .select('user_id')
-        .eq('status', 'approved');
-        
-      if (approvedError) throw approvedError;
-
-      const approvedIds = new Set(approved?.map(r => r.user_id) || []);
+      let surveyResult;
+      let profilesResult;
       
-      let managersWithProfiles: FundManager[] = [];
-      
-      // Process survey_responses (members and viewers)
-      for (const item of surveys || []) {
-        if (!item || !item.user_id) continue;
-        
-        let profile = null;
-        try {
-          const { data: profileData, error: profileError } = await supabase
+      if (selectedYear === 2022) {
+        // Fetch 2022 survey data
+        [surveyResult, profilesResult] = await Promise.all([
+          supabase
+            .from('survey_responses_2022')
+            .select(`
+              id,
+              user_id,
+              organisation,
+              legal_domicile,
+              investment_stage,
+              investment_size,
+              investment_type,
+              sector_focus,
+              geographic_focus,
+              completed_at
+            `)
+            .not('completed_at', 'is', null)
+            .order('completed_at', { ascending: false }),
+          supabase
             .from('profiles')
-            .select('first_name, last_name, email')
-            .eq('id', item.user_id)
-            .maybeSingle();
-          
-          if (!profileError && profileData && profileData.email) {
-            profile = profileData;
-          } else {
-            // Create a fallback profile for users without profiles
-            profile = {
-              first_name: 'User',
-              last_name: item.user_id.slice(0, 8),
-              email: 'user@example.com'
-            };
-          }
-        } catch (profileErr) {
-          console.error('Error fetching profile for user:', item.user_id, profileErr);
-          // Create a fallback profile
-          profile = {
-            first_name: 'User',
-            last_name: item.user_id.slice(0, 8),
-            email: 'user@example.com'
+            .select('id, email, first_name, last_name')
+        ]);
+      } else if (selectedYear === 2021) {
+        // Fetch 2021 survey data
+        [surveyResult, profilesResult] = await Promise.all([
+          supabase
+            .from('survey_responses_2021')
+            .select(`
+              id,
+              user_id,
+              firm_name,
+              team_based,
+              geographic_focus,
+              fund_stage,
+              investment_stage,
+              investment_size,
+              target_sectors,
+              completed_at
+            `)
+            .not('completed_at', 'is', null)
+            .order('completed_at', { ascending: false }),
+          supabase
+            .from('profiles')
+            .select('id, email, first_name, last_name')
+        ]);
+      } else {
+        // Fetch 2025 survey data (default)
+        [surveyResult, profilesResult] = await Promise.all([
+          supabase
+            .from('survey_responses')
+            .select(`
+              id,
+              user_id,
+              vehicle_name,
+              vehicle_websites,
+              vehicle_type,
+              thesis,
+              team_size_max,
+              legal_domicile,
+              ticket_size_min,
+              ticket_size_max,
+              target_capital,
+              sectors_allocation,
+              fund_stage,
+              completed_at
+            `)
+            .not('completed_at', 'is', null)
+            .order('completed_at', { ascending: false }),
+          supabase
+            .from('profiles')
+            .select('id, email, first_name, last_name')
+        ]);
+      }
+
+      if (surveyResult.error) throw surveyResult.error;
+      if (profilesResult.error) throw profilesResult.error;
+      
+      // Create a map of user_id to profile data
+      const profilesMap = new Map();
+      (profilesResult.data || []).forEach(profile => {
+        profilesMap.set(profile.id, profile);
+      });
+      
+      // Transform data to match expected format based on year
+      const allManagers = (surveyResult.data || []).map(survey => {
+        const profile = profilesMap.get(survey.user_id);
+        
+        if (selectedYear === 2022) {
+          return {
+            id: survey.id,
+            user_id: survey.user_id,
+            fund_name: survey.organisation || 'Unknown Fund',
+            website: null,
+            primary_investment_region: survey.legal_domicile || 'Unknown',
+            fund_type: survey.investment_type || 'Unknown',
+            year_founded: null,
+            team_size: null,
+            typical_check_size: survey.investment_size || 'Unknown',
+            completed_at: survey.completed_at,
+            aum: null,
+            investment_thesis: null,
+            sector_focus: survey.sector_focus ? [survey.sector_focus] : [],
+            stage_focus: survey.investment_stage ? [survey.investment_stage] : [],
+            role_badge: 'Member',
+            profiles: profile || { first_name: 'Unknown', last_name: 'User', email: 'unknown@example.com' }
+          };
+        } else if (selectedYear === 2021) {
+          return {
+            id: survey.id,
+            user_id: survey.user_id,
+            fund_name: survey.firm_name || 'Unknown Fund',
+            website: null,
+            primary_investment_region: survey.geographic_focus?.join(', ') || 'Unknown',
+            fund_type: survey.investment_stage || 'Unknown',
+            year_founded: null,
+            team_size: null,
+            typical_check_size: survey.investment_size || 'Unknown',
+            completed_at: survey.completed_at,
+            aum: null,
+            investment_thesis: null,
+            sector_focus: survey.target_sectors || [],
+            stage_focus: survey.fund_stage ? [survey.fund_stage] : [],
+            role_badge: 'Member',
+            profiles: profile || { first_name: 'Unknown', last_name: 'User', email: 'unknown@example.com' }
+          };
+        } else {
+          // 2025 format
+          return {
+            id: survey.id,
+            user_id: survey.user_id,
+            fund_name: survey.vehicle_name || 'Unknown Fund',
+            website: survey.vehicle_websites?.[0] || null,
+            primary_investment_region: survey.legal_domicile?.join(', ') || 'Unknown',
+            fund_type: survey.vehicle_type || 'Unknown',
+            year_founded: null,
+            team_size: survey.team_size_max || null,
+            typical_check_size: survey.ticket_size_min && survey.ticket_size_max 
+              ? `$${survey.ticket_size_min.toLocaleString()} - $${survey.ticket_size_max.toLocaleString()}`
+              : null,
+            completed_at: survey.completed_at,
+            aum: survey.target_capital ? `$${survey.target_capital.toLocaleString()}` : null,
+            investment_thesis: survey.thesis || null,
+            sector_focus: survey.sectors_allocation ? Object.keys(survey.sectors_allocation) : [],
+            stage_focus: survey.fund_stage || [],
+            role_badge: 'Member',
+            profiles: profile || { first_name: 'Unknown', last_name: 'User', email: 'unknown@example.com' }
           };
         }
-        
-        let sectorFocus: string[] = [];
-        let stageFocus: string[] = [];
-        try {
-          if (item.sectors_allocation) {
-            sectorFocus = typeof item.sectors_allocation === 'string' 
-              ? Object.keys(JSON.parse(item.sectors_allocation))
-              : Object.keys(item.sectors_allocation || {});
-          } else if (item.sector_focus) {
-            sectorFocus = typeof item.sector_focus === 'string'
-              ? JSON.parse(item.sector_focus)
-              : item.sector_focus || [];
-          }
-          if (item.fund_stage) {
-            stageFocus = typeof item.fund_stage === 'string'
-              ? JSON.parse(item.fund_stage)
-              : item.fund_stage || [];
-          } else if (item.stage_focus) {
-            stageFocus = typeof item.stage_focus === 'string'
-              ? JSON.parse(item.stage_focus)
-              : item.stage_focus || [];
-          }
-        } catch {}
-        
-        const manager: FundManager = {
-          id: item.id,
-          user_id: item.user_id,
-          fund_name: item.vehicle_name || 'Unknown Fund',
-          website: item.vehicle_websites?.[0] || null,
-          primary_investment_region: item.legal_domicile?.join(', ') || 'Unknown',
-          fund_type: item.vehicle_type || 'Unknown',
-          year_founded: item.legal_entity_date_from || null,
-          team_size: item.team_size_max || null,
-          typical_check_size: item.ticket_size_min && item.ticket_size_max 
-            ? `$${item.ticket_size_min.toLocaleString()} - $${item.ticket_size_max.toLocaleString()}`
-            : null,
-          completed_at: item.completed_at,
-          aum: item.capital_raised ? `$${item.capital_raised.toLocaleString()}` : null,
-          investment_thesis: item.thesis || null,
-          sector_focus: sectorFocus,
-          stage_focus: stageFocus,
-          role_badge: item.role_badge || (approvedIds.has(item.user_id) ? 'member' : 'viewer'),
-          profiles: profile || null
-        };
-        managersWithProfiles.push(manager);
-      }
-      
-      // Process member_surveys (viewers and members)
-      for (const item of memberSurveys || []) {
-        if (!item || !item.user_id) continue;
-        
-        let profile = null;
-        try {
-          const { data: profileData, error: profileError } = await supabase
-            .from('profiles')
-            .select('first_name, last_name, email')
-            .eq('id', item.user_id)
-            .maybeSingle();
-          
-          if (!profileError && profileData && profileData.email) {
-            profile = profileData;
-          } else {
-            // Create a fallback profile for users without profiles
-            profile = {
-              first_name: 'User',
-              last_name: item.user_id.slice(0, 8),
-              email: 'user@example.com'
-            };
-          }
-        } catch (profileErr) {
-          console.error('Error fetching profile for user:', item.user_id, profileErr);
-          // Create a fallback profile
-          profile = {
-            first_name: 'User',
-            last_name: item.user_id.slice(0, 8),
-            email: 'user@example.com'
-          };
-        }
-        
-        const manager: FundManager = {
-          id: item.id,
-          user_id: item.user_id,
-          fund_name: item.fund_name || 'Unknown Fund',
-          website: item.website || null,
-          primary_investment_region: item.primary_investment_region || 'Unknown',
-          fund_type: item.fund_type || 'Unknown',
-          year_founded: item.year_founded || null,
-          team_size: item.team_size || null,
-          typical_check_size: item.typical_check_size || null,
-          completed_at: item.completed_at,
-          aum: item.aum || null,
-          investment_thesis: item.investment_thesis || null,
-          sector_focus: item.sector_focus || [],
-          stage_focus: item.stage_focus || [],
-          role_badge: item.role_badge || (approvedIds.has(item.user_id) ? 'member' : 'viewer'),
-          profiles: profile || null
-        };
-        managersWithProfiles.push(manager);
-      }
-      
-      // Remove duplicates based on user_id, keeping the most recent one
-      const uniqueManagers = managersWithProfiles
-        .sort((a, b) => new Date(b.completed_at || '').getTime() - new Date(a.completed_at || '').getTime())
-        .filter((manager, index, self) => 
-          index === self.findIndex(m => m.user_id === manager.user_id)
-        );
-      
-      setFundManagers(uniqueManagers);
+      });
+
+      setFundManagers(allManagers);
+      setFilteredManagers(allManagers);
       setLastUpdated(new Date());
     } catch (error) {
       console.error('Error fetching fund managers:', error);
@@ -552,6 +542,16 @@ const Network = () => {
               </div>
             </div>
             <div className="flex items-center space-x-3">
+              <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+                <SelectTrigger className="w-48 bg-white/70 backdrop-blur-sm border-slate-200">
+                  <SelectValue placeholder="Select Year" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="2025">2025 (Current)</SelectItem>
+                  <SelectItem value="2022">2022 CFF Survey</SelectItem>
+                  <SelectItem value="2021">2021 ESCP Survey</SelectItem>
+                </SelectContent>
+              </Select>
               <Button 
                 variant="outline" 
                 size="sm"

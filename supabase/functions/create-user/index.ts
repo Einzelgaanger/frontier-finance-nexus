@@ -98,6 +98,26 @@ serve(async (req) => {
       )
     }
 
+    // Create profile for the user
+    // Extract a meaningful name from email if no name is provided
+    const emailName = email.split('@')[0];
+    const firstName = user_metadata?.first_name || emailName || 'User';
+    const lastName = user_metadata?.last_name || 'Account';
+    
+    const { error: profileError } = await serviceRoleClient
+      .from('profiles')
+      .insert({
+        id: userData.user.id,
+        email: email,
+        first_name: firstName,
+        last_name: lastName
+      })
+
+    if (profileError) {
+      console.error('Error creating profile:', profileError)
+      // Don't fail the request if profile creation fails, just log it
+    }
+
     // Assign the role to the user
     const { error: roleError } = await serviceRoleClient
       .from('user_roles')

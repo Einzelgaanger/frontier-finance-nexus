@@ -41,6 +41,10 @@ import { FundStatusSection } from '@/components/survey/FundStatusSection';
 import { InvestmentInstrumentsSection } from '@/components/survey/InvestmentInstrumentsSection';
 import { SectorReturnsSection } from '@/components/survey/SectorReturnsSection';
 import Header from '@/components/layout/Header';
+import Survey2022 from './Survey2022';
+import Survey2021 from './Survey2021';
+import Survey2023 from './Survey2023';
+import Survey2024 from './Survey2024';
 import type { SurveyFormData, TeamMember } from '@/types/survey';
 
 function mapSupabaseSurveyToFormData(data: Record<string, unknown>): SurveyFormData {
@@ -792,9 +796,11 @@ const Survey = () => {
                       <SelectValue placeholder="Select Year" />
                     </SelectTrigger>
                     <SelectContent>
-                      {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(year => (
-                        <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-                      ))}
+                      <SelectItem value="2025">2025</SelectItem>
+                      <SelectItem value="2024">2024</SelectItem>
+                      <SelectItem value="2023">2023</SelectItem>
+                      <SelectItem value="2022">2022</SelectItem>
+                      <SelectItem value="2021">2021</SelectItem>
                       <SelectItem value="custom">Custom Year</SelectItem>
                     </SelectContent>
                   </Select>
@@ -1029,63 +1035,73 @@ const Survey = () => {
             </Card>
 
         {/* Survey Form */}
-        <Form {...form}>
-          <form className="space-y-6">
-            <Card className="shadow-sm border-gray-200">
-              <CardContent className="p-6">
-                {renderCurrentSection()}
-              </CardContent>
-            </Card>
+        {selectedYear === 2024 ? (
+          <Survey2024 />
+        ) : selectedYear === 2023 ? (
+          <Survey2023 />
+        ) : selectedYear === 2022 ? (
+          <Survey2022 />
+        ) : selectedYear === 2021 ? (
+          <Survey2021 />
+        ) : (
+          <Form {...form}>
+            <form className="space-y-6">
+              <Card className="shadow-sm border-gray-200">
+                <CardContent className="p-6">
+                  {renderCurrentSection()}
+                </CardContent>
+              </Card>
 
-            {/* Professional Action Buttons */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleSaveDraft}
-                  disabled={isSubmitting}
-                  className="border-gray-300"
-                >
-                  <Clock className="w-4 h-4 mr-2" />
-                  Save Draft
-                </Button>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handlePrevious}
-                  disabled={currentSection === 1}
-                  className="border-gray-300"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Previous
-                </Button>
-                {currentSection < totalSections ? (
+              {/* Professional Action Buttons */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
                   <Button
                     type="button"
-                    onClick={handleNext}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    Next
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                ) : (
-                  <Button
-                    type="button"
-                    onClick={() => setShowSubmitConfirmation(true)}
+                    variant="outline"
+                    onClick={handleSaveDraft}
                     disabled={isSubmitting}
-                    className="bg-green-600 hover:bg-green-700 text-white"
+                    className="border-gray-300"
                   >
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Submit Survey
+                    <Clock className="w-4 h-4 mr-2" />
+                    Save Draft
                   </Button>
-                )}
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handlePrevious}
+                    disabled={currentSection === 1}
+                    className="border-gray-300"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Previous
+                  </Button>
+                  {currentSection < totalSections ? (
+                    <Button
+                      type="button"
+                      onClick={handleNext}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      Next
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      onClick={() => setShowSubmitConfirmation(true)}
+                      disabled={isSubmitting}
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Submit Survey
+                    </Button>
+                  )}
+                </div>
               </div>
-            </div>
-          </form>
-        </Form>
+            </form>
+          </Form>
+        )}
 
         {/* Submit Confirmation Dialog */}
         <Dialog open={showSubmitConfirmation} onOpenChange={setShowSubmitConfirmation}>
