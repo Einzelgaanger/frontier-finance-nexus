@@ -60,7 +60,14 @@ export function InvestmentInstrumentsSection({ form }: InvestmentInstrumentsSect
   useEffect(() => {
     const existingData = form.getValues('investment_instruments_data') || [];
     if (existingData.length > 0) {
-      setInstruments(existingData);
+      setInstruments(existingData.map(item => ({
+        name: item.name || '',
+        committed: item.committed || 0,
+        committedPercentage: item.committedPercentage || 0,
+        deployed: item.deployed || 0,
+        deployedValue: item.deployedValue || 0,
+        priority: item.priority || 0
+      })));
     } else {
       // Fallback to old format
       const existingPriority = form.getValues('investment_instruments_priority') || {};

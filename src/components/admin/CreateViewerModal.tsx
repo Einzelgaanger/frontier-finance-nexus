@@ -200,23 +200,23 @@ const CreateViewerModal = ({ open, onClose, onSuccess }: CreateViewerModalProps)
       case 1:
         return null; // Account information is rendered separately
       case 2:
-        return <VehicleInfoSection form={form} />;
+        return <VehicleInfoSection form={form as any} />;
       case 3:
-        return <TeamSection form={form} />;
+        return <TeamSection form={form as any} />;
       case 4:
-        return <GeographicSection form={form} />;
+        return <GeographicSection form={form as any} />;
       case 5:
-        return <InvestmentStrategySection form={form} />;
+        return <InvestmentStrategySection form={form as any} />;
       case 6:
-        return <FundOperationsSection form={form} />;
+        return <FundOperationsSection form={form as any} />;
       case 7:
-        return <FundStatusSection form={form} />;
+        return <FundStatusSection form={form as any} />;
       case 8:
-        return <InvestmentInstrumentsSection form={form} />;
+        return <InvestmentInstrumentsSection form={form as any} />;
       case 9:
-        return <SectorReturnsSection form={form} />;
+        return <SectorReturnsSection form={form as any} />;
       default:
-        return <VehicleInfoSection form={form} />;
+        return <VehicleInfoSection form={form as any} />;
     }
   };
 
@@ -328,10 +328,11 @@ const CreateViewerModal = ({ open, onClose, onSuccess }: CreateViewerModalProps)
       console.log('User created successfully:', userResult);
 
       // Now create the survey data for the user
-      const { data: result, error: surveyError } = await supabase.rpc('create_viewer_survey_data', {
-        p_user_id: userResult.user.id,
-        p_survey_data: surveyData,
-        p_survey_year: data.survey_year
+      const { data: result, error: surveyError } = await supabase.rpc('create_viewer_with_survey', {
+        viewer_email: data.email,
+        viewer_password: data.password,
+        survey_data: surveyData,
+        survey_year: data.survey_year
       });
 
       if (surveyError) {
