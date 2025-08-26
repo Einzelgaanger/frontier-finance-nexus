@@ -14,6 +14,10 @@ import Dashboard from "./pages/Dashboard";
 import Network from "./pages/Network";
 import FundManagerDetail from "./pages/FundManagerDetail";
 import Survey from "./pages/Survey";
+import Survey2021 from "./pages/Survey2021";
+import Survey2022 from "./pages/Survey2022";
+import Survey2023 from "./pages/Survey2023";
+import Survey2024 from "./pages/Survey2024";
 import Profile from "./pages/Profile";
 import ViewerSettings from "./pages/ViewerSettings";
 import ResetPassword from "./pages/ResetPassword";
@@ -56,6 +60,26 @@ const App = () => {
             <Route path="/survey" element={
               <ProtectedRoute>
                 <Survey />
+              </ProtectedRoute>
+            } />
+            <Route path="/survey/2021" element={
+              <ProtectedRoute>
+                <Survey2021 />
+              </ProtectedRoute>
+            } />
+            <Route path="/survey/2022" element={
+              <ProtectedRoute>
+                <Survey2022 />
+              </ProtectedRoute>
+            } />
+            <Route path="/survey/2023" element={
+              <ProtectedRoute>
+                <Survey2023 />
+              </ProtectedRoute>
+            } />
+            <Route path="/survey/2024" element={
+              <ProtectedRoute>
+                <Survey2024 />
               </ProtectedRoute>
             } />
             <Route path="/profile" element={

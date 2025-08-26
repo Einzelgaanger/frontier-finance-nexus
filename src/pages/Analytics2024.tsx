@@ -1,977 +1,432 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import Header from '@/components/layout/Header';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
-  AreaChart,
-  Area,
-  ComposedChart
-} from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 
-interface Survey2024Data {
+interface SurveyResponse2024 {
   id: string;
-  user_id: string;
-  briefing_acknowledged: boolean;
-  firm_name: string;
-  role_title: string;
+  email_address: string;
+  investment_networks: string[];
+  investment_networks_other: string;
+  organisation_name: string;
+  funds_raising_investing: string;
+  fund_name: string;
+  legal_entity_achieved: string;
+  first_close_achieved: string;
+  first_investment_achieved: string;
+  geographic_markets: string[];
+  geographic_markets_other: string;
   team_based: string[];
   team_based_other: string;
-  geographic_focus: string[];
-  geographic_focus_other: string;
-  fund_stage: string;
-  fund_stage_other: string;
-  investment_vehicle_type: string[];
-  investment_vehicle_type_other: string;
-  business_model_targeted: string[];
-  business_model_targeted_other: string;
-  target_sectors: string[];
-  target_sectors_other: string;
-  investment_thesis: string;
-  investment_thesis_other: string;
-  capital_construct: string;
-  capital_construct_other: string;
-  investment_criteria: string[];
-  investment_criteria_other: string;
-  deal_flow_sources: string[];
-  deal_flow_sources_other: string;
-  investment_process: string;
-  investment_process_other: string;
-  portfolio_size: string;
-  portfolio_size_other: string;
-  team_structure: string;
-  team_structure_other: string;
-  team_expertise: string[];
-  team_expertise_other: string;
-  investment_committee: string;
-  investment_committee_other: string;
-  portfolio_development_stage: string;
-  portfolio_development_stage_other: string;
-  exit_strategies: string[];
-  exit_strategies_other: string;
-  return_expectations: string;
-  return_expectations_other: string;
-  value_add_services: string[];
-  value_add_services_other: string;
-  covid_impact_vehicle: string;
-  covid_impact_vehicle_other: string;
-  covid_impact_portfolio: string;
-  covid_impact_portfolio_other: string;
-  covid_adaptations: string[];
-  covid_adaptations_other: string;
-  network_engagement_level: string;
-  network_engagement_level_other: string;
-  network_value_areas: Record<string, string>;
-  present_connection_session: boolean;
-  convening_initiatives_ranking: Record<string, string>;
-  convening_initiatives_other: string;
-  participate_mentoring_program: string;
-  participate_mentoring_program_other: string;
-  present_demystifying_session: string[];
-  present_demystifying_session_other: string;
-  additional_comments: string;
-  completed_at: string;
+  fte_staff_2023_actual: number;
+  fte_staff_current: number;
+  fte_staff_2025_forecast: number;
+  investment_approval: string[];
+  investment_approval_other: string;
+  principals_total: number;
+  principals_women: number;
+  gender_inclusion: string[];
+  gender_inclusion_other: string;
+  team_experience_investments: Record<string, string>;
+  team_experience_exits: Record<string, string>;
   created_at: string;
-  updated_at: string;
 }
 
-const Analytics2024: React.FC = () => {
-  const { userRole } = useAuth();
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658', '#FF6B6B'];
+
+export default function Analytics2024() {
+  const [data, setData] = useState<SurveyResponse2024[]>([]);
   const [loading, setLoading] = useState(true);
-  const [surveyData, setSurveyData] = useState<Survey2024Data[]>([]);
   const [selectedMetric, setSelectedMetric] = useState('overview');
 
   useEffect(() => {
-    loadSurveyData();
+    fetchData();
   }, []);
 
-  const loadSurveyData = async () => {
+  const fetchData = async () => {
     try {
-      setLoading(true);
-      const { data, error } = await supabase
+      const { data: responses, error } = await supabase
         .from('survey_responses_2024')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*');
 
       if (error) throw error;
-      setSurveyData(data || []);
+      setData(responses || []);
     } catch (error) {
-      console.error('Error loading 2024 survey data:', error);
+      console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const getFundStageDistribution = () => {
-    const distribution = surveyData.reduce((acc, survey) => {
-      const stage = survey.fund_stage;
-      acc[stage] = (acc[stage] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+  const calculateDistribution = (field: keyof SurveyResponse2024) => {
+    const distribution: { [key: string]: number } = {};
+    
+    data.forEach(response => {
+      const value = response[field];
+      if (Array.isArray(value)) {
+        value.forEach(item => {
+          distribution[item] = (distribution[item] || 0) + 1;
+        });
+      } else if (value) {
+        distribution[value] = (distribution[value] || 0) + 1;
+      }
+    });
+    
+    return Object.entries(distribution).map(([name, value]) => ({ name, value }));
+  };
 
-    return Object.entries(distribution).map(([stage, count]) => ({
-      stage: stage.length > 30 ? stage.substring(0, 30) + '...' : stage,
-      count
+  const calculatePercentageDistribution = (field: keyof SurveyResponse2024) => {
+    const distribution = calculateDistribution(field);
+    const total = data.length;
+    
+    return distribution.map(item => ({
+      ...item,
+      percentage: total > 0 ? ((item.value / total) * 100).toFixed(1) : '0'
     }));
   };
 
-  const getGeographicDistribution = () => {
-    const distribution: Record<string, number> = {};
-    surveyData.forEach(survey => {
-      survey.geographic_focus.forEach(region => {
-        distribution[region] = (distribution[region] || 0) + 1;
-      });
-    });
-
-    return Object.entries(distribution)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 10)
-      .map(([region, count]) => ({ region, count }));
+  const calculateNumericStats = (field: keyof SurveyResponse2024) => {
+    const values = data
+      .map(response => response[field])
+      .filter(value => typeof value === 'number' && !isNaN(value)) as number[];
+    
+    if (values.length === 0) return { min: 0, max: 0, avg: 0, total: 0 };
+    
+    return {
+      min: Math.min(...values),
+      max: Math.max(...values),
+      avg: values.reduce((sum, val) => sum + val, 0) / values.length,
+      total: values.reduce((sum, val) => sum + val, 0)
+    };
   };
 
-  const getInvestmentVehicleDistribution = () => {
-    const distribution: Record<string, number> = {};
-    surveyData.forEach(survey => {
-      survey.investment_vehicle_type.forEach(type => {
-        distribution[type] = (distribution[type] || 0) + 1;
-      });
-    });
+  const renderOverview = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Total Responses</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{data.length}</div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Organizations</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{new Set(data.map(d => d.organisation_name)).size}</div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Funds</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{new Set(data.map(d => d.fund_name)).size}</div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Response Rate</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{data.length > 0 ? '100%' : '0%'}</div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 
-    return Object.entries(distribution)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 8)
-      .map(([type, count]) => ({ type, count }));
-  };
+  const renderIntroductionAnalytics = () => (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Investment Networks</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={calculateDistribution('investment_networks')}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="value" fill="#0088FE" />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
 
-  const getBusinessModelDistribution = () => {
-    const distribution: Record<string, number> = {};
-    surveyData.forEach(survey => {
-      survey.business_model_targeted.forEach(model => {
-        distribution[model] = (distribution[model] || 0) + 1;
-      });
-    });
+      <Card>
+        <CardHeader>
+          <CardTitle>Funds Raising/Investing</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={calculateDistribution('funds_raising_investing')}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percentage }) => `${name} (${percentage}%)`}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {calculateDistribution('funds_raising_investing').map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+    </div>
+  );
 
-    return Object.entries(distribution)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 8)
-      .map(([model, count]) => ({ model, count }));
-  };
+  const renderOrganizationalAnalytics = () => (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Timeline Achievements</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <h4 className="font-medium mb-3">Legal Entity</h4>
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie
+                    data={calculateDistribution('legal_entity_achieved')}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={60}
+                    dataKey="value"
+                    label={({ name, value }) => `${name}: ${value}`}
+                  >
+                    {calculateDistribution('legal_entity_achieved').map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            
+            <div>
+              <h4 className="font-medium mb-3">First Close</h4>
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie
+                    data={calculateDistribution('first_close_achieved')}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={60}
+                    dataKey="value"
+                    label={({ name, value }) => `${name}: ${value}`}
+                  >
+                    {calculateDistribution('first_close_achieved').map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            
+            <div>
+              <h4 className="font-medium mb-3">First Investment</h4>
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie
+                    data={calculateDistribution('first_investment_achieved')}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={60}
+                    dataKey="value"
+                    label={({ name, value }) => `${name}: ${value}`}
+                  >
+                    {calculateDistribution('first_investment_achieved').map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-  const getTargetSectorsDistribution = () => {
-    const distribution: Record<string, number> = {};
-    surveyData.forEach(survey => {
-      survey.target_sectors.forEach(sector => {
-        distribution[sector] = (distribution[sector] || 0) + 1;
-      });
-    });
+      <Card>
+        <CardHeader>
+          <CardTitle>Geographic Markets</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={calculateDistribution('geographic_markets')}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="value" fill="#00C49F" />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
 
-    return Object.entries(distribution)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 10)
-      .map(([sector, count]) => ({ sector, count }));
-  };
+      <Card>
+        <CardHeader>
+          <CardTitle>Team Locations</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={calculateDistribution('team_based')}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percentage }) => `${name} (${percentage}%)`}
+                outerRadius={80}
+                fill="#FFBB28"
+                dataKey="value"
+              >
+                {calculateDistribution('team_based').map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
 
-  const getInvestmentThesisDistribution = () => {
-    const distribution = surveyData.reduce((acc, survey) => {
-      const thesis = survey.investment_thesis;
-      acc[thesis] = (acc[thesis] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+      <Card>
+        <CardHeader>
+          <CardTitle>Staff Numbers</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center">
+              <h4 className="font-medium mb-2">December 2023</h4>
+              <div className="text-2xl font-bold text-blue-600">
+                {calculateNumericStats('fte_staff_2023_actual').avg.toFixed(1)}
+              </div>
+              <p className="text-sm text-gray-600">Average FTEs</p>
+            </div>
+            
+            <div className="text-center">
+              <h4 className="font-medium mb-2">Current</h4>
+              <div className="text-2xl font-bold text-green-600">
+                {calculateNumericStats('fte_staff_current').avg.toFixed(1)}
+              </div>
+              <p className="text-sm text-gray-600">Average FTEs</p>
+            </div>
+            
+            <div className="text-center">
+              <h4 className="font-medium mb-2">2025 Forecast</h4>
+              <div className="text-2xl font-bold text-purple-600">
+                {calculateNumericStats('fte_staff_2025_forecast').avg.toFixed(1)}
+              </div>
+              <p className="text-sm text-gray-600">Average FTEs</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-    return Object.entries(distribution).map(([thesis, count]) => ({
-      thesis: thesis.length > 30 ? thesis.substring(0, 30) + '...' : thesis,
-      count
-    }));
-  };
+      <Card>
+        <CardHeader>
+          <CardTitle>Investment Approval Structure</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {calculateDistribution('investment_approval').map((item) => (
+              <div key={item.name} className="flex items-center justify-between p-3 border rounded-lg">
+                <span className="text-sm font-medium">{item.name}</span>
+                <Badge variant="secondary">{item.value}</Badge>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-  const getCapitalConstructDistribution = () => {
-    const distribution = surveyData.reduce((acc, survey) => {
-      const construct = survey.capital_construct;
-      acc[construct] = (acc[construct] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+      <Card>
+        <CardHeader>
+          <CardTitle>Principals</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="text-center">
+              <h4 className="font-medium mb-2">Total Principals</h4>
+              <div className="text-2xl font-bold text-blue-600">
+                {calculateNumericStats('principals_total').avg.toFixed(1)}
+              </div>
+              <p className="text-sm text-gray-600">Average per fund</p>
+            </div>
+            
+            <div className="text-center">
+              <h4 className="font-medium mb-2">Women Principals</h4>
+              <div className="text-2xl font-bold text-pink-600">
+                {calculateNumericStats('principals_women').avg.toFixed(1)}
+              </div>
+              <p className="text-sm text-gray-600">Average per fund</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-    return Object.entries(distribution).map(([construct, count]) => ({
-      construct: construct.length > 30 ? construct.substring(0, 30) + '...' : construct,
-      count
-    }));
-  };
-
-  const getInvestmentCriteriaDistribution = () => {
-    const distribution: Record<string, number> = {};
-    surveyData.forEach(survey => {
-      survey.investment_criteria.forEach(criteria => {
-        distribution[criteria] = (distribution[criteria] || 0) + 1;
-      });
-    });
-
-    return Object.entries(distribution)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 8)
-      .map(([criteria, count]) => ({ criteria, count }));
-  };
-
-  const getDealFlowSourcesDistribution = () => {
-    const distribution: Record<string, number> = {};
-    surveyData.forEach(survey => {
-      survey.deal_flow_sources.forEach(source => {
-        distribution[source] = (distribution[source] || 0) + 1;
-      });
-    });
-
-    return Object.entries(distribution)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 8)
-      .map(([source, count]) => ({ source, count }));
-  };
-
-  const getPortfolioSizeDistribution = () => {
-    const distribution = surveyData.reduce((acc, survey) => {
-      const size = survey.portfolio_size;
-      acc[size] = (acc[size] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    return Object.entries(distribution).map(([size, count]) => ({
-      size: size.length > 30 ? size.substring(0, 30) + '...' : size,
-      count
-    }));
-  };
-
-  const getTeamStructureDistribution = () => {
-    const distribution = surveyData.reduce((acc, survey) => {
-      const structure = survey.team_structure;
-      acc[structure] = (acc[structure] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    return Object.entries(distribution).map(([structure, count]) => ({
-      structure: structure.length > 30 ? structure.substring(0, 30) + '...' : structure,
-      count
-    }));
-  };
-
-  const getTeamExpertiseDistribution = () => {
-    const distribution: Record<string, number> = {};
-    surveyData.forEach(survey => {
-      survey.team_expertise.forEach(expertise => {
-        distribution[expertise] = (distribution[expertise] || 0) + 1;
-      });
-    });
-
-    return Object.entries(distribution)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 8)
-      .map(([expertise, count]) => ({ expertise, count }));
-  };
-
-  const getExitStrategiesDistribution = () => {
-    const distribution: Record<string, number> = {};
-    surveyData.forEach(survey => {
-      survey.exit_strategies.forEach(strategy => {
-        distribution[strategy] = (distribution[strategy] || 0) + 1;
-      });
-    });
-
-    return Object.entries(distribution)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 8)
-      .map(([strategy, count]) => ({ strategy, count }));
-  };
-
-  const getReturnExpectationsDistribution = () => {
-    const distribution = surveyData.reduce((acc, survey) => {
-      const expectation = survey.return_expectations;
-      acc[expectation] = (acc[expectation] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    return Object.entries(distribution).map(([expectation, count]) => ({
-      expectation: expectation.length > 30 ? expectation.substring(0, 30) + '...' : expectation,
-      count
-    }));
-  };
-
-  const getValueAddServicesDistribution = () => {
-    const distribution: Record<string, number> = {};
-    surveyData.forEach(survey => {
-      survey.value_add_services.forEach(service => {
-        distribution[service] = (distribution[service] || 0) + 1;
-      });
-    });
-
-    return Object.entries(distribution)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 8)
-      .map(([service, count]) => ({ service, count }));
-  };
-
-  const getCovidImpactVehicleDistribution = () => {
-    const distribution = surveyData.reduce((acc, survey) => {
-      const impact = survey.covid_impact_vehicle;
-      acc[impact] = (acc[impact] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    return Object.entries(distribution).map(([impact, count]) => ({
-      impact: impact.length > 30 ? impact.substring(0, 30) + '...' : impact,
-      count
-    }));
-  };
-
-  const getCovidImpactPortfolioDistribution = () => {
-    const distribution = surveyData.reduce((acc, survey) => {
-      const impact = survey.covid_impact_portfolio;
-      acc[impact] = (acc[impact] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    return Object.entries(distribution).map(([impact, count]) => ({
-      impact: impact.length > 30 ? impact.substring(0, 30) + '...' : impact,
-      count
-    }));
-  };
-
-  const getCovidAdaptationsDistribution = () => {
-    const distribution: Record<string, number> = {};
-    surveyData.forEach(survey => {
-      survey.covid_adaptations.forEach(adaptation => {
-        distribution[adaptation] = (distribution[adaptation] || 0) + 1;
-      });
-    });
-
-    return Object.entries(distribution)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 8)
-      .map(([adaptation, count]) => ({ adaptation, count }));
-  };
-
-  const getNetworkEngagementDistribution = () => {
-    const distribution = surveyData.reduce((acc, survey) => {
-      const level = survey.network_engagement_level;
-      acc[level] = (acc[level] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    return Object.entries(distribution).map(([level, count]) => ({
-      level: level.length > 30 ? level.substring(0, 30) + '...' : level,
-      count
-    }));
-  };
-
-  const getNetworkValueAreasDistribution = () => {
-    const distribution: Record<string, number> = {};
-    surveyData.forEach(survey => {
-      Object.entries(survey.network_value_areas).forEach(([area, value]) => {
-        if (value === 'true') {
-          distribution[area] = (distribution[area] || 0) + 1;
-        }
-      });
-    });
-
-    return Object.entries(distribution)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 8)
-      .map(([area, count]) => ({ area, count }));
-  };
-
-  const getMentoringProgramDistribution = () => {
-    const distribution = surveyData.reduce((acc, survey) => {
-      const participation = survey.participate_mentoring_program;
-      acc[participation] = (acc[participation] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    return Object.entries(distribution).map(([participation, count]) => ({
-      participation: participation.length > 30 ? participation.substring(0, 30) + '...' : participation,
-      count
-    }));
-  };
-
-  const getDemystifyingSessionDistribution = () => {
-    const distribution: Record<string, number> = {};
-    surveyData.forEach(survey => {
-      survey.present_demystifying_session.forEach(topic => {
-        distribution[topic] = (distribution[topic] || 0) + 1;
-      });
-    });
-
-    return Object.entries(distribution)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 8)
-      .map(([topic, count]) => ({ topic, count }));
-  };
-
-  const getConveningInitiativesRanking = () => {
-    const rankings: Record<string, number[]> = {};
-    surveyData.forEach(survey => {
-      Object.entries(survey.convening_initiatives_ranking).forEach(([initiative, rank]) => {
-        if (!rankings[initiative]) {
-          rankings[initiative] = [];
-        }
-        const rankNum = parseInt(rank);
-        if (!isNaN(rankNum)) {
-          rankings[initiative].push(rankNum);
-        }
-      });
-    });
-
-    return Object.entries(rankings).map(([initiative, ranks]) => ({
-      initiative,
-      averageRank: ranks.reduce((sum, rank) => sum + rank, 0) / ranks.length
-    })).sort((a, b) => a.averageRank - b.averageRank);
-  };
+      <Card>
+        <CardHeader>
+          <CardTitle>Gender Inclusion</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {calculateDistribution('gender_inclusion').map((item) => (
+              <div key={item.name} className="flex items-center justify-between p-3 border rounded-lg">
+                <span className="text-sm font-medium">{item.name}</span>
+                <Badge variant="secondary">{item.value}</Badge>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading 2024 Survey Analytics...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!surveyData.length) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-gray-500">No 2024 survey data available</p>
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg">Loading analytics...</div>
       </div>
     );
   }
 
   return (
-    <div>
-      <Header />
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">2024 Survey Analytics</h1>
-          <p className="text-gray-600 mt-1">Comprehensive analysis of 2024 survey responses</p>
-          <div className="mt-4">
-            <Badge variant="outline" className="bg-blue-100 text-blue-700">
-              {surveyData.length} Responses
-            </Badge>
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <Select value={selectedMetric} onValueChange={setSelectedMetric}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Select Metric" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="overview">Overview</SelectItem>
-              <SelectItem value="background">Background</SelectItem>
-              <SelectItem value="investment">Investment</SelectItem>
-              <SelectItem value="portfolio">Portfolio</SelectItem>
-              <SelectItem value="covid">COVID-19 Impact</SelectItem>
-              <SelectItem value="network">Network</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {selectedMetric === 'overview' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card>
-              <CardContent className="p-6">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-gray-900">{surveyData.length}</p>
-                  <p className="text-sm text-gray-600">Total Responses</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-gray-900">
-                    {surveyData.filter(s => s.briefing_acknowledged).length}
-                  </p>
-                  <p className="text-sm text-gray-600">Briefing Acknowledged</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-gray-900">
-                    {surveyData.filter(s => s.completed_at).length}
-                  </p>
-                  <p className="text-sm text-gray-600">Completed Surveys</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-gray-900">
-                    {surveyData.filter(s => s.present_connection_session).length}
-                  </p>
-                  <p className="text-sm text-gray-600">Want to Present</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {selectedMetric === 'background' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Fund Stage Distribution</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={getFundStageDistribution()}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        dataKey="count"
-                        label={({ stage, count }) => `${stage}: ${count}`}
-                      >
-                        {getFundStageDistribution().map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={`hsl(${index * 45}, 70%, 60%)`} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Geographic Focus</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={getGeographicDistribution()}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="region" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="#3B82F6" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Investment Vehicle Types</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={getInvestmentVehicleDistribution()}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="type" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="#10B981" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Business Models Targeted</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={getBusinessModelDistribution()}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="model" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="#F59E0B" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        )}
-
-        {selectedMetric === 'investment' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Investment Thesis</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={getInvestmentThesisDistribution()}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        dataKey="count"
-                        label={({ thesis, count }) => `${thesis}: ${count}`}
-                      >
-                        {getInvestmentThesisDistribution().map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={`hsl(${index * 60}, 70%, 60%)`} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Capital Construct</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={getCapitalConstructDistribution()}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        dataKey="count"
-                        label={({ construct, count }) => `${construct}: ${count}`}
-                      >
-                        {getCapitalConstructDistribution().map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={`hsl(${index * 72}, 70%, 60%)`} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Investment Criteria</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={getInvestmentCriteriaDistribution()}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="criteria" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="#8B5CF6" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Deal Flow Sources</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={getDealFlowSourcesDistribution()}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="source" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="#EC4899" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        )}
-
-        {selectedMetric === 'portfolio' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Portfolio Size</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={getPortfolioSizeDistribution()}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        dataKey="count"
-                        label={({ size, count }) => `${size}: ${count}`}
-                      >
-                        {getPortfolioSizeDistribution().map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={`hsl(${index * 90}, 70%, 60%)`} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Team Structure</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={getTeamStructureDistribution()}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        dataKey="count"
-                        label={({ structure, count }) => `${structure}: ${count}`}
-                      >
-                        {getTeamStructureDistribution().map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={`hsl(${index * 120}, 70%, 60%)`} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Exit Strategies</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={getExitStrategiesDistribution()}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="strategy" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="#06B6D4" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Return Expectations</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={getReturnExpectationsDistribution()}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        dataKey="count"
-                        label={({ expectation, count }) => `${expectation}: ${count}`}
-                      >
-                        {getReturnExpectationsDistribution().map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={`hsl(${index * 150}, 70%, 60%)`} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        )}
-
-        {selectedMetric === 'covid' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>COVID-19 Impact on Vehicle</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={getCovidImpactVehicleDistribution()}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        dataKey="count"
-                        label={({ impact, count }) => `${impact}: ${count}`}
-                      >
-                        {getCovidImpactVehicleDistribution().map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={`hsl(${index * 180}, 70%, 60%)`} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>COVID-19 Impact on Portfolio</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={getCovidImpactPortfolioDistribution()}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        dataKey="count"
-                        label={({ impact, count }) => `${impact}: ${count}`}
-                      >
-                        {getCovidImpactPortfolioDistribution().map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={`hsl(${index * 210}, 70%, 60%)`} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>COVID-19 Adaptations</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={getCovidAdaptationsDistribution()}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="adaptation" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#EF4444" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {selectedMetric === 'network' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Network Engagement Level</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={getNetworkEngagementDistribution()}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        dataKey="count"
-                        label={({ level, count }) => `${level}: ${count}`}
-                      >
-                        {getNetworkEngagementDistribution().map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={`hsl(${index * 240}, 70%, 60%)`} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Network Value Areas</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={getNetworkValueAreasDistribution()}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="area" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="#84CC16" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Mentoring Program Participation</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={getMentoringProgramDistribution()}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        dataKey="count"
-                        label={({ participation, count }) => `${participation}: ${count}`}
-                      >
-                        {getMentoringProgramDistribution().map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={`hsl(${index * 270}, 70%, 60%)`} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Convening Initiatives Ranking</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={getConveningInitiativesRanking()}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="initiative" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="averageRank" fill="#F97316" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        )}
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold">2024 MSME Financing Survey Analytics</h2>
+        <Select value={selectedMetric} onValueChange={setSelectedMetric}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Select metric" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="overview">Overview</SelectItem>
+            <SelectItem value="introduction">Introduction & Context</SelectItem>
+            <SelectItem value="organizational">Organizational Background</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
+
+      {selectedMetric === 'overview' && renderOverview()}
+      {selectedMetric === 'introduction' && renderIntroductionAnalytics()}
+      {selectedMetric === 'organizational' && renderOrganizationalAnalytics()}
     </div>
   );
-};
-
-export default Analytics2024; 
+} 
