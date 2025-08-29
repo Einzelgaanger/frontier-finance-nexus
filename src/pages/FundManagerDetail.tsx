@@ -52,6 +52,7 @@ import {
   ShoppingBag
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import Survey2021Responses from '@/components/network/Survey2021Responses';
 import { useToast } from '@/hooks/use-toast';
 
 interface SurveyResponse {
@@ -136,6 +137,63 @@ interface FundManagerProfile {
   last_name: string;
   email: string;
   profile_picture_url?: string;
+}
+
+interface Survey2021Data {
+  id: string;
+  user_id?: string;
+  firm_name: string;
+  participant_name: string;
+  role_title: string;
+  team_based: string[];
+  team_based_other?: string;
+  geographic_focus: string[];
+  geographic_focus_other?: string;
+  fund_stage: string;
+  fund_stage_other?: string;
+  legal_entity_date: string;
+  first_close_date: string;
+  first_investment_date: string;
+  investments_march_2020: string;
+  investments_december_2020: string;
+  optional_supplement?: string;
+  investment_vehicle_type: string[];
+  investment_vehicle_type_other?: string;
+  current_fund_size: string;
+  target_fund_size: string;
+  investment_timeframe: string;
+  business_model_targeted: string[];
+  business_model_targeted_other?: string;
+  business_stage_targeted: string[];
+  business_stage_targeted_other?: string;
+  financing_needs: string[];
+  financing_needs_other?: string;
+  target_capital_sources: string[];
+  target_capital_sources_other?: string;
+  target_irr_achieved: string;
+  target_irr_targeted: string;
+  impact_vs_financial_orientation: string;
+  explicit_lens_focus: string[];
+  explicit_lens_focus_other?: string;
+  report_sustainable_development_goals: boolean;
+  top_sdg_1?: string;
+  top_sdg_2?: string;
+  top_sdg_3?: string;
+  gender_considerations_investment: string[];
+  gender_considerations_investment_other?: string;
+  gender_considerations_requirement?: string[];
+  gender_considerations_requirement_other?: string;
+  gender_fund_vehicle?: string[];
+  gender_fund_vehicle_other?: string;
+  investment_size_your_amount: string;
+  investment_size_total_raise: string;
+  investment_forms: string[];
+  investment_forms_other?: string;
+  target_sectors: string[];
+  target_sectors_other?: string;
+  carried_interest_principals: string;
+  current_ftes: string;
+  created_at?: string;
 }
 
 // Professional section configuration
@@ -267,6 +325,9 @@ const FundManagerDetail = () => {
   const [profile, setProfile] = useState<FundManagerProfile | null>(null);
   const [surveys, setSurveys] = useState<SurveyResponse[]>([]);
   const [activeSurvey, setActiveSurvey] = useState<SurveyResponse | null>(null);
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
+  const [activeYear, setActiveYear] = useState<number | null>(null);
+  const [survey2021, setSurvey2021] = useState<Survey2021Data | null>(null);
   const [currentSection, setCurrentSection] = useState(0);
   const [expandedTexts, setExpandedTexts] = useState<Record<string, boolean>>({});
   const [lastUpdated, setLastUpdated] = useState(new Date());
@@ -401,9 +462,42 @@ const FundManagerDetail = () => {
       })) as SurveyResponse[];
 
       setSurveys(typedSurveys);
-      
-      if (typedSurveys.length > 0) {
-        setActiveSurvey(typedSurveys[0]);
+
+      // Determine available years and include 2021 if present (admins/members only)
+      let years: number[] = Array.from(new Set(typedSurveys.map(s => s.year)));
+      if (userRole === 'admin' || userRole === 'member') {
+        const { data: s2021, error: s2021Error } = await supabase
+          .from('survey_responses_2021')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(1);
+        if (!s2021Error && s2021 && s2021.length > 0) {
+          setSurvey2021(s2021[0] as unknown as Survey2021Data);
+          years = Array.from(new Set([...years, 2021]));
+        } else {
+          setSurvey2021(null);
+        }
+      } else {
+        setSurvey2021(null);
+      }
+
+      years.sort((a, b) => b - a);
+      setAvailableYears(years);
+
+      // Initialize active selection: prefer most recent available
+      if (years.length > 0) {
+        const initialYear = years[0];
+        setActiveYear(initialYear);
+        if (initialYear !== 2021) {
+          const match = typedSurveys.find(s => s.year === initialYear) || null;
+          setActiveSurvey(match);
+        } else {
+          setActiveSurvey(null);
+        }
+      } else {
+        setActiveYear(null);
+        setActiveSurvey(typedSurveys[0] || null);
       }
       
       setLastUpdated(new Date());
@@ -1382,21 +1476,27 @@ const FundManagerDetail = () => {
                   </div>
                 </div>
               </div>
-              {surveys.length > 1 && (
+              {availableYears.length > 0 && (
                 <div className="flex items-center space-x-3 bg-gray-50 rounded-lg p-3">
                   <Calendar className="w-5 h-5 text-gray-600" />
                   <span className="text-gray-700 font-medium">Survey Year:</span>
                   <select
                     className="border border-gray-300 rounded-md px-3 py-1 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                    value={activeSurvey?.year || ''}
+                    value={activeYear || ''}
                     onChange={e => {
-                      const selected = surveys.find(s => s.year === Number(e.target.value));
-                      if (selected) setActiveSurvey(selected);
+                      const yr = Number(e.target.value);
+                      setActiveYear(yr);
+                      if (yr === 2021) {
+                        setActiveSurvey(null);
+                      } else {
+                        const selected = surveys.find(s => s.year === yr) || null;
+                        setActiveSurvey(selected);
+                      }
                     }}
                     aria-label="Select survey year"
                   >
-                    {surveys.map(s => (
-                      <option key={s.id} value={s.year}>{s.year}</option>
+                    {availableYears.map(y => (
+                      <option key={y} value={y}>{y}</option>
                     ))}
                   </select>
                 </div>
@@ -1413,6 +1513,20 @@ const FundManagerDetail = () => {
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Loading fund manager details...</h3>
                 <p className="text-gray-500">Please wait while we fetch the information.</p>
               </div>
+            </CardContent>
+          </Card>
+        ) : (activeYear === 2021 && (userRole === 'admin' || userRole === 'member')) ? (
+          <Card className="shadow-sm border-gray-200">
+            <CardContent className="p-12">
+              {survey2021 ? (
+                <Survey2021Responses data={survey2021} role={userRole} />
+              ) : (
+                <div className="text-center">
+                  <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No 2021 survey data found</h3>
+                  <p className="text-gray-500">This fund manager hasn't completed the 2021 survey.</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         ) : !activeSurvey ? (
