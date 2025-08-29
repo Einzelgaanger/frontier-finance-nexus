@@ -106,7 +106,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface Survey2021Data {
   id: string;
-  email_address: string;
+  email_address?: string;
   firm_name: string;
   participant_name: string;
   role_title: string;
@@ -312,7 +312,7 @@ const Analytics2021: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setSurveyData(data || []);
+      setSurveyData((data as unknown as Survey2021Data[]) || []);
       setLastUpdated(new Date());
       
       // Calculate data quality metrics
@@ -325,7 +325,7 @@ const Analytics2021: React.FC = () => {
       });
       
       // Generate insights
-      generateInsights(data || []);
+      generateInsights((data as unknown as Survey2021Data[]) || []);
       
     } catch (error) {
       console.error('Error loading 2021 survey data:', error);
@@ -521,6 +521,77 @@ const Analytics2021: React.FC = () => {
       march2020: parseInt(survey.investments_march_2020.split('-')[0]) || 0,
       december2020: parseInt(survey.investments_december_2020.split('-')[0]) || 0
     })).slice(0, 15);
+  };
+
+  // SDG First-choice distribution (from redesigned Q21 top_sdgs record)
+  const getTopSDGsFirstChoice = () => {
+    const counts: Record<string, number> = {};
+    surveyData.forEach(s => {
+      if (s.top_sdgs) {
+        Object.entries(s.top_sdgs).forEach(([sdg, rank]) => {
+          if (rank === 'First') {
+            counts[sdg] = (counts[sdg] || 0) + 1;
+          }
+        });
+      }
+    });
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([sdg, count]) => ({ sdg, count }));
+  };
+
+  // COVID per-aspect stacked impact (Q34)
+  const COVID_IMPACT_OPTIONS = [
+    'To date - no impact',
+    'To date - slight impact',
+    'To date - high impact',
+    'Anticipate no future impact',
+    'Anticipate future impact'
+  ];
+
+  const getCovidAspectStackedData = () => {
+    const aspectsCounts: Record<string, Record<string, number>> = {};
+    surveyData.forEach(s => {
+      const aspects = s.covid_impact_portfolio || {};
+      Object.entries(aspects).forEach(([aspect, choiceMap]) => {
+        // choiceMap expected shape: { selection: option } OR { [optionLabel]: optionValue }
+        // normalize by picking the first value
+        let selected: string | undefined;
+        const values = Object.values(choiceMap || {});
+        if (values.length > 0) selected = values[0];
+        if (!selected) return;
+        if (!aspectsCounts[aspect]) aspectsCounts[aspect] = {} as Record<string, number>;
+        aspectsCounts[aspect][selected] = (aspectsCounts[aspect][selected] || 0) + 1;
+      });
+    });
+
+    return Object.entries(aspectsCounts).map(([aspect, counts]) => {
+      const row: Record<string, number | string> = { aspect };
+      COVID_IMPACT_OPTIONS.forEach(opt => {
+        row[opt] = counts[opt] || 0;
+      });
+      return row;
+    });
+  };
+
+  // Gender considerations comparison (Consolidated Q22)
+  const getGenderConsiderationsData = () => {
+    const dataMap: Record<string, { invest: number; req: number }> = {};
+    surveyData.forEach(s => {
+      (s.gender_considerations_investment || []).forEach(item => {
+        if (!dataMap[item]) dataMap[item] = { invest: 0, req: 0 };
+        dataMap[item].invest += 1;
+      });
+      (s.gender_considerations_requirement || []).forEach(item => {
+        if (!dataMap[item]) dataMap[item] = { invest: 0, req: 0 };
+        dataMap[item].req += 1;
+      });
+    });
+    return Object.entries(dataMap)
+      .map(([item, v]) => ({ item, invest: v.invest, requirement: v.req }))
+      .sort((a, b) => (b.invest + b.requirement) - (a.invest + a.requirement))
+      .slice(0, 12);
   };
 
   const getRandomColor = () => {
@@ -770,6 +841,26 @@ const Analytics2021: React.FC = () => {
               </Card>
             </div>
 
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Gender Considerations: Investment vs Requirement</CardTitle>
+                <CardDescription>Comparison of adoption across the network (Q22)</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={320}>
+                  <ComposedChart data={getGenderConsiderationsData()} margin={{ top: 10, right: 20, bottom: 20, left: 10 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="item" tick={{ fontSize: 12 }} angle={-20} textAnchor="end" height={60} />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: 8 }} />
+                    <Legend />
+                    <Bar dataKey="invest" fill="#3B82F6" name="Investment Consideration" radius={[6,6,0,0]} />
+                    <Bar dataKey="requirement" fill="#10B981" name="Investment Requirement" radius={[6,6,0,0]} />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
@@ -778,12 +869,12 @@ const Analytics2021: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={getSectorDistribution()}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="sector" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="#ff6b6b" />
+                    <BarChart data={getSectorDistribution()} margin={{ top: 10, right: 20, bottom: 20, left: 10 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="sector" tick={{ fontSize: 12 }} angle={-20} textAnchor="end" height={60} />
+                      <YAxis tick={{ fontSize: 12 }} />
+                      <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: 8 }} />
+                      <Bar dataKey="count" fill="#ff6b6b" radius={[6,6,0,0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -842,12 +933,12 @@ const Analytics2021: React.FC = () => {
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
-                        data={surveyData.reduce((acc, survey) => {
+                        data={Object.entries(surveyData.reduce((acc, survey) => {
                           survey.investment_vehicle_type.forEach(type => {
                             acc[type] = (acc[type] || 0) + 1;
                           });
                           return acc;
-                        }, {} as Record<string, number>)}
+                        }, {} as Record<string, number>)).map(([name, value]) => ({ name, value }))}
                         cx="50%"
                         cy="50%"
                         labelLine={false}
@@ -976,6 +1067,25 @@ const Analytics2021: React.FC = () => {
                 </CardContent>
               </Card>
             </div>
+
+            {/* SDG First-choice Top 10 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Top SDGs (First Choice)</CardTitle>
+                <CardDescription>Most frequently selected SDGs as first priority (Q21)</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={getTopSDGsFirstChoice()} margin={{ top: 10, right: 20, bottom: 20, left: 10 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="sdg" tick={{ fontSize: 12 }} angle={-15} textAnchor="end" height={60} />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: 8 }} />
+                    <Bar dataKey="count" fill="#6366F1" radius={[6,6,0,0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Portfolio Section */}
@@ -1056,12 +1166,12 @@ const Analytics2021: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={getCOVIDImpactDistribution()}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="impact" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="#ff6b6b" />
+                    <BarChart data={getCOVIDImpactDistribution()} margin={{ top: 10, right: 20, bottom: 20, left: 10 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="impact" tick={{ fontSize: 12 }} angle={-15} textAnchor="end" height={60} />
+                      <YAxis tick={{ fontSize: 12 }} />
+                      <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: 8 }} />
+                      <Bar dataKey="count" fill="#ff6b6b" radius={[6,6,0,0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -1106,6 +1216,28 @@ const Analytics2021: React.FC = () => {
               </Card>
             </div>
 
+            {/* COVID per-aspect stacked chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Portfolio Aspects Impact (Stacked)</CardTitle>
+                <CardDescription>Distribution of impact across aspects (Q34)</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={360}>
+                  <BarChart data={getCovidAspectStackedData()} margin={{ top: 10, right: 20, bottom: 20, left: 10 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="aspect" tick={{ fontSize: 12 }} angle={-20} textAnchor="end" height={60} />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: 8 }} />
+                    <Legend />
+                    {COVID_IMPACT_OPTIONS.map((opt, idx) => (
+                      <Bar key={opt} dataKey={opt} stackId="a" fill={COLORS[idx % COLORS.length]} radius={idx === COVID_IMPACT_OPTIONS.length - 1 ? [6,6,0,0] : [0,0,0,0]} />
+                    ))}
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Capital Raising Plans for 2021</CardTitle>
@@ -1140,12 +1272,12 @@ const Analytics2021: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={getNetworkValueDistribution()}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="value" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="#8884d8" />
+                    <BarChart data={getNetworkValueDistribution()} margin={{ top: 10, right: 20, bottom: 20, left: 10 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="value" tick={{ fontSize: 12 }} />
+                      <YAxis tick={{ fontSize: 12 }} />
+                      <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: 8 }} />
+                      <Bar dataKey="count" fill="#8884d8" radius={[6,6,0,0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -1166,10 +1298,11 @@ const Analytics2021: React.FC = () => {
                         }, {} as Record<string, number>)).map(([platform, count]) => ({ platform, count }))}
                         cx="50%"
                         cy="50%"
+                        innerRadius={40}
+                        outerRadius={80}
+                        paddingAngle={2}
                         labelLine={false}
                         label={({ platform, percent }) => `${platform} ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={80}
-                        fill="#8884d8"
                         dataKey="count"
                       >
                         {Object.entries(surveyData.reduce((acc, survey) => {
@@ -1179,7 +1312,7 @@ const Analytics2021: React.FC = () => {
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip />
+                      <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: 8 }} />
                     </PieChart>
                   </ResponsiveContainer>
                 </CardContent>
