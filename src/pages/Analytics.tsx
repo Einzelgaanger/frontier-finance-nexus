@@ -57,7 +57,6 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import Analytics2021 from './Analytics2021';
 import Analytics2022 from './Analytics2022';
 import Analytics2023 from './Analytics2023';
 import Analytics2024 from './Analytics2024';
@@ -728,7 +727,11 @@ const Analytics = () => {
         {selectedYear === 2024 && <Analytics2024 />}
         {selectedYear === 2023 && <Analytics2023 />}
         {selectedYear === 2022 && <Analytics2022 />}
-        {selectedYear === 2021 && <Analytics2021 />}
+        {selectedYear === 2021 && (
+          <div className="text-sm text-gray-600 p-4 border rounded bg-white/70">
+            2021 analytics component not available in this branch.
+          </div>
+        )}
         
         {/* Default 2025 Analytics */}
         {selectedYear === 2025 && (
