@@ -33,11 +33,32 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { NetworkCard } from '@/components/network/NetworkCard';
 import { Link, useNavigate } from 'react-router-dom';
+import { useToast } from '@/components/ui/use-toast';
 
 interface FundManager {
   id: string;
   user_id: string;
   fund_name: string;
+  year?: number;
+  firm_name?: string;
+  vehicle_name?: string;
+  participant_name?: string;
+  role_title?: string;
+  email_address?: string;
+  team_based?: string[];
+  geographic_focus?: string[];
+  fund_stage?: string;
+  investment_timeframe?: string;
+  target_sectors?: string[];
+  vehicle_websites?: string;
+  vehicle_type?: string;
+  thesis?: string;
+  team_size_max?: number;
+  legal_domicile?: string;
+  ticket_size_min?: string;
+  ticket_size_max?: string;
+  target_capital?: string;
+  sectors_allocation?: string[];
   website?: string;
   primary_investment_region?: string;
   fund_type?: string;
@@ -50,6 +71,11 @@ interface FundManager {
   sector_focus?: string[];
   stage_focus?: string[];
   role_badge?: string;
+  profile?: {
+    first_name: string;
+    last_name: string;
+    email: string;
+  };
   profiles?: {
     first_name: string;
     last_name: string;
@@ -65,13 +91,14 @@ const Network = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRegion, setFilterRegion] = useState('all');
   const [filterType, setFilterType] = useState('all');
-  const [selectedYear, setSelectedYear] = useState(2025);
+  // Removed selectedYear state as year filter is not needed
   const [approvedMembers, setApprovedMembers] = useState<any[]>([]);
   const [viewerError, setViewerError] = useState<string | null>(null);
   const [membershipRequests, setMembershipRequests] = useState<any[]>([]);
   const [viewerLoading, setViewerLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchFundManagers();
@@ -79,7 +106,7 @@ const Network = () => {
       fetchApprovedMembers();
       fetchMembershipRequests();
     }
-  }, [userRole, selectedYear]);
+  }, [userRole]);
 
   useEffect(() => {
     if (userRole === 'viewer') {
@@ -92,167 +119,267 @@ const Network = () => {
   const fetchFundManagers = async () => {
     try {
       setLoading(true);
-      
-      let surveyResult;
-      let profilesResult;
-      
-      if (selectedYear === 2022) {
-        // Fetch 2022 survey data
-        [surveyResult, profilesResult] = await Promise.all([
-          supabase
-            .from('survey_responses_2022')
-            .select(`
-              id,
-              user_id,
-              organisation,
-              legal_domicile,
-              investment_stage,
-              investment_size,
-              investment_type,
-              sector_focus,
-              geographic_focus,
-              completed_at
-            `)
-            .not('completed_at', 'is', null)
-            .order('completed_at', { ascending: false }),
-          supabase
-            .from('profiles')
-            .select('id, email, first_name, last_name')
-        ]);
-      } else if (selectedYear === 2021) {
-        // Fetch 2021 survey data
-        [surveyResult, profilesResult] = await Promise.all([
-          supabase
-            .from('survey_responses_2021')
-            .select(`
-              id,
-              user_id,
-              firm_name,
-              team_based,
-              geographic_focus,
-              fund_stage,
-              investment_stage,
-              investment_size,
-              target_sectors,
-              completed_at
-            `)
-            .not('completed_at', 'is', null)
-            .order('completed_at', { ascending: false }),
-          supabase
-            .from('profiles')
-            .select('id, email, first_name, last_name')
-        ]);
-      } else {
-        // Fetch 2025 survey data (default)
-        [surveyResult, profilesResult] = await Promise.all([
-          supabase
-            .from('survey_responses')
-            .select(`
-              id,
-              user_id,
-              vehicle_name,
-              vehicle_websites,
-              vehicle_type,
-              thesis,
-              team_size_max,
-              legal_domicile,
-              ticket_size_min,
-              ticket_size_max,
-              target_capital,
-              sectors_allocation,
-              fund_stage,
-              completed_at
-            `)
-            .not('completed_at', 'is', null)
-            .order('completed_at', { ascending: false }),
-          supabase
-            .from('profiles')
-            .select('id, email, first_name, last_name')
-        ]);
-      }
+      console.log('Fetching all users from auth.users...');
 
-      if (surveyResult.error) throw surveyResult.error;
-      if (profilesResult.error) throw profilesResult.error;
+      // Fetch ALL users from auth.users, profiles, user_roles, and survey data
+      const [profilesResult, userRolesResult, survey2021Result, surveyResult] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('id, email, first_name, last_name, created_at'),
+        supabase
+          .from('user_roles')
+          .select('user_id, role'),
+        supabase
+          .from('survey_responses_2021')
+          .select(`
+            id,
+            user_id,
+            firm_name,
+            participant_name,
+            role_title,
+            team_based,
+            geographic_focus,
+            fund_stage,
+            investment_timeframe,
+            target_sectors,
+            completed_at
+          `)
+          .not('completed_at', 'is', null)
+          .order('completed_at', { ascending: false }),
+        supabase
+          .from('survey_responses')
+          .select(`
+            id,
+            user_id,
+            vehicle_name,
+            vehicle_websites,
+            vehicle_type,
+            thesis,
+            team_size_max,
+            legal_domicile,
+            ticket_size_min,
+            ticket_size_max,
+            target_capital,
+            sectors_allocation,
+            fund_stage,
+            completed_at
+          `)
+          .not('completed_at', 'is', null)
+          .order('completed_at', { ascending: false })
+      ]);
+
+      // Create a comprehensive list of all users from all sources
+      let allUsers: any[] = [];
       
-      // Create a map of user_id to profile data
+      // First, get all users from profiles
+      const profileUsers = (profilesResult.data || []).map(profile => ({
+        id: profile.id,
+        email: profile.email,
+        created_at: profile.created_at,
+        first_name: profile.first_name,
+        last_name: profile.last_name,
+        source: 'profiles'
+      }));
+      
+      // Get all users from survey data
+      const survey2021Users = (survey2021Result.data || []).map(survey => ({
+        id: survey.user_id,
+        email: (profilesResult.data || []).find(p => p.id === survey.user_id)?.email || `user-${survey.user_id}@example.com`,
+        created_at: (profilesResult.data || []).find(p => p.id === survey.user_id)?.created_at || new Date().toISOString(),
+        first_name: (profilesResult.data || []).find(p => p.id === survey.user_id)?.first_name || '',
+        last_name: (profilesResult.data || []).find(p => p.id === survey.user_id)?.last_name || '',
+        source: 'survey_2021'
+      }));
+      
+      const surveyUsers = (surveyResult.data || []).map(survey => ({
+        id: survey.user_id,
+        email: (profilesResult.data || []).find(p => p.id === survey.user_id)?.email || `user-${survey.user_id}@example.com`,
+        created_at: (profilesResult.data || []).find(p => p.id === survey.user_id)?.created_at || new Date().toISOString(),
+        first_name: (profilesResult.data || []).find(p => p.id === survey.user_id)?.first_name || '',
+        last_name: (profilesResult.data || []).find(p => p.id === survey.user_id)?.last_name || '',
+        source: 'survey_regular'
+      }));
+      
+      // Get all users from user_roles
+      const roleUsers = (userRolesResult.data || []).map(role => ({
+        id: role.user_id,
+        email: (profilesResult.data || []).find(p => p.id === role.user_id)?.email || `user-${role.user_id}@example.com`,
+        created_at: (profilesResult.data || []).find(p => p.id === role.user_id)?.created_at || new Date().toISOString(),
+        first_name: (profilesResult.data || []).find(p => p.id === role.user_id)?.first_name || '',
+        last_name: (profilesResult.data || []).find(p => p.id === role.user_id)?.last_name || '',
+        source: 'user_roles'
+      }));
+      
+      // Try to get users from auth.users if possible
+      let authUsers: any[] = [];
+      try {
+        const { data: authUsersData, error: authError } = await supabase
+          .from('auth.users')
+          .select('id, email, created_at');
+        
+        if (!authError && authUsersData) {
+          authUsers = authUsersData.map(user => ({
+            id: user.id,
+            email: user.email,
+            created_at: user.created_at,
+            first_name: (profilesResult.data || []).find(p => p.id === user.id)?.first_name || '',
+            last_name: (profilesResult.data || []).find(p => p.id === user.id)?.last_name || '',
+            source: 'auth_users'
+          }));
+        }
+      } catch (error) {
+        console.log('Could not fetch from auth.users directly');
+      }
+      
+      // Combine all users and remove duplicates
+      const allUserArrays = [profileUsers, survey2021Users, surveyUsers, roleUsers, authUsers];
+      const userMap = new Map();
+      
+      allUserArrays.forEach(userArray => {
+        userArray.forEach(user => {
+          if (!userMap.has(user.id)) {
+            userMap.set(user.id, user);
+          } else {
+            // Merge data if user exists in multiple sources
+            const existing = userMap.get(user.id);
+            userMap.set(user.id, {
+              ...existing,
+              email: existing.email || user.email,
+              first_name: existing.first_name || user.first_name,
+              last_name: existing.last_name || user.last_name,
+              created_at: existing.created_at || user.created_at,
+              source: `${existing.source}, ${user.source}`
+            });
+          }
+        });
+      });
+      
+      allUsers = Array.from(userMap.values());
+
+      if (profilesResult.error) throw profilesResult.error;
+      if (userRolesResult.error) throw userRolesResult.error;
+      if (survey2021Result.error) throw survey2021Result.error;
+      if (surveyResult.error) throw surveyResult.error;
+      
+      console.log('All users:', allUsers);
+      console.log('Profiles:', profilesResult.data);
+      console.log('User roles:', userRolesResult.data);
+      console.log('Survey 2021:', survey2021Result.data);
+      console.log('Survey regular:', surveyResult.data);
+      
+      // Create maps for quick lookups
       const profilesMap = new Map();
       (profilesResult.data || []).forEach(profile => {
         profilesMap.set(profile.id, profile);
       });
       
-      // Transform data to match expected format based on year
-      const allManagers = (surveyResult.data || []).map(survey => {
-        const profile = profilesMap.get(survey.user_id);
+      const rolesMap = new Map();
+      (userRolesResult.data || []).forEach(userRole => {
+        rolesMap.set(userRole.user_id, userRole.role);
+      });
+      
+      // Create maps for survey data
+      const survey2021Map = new Map();
+      (survey2021Result.data || []).forEach(survey => {
+        survey2021Map.set(survey.user_id, survey);
+      });
+      
+      const surveyMap = new Map();
+      (surveyResult.data || []).forEach(survey => {
+        surveyMap.set(survey.user_id, survey);
+      });
+      
+      // Process ALL users and add profile/survey data if available
+      const allManagers = allUsers.map(user => {
+        const userRole = rolesMap.get(user.id);
+        const roleBadge = userRole || 'viewer';
+        const profile = profilesMap.get(user.id);
         
-        if (selectedYear === 2022) {
+        // Check for 2021 survey first (priority)
+        const survey2021 = survey2021Map.get(user.id);
+        if (survey2021) {
           return {
-            id: survey.id,
-            user_id: survey.user_id,
-            fund_name: survey.organisation || 'Unknown Fund',
-            website: null,
-            primary_investment_region: survey.legal_domicile || 'Unknown',
-            fund_type: survey.investment_type || 'Unknown',
-            year_founded: null,
-            team_size: null,
-            typical_check_size: survey.investment_size || 'Unknown',
-            completed_at: survey.completed_at,
-            aum: null,
-            investment_thesis: null,
-            sector_focus: survey.sector_focus ? [survey.sector_focus] : [],
-            stage_focus: survey.investment_stage ? [survey.investment_stage] : [],
-            role_badge: 'Member',
-            profiles: profile || { first_name: 'Unknown', last_name: 'User', email: 'unknown@example.com' }
-          };
-        } else if (selectedYear === 2021) {
-          return {
-            id: survey.id,
-            user_id: survey.user_id,
-            fund_name: survey.firm_name || 'Unknown Fund',
-            website: null,
-            primary_investment_region: survey.geographic_focus?.join(', ') || 'Unknown',
-            fund_type: survey.investment_stage || 'Unknown',
-            year_founded: null,
-            team_size: null,
-            typical_check_size: survey.investment_size || 'Unknown',
-            completed_at: survey.completed_at,
-            aum: null,
-            investment_thesis: null,
-            sector_focus: survey.target_sectors || [],
-            stage_focus: survey.fund_stage ? [survey.fund_stage] : [],
-            role_badge: 'Member',
-            profiles: profile || { first_name: 'Unknown', last_name: 'User', email: 'unknown@example.com' }
-          };
-        } else {
-          // 2025 format
-          return {
-            id: survey.id,
-            user_id: survey.user_id,
-            fund_name: survey.vehicle_name || 'Unknown Fund',
-            website: survey.vehicle_websites?.[0] || null,
-            primary_investment_region: survey.legal_domicile?.join(', ') || 'Unknown',
-            fund_type: survey.vehicle_type || 'Unknown',
-            year_founded: null,
-            team_size: survey.team_size_max || null,
-            typical_check_size: survey.ticket_size_min && survey.ticket_size_max 
-              ? `$${survey.ticket_size_min.toLocaleString()} - $${survey.ticket_size_max.toLocaleString()}`
-              : null,
-            completed_at: survey.completed_at,
-            aum: survey.target_capital ? `$${survey.target_capital.toLocaleString()}` : null,
-            investment_thesis: survey.thesis || null,
-            sector_focus: survey.sectors_allocation ? Object.keys(survey.sectors_allocation) : [],
-            stage_focus: survey.fund_stage || [],
-            role_badge: 'Member',
-            profiles: profile || { first_name: 'Unknown', last_name: 'User', email: 'unknown@example.com' }
+            id: survey2021.id,
+            user_id: user.id,
+            year: 2021,
+            fund_name: survey2021.firm_name || (profile ? `${profile.first_name} ${profile.last_name}` : user.email),
+            firm_name: survey2021.firm_name,
+            participant_name: survey2021.participant_name,
+            role_title: survey2021.role_title,
+            email_address: user.email,
+            team_based: survey2021.team_based,
+            geographic_focus: survey2021.geographic_focus,
+            fund_stage: survey2021.fund_stage,
+            investment_timeframe: survey2021.investment_timeframe,
+            target_sectors: survey2021.target_sectors,
+            completed_at: survey2021.completed_at,
+            role_badge: roleBadge,
+            profile: profile || { first_name: user.first_name || '', last_name: user.last_name || '', email: user.email },
+            has_survey: true
           };
         }
+        
+        // Check for regular survey
+        const survey = surveyMap.get(user.id);
+        if (survey) {
+          return {
+            id: survey.id,
+            user_id: user.id,
+            year: survey.year || 2025,
+            fund_name: survey.vehicle_name || (profile ? `${profile.first_name} ${profile.last_name}` : user.email),
+            vehicle_name: survey.vehicle_name,
+            vehicle_websites: survey.vehicle_websites,
+            vehicle_type: survey.vehicle_type,
+            thesis: survey.thesis,
+            team_size_max: survey.team_size_max,
+            legal_domicile: survey.legal_domicile,
+            ticket_size_min: survey.ticket_size_min,
+            ticket_size_max: survey.ticket_size_max,
+            target_capital: survey.target_capital,
+            sectors_allocation: survey.sectors_allocation,
+            fund_stage: survey.fund_stage,
+            completed_at: survey.completed_at,
+            role_badge: roleBadge,
+            profile: profile || { first_name: user.first_name || '', last_name: user.last_name || '', email: user.email },
+            has_survey: true
+          };
+        }
+        
+        // User without survey - create basic profile
+        return {
+          id: user.id,
+          user_id: user.id,
+          fund_name: profile ? `${profile.first_name} ${profile.last_name}` : (user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : user.email),
+          email_address: user.email,
+          completed_at: user.created_at,
+          role_badge: roleBadge,
+          profile: profile || { first_name: user.first_name || '', last_name: user.last_name || '', email: user.email },
+          has_survey: false
+        };
       });
-
-      setFundManagers(allManagers);
-      setFilteredManagers(allManagers);
-      setLastUpdated(new Date());
+      
+      // Sort by completion date (users with surveys first, then by creation date)
+      const sortedManagers = allManagers.sort((a, b) => {
+        if (a.has_survey && !b.has_survey) return -1;
+        if (!a.has_survey && b.has_survey) return 1;
+        if (a.completed_at && b.completed_at) {
+          return new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime();
+        }
+        return 0;
+      });
+      
+      console.log('All users:', sortedManagers);
+      console.log('Sample user data:', sortedManagers[0]);
+      setFundManagers(sortedManagers);
+      setFilteredManagers(sortedManagers);
+      
     } catch (error) {
-      console.error('Error fetching fund managers:', error);
-      setFundManagers([]);
+      console.error('Error fetching users:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch users",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -295,27 +422,103 @@ const Network = () => {
     }
   };
 
+  // Function to create profile entries for users who don't have them
+  const createMissingProfiles = async () => {
+    try {
+      console.log('Creating missing profile entries...');
+      
+      // Get all users from all sources
+      const [profilesResult, survey2021Result, surveyResult, userRolesResult] = await Promise.all([
+        supabase.from('profiles').select('id'),
+        supabase.from('survey_responses_2021').select('user_id'),
+        supabase.from('survey_responses').select('user_id'),
+        supabase.from('user_roles').select('user_id')
+      ]);
+
+      // Collect all user IDs
+      const existingProfileIds = new Set((profilesResult.data || []).map(p => p.id));
+      const surveyUserIds = new Set([
+        ...(survey2021Result.data || []).map(s => s.user_id),
+        ...(surveyResult.data || []).map(s => s.user_id)
+      ]);
+      const roleUserIds = new Set((userRolesResult.data || []).map(r => r.user_id));
+
+      // Find users who need profile entries
+      const allUserIds = new Set([...surveyUserIds, ...roleUserIds]);
+      const missingProfileIds = Array.from(allUserIds).filter(id => !existingProfileIds.has(id));
+
+      console.log('Users missing profiles:', missingProfileIds);
+
+      if (missingProfileIds.length > 0) {
+        // Create profile entries for missing users
+        const profileInserts = missingProfileIds.map(userId => ({
+          id: userId,
+          email: `user-${userId}@example.com`, // This will be updated when they have actual data
+          first_name: '',
+          last_name: '',
+          created_at: new Date().toISOString()
+        }));
+
+        const { data, error } = await supabase
+          .from('profiles')
+          .insert(profileInserts);
+
+        if (error) {
+          console.error('Error creating profiles:', error);
+          toast({
+            title: "Error",
+            description: "Failed to create missing profile entries",
+            variant: "destructive"
+          });
+        } else {
+          console.log('Created profile entries for:', missingProfileIds);
+          toast({
+            title: "Success",
+            description: `Created ${missingProfileIds.length} missing profile entries`,
+            variant: "default"
+          });
+          // Refresh the data
+          fetchFundManagers();
+        }
+      } else {
+        toast({
+          title: "Info",
+          description: "All users already have profile entries",
+          variant: "default"
+        });
+      }
+    } catch (error) {
+      console.error('Error creating missing profiles:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create missing profile entries",
+        variant: "destructive"
+      });
+    }
+  };
+
   const filterManagers = () => {
     let filtered = fundManagers;
 
     if (searchTerm) {
       filtered = filtered.filter(manager =>
         manager.fund_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (manager.profiles?.first_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (manager.profiles?.last_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (manager.primary_investment_region || '').toLowerCase().includes(searchTerm.toLowerCase())
+        (manager.profile?.first_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (manager.profile?.last_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (manager.email_address || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (manager.geographic_focus?.join(', ') || '').toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     if (filterRegion !== 'all') {
       filtered = filtered.filter(manager =>
-        (manager.primary_investment_region || '').toLowerCase().includes(filterRegion.toLowerCase())
+        (manager.geographic_focus?.join(', ') || '').toLowerCase().includes(filterRegion.toLowerCase())
       );
     }
 
     if (filterType !== 'all') {
       filtered = filtered.filter(manager =>
-        (manager.fund_type || '').toLowerCase().includes(filterType.toLowerCase())
+        (manager.vehicle_type || manager.fund_stage || '').toLowerCase().includes(filterType.toLowerCase())
       );
     }
 
@@ -323,12 +526,12 @@ const Network = () => {
   };
 
   const getRegions = () => {
-    const regions = [...new Set(fundManagers.map(m => m.primary_investment_region).filter(Boolean))];
+    const regions = [...new Set(fundManagers.flatMap(m => m.geographic_focus || []).filter(Boolean))];
     return regions.sort();
   };
 
   const getFundTypes = () => {
-    const types = [...new Set(fundManagers.map(m => m.fund_type).filter(Boolean))];
+    const types = [...new Set(fundManagers.map(m => m.vehicle_type || m.fund_stage).filter(Boolean))];
     return types.sort();
   };
 
@@ -536,33 +739,33 @@ const Network = () => {
               <div className="w-12 h-12 bg-emerald-500 rounded-lg flex items-center justify-center shadow-sm">
                 <NetworkIcon className="w-6 h-6 text-white" />
               </div>
-              <div>
-                <h1 className="text-2xl font-semibold text-slate-800">Network</h1>
-                <p className="text-slate-600 text-sm">Connect with fund managers and explore investment opportunities</p>
-              </div>
+                               <div>
+                   <h1 className="text-2xl font-semibold text-slate-800">Network</h1>
+                   <p className="text-slate-600 text-sm">Connect with all users and explore investment opportunities</p>
+                 </div>
             </div>
-            <div className="flex items-center space-x-3">
-              <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
-                <SelectTrigger className="w-48 bg-white/70 backdrop-blur-sm border-slate-200">
-                  <SelectValue placeholder="Select Year" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="2025">2025 (Current)</SelectItem>
-                  <SelectItem value="2022">2022 CFF Survey</SelectItem>
-                  <SelectItem value="2021">2021 ESCP Survey</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="border-slate-300 text-slate-600 bg-white/70 backdrop-blur-sm hover:bg-white/90"
-                onClick={fetchFundManagers}
-                disabled={loading}
-              >
-                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                Last updated: {lastUpdated.toLocaleTimeString()}
-              </Button>
-            </div>
+                         <div className="flex items-center space-x-3">
+               <Button 
+                 variant="outline" 
+                 size="sm"
+                 className="border-slate-300 text-slate-600 bg-white/70 backdrop-blur-sm hover:bg-white/90"
+                 onClick={createMissingProfiles}
+                 disabled={loading}
+               >
+                 <Users className="w-4 h-4 mr-2" />
+                 Sync Users
+               </Button>
+               <Button 
+                 variant="outline" 
+                 size="sm"
+                 className="border-slate-300 text-slate-600 bg-white/70 backdrop-blur-sm hover:bg-white/90"
+                 onClick={fetchFundManagers}
+                 disabled={loading}
+               >
+                 <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                 Last updated: {lastUpdated.toLocaleTimeString()}
+               </Button>
+             </div>
           </div>
         </div>
 
@@ -573,12 +776,12 @@ const Network = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-                  <Input
-                    placeholder="Search fund managers..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 bg-white/50 backdrop-blur-sm border-slate-200"
-                  />
+                                     <Input
+                     placeholder="Search users..."
+                     value={searchTerm}
+                     onChange={(e) => setSearchTerm(e.target.value)}
+                     className="pl-10 bg-white/50 backdrop-blur-sm border-slate-200"
+                   />
                 </div>
                 <Select value={filterRegion} onValueChange={setFilterRegion}>
                   <SelectTrigger className="bg-white/50 backdrop-blur-sm border-slate-200">
@@ -613,75 +816,75 @@ const Network = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card className="bg-gradient-to-br from-emerald-50/80 to-emerald-100/80 backdrop-blur-sm border border-emerald-200 shadow-sm hover:shadow-md transition-all duration-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-emerald-700">Total Fund Managers</p>
-                  <p className="text-2xl font-bold text-emerald-800">
-                    {filteredManagers.length}
-                  </p>
-                </div>
-                <div className="w-10 h-10 bg-emerald-200/60 rounded-full flex items-center justify-center">
-                  <Users className="w-5 h-5 text-emerald-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                     <Card className="bg-gradient-to-br from-emerald-50/80 to-emerald-100/80 backdrop-blur-sm border border-emerald-200 shadow-sm hover:shadow-md transition-all duration-200">
+             <CardContent className="p-4">
+               <div className="flex items-center justify-between">
+                 <div>
+                   <p className="text-sm font-medium text-emerald-700">Total Users</p>
+                   <p className="text-2xl font-bold text-emerald-800">
+                     {filteredManagers.length}
+                   </p>
+                 </div>
+                 <div className="w-10 h-10 bg-emerald-200/60 rounded-full flex items-center justify-center">
+                   <Users className="w-5 h-5 text-emerald-600" />
+                 </div>
+               </div>
+             </CardContent>
+           </Card>
 
-          <Card className="bg-gradient-to-br from-teal-50/80 to-teal-100/80 backdrop-blur-sm border border-teal-200 shadow-sm hover:shadow-md transition-all duration-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-teal-700">Active Members</p>
-                  <p className="text-2xl font-bold text-teal-800">
-                    {filteredManagers.filter(m => m.role_badge === 'member').length}
-                  </p>
-                </div>
-                <div className="w-10 h-10 bg-teal-200/60 rounded-full flex items-center justify-center">
-                  <Award className="w-5 h-5 text-teal-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                     <Card className="bg-gradient-to-br from-teal-50/80 to-teal-100/80 backdrop-blur-sm border border-teal-200 shadow-sm hover:shadow-md transition-all duration-200">
+             <CardContent className="p-4">
+               <div className="flex items-center justify-between">
+                 <div>
+                   <p className="text-sm font-medium text-teal-700">With Surveys</p>
+                   <p className="text-2xl font-bold text-teal-800">
+                     {filteredManagers.filter(m => m.has_survey).length}
+                   </p>
+                 </div>
+                 <div className="w-10 h-10 bg-teal-200/60 rounded-full flex items-center justify-center">
+                   <CheckCircle className="w-5 h-5 text-teal-600" />
+                 </div>
+               </div>
+             </CardContent>
+           </Card>
 
-          <Card className="bg-gradient-to-br from-cyan-50/80 to-cyan-100/80 backdrop-blur-sm border border-cyan-200 shadow-sm hover:shadow-md transition-all duration-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-cyan-700">Regions Covered</p>
-                  <p className="text-2xl font-bold text-cyan-800">
-                    {new Set(filteredManagers.map(m => m.primary_investment_region)).size}
-                  </p>
-                </div>
-                <div className="w-10 h-10 bg-cyan-200/60 rounded-full flex items-center justify-center">
-                  <Globe className="w-5 h-5 text-cyan-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                     <Card className="bg-gradient-to-br from-cyan-50/80 to-cyan-100/80 backdrop-blur-sm border border-cyan-200 shadow-sm hover:shadow-md transition-all duration-200">
+             <CardContent className="p-4">
+               <div className="flex items-center justify-between">
+                 <div>
+                   <p className="text-sm font-medium text-cyan-700">Regions Covered</p>
+                   <p className="text-2xl font-bold text-cyan-800">
+                     {new Set(filteredManagers.flatMap(m => m.geographic_focus || []).filter(Boolean)).size}
+                   </p>
+                 </div>
+                 <div className="w-10 h-10 bg-cyan-200/60 rounded-full flex items-center justify-center">
+                   <Globe className="w-5 h-5 text-cyan-600" />
+                 </div>
+               </div>
+             </CardContent>
+           </Card>
 
-          <Card className="bg-gradient-to-br from-sky-50/80 to-sky-100/80 backdrop-blur-sm border border-sky-200 shadow-sm hover:shadow-md transition-all duration-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-sky-700">Fund Types</p>
-                  <p className="text-2xl font-bold text-sky-800">
-                    {new Set(filteredManagers.map(m => m.fund_type)).size}
-                  </p>
-                </div>
-                <div className="w-10 h-10 bg-sky-200/60 rounded-full flex items-center justify-center">
-                  <Building2 className="w-5 h-5 text-sky-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+           <Card className="bg-gradient-to-br from-sky-50/80 to-sky-100/80 backdrop-blur-sm border border-sky-200 shadow-sm hover:shadow-md transition-all duration-200">
+             <CardContent className="p-4">
+               <div className="flex items-center justify-between">
+                 <div>
+                   <p className="text-sm font-medium text-sky-700">Fund Types</p>
+                   <p className="text-2xl font-bold text-sky-800">
+                     {new Set(filteredManagers.map(m => m.vehicle_type || m.fund_stage).filter(Boolean)).size}
+                   </p>
+                 </div>
+                 <div className="w-10 h-10 bg-sky-200/60 rounded-full flex items-center justify-center">
+                   <Building2 className="w-5 h-5 text-sky-600" />
+                 </div>
+               </div>
+             </CardContent>
+           </Card>
         </div>
 
 
 
-        {/* Professional Fund Managers Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                 {/* Professional Users Grid */}
+         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredManagers.map((manager) => (
             <NetworkCard
               key={manager.id}

@@ -38,6 +38,7 @@ import {
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from "@/components/ui/use-toast";
 
 interface ActivityItem {
   id: string;
@@ -50,12 +51,13 @@ interface ActivityItem {
 }
 
 const MemberDashboard = () => {
-  const [stats, setStats] = useState([
-    { title: 'Network Connections', value: '...', icon: Network, description: 'Active connections', trend: { value: 0, isPositive: true }, color: 'bg-blue-600' },
-    { title: 'Profile Completion', value: '...', icon: UserCheck, description: 'Survey completion rate', trend: { value: 0, isPositive: true }, color: 'bg-green-600' },
-    { title: 'Network Reach', value: '...', icon: Globe, description: 'Geographic coverage', trend: { value: 0, isPositive: true }, color: 'bg-purple-600' },
-    { title: 'Engagement Score', value: '...', icon: TrendingUp, description: 'Platform activity', trend: { value: 0, isPositive: true }, color: 'bg-orange-600' },
-  ]);
+  const [stats, setStats] = useState({
+    networkConnections: '...',
+    profileCompletion: '...',
+    networkReach: '...',
+    engagementScore: '...',
+    recentActivity: [] as { type: string; description: string; date: string; icon: string }[]
+  });
   const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
   const [achievements, setAchievements] = useState([
     { title: 'Profile Complete', description: 'Completed your profile survey', icon: CheckCircle, unlocked: true, color: 'bg-green-100 text-green-800' },
@@ -64,6 +66,7 @@ const MemberDashboard = () => {
   ]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(new Date());
+  const { toast } = useToast();
 
   // Fetch real member data
   const fetchMemberData = async () => {
@@ -76,15 +79,25 @@ const MemberDashboard = () => {
       // 1. Network Connections (placeholder - would need network table)
       const networkConnections = 12; // Mock data for now
 
-      // 2. Profile Completion
-      const { data: surveyData } = await supabase
-        .from('survey_responses')
-        .select('id, completed_at')
-        .eq('user_id', user.id)
-        .not('completed_at', 'is', null)
-        .single();
+      // 2. Profile Completion - check both regular and 2021 surveys
+      const [regularSurveyData, survey2021Data] = await Promise.all([
+        supabase
+          .from('survey_responses')
+          .select('id, completed_at')
+          .eq('user_id', user.id)
+          .not('completed_at', 'is', null)
+          .single(),
+        supabase
+          .from('survey_responses_2021')
+          .select('id, completed_at')
+          .eq('user_id', user.id)
+          .not('completed_at', 'is', null)
+          .single()
+      ]);
       
-      const profileCompletion = surveyData ? '100%' : '0%';
+      const hasRegularSurvey = regularSurveyData.data && !regularSurveyData.error;
+      const has2021Survey = survey2021Data.data && !survey2021Data.error;
+      const profileCompletion = (hasRegularSurvey || has2021Survey) ? '100%' : '0%';
 
       // 3. Network Reach (geographic coverage)
       const networkReach = '15 countries'; // Mock data
@@ -94,59 +107,57 @@ const MemberDashboard = () => {
 
       // 5. Recent Activity
       const fetchRecentActivity = async () => {
-        const activities: ActivityItem[] = [];
-
-        // Check if survey was completed recently
-        if (surveyData && surveyData.completed_at) {
-          const timeAgo = getTimeAgo(new Date(surveyData.completed_at));
-          activities.push({
-            id: 'survey-completed',
-            type: 'survey_completed',
-            title: 'Profile Survey Completed',
-            description: 'Your profile survey has been successfully submitted',
-            timestamp: timeAgo,
-            icon: CheckCircle,
-            color: 'bg-green-50 border-green-200'
-          });
+        try {
+          // Get recent survey completions
+          const recentSurveys = [];
+          
+          if (hasRegularSurvey) {
+            recentSurveys.push({
+              type: 'Survey Completed',
+              description: 'Fund profile survey completed',
+              date: regularSurveyData.data.completed_at,
+              icon: '📊'
+            });
+          }
+          
+          if (has2021Survey) {
+            recentSurveys.push({
+              type: '2021 Survey Completed',
+              description: '2021 ESCP network survey completed',
+              date: survey2021Data.data.completed_at,
+              icon: '📈'
+            });
+          }
+          
+          // Sort by date
+          recentSurveys.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+          
+          return recentSurveys.slice(0, 5);
+        } catch (error) {
+          console.error('Error fetching recent activity:', error);
+          return [];
         }
-
-        // Add some mock activities for demonstration
-        activities.push({
-          id: 'network-activity',
-          type: 'network_connected',
-          title: 'Network Activity',
-          description: 'Connected with 3 new members this week',
-          timestamp: '2 days ago',
-          icon: Network,
-          color: 'bg-blue-50 border-blue-200'
-        });
-
-        activities.push({
-          id: 'profile-update',
-          type: 'profile_updated',
-          title: 'Profile Updated',
-          description: 'Your profile information was updated',
-          timestamp: '1 week ago',
-          icon: UserCheck,
-          color: 'bg-purple-50 border-purple-200'
-        });
-
-        setRecentActivity(activities);
       };
 
-      await fetchRecentActivity();
+      const recentActivity = await fetchRecentActivity();
 
-      // Update stats with real data
-      setStats([
-        { title: 'Network Connections', value: networkConnections.toString(), icon: Network, description: 'Active connections', trend: { value: 0, isPositive: true }, color: 'bg-blue-600' },
-        { title: 'Profile Completion', value: profileCompletion, icon: UserCheck, description: 'Survey completion rate', trend: { value: 0, isPositive: true }, color: 'bg-green-600' },
-        { title: 'Network Reach', value: networkReach, icon: Globe, description: 'Geographic coverage', trend: { value: 0, isPositive: true }, color: 'bg-purple-600' },
-        { title: 'Engagement Score', value: engagementScore, icon: TrendingUp, description: 'Platform activity', trend: { value: 0, isPositive: true }, color: 'bg-orange-600' },
-      ]);
+      setStats({
+        networkConnections,
+        profileCompletion,
+        networkReach,
+        engagementScore,
+        recentActivity
+      });
 
       setLastUpdated(new Date());
+      
     } catch (error) {
       console.error('Error fetching member data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch member data",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -206,22 +217,69 @@ const MemberDashboard = () => {
             </Badge>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {stats.map((stat, index) => (
-              <Card key={index} className="shadow-sm border-gray-200">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-600 mb-1">{stat.title}</p>
-                      <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                      <p className="text-xs text-gray-500 mt-1">{stat.description}</p>
-                    </div>
-                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${stat.color}`}>
-                      <stat.icon className="w-6 h-6 text-white" />
-                    </div>
+            {/* Network Connections */}
+            <Card key="network-connections" className="shadow-sm border-gray-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-600 mb-1">Network Connections</p>
+                    <p className="text-2xl font-bold text-gray-900">{stats.networkConnections}</p>
+                    <p className="text-xs text-gray-500 mt-1">Active connections</p>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                  <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-blue-600">
+                    <Network className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Profile Completion */}
+            <Card key="profile-completion" className="shadow-sm border-gray-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-600 mb-1">Profile Completion</p>
+                    <p className="text-2xl font-bold text-gray-900">{stats.profileCompletion}</p>
+                    <p className="text-xs text-gray-500 mt-1">Survey completion rate</p>
+                  </div>
+                  <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-green-600">
+                    <UserCheck className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Network Reach */}
+            <Card key="network-reach" className="shadow-sm border-gray-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-600 mb-1">Network Reach</p>
+                    <p className="text-2xl font-bold text-gray-900">{stats.networkReach}</p>
+                    <p className="text-xs text-gray-500 mt-1">Geographic coverage</p>
+                  </div>
+                  <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-purple-600">
+                    <Globe className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Engagement Score */}
+            <Card key="engagement-score" className="shadow-sm border-gray-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-600 mb-1">Engagement Score</p>
+                    <p className="text-2xl font-bold text-gray-900">{stats.engagementScore}</p>
+                    <p className="text-xs text-gray-500 mt-1">Platform activity</p>
+                  </div>
+                  <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-orange-600">
+                    <TrendingUp className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
 
@@ -297,22 +355,19 @@ const MemberDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {recentActivity.length > 0 ? (
-                    recentActivity.map((activity) => {
-                      const Icon = activity.icon;
-                      return (
-                        <div key={activity.id} className={`flex items-center space-x-4 p-4 rounded-lg border ${activity.color}`}>
-                          <div className="p-2 bg-white rounded-full shadow-sm">
-                            <Icon className="w-5 h-5 text-gray-600" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-gray-900">{activity.title}</p>
-                            <p className="text-xs text-gray-600">{activity.description}</p>
-                          </div>
-                          <span className="text-xs text-gray-500">{activity.timestamp}</span>
+                  {stats.recentActivity.length > 0 ? (
+                    stats.recentActivity.map((activity, index) => (
+                      <div key={index} className="flex items-center space-x-4 p-4 rounded-lg border bg-blue-50">
+                        <div className="p-2 bg-white rounded-full shadow-sm">
+                          {activity.icon === '📊' ? <FileText className="w-5 h-5 text-gray-600" /> : <PieChart className="w-5 h-5 text-gray-600" />}
                         </div>
-                      );
-                    })
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-900">{activity.type}</p>
+                          <p className="text-xs text-gray-600">{activity.description}</p>
+                        </div>
+                        <span className="text-xs text-gray-500">{new Date(activity.date).toLocaleDateString()}</span>
+                      </div>
+                    ))
                   ) : (
                     <div className="text-center py-8 text-gray-500">
                       <Activity className="w-8 h-8 mx-auto mb-2 text-gray-400" />

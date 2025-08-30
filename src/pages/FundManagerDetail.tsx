@@ -356,6 +356,14 @@ const FundManagerDetail = () => {
     try {
       setLoading(true);
       
+      console.log('Fetching fund manager data for userId:', userId);
+      
+      // First, try to get the user ID from the URL parameter
+      // The userId parameter should be the actual user ID, not the survey ID
+      if (!userId) {
+        throw new Error('No user ID provided');
+      }
+
       // Fetch profile with better error handling
       let profileData = null;
       let profileError = null;
@@ -369,6 +377,9 @@ const FundManagerDetail = () => {
         
         profileData = data;
         profileError = error;
+        
+        console.log('Profile data:', profileData);
+        console.log('Profile error:', profileError);
       } catch (err) {
         console.error('Profile fetch error:', err);
         profileError = err;
@@ -377,135 +388,56 @@ const FundManagerDetail = () => {
       // Set profile even if there's an error (might be null)
       setProfile(profileData);
 
-      // Fetch surveys
-      const { data: surveyData, error: surveyError } = await supabase
+      // Fetch surveys - try both 2021 and regular surveys
+      const [surveyResult, survey2021Result] = await Promise.all([
+        supabase
         .from('survey_responses')
         .select('*')
         .eq('user_id', userId)
         .not('completed_at', 'is', null)
-        .order('year', { ascending: false });
-
-      if (surveyError) throw surveyError;
-
-      // Type assertion to match our interface
-      const typedSurveys = (surveyData || []).map(survey => ({
-        id: survey.id,
-        user_id: survey.user_id,
-        year: survey.year,
-        completed_at: survey.completed_at,
-        
-        // Section 1: Vehicle Information
-        vehicle_name: survey.vehicle_name,
-        vehicle_websites: survey.vehicle_websites,
-        vehicle_type: survey.vehicle_type,
-        vehicle_type_other: survey.vehicle_type_other,
-        thesis: survey.thesis,
-        
-        // Section 2: Team & Leadership
-        team_members: survey.team_members,
-        team_size_min: survey.team_size_min,
-        team_size_max: survey.team_size_max,
-        team_description: survey.team_description,
-        
-        // Section 3: Geographic & Market Focus
-        legal_domicile: survey.legal_domicile,
-        markets_operated: survey.markets_operated,
-        markets_operated_other: survey.markets_operated_other,
-        
-        // Section 4: Investment Strategy
-        ticket_size_min: survey.ticket_size_min,
-        ticket_size_max: survey.ticket_size_max,
-        ticket_description: survey.ticket_description,
-        target_capital: survey.target_capital,
-        capital_raised: survey.capital_raised,
-        capital_in_market: survey.capital_in_market,
-        
-        // Section 5: Fund Operations
-        supporting_document_url: survey.supporting_document_url,
-        information_sharing: survey.information_sharing,
-        expectations: survey.expectations,
-        how_heard_about_network: survey.how_heard_about_network,
-        
-        // Section 6: Fund Status & Timeline
-        fund_stage: survey.fund_stage,
-        current_status: survey.current_status,
-        current_status_other: survey.current_status_other,
-        legal_entity_date_from: survey.legal_entity_date_from,
-        legal_entity_date_to: survey.legal_entity_date_to,
-        legal_entity_month_from: survey.legal_entity_month_from,
-        legal_entity_month_to: survey.legal_entity_month_to,
-        first_close_date_from: survey.first_close_date_from,
-        first_close_date_to: survey.first_close_date_to,
-        first_close_month_from: survey.first_close_month_from,
-        first_close_month_to: survey.first_close_month_to,
-        
-        // Section 7: Investment Instruments
-        investment_instruments_priority: survey.investment_instruments_priority,
-        investment_instruments_data: survey.investment_instruments_data,
-        
-        // Section 8: Sector Focus & Returns
-        sectors_allocation: survey.sectors_allocation,
-        target_return_min: survey.target_return_min,
-        target_return_max: survey.target_return_max,
-        equity_investments_made: survey.equity_investments_made,
-        equity_investments_exited: survey.equity_investments_exited,
-        self_liquidating_made: survey.self_liquidating_made,
-        self_liquidating_exited: survey.self_liquidating_exited,
-        
-        // Legacy fields
-        location: survey.location,
-        team_size_description: survey.team_size_description,
-        portfolio_count: survey.portfolio_count,
-        capital_raised_description: survey.capital_raised_description,
-        ticket_size: survey.ticket_size,
-        vehicle_website: survey.vehicle_website,
-      })) as SurveyResponse[];
-
-      setSurveys(typedSurveys);
-
-      // Determine available years and include 2021 if present (admins/members only)
-      let years: number[] = Array.from(new Set(typedSurveys.map(s => s.year)));
-      if (userRole === 'admin' || userRole === 'member') {
-        const { data: s2021, error: s2021Error } = await supabase
+          .order('created_at', { ascending: false }),
+        supabase
           .from('survey_responses_2021')
           .select('*')
           .eq('user_id', userId)
-          .order('created_at', { ascending: false })
-          .limit(1);
-        if (!s2021Error && s2021 && s2021.length > 0) {
-          setSurvey2021(s2021[0] as unknown as Survey2021Data);
-          years = Array.from(new Set([...years, 2021]));
-        } else {
-          setSurvey2021(null);
-        }
-      } else {
-        setSurvey2021(null);
+          .not('completed_at', 'is', null)
+          .single()
+      ]);
+
+      console.log('Regular survey result:', surveyResult);
+      console.log('2021 survey result:', survey2021Result);
+
+      if (surveyResult.error) throw surveyResult.error;
+
+      // Process regular surveys
+      const surveyData = surveyResult.data || [];
+      const availableYears = surveyData.map(s => s.year).filter(Boolean).sort((a, b) => b - a);
+      
+      setSurveys(surveyData);
+      setAvailableYears(availableYears);
+      
+      if (availableYears.length > 0) {
+        setActiveYear(availableYears[0]);
+        const currentSurvey = surveyData.find(s => s.year === availableYears[0]);
+        setActiveSurvey(currentSurvey || null);
       }
 
-      years.sort((a, b) => b - a);
-      setAvailableYears(years);
-
-      // Initialize active selection: prefer most recent available
-      if (years.length > 0) {
-        const initialYear = years[0];
-        setActiveYear(initialYear);
-        if (initialYear !== 2021) {
-          const match = typedSurveys.find(s => s.year === initialYear) || null;
-          setActiveSurvey(match);
-        } else {
-          setActiveSurvey(null);
-        }
-      } else {
-        setActiveYear(null);
-        setActiveSurvey(typedSurveys[0] || null);
+      // Process 2021 survey if available
+      if (survey2021Result.data && !survey2021Result.error) {
+        console.log('Setting 2021 survey data:', survey2021Result.data);
+        setSurvey2021(survey2021Result.data);
+        // If we have 2021 data, make it the active survey
+        setActiveYear(2021);
+        setActiveSurvey(null); // Clear regular survey since we're showing 2021
       }
       
       setLastUpdated(new Date());
+      
     } catch (error) {
       console.error('Error fetching fund manager data:', error);
       toast({
         title: "Error",
-        description: "Failed to load fund manager details",
+        description: "Failed to fetch fund manager data",
         variant: "destructive"
       });
     } finally {
@@ -1400,88 +1332,68 @@ const FundManagerDetail = () => {
         </div>
 
         {/* Professional Profile Card */}
-        <Card className="mb-8 shadow-sm border-gray-200">
-          <CardContent className="p-6">
+        <Card className="mb-8 shadow-lg border-0 overflow-hidden">
+          <CardContent className="p-0">
+            {/* Header with gradient background */}
+            <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 p-6 text-white">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
               <div className="flex items-center space-x-4 mb-4 md:mb-0">
                 {profile?.profile_picture_url ? (
-                  <Avatar className="w-16 h-16 border-2 border-gray-200 shadow-sm">
+                    <Avatar className="w-20 h-20 border-4 border-white shadow-lg">
                     <AvatarImage src={profile.profile_picture_url} alt={profile.first_name} />
-                    <AvatarFallback className="bg-blue-600 text-white text-lg font-semibold">
+                      <AvatarFallback className="bg-white text-blue-600 text-xl font-bold">
                       {profile.first_name?.[0]}{profile.last_name?.[0]}
                     </AvatarFallback>
                   </Avatar>
                 ) : (
-                  <Avatar className="w-16 h-16 border-2 border-gray-200 shadow-sm bg-blue-600">
-                    <AvatarFallback className="text-white text-lg font-semibold">
+                    <Avatar className="w-20 h-20 border-4 border-white shadow-lg bg-white">
+                      <AvatarFallback className="text-blue-600 text-xl font-bold">
                       {profile?.first_name?.[0]}{profile?.last_name?.[0]}
                     </AvatarFallback>
                   </Avatar>
                 )}
                 <div className="flex-1 min-w-0">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-2 break-words">
+                    <h2 className="text-2xl font-bold text-white mb-2 break-words">
                     {profile?.first_name} {profile?.last_name}
                   </h2>
                   
-                  {/* Clear header information in order: Vehicle Name, Email, Website */}
-                  <div className="space-y-3">
-                    {/* Vehicle Name - Most prominent */}
-                    {activeSurvey?.vehicle_name && (
-                      <div className="flex items-center text-gray-900">
-                        <Building2 className="w-5 h-5 mr-3 flex-shrink-0 text-blue-600" />
-                        <span className="text-lg font-medium break-words">{activeSurvey.vehicle_name}</span>
+                    {/* Enhanced header information with better styling */}
+                    <div className="space-y-2">
+                      {/* Firm Name - Most prominent for 2021 data */}
+                      {(survey2021?.firm_name || activeSurvey?.vehicle_name) && (
+                        <div className="flex items-center text-white">
+                          <Building2 className="w-5 h-5 mr-3 flex-shrink-0 text-blue-200" />
+                          <span className="text-lg font-semibold break-words">
+                            {survey2021?.firm_name || activeSurvey?.vehicle_name}
+                          </span>
+                        </div>
+                      )}
+                      
+                      {/* Role Title */}
+                      {survey2021?.role_title && (
+                        <div className="flex items-center text-blue-100">
+                          <Briefcase className="w-4 h-4 mr-3 flex-shrink-0" />
+                          <span className="text-base font-medium">{survey2021.role_title}</span>
                       </div>
                     )}
                     
                     {/* Email */}
                     {profile?.email && (
-                      <div className="flex items-center text-gray-700">
-                        <Mail className="w-4 h-4 mr-3 flex-shrink-0 text-gray-600" />
+                        <div className="flex items-center text-blue-100">
+                          <Mail className="w-4 h-4 mr-3 flex-shrink-0" />
                         <span className="text-base break-all">{profile.email}</span>
                       </div>
                     )}
-                    
-                    {/* Website */}
-                    {activeSurvey?.vehicle_websites && activeSurvey.vehicle_websites.length > 0 && (
-                      <div className="flex items-center text-gray-700">
-                        <Globe className="w-4 h-4 mr-3 flex-shrink-0 text-gray-600" />
-                        <div className="flex flex-wrap gap-2">
-                          {activeSurvey.vehicle_websites.map((website, index) => (
-                            <a
-                              key={index}
-                              href={website.startsWith('http') ? website : `https://${website}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:text-blue-800 text-base break-all underline font-medium"
-                            >
-                              {website}
-                            </a>
-                          ))}
                         </div>
                       </div>
-                    )}
-                    
-                    {/* Role Badge */}
-                    {activeSurvey?.role_badge && (
-                      <div className="flex items-center mt-3">
-                        <Badge className={`capitalize text-xs px-3 py-1 font-semibold rounded-full ${
-                          activeSurvey.role_badge === 'viewer' 
-                            ? 'bg-purple-100 text-purple-800 border border-purple-200' 
-                            : 'bg-blue-100 text-blue-800 border border-blue-200'
-                        }`}>
-                          {activeSurvey.role_badge}
-                        </Badge>
                       </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-              {availableYears.length > 0 && (
-                <div className="flex items-center space-x-3 bg-gray-50 rounded-lg p-3">
-                  <Calendar className="w-5 h-5 text-gray-600" />
-                  <span className="text-gray-700 font-medium">Survey Year:</span>
+                
+                {/* Survey Year Selector */}
+                <div className="flex items-center space-x-3 bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                  <Calendar className="w-5 h-5 text-blue-200" />
+                  <span className="text-blue-100 font-medium">Survey Year:</span>
                   <select
-                    className="border border-gray-300 rounded-md px-3 py-1 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    className="border border-white/30 rounded-md px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-white/50 bg-white/20 text-white placeholder-white/70"
                     value={activeYear || ''}
                     onChange={e => {
                       const yr = Number(e.target.value);
@@ -1495,12 +1407,131 @@ const FundManagerDetail = () => {
                     }}
                     aria-label="Select survey year"
                   >
-                    {availableYears.map(y => (
-                      <option key={y} value={y}>{y}</option>
+                    {survey2021 && <option value={2021} className="text-gray-900">2021 ESCP Survey</option>}
+                    {availableYears.map(year => (
+                      <option key={year} value={year} className="text-gray-900">
+                        {year} CFF Survey
+                      </option>
                     ))}
                   </select>
                 </div>
+              </div>
+            </div>
+            
+            {/* Additional details section */}
+            <div className="p-6 bg-white">
+              {/* Summary Section */}
+              <div className="mb-6 p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg border border-blue-200">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                  <Building2 className="w-5 h-5 mr-2 text-blue-600" />
+                  Fund Summary
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Firm Name */}
+                  {survey2021?.firm_name && (
+                    <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
+                      <p className="text-xs font-medium text-blue-600 uppercase tracking-wide">Firm Name</p>
+                      <p className="text-sm font-bold text-gray-900 mt-1">{survey2021.firm_name}</p>
+                </div>
               )}
+                  
+                  {/* Participant Role */}
+                  {survey2021?.role_title && (
+                    <div className="text-center p-3 bg-white rounded-lg border border-green-200">
+                      <p className="text-xs font-medium text-green-600 uppercase tracking-wide">Role</p>
+                      <p className="text-sm font-bold text-gray-900 mt-1">{survey2021.role_title}</p>
+                    </div>
+                  )}
+                  
+                  {/* Fund Stage */}
+                  {survey2021?.fund_stage && (
+                    <div className="text-center p-3 bg-white rounded-lg border border-purple-200">
+                      <p className="text-xs font-medium text-purple-600 uppercase tracking-wide">Fund Stage</p>
+                      <p className="text-sm font-bold text-gray-900 mt-1">{survey2021.fund_stage}</p>
+                    </div>
+                  )}
+                  
+                  {/* Investment Vehicle Type */}
+                  {survey2021?.investment_vehicle_type && survey2021.investment_vehicle_type.length > 0 && (
+                    <div className="text-center p-3 bg-white rounded-lg border border-orange-200">
+                      <p className="text-xs font-medium text-orange-600 uppercase tracking-wide">Vehicle Type</p>
+                      <p className="text-sm font-bold text-gray-900 mt-1">{survey2021.investment_vehicle_type[0]}</p>
+                      {survey2021.investment_vehicle_type.length > 1 && (
+                        <p className="text-xs text-gray-500 mt-1">+{survey2021.investment_vehicle_type.length - 1} more</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Detailed Information Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Geographic Focus */}
+                {survey2021?.geographic_focus && survey2021.geographic_focus.length > 0 && (
+                  <div className="flex items-center p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <Globe className="w-5 h-5 mr-3 text-blue-600" />
+                    <div>
+                      <p className="text-sm font-medium text-blue-800">Geographic Focus</p>
+                      <p className="text-sm text-blue-600">{survey2021.geographic_focus.join(', ')}</p>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Fund Stage */}
+                {survey2021?.fund_stage && (
+                  <div className="flex items-center p-3 bg-green-50 rounded-lg border border-green-200">
+                    <TrendingUp className="w-5 h-5 mr-3 text-green-600" />
+                    <div>
+                      <p className="text-sm font-medium text-green-800">Fund Stage</p>
+                      <p className="text-sm text-green-600">{survey2021.fund_stage}</p>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Investment Vehicle Type */}
+                {survey2021?.investment_vehicle_type && survey2021.investment_vehicle_type.length > 0 && (
+                  <div className="flex items-center p-3 bg-purple-50 rounded-lg border border-purple-200">
+                    <Briefcase className="w-5 h-5 mr-3 text-purple-600" />
+                    <div>
+                      <p className="text-sm font-medium text-purple-800">Vehicle Type</p>
+                      <p className="text-sm text-purple-600">{survey2021.investment_vehicle_type.join(', ')}</p>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Current Fund Size */}
+                {survey2021?.current_fund_size && (
+                  <div className="flex items-center p-3 bg-orange-50 rounded-lg border border-orange-200">
+                    <DollarSign className="w-5 h-5 mr-3 text-orange-600" />
+                    <div>
+                      <p className="text-sm font-medium text-orange-800">Current Fund Size</p>
+                      <p className="text-sm text-orange-600">{survey2021.current_fund_size}</p>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Target Fund Size */}
+                {survey2021?.target_fund_size && (
+                  <div className="flex items-center p-3 bg-indigo-50 rounded-lg border border-indigo-200">
+                    <Target className="w-5 h-5 mr-3 text-indigo-600" />
+                    <div>
+                      <p className="text-sm font-medium text-indigo-800">Target Fund Size</p>
+                      <p className="text-sm text-indigo-600">{survey2021.target_fund_size}</p>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Team Based */}
+                {survey2021?.team_based && survey2021.team_based.length > 0 && (
+                  <div className="flex items-center p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <Users className="w-5 h-5 mr-3 text-yellow-600" />
+                    <div>
+                      <p className="text-sm font-medium text-yellow-800">Team Based</p>
+                      <p className="text-sm text-yellow-600">{survey2021.team_based.join(', ')}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>

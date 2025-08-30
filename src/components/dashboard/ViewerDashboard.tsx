@@ -108,7 +108,8 @@ const ViewerDashboard = () => {
     totalCapital: 0,
     averageTicketSize: 0,
     activeMarkets: [] as string[],
-    fundsByType: [] as { name: string; value: number }[]
+    fundsByType: [] as { name: string; value: number }[],
+    viewerSurveysCompleted: 0
   });
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
 
@@ -180,8 +181,39 @@ const ViewerDashboard = () => {
           totalCapital,
           averageTicketSize,
           activeMarkets,
-          fundsByType
+          fundsByType,
+          viewerSurveysCompleted: 0
         });
+      }
+
+      // Also check if viewer has completed any surveys
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const [regularSurveyData, survey2021Data] = await Promise.all([
+          supabase
+            .from('survey_responses')
+            .select('id, completed_at')
+            .eq('user_id', user.id)
+            .not('completed_at', 'is', null)
+            .single(),
+          supabase
+            .from('survey_responses_2021')
+            .select('id, completed_at')
+            .eq('user_id', user.id)
+            .not('completed_at', 'is', null)
+            .single()
+        ]);
+
+        const hasRegularSurvey = regularSurveyData.data && !regularSurveyData.error;
+        const has2021Survey = survey2021Data.data && !survey2021Data.error;
+        
+        // Update analytics to show viewer's survey completion
+        if (hasRegularSurvey || has2021Survey) {
+          setAnalyticsData(prev => ({
+            ...prev,
+            viewerSurveysCompleted: (hasRegularSurvey ? 1 : 0) + (has2021Survey ? 1 : 0)
+          }));
+        }
       }
     } catch (error) {
       console.error('Error fetching analytics data:', error);
