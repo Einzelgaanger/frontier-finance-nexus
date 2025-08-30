@@ -80,7 +80,7 @@ SELECT
   'Legal entity',
   'Not yet achieved',
   'As of December 2020',
-  NULL,
+  'No investments as of March 2020',
   'As of December 2020',
   'pilot signed in Dec 2020 and literally now in the process of making our first few investments',
   ARRAY['Open-ended vehicle / Limited liability company or equivalent'],
