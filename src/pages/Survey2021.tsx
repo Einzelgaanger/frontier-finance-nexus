@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useSurveyPersistence } from '@/hooks/useSurveyPersistence';
 import { supabase } from '@/integrations/supabase/client';
+import Header from '@/components/layout/Header';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -1429,7 +1430,7 @@ const Survey2021: React.FC = () => {
           </div>
         </div>
       </div>
-
+        
       <div>
         <Label className="text-base font-medium">26. What forms of investment do you typically make? *</Label>
         <div className="text-sm text-gray-600">Check all that apply.</div>
@@ -2406,124 +2407,127 @@ const Survey2021: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">2021 ESCP Survey</h1>
-            <p className="text-gray-600 mt-1">Early Stage Capital Providers (ESCP) 2021 Convening Survey</p>
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <div className="max-w-4xl mx-auto p-6">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">2021 ESCP Survey</h1>
+              <p className="text-gray-600 mt-1">Early Stage Capital Providers (ESCP) 2021 Convening Survey</p>
+            </div>
+          </div>
+          
+          {/* Introduction */}
+          <div className="bg-blue-50 p-6 rounded-lg border border-blue-200 mb-6">
+            <h2 className="text-xl font-semibold text-blue-900 mb-4">Introduction and Context</h2>
+            <div className="text-blue-800 space-y-3 text-sm leading-relaxed">
+              <p>Micro, Small, and Medium-Sized Enterprises (MSMEs), often called "small and growing businesses" (SGBs), are vital for job creation and economic growth in Africa and the Middle East. They employ up to 70% of the workforce and generate at least 40% of GDP across economies within these regions. Yet, these businesses frequently face a financing gap: they are too large for microfinance but too small for traditional bank loans and private equity, earning them the nickname "missing middle."</p>
+              <p>The Collaborative for Frontier Finance has launched a survey to examine the SGB financing landscape in these regions. We aim to explore the role of Local Capital Providers (LCPs)—local fund managers who use innovative approaches to invest in SGBs. This survey seeks respondents that manage regulated and unregulated firms that prioritize financing or investing in small and growing businesses, including but not limited to venture capital firms, PE, small business growth funds, leasing, fintech, and factoring. Geographic focus is pan-Africa, North Africa and Middle East.</p>
+              <p>This survey will provide insights into the business models of LCPs, the current market conditions, and future trends, while also comparing these findings to our 2023 survey. The survey is comprised of seven sections:</p>
+              <ol className="list-decimal list-inside ml-4 space-y-1">
+                <li>Organizational Background and Team</li>
+                <li>Vehicle Construct</li>
+                <li>Investment Thesis</li>
+                <li>Pipeline Sourcing and Portfolio Construction</li>
+                <li>Portfolio Value Creation and Exits</li>
+                <li>Performance-to-Date and Current Environment/Outlook</li>
+                <li>Future Research</li>
+              </ol>
+              <p>We appreciate your candor and accuracy. We estimate the survey will take approximately 20 minutes to complete.</p>
+              <p><em>Note that given the innovative nature of this sector, we refer to the terms "fund" and "investment vehicle" interchangeably.</em></p>
+              <p>Thank you in advance for your participation and sharing your valuable insights.</p>
+              <p className="font-semibold">The Collaborative for Frontier Finance team.</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">2021 ESCP Survey</h1>
+              <p className="text-gray-600 mt-1">Early Stage Capital Providers (ESCP) 2021 Convening Survey</p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={saveDraft}
+                disabled={saving}
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {saving ? 'Saving...' : 'Save Draft'}
+              </Button>
+            </div>
+          </div>
+          
+          <div className="bg-white p-4 rounded-lg border border-gray-200 mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-700">
+                Progress: {currentSection} of {totalSections} sections
+              </span>
+              <span className="text-sm text-gray-500">
+                {Math.round(progress)}% Complete
+              </span>
+            </div>
+            <Progress value={progress} className="w-full" />
+            <div className="mt-3">
+              <h3 className="text-lg font-semibold text-gray-900">
+                {getSectionTitle(currentSection)}
+              </h3>
+              <p className="text-sm text-gray-600 mt-1">
+                {currentSection === 1 && "Provide your firm and participant information"}
+                {currentSection === 2 && "Share details about your investment thesis and capital structure"}
+                {currentSection === 3 && "Describe your portfolio construction and team structure"}
+                {currentSection === 4 && "Detail your portfolio development and monetization strategies"}
+                {currentSection === 5 && "Assess the impact of COVID-19 on your operations"}
+                {currentSection === 6 && "Provide feedback on ESCP Network membership"}
+                {currentSection === 7 && "Set objectives and goals for the 2021 convening"}
+              </p>
+            </div>
           </div>
         </div>
-        
-        {/* Introduction */}
-        <div className="bg-blue-50 p-6 rounded-lg border border-blue-200 mb-6">
-          <h2 className="text-xl font-semibold text-blue-900 mb-4">Introduction and Context</h2>
-          <div className="text-blue-800 space-y-3 text-sm leading-relaxed">
-            <p>Micro, Small, and Medium-Sized Enterprises (MSMEs), often called "small and growing businesses" (SGBs), are vital for job creation and economic growth in Africa and the Middle East. They employ up to 70% of the workforce and generate at least 40% of GDP across economies within these regions. Yet, these businesses frequently face a financing gap: they are too large for microfinance but too small for traditional bank loans and private equity, earning them the nickname "missing middle."</p>
-            <p>The Collaborative for Frontier Finance has launched a survey to examine the SGB financing landscape in these regions. We aim to explore the role of Local Capital Providers (LCPs)—local fund managers who use innovative approaches to invest in SGBs. This survey seeks respondents that manage regulated and unregulated firms that prioritize financing or investing in small and growing businesses, including but not limited to venture capital firms, PE, small business growth funds, leasing, fintech, and factoring. Geographic focus is pan-Africa, North Africa and Middle East.</p>
-            <p>This survey will provide insights into the business models of LCPs, the current market conditions, and future trends, while also comparing these findings to our 2023 survey. The survey is comprised of seven sections:</p>
-            <ol className="list-decimal list-inside ml-4 space-y-1">
-              <li>Organizational Background and Team</li>
-              <li>Vehicle Construct</li>
-              <li>Investment Thesis</li>
-              <li>Pipeline Sourcing and Portfolio Construction</li>
-              <li>Portfolio Value Creation and Exits</li>
-              <li>Performance-to-Date and Current Environment/Outlook</li>
-              <li>Future Research</li>
-            </ol>
-            <p>We appreciate your candor and accuracy. We estimate the survey will take approximately 20 minutes to complete.</p>
-            <p><em>Note that given the innovative nature of this sector, we refer to the terms "fund" and "investment vehicle" interchangeably.</em></p>
-            <p>Thank you in advance for your participation and sharing your valuable insights.</p>
-            <p className="font-semibold">The Collaborative for Frontier Finance team.</p>
-          </div>
-        </div>
-        
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">2021 ESCP Survey</h1>
-            <p className="text-gray-600 mt-1">Early Stage Capital Providers (ESCP) 2021 Convening Survey</p>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={saveDraft}
-              disabled={saving}
-            >
-              <Save className="w-4 h-4 mr-2" />
-              {saving ? 'Saving...' : 'Save Draft'}
-            </Button>
-          </div>
-        </div>
-        
-        <div className="bg-white p-4 rounded-lg border border-gray-200 mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">
-              Progress: {currentSection} of {totalSections} sections
-            </span>
-            <span className="text-sm text-gray-500">
-              {Math.round(progress)}% Complete
-            </span>
-          </div>
-          <Progress value={progress} className="w-full" />
-          <div className="mt-3">
-            <h3 className="text-lg font-semibold text-gray-900">
-              {getSectionTitle(currentSection)}
-            </h3>
-            <p className="text-sm text-gray-600 mt-1">
-              {currentSection === 1 && "Provide your firm and participant information"}
-              {currentSection === 2 && "Share details about your investment thesis and capital structure"}
-              {currentSection === 3 && "Describe your portfolio construction and team structure"}
-              {currentSection === 4 && "Detail your portfolio development and monetization strategies"}
-              {currentSection === 5 && "Assess the impact of COVID-19 on your operations"}
-              {currentSection === 6 && "Provide feedback on ESCP Network membership"}
-              {currentSection === 7 && "Set objectives and goals for the 2021 convening"}
-            </p>
-          </div>
-        </div>
-      </div>
 
-      {/* Survey Form */}
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <Card className="shadow-sm border-gray-200">
-          <CardContent className="p-6">
-            {renderCurrentSection()}
-          </CardContent>
-        </Card>
+        {/* Survey Form */}
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <Card className="shadow-sm border-gray-200">
+            <CardContent className="p-6">
+              {renderCurrentSection()}
+            </CardContent>
+          </Card>
 
-        {/* Navigation Buttons */}
-        <div className="flex items-center justify-between">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handlePrevious}
-            disabled={currentSection === 1}
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Previous
-          </Button>
-
-          {currentSection < totalSections ? (
+          {/* Navigation Buttons */}
+          <div className="flex items-center justify-between">
             <Button
               type="button"
-              onClick={handleNext}
+              variant="outline"
+              onClick={handlePrevious}
+              disabled={currentSection === 1}
             >
-              Next
-              <ArrowRight className="w-4 h-4 ml-2" />
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Previous
             </Button>
-          ) : (
-            <Button
-              type="submit"
-              disabled={loading}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              <Send className="w-4 h-4 mr-2" />
-              {loading ? 'Submitting...' : 'Submit Survey'}
-            </Button>
-          )}
-        </div>
-      </form>
+
+            {currentSection < totalSections ? (
+              <Button
+                type="button"
+                onClick={handleNext}
+              >
+                Next
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                disabled={loading}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <Send className="w-4 h-4 mr-2" />
+                {loading ? 'Submitting...' : 'Submit Survey'}
+              </Button>
+            )}
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
+import Header from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -537,56 +538,59 @@ export default function Survey2023() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      {renderIntroductoryBriefing()}
-      
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-          <Card className="shadow-sm border-gray-200">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">
-                {getSectionTitle(currentSection)}
-              </CardTitle>
-              <Progress value={(currentSection / totalSections) * 100} className="w-full" />
-            </CardHeader>
-            <CardContent className="p-6">
-              {renderCurrentSection()}
-            </CardContent>
-          </Card>
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <div className="max-w-4xl mx-auto p-6">
+        {renderIntroductoryBriefing()}
+        
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+            <Card className="shadow-sm border-gray-200">
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold">
+                  {getSectionTitle(currentSection)}
+                </CardTitle>
+                <Progress value={(currentSection / totalSections) * 100} className="w-full" />
+              </CardHeader>
+              <CardContent className="p-6">
+                {renderCurrentSection()}
+              </CardContent>
+            </Card>
 
-          <div className="flex justify-between">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentSection === 1}
-            >
-              Previous
-            </Button>
-            
-            <div className="space-x-2">
+            <div className="flex justify-between">
               <Button
                 type="button"
                 variant="outline"
-                onClick={saveDraft}
-                disabled={saving}
+                onClick={handlePrevious}
+                disabled={currentSection === 1}
               >
-                {saving ? 'Saving...' : 'Save Draft'}
+                Previous
               </Button>
               
-              {currentSection < totalSections ? (
-                <Button type="button" onClick={handleNext}>
-                  Next
+              <div className="space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={saveDraft}
+                  disabled={saving}
+                >
+                  {saving ? 'Saving...' : 'Save Draft'}
                 </Button>
-              ) : (
-                <Button type="submit" disabled={loading}>
-                  {loading ? 'Submitting...' : 'Submit Survey'}
-                </Button>
-              )}
+                
+                {currentSection < totalSections ? (
+                  <Button type="button" onClick={handleNext}>
+                    Next
+                  </Button>
+                ) : (
+                  <Button type="submit" disabled={loading}>
+                    {loading ? 'Submitting...' : 'Submit Survey'}
+                  </Button>
+                )}
+              </div>
             </div>
-          </div>
-        </form>
-      </Form>
+          </form>
+        </Form>
+      </div>
     </div>
   );
 } 

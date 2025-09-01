@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
+import Header from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -3050,58 +3051,61 @@ export default function Survey2024() {
 	);
 
 	return (
-		<Form {...form}>
-			<div className="container mx-auto p-4">
-				<h1 className="text-3xl font-bold mb-4">2024 MSME Financing Survey</h1>
-				{renderIntroductoryBriefing()}
-				
-				<div className="flex justify-between items-center mb-6">
-					<Button
-						onClick={handlePrevious}
-						disabled={currentSection === 1}
-						variant="outline"
-					>
-						Previous
-					</Button>
+		<div className="min-h-screen bg-gray-50">
+			<Header />
+			<Form {...form}>
+				<div className="container mx-auto p-4">
+					<h1 className="text-3xl font-bold mb-4">2024 MSME Financing Survey</h1>
+					{renderIntroductoryBriefing()}
 					
-					<div className="flex items-center space-x-4">
-						<Button onClick={saveDraft} disabled={saving} variant="outline">
-							{saving ? 'Saving...' : 'Save Draft'}
+					<div className="flex justify-between items-center mb-6">
+						<Button
+							onClick={handlePrevious}
+							disabled={currentSection === 1}
+							variant="outline"
+						>
+							Previous
 						</Button>
 						
-						{currentSection < totalSections ? (
-							<Button onClick={handleNext}>
-								Next
+						<div className="flex items-center space-x-4">
+							<Button onClick={saveDraft} disabled={saving} variant="outline">
+								{saving ? 'Saving...' : 'Save Draft'}
 							</Button>
-						) : (
-							<Button onClick={form.handleSubmit(handleSubmit)} disabled={loading}>
-								{loading ? 'Submitting...' : 'Submit Survey'}
-							</Button>
+							
+							{currentSection < totalSections ? (
+								<Button onClick={handleNext}>
+									Next
+								</Button>
+							) : (
+								<Button onClick={form.handleSubmit(handleSubmit)} disabled={loading}>
+									{loading ? 'Submitting...' : 'Submit Survey'}
+								</Button>
+							)}
+						</div>
+					</div>
+
+					<Progress value={(currentSection / totalSections) * 100} className="mb-6" />
+					
+					<div className="mt-8">
+						<h2 className="text-2xl font-bold mb-4">Section {currentSection}: {getSectionTitle(currentSection)}</h2>
+						{currentSection === 1 && renderSection1()}
+						{currentSection === 2 && renderSection2()}
+						{currentSection === 3 && renderSection3()}
+						{currentSection === 4 && renderSection4()}
+						{currentSection === 5 && renderSection5()}
+						{currentSection === 6 && renderSection6()}
+						{currentSection === 7 && renderSection7()}
+						{/* Other sections will be rendered here - to be implemented */}
+						{currentSection > 7 && (
+							<div className="text-center py-8">
+								<p className="text-muted-foreground">
+									Section {currentSection} implementation coming soon...
+								</p>
+							</div>
 						)}
 					</div>
 				</div>
-
-				<Progress value={(currentSection / totalSections) * 100} className="mb-6" />
-				
-				<div className="mt-8">
-					<h2 className="text-2xl font-bold mb-4">Section {currentSection}: {getSectionTitle(currentSection)}</h2>
-					{currentSection === 1 && renderSection1()}
-					{currentSection === 2 && renderSection2()}
-					{currentSection === 3 && renderSection3()}
-					{currentSection === 4 && renderSection4()}
-					{currentSection === 5 && renderSection5()}
-					{currentSection === 6 && renderSection6()}
-					{currentSection === 7 && renderSection7()}
-					{/* Other sections will be rendered here - to be implemented */}
-					{currentSection > 7 && (
-						<div className="text-center py-8">
-							<p className="text-muted-foreground">
-								Section {currentSection} implementation coming soon...
-							</p>
-						</div>
-					)}
-				</div>
-			</div>
-		</Form>
+			</Form>
+		</div>
 	);
 } 

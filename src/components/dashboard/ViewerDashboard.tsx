@@ -34,7 +34,17 @@ import {
   CheckCircle,
   Clock,
   MapPin,
-  DollarSign
+  DollarSign,
+  ArrowRight,
+  Star,
+  Zap,
+  Target,
+  Users2,
+  Globe2,
+  Building,
+  Lightbulb,
+  Rocket,
+  Handshake
 } from 'lucide-react';
 import { ESCPApplicationModal } from './ESCPApplicationModal';
 import { supabase } from '@/integrations/supabase/client';
@@ -101,126 +111,7 @@ const LoadingScreen = () => {
 const ViewerDashboard = () => {
   const [showApplicationModal, setShowApplicationModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState(new Date());
-  const [analyticsData, setAnalyticsData] = useState({
-    networkSize: 0,
-    geographicReach: 0,
-    totalCapital: 0,
-    averageTicketSize: 0,
-    activeMarkets: [] as string[],
-    fundsByType: [] as { name: string; value: number }[],
-    viewerSurveysCompleted: 0
-  });
-  const [analyticsLoading, setAnalyticsLoading] = useState(true);
-
-  const fetchAnalyticsData = async () => {
-    setAnalyticsLoading(true);
-    try {
-      // Fetch approved member surveys (completed surveys)
-      const { data: surveys, error } = await supabase
-        .from('member_surveys')
-        .select('*')
-        .not('completed_at', 'is', null)
-        .limit(1000);
-
-      if (error) throw error;
-
-      if (surveys && surveys.length > 0) {
-        // Calculate network size (total approved members)
-        const networkSize = surveys.length;
-
-        // Calculate geographic reach (unique regions)
-        const uniqueRegions = new Set();
-        surveys.forEach(survey => {
-          if (survey.primary_investment_region) {
-            uniqueRegions.add(survey.primary_investment_region);
-          }
-        });
-        const geographicReach = uniqueRegions.size;
-
-        // Calculate total capital (sum of AUM)
-        const totalCapital = surveys.reduce((sum, survey) => {
-          if (survey.aum) {
-            const amount = parseFloat(survey.aum.replace(/[^0-9.]/g, ''));
-            return sum + (isNaN(amount) ? 0 : amount);
-          }
-          return sum;
-        }, 0);
-
-        // Calculate average ticket size
-        const ticketSizes = surveys
-          .map(s => s.typical_check_size)
-          .filter(Boolean)
-          .map(size => {
-            const match = size.match(/[\d,]+/);
-            return match ? parseFloat(match[0].replace(/,/g, '')) : 0;
-          })
-          .filter(size => size > 0);
-        
-        const averageTicketSize = ticketSizes.length > 0 
-          ? ticketSizes.reduce((sum, size) => sum + size, 0) / ticketSizes.length 
-          : 0;
-
-        // Get active markets
-        const activeMarkets = Array.from(uniqueRegions);
-
-        // Calculate funds by type
-        const typeCount = surveys.reduce((acc, survey) => {
-          const type = survey.fund_type || 'Unknown';
-          acc[type] = (acc[type] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>);
-
-        const fundsByType = Object.entries(typeCount).map(([name, value]) => ({
-          name, value
-        }));
-
-        setAnalyticsData({
-          networkSize,
-          geographicReach,
-          totalCapital,
-          averageTicketSize,
-          activeMarkets,
-          fundsByType,
-          viewerSurveysCompleted: 0
-        });
-      }
-
-      // Also check if viewer has completed any surveys
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const [regularSurveyData, survey2021Data] = await Promise.all([
-          supabase
-            .from('survey_responses')
-            .select('id, completed_at')
-            .eq('user_id', user.id)
-            .not('completed_at', 'is', null)
-            .single(),
-          supabase
-            .from('survey_responses_2021')
-            .select('id, completed_at')
-            .eq('user_id', user.id)
-            .not('completed_at', 'is', null)
-            .single()
-        ]);
-
-        const hasRegularSurvey = regularSurveyData.data && !regularSurveyData.error;
-        const has2021Survey = survey2021Data.data && !survey2021Data.error;
-        
-        // Update analytics to show viewer's survey completion
-        if (hasRegularSurvey || has2021Survey) {
-          setAnalyticsData(prev => ({
-            ...prev,
-            viewerSurveysCompleted: (hasRegularSurvey ? 1 : 0) + (has2021Survey ? 1 : 0)
-          }));
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching analytics data:', error);
-    } finally {
-      setAnalyticsLoading(false);
-    }
-  };
+  const [currentAnimationStep, setCurrentAnimationStep] = useState(0);
 
   useEffect(() => {
     // Simulate loading time
@@ -228,271 +119,151 @@ const ViewerDashboard = () => {
       setIsLoading(false);
     }, 2000);
 
-    // Fetch real analytics data
-    fetchAnalyticsData();
-
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (!isLoading) {
+      // Auto-rotate through animation steps
+      const interval = setInterval(() => {
+        setCurrentAnimationStep(prev => (prev + 1) % 4);
+      }, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [isLoading]);
 
   if (isLoading) {
     return <LoadingScreen />;
   }
 
+  const animationSteps = [
+    {
+      icon: FileText,
+      title: "Complete Application",
+      description: "Fill out our comprehensive form with your fund details and investment thesis",
+      color: "bg-emerald-100",
+      iconColor: "text-emerald-600"
+    },
+    {
+      icon: ShieldCheck,
+      title: "Admin Review",
+      description: "Our team conducts thorough due diligence and reviews your application",
+      color: "bg-blue-100",
+      iconColor: "text-blue-600"
+    },
+    {
+      icon: UserPlus,
+      title: "Account Upgrade",
+      description: "Upon approval, your account is upgraded to full member status",
+      color: "bg-purple-100",
+      iconColor: "text-purple-600"
+    },
+    {
+      icon: ChartBar,
+      title: "Member Survey",
+      description: "Participate in annual surveys to contribute to industry insights",
+      color: "bg-orange-100",
+      iconColor: "text-orange-600"
+    }
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-6">
-        {/* Professional Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
-                <Eye className="w-6 h-6 text-white" />
+    <div className="h-screen bg-gradient-to-br from-amber-50 via-beige-100 to-stone-50">
+      <div className="h-full flex">
+        {/* Left Side - Content */}
+        <div className="w-1/2 flex flex-col justify-start pt-16 pl-12">
+          <div className="max-w-lg">
+            {/* Hero Section */}
+            <div className="mb-8">
+              <h1 className="text-4xl font-light text-gray-800 mb-4 leading-tight">
+                Join the <span className="font-medium text-indigo-600">ESCP Network</span>
+              </h1>
+              <p className="text-lg text-gray-600 leading-relaxed">
+                Connect with emerging market fund managers worldwide and unlock new investment opportunities through our exclusive network.
+              </p>
+            </div>
+
+            {/* Key Benefits */}
+            <div className="mb-8 space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
+                <span className="text-gray-700">Full network access to fund managers</span>
               </div>
-              <div>
-                <h1 className="text-2xl font-semibold text-gray-900">ESCP Network</h1>
-                <p className="text-gray-600 text-sm">Early Stage Capital Provider Network - Global Fund Manager Platform</p>
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                <span className="text-gray-700">Global investment insights and data</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                <span className="text-gray-700">Exclusive networking events</span>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="border-gray-300 text-gray-600"
-                onClick={fetchAnalyticsData}
-                disabled={analyticsLoading}
-              >
-                <RefreshCw className={`w-4 h-4 mr-2 ${analyticsLoading ? 'animate-spin' : ''}`} />
-                Last updated: {lastUpdated.toLocaleTimeString()}
-              </Button>
-              <Badge 
-                variant="outline" 
-                className="px-3 py-1 bg-blue-50 text-blue-700 border-blue-200"
-              >
-                <Eye className="w-4 h-4 mr-2" />
-                Visitor Access
-              </Badge>
-            </div>
+
+            {/* Application Button */}
+            <Button 
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out hover:scale-105 rounded-xl"
+              onClick={() => setShowApplicationModal(true)}
+            >
+              <FileText className="w-6 h-6 mr-3" />
+              Start Your Application
+            </Button>
           </div>
         </div>
 
-        {/* Professional Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="shadow-sm border-gray-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 mb-1">Network Size</p>
-                  {analyticsLoading ? (
-                    <div className="animate-pulse">
-                      <div className="h-8 bg-gray-200 rounded mb-1"></div>
-                      <div className="h-3 bg-gray-200 rounded"></div>
-                    </div>
-                  ) : (
-                    <>
-                      <p className="text-2xl font-bold text-gray-900">{analyticsData.networkSize}+</p>
-                      <p className="text-xs text-gray-500 mt-1">Fund managers</p>
-                    </>
-                  )}
-                </div>
-                <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <Users className="w-6 h-6 text-white" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm border-gray-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 mb-1">Geographic Reach</p>
-                  {analyticsLoading ? (
-                    <div className="animate-pulse">
-                      <div className="h-8 bg-gray-200 rounded mb-1"></div>
-                      <div className="h-3 bg-gray-200 rounded"></div>
-                    </div>
-                  ) : (
-                    <>
-                      <p className="text-2xl font-bold text-gray-900">{analyticsData.geographicReach}+</p>
-                      <p className="text-xs text-gray-500 mt-1">Countries</p>
-                    </>
-                  )}
-                </div>
-                <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
-                  <Globe className="w-6 h-6 text-white" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm border-gray-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 mb-1">Total Capital</p>
-                  {analyticsLoading ? (
-                    <div className="animate-pulse">
-                      <div className="h-8 bg-gray-200 rounded mb-1"></div>
-                      <div className="h-3 bg-gray-200 rounded"></div>
-                    </div>
-                  ) : (
-                    <>
-                      <p className="text-2xl font-bold text-gray-900">${(analyticsData.totalCapital / 1000000).toFixed(1)}M</p>
-                      <p className="text-xs text-gray-500 mt-1">Under management</p>
-                    </>
-                  )}
-                </div>
-                <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
-                  <DollarSign className="w-6 h-6 text-white" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm border-gray-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 mb-1">Avg Ticket Size</p>
-                  {analyticsLoading ? (
-                    <div className="animate-pulse">
-                      <div className="h-8 bg-gray-200 rounded mb-1"></div>
-                      <div className="h-3 bg-gray-200 rounded"></div>
-                    </div>
-                  ) : (
-                    <>
-                      <p className="text-2xl font-bold text-gray-900">${(analyticsData.averageTicketSize / 1000000).toFixed(1)}M</p>
-                      <p className="text-xs text-gray-500 mt-1">Per investment</p>
-                    </>
-                  )}
-                </div>
-                <div className="w-12 h-12 bg-orange-600 rounded-lg flex items-center justify-center">
-                  <Award className="w-6 h-6 text-white" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Application */}
-          <div className="lg:col-span-2">
-            <Card className="shadow-sm border-gray-200">
-              <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                      <Send className="w-5 h-5 text-green-600" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg">Apply for ESCP Network Membership</CardTitle>
-                      <CardDescription className="text-sm">
-                        Join our network of emerging market fund managers
-                      </CardDescription>
-                    </div>
-                  </div>
-                  <Button 
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                    onClick={() => setShowApplicationModal(true)}
-                  >
-                    <FileText className="w-4 h-4 mr-2" />
-                    Start Application
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <h4 className="text-sm font-semibold text-gray-700 flex items-center">
-                      <ShieldCheck className="w-4 h-4 mr-2 text-green-600" />
-                      Application Process
-                    </h4>
-                    <ul className="space-y-3">
-                      {[
-                        'Complete detailed application form',
-                        'Admin review and approval',
-                        'Account upgrade to member status',
-                        'Complete member survey'
-                      ].map((step, i) => (
-                        <li key={i} className="flex items-center text-gray-700">
-                          <span className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center mr-3 text-sm font-medium text-green-800">
-                            {i + 1}
-                          </span>
-                          <span className="text-sm">{step}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="space-y-4">
-                    <h4 className="text-sm font-semibold text-gray-700 flex items-center">
-                      <Briefcase className="w-4 h-4 mr-2 text-blue-600" />
-                      Member Benefits
-                    </h4>
-                    <ul className="space-y-3">
-                      {[
-                        'Access full network directory',
-                        'Connect with fund managers',
-                        'Share investment insights',
-                        'Join exclusive events'
-                      ].map((benefit, i) => (
-                        <li key={i} className="flex items-center text-gray-700">
-                          <CheckCircle className="w-4 h-4 mr-2 text-blue-500" />
-                          <span className="text-sm">{benefit}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right Column - Access & Stats */}
-          <div className="space-y-6">
-            {/* Access Level Card */}
-            <Card className="shadow-sm border-gray-200">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg flex items-center">
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                    <Eye className="w-4 h-4 text-blue-600" />
-                  </div>
-                  Visitor Access Level
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="space-y-3">
-                    {[
-                      'Browse limited directory',
-                      'View public profiles',
-                      'Apply for membership'
-                    ].map((feature, i) => (
-                      <div key={i} className="flex items-center text-gray-700">
-                        <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-                        <span className="text-sm">{feature}</span>
+        {/* Right Side - Animation */}
+        <div className="w-1/2 flex items-start justify-center pt-16 pr-12">
+          <div className="relative w-full max-w-lg">
+            {/* Animated Content */}
+            <div className="relative">
+              {animationSteps.map((step, index) => (
+                <div
+                  key={index}
+                  className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
+                    index === currentAnimationStep 
+                      ? 'opacity-100 scale-100 rotate-0' 
+                      : 'opacity-0 scale-95 rotate-2'
+                  }`}
+                >
+                  <div className={`${step.color} rounded-3xl p-10 shadow-xl border border-white/50`}>
+                    <div className="text-center">
+                      <div className={`w-24 h-24 ${step.color.replace('bg-', 'bg-').replace('-100', '-200')} rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-lg`}>
+                        <step.icon className={`w-12 h-12 ${step.iconColor}`} />
                       </div>
-                    ))}
+                      <h3 className="text-3xl font-medium text-gray-800 mb-6">
+                        {step.title}
+                      </h3>
+                      <p className="text-lg text-gray-600 leading-relaxed text-center">
+                        {step.description}
+                      </p>
+                    </div>
                   </div>
-                  <Button 
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                    onClick={() => window.location.href = '/network'}
-                  >
-                    <Globe className="w-4 h-4 mr-2" />
-                    Browse Directory
-                  </Button>
                 </div>
-              </CardContent>
-            </Card>
+              ))}
+            </div>
+
+            {/* Progress Dots */}
+            <div className="flex justify-center space-x-3 mt-10">
+              {animationSteps.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentAnimationStep(index)}
+                  className={`w-4 h-4 rounded-full transition-all duration-300 ${
+                    index === currentAnimationStep 
+                      ? 'bg-indigo-500 scale-125' 
+                      : 'bg-gray-300 hover:bg-gray-400'
+                  }`}
+                />
+              ))}
+            </div>
           </div>
         </div>
-        
-        {/* Application Modal */}
-        <ESCPApplicationModal 
-          open={showApplicationModal} 
-          onClose={() => setShowApplicationModal(false)} 
-        />
       </div>
+      
+      {/* Application Modal */}
+      <ESCPApplicationModal 
+        open={showApplicationModal} 
+        onClose={() => setShowApplicationModal(false)} 
+      />
     </div>
   );
 };
