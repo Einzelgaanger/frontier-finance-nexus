@@ -1,13 +1,14 @@
-
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import Header from '@/components/layout/Header';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import SidebarLayout from '@/components/layout/SidebarLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { 
   Building2, 
   Globe, 
@@ -48,303 +49,133 @@ import {
   Truck,
   Store,
   GraduationCap,
-  Wifi,
-  ShoppingBag
+  Camera,
+  Upload,
+  Edit3,
+  Save,
+  X,
+  Plus,
+  Minus,
+  ChevronDown,
+  ChevronUp,
+  Linkedin,
+  Twitter,
+  Facebook,
+  Instagram,
+  Youtube,
+  Github,
+  Globe2,
+  MapPin as LocationIcon,
+  Calendar as DateIcon,
+  Users as TeamIcon,
+  DollarSign as MoneyIcon,
+  Target as FocusIcon,
+  TrendingUp as GrowthIcon,
+  Building2 as CompanyIcon,
+  Briefcase as WorkIcon,
+  Award as AchievementIcon,
+  Star as StarIcon,
+  Heart as HeartIcon,
+  Zap as EnergyIcon,
+  Rocket as LaunchIcon,
+  Shield as SecurityIcon,
+  Sparkles as MagicIcon,
+  MessageSquare as ChatIcon,
+  Clock as TimeIcon,
+  AlertTriangle as WarningIcon,
+  PieChart as ChartIcon,
+  CheckCircle as SuccessIcon,
+  Phone as PhoneIcon,
+  RefreshCw as RefreshIcon,
+  Eye as ViewIcon,
+  BarChart3 as AnalyticsIcon,
+  Network as NetworkIcon,
+  Leaf as NatureIcon,
+  Monitor as TechIcon,
+  Factory as IndustryIcon,
+  Truck as LogisticsIcon,
+  Store as RetailIcon,
+  GraduationCap as EducationIcon,
+  Camera as CameraIcon,
+  Upload as UploadIcon,
+  Edit3 as EditIcon,
+  Save as SaveIcon,
+  X as CloseIcon,
+  Plus as PlusIcon,
+  Minus as MinusIcon,
+  ChevronDown as DownIcon,
+  ChevronUp as UpIcon
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import Survey2021Responses from '@/components/network/Survey2021Responses';
 import { useToast } from '@/hooks/use-toast';
-
-interface SurveyResponse {
-  id: string;
-  user_id: string;
-  year: number;
-  completed_at: string;
-  
-  // Section 1: Vehicle Information
-  vehicle_name: string;
-  vehicle_websites?: string[];
-  vehicle_type?: string;
-  vehicle_type_other?: string;
-  thesis?: string;
-  
-  // Section 2: Team & Leadership
-  team_members?: any[]; // JSONB array
-  team_size_min?: number;
-  team_size_max?: number;
-  team_description?: string;
-  
-  // Section 3: Geographic & Market Focus
-  legal_domicile?: string[];
-  markets_operated?: Record<string, number>; // JSONB object
-  markets_operated_other?: string;
-  
-  // Section 4: Investment Strategy
-  ticket_size_min?: number;
-  ticket_size_max?: number;
-  ticket_description?: string;
-  target_capital?: number;
-  capital_raised?: number;
-  capital_in_market?: number;
-  
-  // Section 5: Fund Operations
-  supporting_document_url?: string;
-  information_sharing?: string;
-  expectations?: string;
-  how_heard_about_network?: string;
-  
-  // Section 6: Fund Status & Timeline
-  fund_stage?: string[];
-  current_status?: string;
-  current_status_other?: string;
-  legal_entity_date_from?: number;
-  legal_entity_date_to?: number;
-  legal_entity_month_from?: number;
-  legal_entity_month_to?: number;
-  first_close_date_from?: number;
-  first_close_date_to?: number;
-  first_close_month_from?: number;
-  first_close_month_to?: number;
-  
-  // Section 7: Investment Instruments
-  investment_instruments_priority?: Record<string, number>; // JSONB object
-  investment_instruments_data?: { name: string; committed: number; deployed: number; deployedValue: number; priority: number }[]; // New field for detailed data
-  
-  // Section 8: Sector Focus & Returns
-  sectors_allocation?: Record<string, number>; // JSONB object
-  target_return_min?: number;
-  target_return_max?: number;
-  equity_investments_made?: number;
-  equity_investments_exited?: number;
-  self_liquidating_made?: number;
-  self_liquidating_exited?: number;
-  
-  // Legacy fields (for backward compatibility)
-  location?: string;
-  team_size_description?: string;
-  portfolio_count?: number;
-  capital_raised_description?: string;
-  ticket_size?: string;
-  vehicle_website?: string;
-  
-  // Role badge
-  role_badge?: string;
-}
 
 interface FundManagerProfile {
   id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
+  user_id: string;
+  fund_name: string;
+  firm_name?: string;
+  participant_name?: string;
+  role_title?: string;
+  email_address?: string;
+  phone?: string;
+  website?: string;
+  linkedin?: string;
+  twitter?: string;
+  facebook?: string;
+  instagram?: string;
+  youtube?: string;
+  github?: string;
   profile_picture_url?: string;
+  team_based?: string[];
+  geographic_focus?: string[];
+  fund_stage?: string;
+  investment_timeframe?: string;
+  target_sectors?: string[];
+  vehicle_websites?: string;
+  vehicle_type?: string;
+  thesis?: string;
+  team_size_max?: number;
+  legal_domicile?: string;
+  ticket_size_min?: string;
+  ticket_size_max?: string;
+  target_capital?: string;
+  sectors_allocation?: string[];
+  primary_investment_region?: string;
+  fund_type?: string;
+  year_founded?: number;
+  team_size?: number;
+  typical_check_size?: string;
+  completed_at?: string;
+  aum?: string;
+  investment_thesis?: string;
+  sector_focus?: string[];
+  stage_focus?: string[];
+  role_badge?: string;
+  has_survey?: boolean;
+  profile?: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    profile_picture_url?: string;
+  };
+  profiles?: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    profile_picture_url?: string;
+  };
 }
-
-interface Survey2021Data {
-  id: string;
-  user_id?: string;
-  firm_name: string;
-  participant_name: string;
-  role_title: string;
-  team_based: string[];
-  team_based_other?: string;
-  geographic_focus: string[];
-  geographic_focus_other?: string;
-  fund_stage: string;
-  fund_stage_other?: string;
-  legal_entity_date: string;
-  first_close_date: string;
-  first_investment_date: string;
-  investments_march_2020: string;
-  investments_december_2020: string;
-  optional_supplement?: string;
-  investment_vehicle_type: string[];
-  investment_vehicle_type_other?: string;
-  current_fund_size: string;
-  target_fund_size: string;
-  investment_timeframe: string;
-  business_model_targeted: string[];
-  business_model_targeted_other?: string;
-  business_stage_targeted: string[];
-  business_stage_targeted_other?: string;
-  financing_needs: string[];
-  financing_needs_other?: string;
-  target_capital_sources: string[];
-  target_capital_sources_other?: string;
-  target_irr_achieved: string;
-  target_irr_targeted: string;
-  impact_vs_financial_orientation: string;
-  explicit_lens_focus: string[];
-  explicit_lens_focus_other?: string;
-  report_sustainable_development_goals: boolean;
-  top_sdg_1?: string;
-  top_sdg_2?: string;
-  top_sdg_3?: string;
-  gender_considerations_investment: string[];
-  gender_considerations_investment_other?: string;
-  gender_considerations_requirement?: string[];
-  gender_considerations_requirement_other?: string;
-  gender_fund_vehicle?: string[];
-  gender_fund_vehicle_other?: string;
-  investment_size_your_amount: string;
-  investment_size_total_raise: string;
-  investment_forms: string[];
-  investment_forms_other?: string;
-  target_sectors: string[];
-  target_sectors_other?: string;
-  carried_interest_principals: string;
-  current_ftes: string;
-  created_at?: string;
-}
-
-// Professional section configuration
-const sectionConfig = [
-  {
-    key: 'vehicle_info',
-    title: 'Vehicle Information',
-    icon: Building2,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200',
-    fields: [
-      { key: 'vehicle_name', label: 'Fund Name', icon: Building2 },
-      { key: 'vehicle_websites', label: 'Vehicle Websites', type: 'array', isLink: true, icon: Globe },
-      { key: 'vehicle_type', label: 'Vehicle Type', icon: Briefcase },
-      { key: 'vehicle_type_other', label: 'Other Vehicle Type', icon: FileText },
-      { key: 'thesis', label: 'Investment Thesis', type: 'text', icon: Target },
-    ],
-  },
-  {
-    key: 'team',
-    title: 'Team & Leadership',
-    icon: Users,
-    color: 'text-green-600',
-    bgColor: 'bg-green-50',
-    borderColor: 'border-green-200',
-    fields: [
-      { key: 'team_members', label: 'GP Partners', type: 'team', icon: Users },
-      { key: 'team_size_min', label: 'Team Size (Min)', type: 'number', icon: User },
-      { key: 'team_size_max', label: 'Team Size (Max)', type: 'number', icon: Users },
-      { key: 'team_description', label: 'Team Description', type: 'text', icon: MessageSquare },
-    ],
-  },
-  {
-    key: 'geography',
-    title: 'Geographic & Market Focus',
-    icon: Globe,
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-50',
-    borderColor: 'border-purple-200',
-    fields: [
-      { key: 'legal_domicile', label: 'Legal Domicile', type: 'array', icon: MapPin },
-      { key: 'markets_operated', label: 'Markets Operated', type: 'markets', icon: Globe },
-      { key: 'markets_operated_other', label: 'Other Markets', icon: MapPin },
-    ],
-  },
-  {
-    key: 'investment_strategy',
-    title: 'Investment Strategy',
-    icon: Target,
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-50',
-    borderColor: 'border-orange-200',
-    fields: [
-      { key: 'ticket_size_min', label: 'Minimum Ticket Size (USD)', type: 'currency', icon: DollarSign },
-      { key: 'ticket_size_max', label: 'Maximum Ticket Size (USD)', type: 'currency', icon: DollarSign },
-      { key: 'ticket_description', label: 'Ticket Size Description', type: 'text', icon: FileText },
-      { key: 'target_capital', label: 'Desired Capital (USD)', type: 'currency', icon: TrendingUp },
-      { key: 'capital_raised', label: 'AUM/Committed Capital (USD)', type: 'currency', icon: DollarSign },
-      { key: 'capital_in_market', label: 'Deployed Capital (USD)', type: 'currency', icon: TrendingUp },
-    ],
-  },
-  {
-    key: 'fund_operations',
-    title: 'Fund Operations',
-    icon: Briefcase,
-    color: 'text-indigo-600',
-    bgColor: 'bg-indigo-50',
-    borderColor: 'border-indigo-200',
-    fields: [
-      { key: 'supporting_document_url', label: 'Supporting Document', type: 'url', icon: FileText },
-      { key: 'expectations', label: 'Expectations', type: 'text', icon: MessageSquare },
-      { key: 'how_heard_about_network', label: 'How Heard About Network', icon: Globe },
-      { key: 'how_heard_about_network_other', label: 'Other (How Heard)', icon: MessageSquare },
-    ],
-  },
-  {
-    key: 'fund_status',
-    title: 'Fund Status & Timeline',
-    icon: Calendar,
-    color: 'text-teal-600',
-    bgColor: 'bg-teal-50',
-    borderColor: 'border-teal-200',
-    fields: [
-      { key: 'fund_stage', label: 'Fund Stage', type: 'array', icon: Award },
-      { key: 'current_status', label: 'Current Status', icon: Clock },
-      { key: 'current_status_other', label: 'Other Status', icon: AlertTriangle },
-      { key: 'legal_entity_date_from', label: 'Legal Entity Date From', type: 'date', icon: Calendar },
-      { key: 'legal_entity_date_to', label: 'Legal Entity Date To', type: 'date', icon: Calendar },
-      { key: 'first_close_date_from', label: 'First Close Date From', type: 'date', icon: Calendar },
-      { key: 'first_close_date_to', label: 'First Close Date To', type: 'date', icon: Calendar },
-    ],
-  },
-  {
-    key: 'investment_instruments',
-    title: 'Investment Instruments',
-    icon: Zap,
-    color: 'text-yellow-600',
-    bgColor: 'bg-yellow-50',
-    borderColor: 'border-yellow-200',
-    fields: [
-      { key: 'investment_instruments_priority', label: 'Investment Instruments Priority', type: 'instruments', icon: Zap },
-    ],
-  },
-  {
-    key: 'sector_returns',
-    title: 'Sector Focus & Returns',
-    icon: TrendingUp,
-    color: 'text-red-600',
-    bgColor: 'bg-red-50',
-    borderColor: 'border-red-200',
-    fields: [
-      { key: 'sectors_allocation', label: 'Sectors Allocation', type: 'sectors', icon: PieChart },
-      { key: 'target_return_min', label: 'Target Return Min (%)', type: 'number', icon: TrendingUp },
-      { key: 'target_return_max', label: 'Target Return Max (%)', type: 'number', icon: TrendingUp },
-      { key: 'equity_investments_made', label: 'Equity Investments Made', type: 'number', icon: DollarSign },
-      { key: 'equity_investments_exited', label: 'Equity Investments Exited', type: 'number', icon: CheckCircle },
-      { key: 'self_liquidating_made', label: 'Self Liquidating Made', type: 'number', icon: DollarSign },
-      { key: 'self_liquidating_exited', label: 'Self Liquidating Exited', type: 'number', icon: CheckCircle },
-    ],
-  },
-];
 
 const FundManagerDetail = () => {
   const { userId } = useParams();
   const { userRole, user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<FundManagerProfile | null>(null);
-  const [surveys, setSurveys] = useState<SurveyResponse[]>([]);
-  const [activeSurvey, setActiveSurvey] = useState<SurveyResponse | null>(null);
-  const [availableYears, setAvailableYears] = useState<number[]>([]);
-  const [activeYear, setActiveYear] = useState<number | null>(null);
-  const [survey2021, setSurvey2021] = useState<Survey2021Data | null>(null);
-  const [currentSection, setCurrentSection] = useState(0);
-  const [expandedTexts, setExpandedTexts] = useState<Record<string, boolean>>({});
-  const [lastUpdated, setLastUpdated] = useState(new Date());
-
-  // Determine which sections to show based on user role
-  const getVisibleSections = () => {
-    if (userRole === 'admin') {
-      return sectionConfig;
-    } else if (userRole === 'member') {
-      return sectionConfig.slice(0, 4); // Only first 4 sections for members
-    } else {
-      return sectionConfig.slice(0, 4); // Only first 4 sections for viewers
-    }
-  };
-
-  const visibleSections = getVisibleSections();
-  const totalSections = visibleSections.length;
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState<Partial<FundManagerProfile>>({});
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     if (userId && (userRole === 'viewer' || userRole === 'member' || userRole === 'admin')) {
@@ -355,1295 +186,871 @@ const FundManagerDetail = () => {
   const fetchFundManagerData = async () => {
     try {
       setLoading(true);
-      
-      console.log('Fetching fund manager data for userId:', userId);
-      
-      // First, try to get the user ID from the URL parameter
-      // The userId parameter should be the actual user ID, not the survey ID
-      if (!userId) {
-        throw new Error('No user ID provided');
-      }
+      console.log('Fetching fund manager data for user:', userId);
 
-      // Fetch profile with better error handling
-      let profileData = null;
-      let profileError = null;
-      
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', userId)
-          .single();
-        
-        profileData = data;
-        profileError = error;
-        
-        console.log('Profile data:', profileData);
-        console.log('Profile error:', profileError);
-      } catch (err) {
-        console.error('Profile fetch error:', err);
-        profileError = err;
-      }
-
-      // Set profile even if there's an error (might be null)
-      setProfile(profileData);
-
-      // Fetch surveys - try both 2021 and regular surveys
-      const [surveyResult, survey2021Result] = await Promise.all([
-        supabase
-        .from('survey_responses')
+      // Fetch profile data
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
         .select('*')
-        .eq('user_id', userId)
-        .not('completed_at', 'is', null)
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('survey_responses_2021')
-          .select('*')
-          .eq('user_id', userId)
-          .not('completed_at', 'is', null)
-          .single()
-      ]);
+        .eq('id', userId)
+        .single();
 
-      console.log('Regular survey result:', surveyResult);
-      console.log('2021 survey result:', survey2021Result);
-
-      if (surveyResult.error) throw surveyResult.error;
-
-      // Process regular surveys
-      const surveyData = surveyResult.data || [];
-      const availableYears = surveyData.map(s => s.year).filter(Boolean).sort((a, b) => b - a);
-      
-      setSurveys(surveyData);
-      setAvailableYears(availableYears);
-      
-      if (availableYears.length > 0) {
-        setActiveYear(availableYears[0]);
-        const currentSurvey = surveyData.find(s => s.year === availableYears[0]);
-        setActiveSurvey(currentSurvey || null);
+      if (profileError) {
+        console.error('Profile fetch error:', profileError);
+        toast({
+          title: "Error",
+          description: "Failed to fetch profile data",
+          variant: "destructive",
+        });
+        return;
       }
 
-      // Process 2021 survey if available
-      if (survey2021Result.data && !survey2021Result.error) {
-        console.log('Setting 2021 survey data:', survey2021Result.data);
-        setSurvey2021(survey2021Result.data);
-        // If we have 2021 data, make it the active survey
-        setActiveYear(2021);
-        setActiveSurvey(null); // Clear regular survey since we're showing 2021
-      }
-      
-      setLastUpdated(new Date());
-      
+      // Process the data
+      const processedProfile: FundManagerProfile = {
+        id: profileData.id,
+        user_id: profileData.id,
+        fund_name: profileData.fund_name || 'Unnamed Fund',
+        firm_name: profileData.firm_name,
+        participant_name: profileData.participant_name,
+        role_title: profileData.role_title,
+        email_address: profileData.email,
+        phone: profileData.phone,
+        website: profileData.website,
+        linkedin: profileData.linkedin,
+        twitter: profileData.twitter,
+        facebook: profileData.facebook,
+        instagram: profileData.instagram,
+        youtube: profileData.youtube,
+        github: profileData.github,
+        profile_picture_url: profileData.profile_picture_url,
+        team_based: profileData.team_based,
+        geographic_focus: profileData.geographic_focus,
+        fund_stage: profileData.fund_stage,
+        investment_timeframe: profileData.investment_timeframe,
+        target_sectors: profileData.target_sectors,
+        vehicle_websites: profileData.vehicle_websites,
+        vehicle_type: profileData.vehicle_type,
+        thesis: profileData.thesis,
+        team_size_max: profileData.team_size_max,
+        legal_domicile: profileData.legal_domicile,
+        ticket_size_min: profileData.ticket_size_min,
+        ticket_size_max: profileData.ticket_size_max,
+        target_capital: profileData.target_capital,
+        sectors_allocation: profileData.sectors_allocation,
+        primary_investment_region: profileData.primary_investment_region,
+        fund_type: profileData.fund_type,
+        year_founded: profileData.year_founded,
+        team_size: profileData.team_size,
+        typical_check_size: profileData.typical_check_size,
+        completed_at: profileData.completed_at,
+        aum: profileData.aum,
+        investment_thesis: profileData.investment_thesis,
+        sector_focus: profileData.sector_focus,
+        stage_focus: profileData.stage_focus,
+        role_badge: profileData.role_badge,
+        has_survey: false,
+        profile: {
+          first_name: profileData.first_name || 'Unknown',
+          last_name: profileData.last_name || 'User',
+          email: profileData.email || '',
+          profile_picture_url: profileData.profile_picture_url
+        }
+      };
+
+      setProfile(processedProfile);
     } catch (error) {
       console.error('Error fetching fund manager data:', error);
       toast({
         title: "Error",
         description: "Failed to fetch fund manager data",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleNextSection = () => {
-    if (currentSection < totalSections - 1) {
-      setCurrentSection(currentSection + 1);
-    }
-  };
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-  const handlePreviousSection = () => {
-    if (currentSection > 0) {
-      setCurrentSection(currentSection - 1);
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select an image file",
+        variant: "destructive",
+      });
+      return;
     }
-  };
 
-  const formatDate = (year: number, month?: number) => {
-    if (!year) return 'Not provided';
-    if (month) {
-      const date = new Date(year, month - 1);
-      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please select an image smaller than 5MB",
+        variant: "destructive",
+      });
+      return;
     }
-    return year.toString();
-  };
 
-  const formatSurveyDate = (dateValue: any, monthValue?: any) => {
-    if (!dateValue) return null;
-    
-    // Handle different date formats from survey
-    if (typeof dateValue === 'number') {
-      // If we have both year and month values
-      if (monthValue && typeof monthValue === 'number' && monthValue > 0 && monthValue <= 12) {
-        const date = new Date(dateValue, monthValue - 1);
-        return date.toLocaleDateString('en-US', { 
-          year: 'numeric', 
-          month: 'long' 
-        });
-      }
+    try {
+      setUploadingImage(true);
       
-      // If it's a number like 202401 (year + month)
-      const year = Math.floor(dateValue / 100);
-      const month = dateValue % 100;
-      if (month > 0 && month <= 12) {
-        return new Date(year, month - 1).toLocaleDateString('en-US', { 
-          year: 'numeric', 
-          month: 'long' 
-        });
+      // Upload to Supabase Storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${userId}-${Date.now()}.${fileExt}`;
+      const filePath = `profile-pictures/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('profile-pictures')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
       }
-      
-      // If it's just a year
-      if (dateValue >= 1900 && dateValue <= 2100) {
-        return dateValue.toString();
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('profile-pictures')
+        .getPublicUrl(filePath);
+
+      // Update profile in database
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ profile_picture_url: publicUrl })
+        .eq('id', userId);
+
+      if (updateError) {
+        throw updateError;
       }
+
+      // Update local state
+      setProfile(prev => prev ? {
+        ...prev,
+        profile_picture_url: publicUrl,
+        profile: prev.profile ? { ...prev.profile, profile_picture_url: publicUrl } : undefined
+      } : null);
+
+      toast({
+        title: "Success",
+        description: "Profile picture updated successfully",
+      });
+
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload profile picture",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingImage(false);
     }
-    
-    if (typeof dateValue === 'string') {
-      // If it's a string date
-      const date = new Date(dateValue);
-      if (!isNaN(date.getTime())) {
-        return date.toLocaleDateString('en-US', { 
-          year: 'numeric', 
-          month: 'long' 
-        });
-      }
-    }
-    
-    return null;
   };
 
-  // Helper function to get sector icons
+  const handleEdit = () => {
+    setIsEditing(true);
+    setEditData({
+      fund_name: profile?.fund_name,
+      firm_name: profile?.firm_name,
+      participant_name: profile?.participant_name,
+      role_title: profile?.role_title,
+      email_address: profile?.email_address,
+      phone: profile?.phone,
+      website: profile?.website,
+      linkedin: profile?.linkedin,
+      twitter: profile?.twitter,
+      facebook: profile?.facebook,
+      instagram: profile?.instagram,
+      youtube: profile?.youtube,
+      github: profile?.github,
+      thesis: profile?.thesis,
+      investment_thesis: profile?.investment_thesis,
+      aum: profile?.aum,
+      target_capital: profile?.target_capital,
+      typical_check_size: profile?.typical_check_size,
+      ticket_size_min: profile?.ticket_size_min,
+      ticket_size_max: profile?.ticket_size_max,
+      year_founded: profile?.year_founded,
+      team_size: profile?.team_size,
+      legal_domicile: profile?.legal_domicile,
+      primary_investment_region: profile?.primary_investment_region,
+      fund_type: profile?.fund_type,
+      vehicle_type: profile?.vehicle_type,
+      fund_stage: profile?.fund_stage,
+      investment_timeframe: profile?.investment_timeframe,
+      sector_focus: profile?.sector_focus,
+      stage_focus: profile?.stage_focus,
+      target_sectors: profile?.target_sectors,
+      geographic_focus: profile?.geographic_focus,
+      team_based: profile?.team_based,
+      sectors_allocation: profile?.sectors_allocation
+    });
+  };
+
+  const handleSave = async () => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update(editData)
+        .eq('id', userId);
+
+      if (error) {
+        throw error;
+      }
+
+      setProfile(prev => prev ? { ...prev, ...editData } : null);
+      setIsEditing(false);
+      setEditData({});
+
+      toast({
+        title: "Success",
+        description: "Profile updated successfully",
+      });
+
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast({
+        title: "Update failed",
+        description: "Failed to update profile",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setEditData({});
+  };
+
   const getSectorIcon = (sector: string) => {
-    const sectorLower = sector.toLowerCase();
-    
-    if (sectorLower.includes('agri') || sectorLower.includes('food') || sectorLower.includes('agriculture')) {
-      return <Leaf className="w-4 h-4 text-green-600" />;
-    }
-    if (sectorLower.includes('software') || sectorLower.includes('saas') || sectorLower.includes('tech')) {
-      return <Monitor className="w-4 h-4 text-blue-600" />;
-    }
-    if (sectorLower.includes('energy') || sectorLower.includes('renewable') || sectorLower.includes('clean')) {
-      return <Zap className="w-4 h-4 text-yellow-600" />;
-    }
-    if (sectorLower.includes('manufacturing') || sectorLower.includes('industrial')) {
-      return <Factory className="w-4 h-4 text-gray-600" />;
-    }
-    if (sectorLower.includes('health') || sectorLower.includes('medical')) {
-      return <Heart className="w-4 h-4 text-red-600" />;
-    }
-    if (sectorLower.includes('education') || sectorLower.includes('learning')) {
-      return <GraduationCap className="w-4 h-4 text-purple-600" />;
-    }
-    if (sectorLower.includes('telecom') || sectorLower.includes('data') || sectorLower.includes('infrastructure')) {
-      return <Wifi className="w-4 h-4 text-cyan-600" />;
-    }
-    if (sectorLower.includes('fmcg') || sectorLower.includes('consumer')) {
-      return <ShoppingBag className="w-4 h-4 text-orange-600" />;
-    }
-    if (sectorLower.includes('logistics') || sectorLower.includes('transport') || sectorLower.includes('distribution')) {
-      return <Truck className="w-4 h-4 text-indigo-600" />;
-    }
-    if (sectorLower.includes('retail') || sectorLower.includes('merchandising')) {
-      return <Store className="w-4 h-4 text-pink-600" />;
-    }
-    
-    // Default icon
-    return <Building2 className="w-4 h-4 text-gray-600" />;
+    const sectorIcons: Record<string, any> = {
+      'Technology': Monitor,
+      'Healthcare': Heart,
+      'Finance': DollarSign,
+      'Energy': Zap,
+      'Manufacturing': Factory,
+      'Retail': Store,
+      'Transportation': Truck,
+      'Education': GraduationCap,
+      'Agriculture': Leaf,
+      'Real Estate': Building2,
+      'Entertainment': Star,
+      'Sports': Award,
+      'Food & Beverage': Store,
+      'Fashion': Store,
+      'Automotive': Truck,
+      'Aerospace': Rocket,
+      'Telecommunications': Network,
+      'Media': Monitor,
+      'Consulting': Briefcase,
+      'Other': Target
+    };
+    return sectorIcons[sector] || Target;
   };
 
-  const formatFieldValue = (value: any, fieldKey: string, fieldType?: string, isLink?: boolean, survey?: SurveyResponse): React.ReactNode => {
-    // Special handling for date fields that need to combine year and month
-    if (fieldType === 'date' && typeof value === 'number' && survey) {
-      let monthValue = null;
-      
-      // Get corresponding month field
-      if (fieldKey === 'legal_entity_date_from') {
-        monthValue = survey.legal_entity_month_from;
-      } else if (fieldKey === 'legal_entity_date_to') {
-        monthValue = survey.legal_entity_month_to;
-      } else if (fieldKey === 'first_close_date_from') {
-        monthValue = survey.first_close_month_from;
-      } else if (fieldKey === 'first_close_date_to') {
-        monthValue = survey.first_close_month_to;
-      }
-      
-      const formattedDate = formatSurveyDate(value, monthValue);
-      if (formattedDate) {
-        return <span className="text-gray-900">{formattedDate}</span>;
-      }
-    }
-    
-    // Handle empty values - only show "Not provided" for required fields or when explicitly needed
-    if (value === null || value === undefined || value === '' || (Array.isArray(value) && value.length === 0)) {
-      // Don't show "Not provided" for optional fields that are intentionally empty
-      return null;
-    }
-    
-    if (fieldType === 'array' && Array.isArray(value)) {
-      if (isLink) {
-        return (
-          <ul className="list-disc ml-4">
-            {value.map((url: string, i: number) => (
-              <li key={i}><a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">{url}</a></li>
-            ))}
-          </ul>
-        );
-      }
-      return <span>{value.join(', ')}</span>;
-    }
-    
-    if (fieldType === 'team' && Array.isArray(value)) {
-      return (
-        <div className="space-y-3">
-          <div className="text-sm text-gray-600 mb-3">
-            GP Partners and their contact details
-          </div>
-          <div className="space-y-3">
-            {value.map((member: any, i) => (
-              <div key={i} className="p-4 bg-gray-50 rounded-lg border">
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-bold text-blue-600">{i + 1}</span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-900">
-                      {member.name || `GP Partner ${i + 1}`}
-                    </div>
-                    {member.role && (
-                      <div className="text-sm text-gray-600">{member.role}</div>
-                    )}
-                  </div>
-                </div>
-                
-                {/* Contact Information */}
-                <div className="space-y-2 ml-11">
-                  {member.email && (
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Mail className="w-4 h-4 mr-2 text-gray-500" />
-                      <a href={`mailto:${member.email}`} className="text-blue-600 hover:text-blue-800 underline">
-                        {member.email}
-                      </a>
-                    </div>
-                  )}
-                  {member.phone && (
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Phone className="w-4 h-4 mr-2 text-gray-500" />
-                      <a href={`tel:${member.phone}`} className="text-blue-600 hover:text-blue-800 underline">
-                        {member.phone}
-                      </a>
-                    </div>
-                  )}
-                </div>
-                
-                {member.bio && (
-                  <div className="text-sm text-gray-600 mt-3 ml-11">
-                    {member.bio}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-    
-    if (fieldType === 'markets' && typeof value === 'object') {
-      return (
-        <div className="space-y-3">
-          {Object.entries(value).map(([market, percentage], index) => {
-            // Ensure percentage is a number
-            const percentageValue = typeof percentage === 'number' ? percentage : Number(percentage) || 0;
-            
-            // Create different gradient colors for each market
-            const gradients = [
-              'from-blue-500 to-cyan-500',
-              'from-purple-500 to-pink-500',
-              'from-green-500 to-emerald-500',
-              'from-orange-500 to-red-500',
-              'from-indigo-500 to-purple-500',
-              'from-teal-500 to-blue-500',
-              'from-pink-500 to-rose-500',
-              'from-yellow-500 to-orange-500',
-              'from-violet-500 to-purple-500',
-              'from-cyan-500 to-blue-500',
-              'from-emerald-500 to-green-500',
-              'from-rose-500 to-pink-500'
-            ];
-            const gradientClass = gradients[index % gradients.length];
-            
-            return (
-              <div key={market} className="relative w-full h-12 bg-gray-100 rounded-lg overflow-hidden shadow-sm">
-                {/* Background gradient that fills based on percentage */}
-                <div 
-                  className={`absolute inset-0 bg-gradient-to-r ${gradientClass} transition-all duration-500 ease-out`}
-                  style={{ width: `${percentageValue}%` }}
-                />
-                
-                {/* Content overlay */}
-                <div className="relative z-10 flex items-center justify-between h-full px-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                      <Globe className="w-4 h-4 text-white" />
-                    </div>
-                    <span className="text-sm font-semibold text-white drop-shadow-sm">
-                      {market}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm font-bold text-white drop-shadow-sm">
-                      {percentageValue}%
-                    </span>
-                    <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                      <span className="text-xs font-bold text-white">
-                        {Math.round(percentageValue)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Subtle border for definition */}
-                <div className="absolute inset-0 border border-white/20 rounded-lg pointer-events-none" />
-              </div>
-            );
-          })}
-        </div>
-      );
-    }
-    
-    if (fieldType === 'instruments' && typeof value === 'object') {
-      // Check if we have detailed investment instruments data
-      const instrumentsData = survey?.investment_instruments_data;
-      
-      if (instrumentsData && Array.isArray(instrumentsData) && instrumentsData.length > 0) {
-        // Sort by committed value (highest first)
-        const sortedInstruments = [...instrumentsData].sort((a, b) => b.committed - a.committed);
-        
-        return (
-          <div className="space-y-4">
-            {/* Summary Statistics */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-4 text-white">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm opacity-90">Total Committed</p>
-                    <p className="text-2xl font-bold">
-                      ${sortedInstruments.reduce((sum, inst) => sum + (inst.committed || 0), 0).toLocaleString()}
-                    </p>
-                  </div>
-                  <DollarSign className="w-8 h-8 opacity-80" />
-                </div>
-              </div>
-              
-              <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-4 text-white">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm opacity-90">Total Deployed</p>
-                    <p className="text-2xl font-bold">
-                      ${sortedInstruments.reduce((sum, inst) => sum + (inst.deployedValue || 0), 0).toLocaleString()}
-                    </p>
-                  </div>
-                  <TrendingUp className="w-8 h-8 opacity-80" />
-                </div>
-              </div>
-              
-              <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-4 text-white">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm opacity-90">Avg Deployment</p>
-                    <p className="text-2xl font-bold">
-                      {Math.round(sortedInstruments.reduce((sum, inst) => sum + (inst.deployed || 0), 0) / sortedInstruments.length)}%
-                    </p>
-                  </div>
-                  <BarChart3 className="w-8 h-8 opacity-80" />
-                </div>
-              </div>
-            </div>
-            
-            {/* Instruments Table */}
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Instrument
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Committed
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Deployed %
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Deployed Value
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Priority
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {sortedInstruments.map((instrument, index) => {
-                      const deploymentPercentage = instrument.deployed || 0;
-                      const deployedValue = instrument.deployedValue || 0;
-                      const committedValue = instrument.committed || 0;
-                      
-                      return (
-                        <tr key={instrument.name} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-4">
-                            <div className="flex items-center">
-                              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                                <span className="text-sm font-bold text-blue-600">{index + 1}</span>
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium text-gray-900">{instrument.name}</p>
-                              </div>
-                            </div>
-                          </td>
-                          
-                          <td className="px-4 py-4">
-                            <div className="text-sm text-gray-900">
-                              ${committedValue.toLocaleString()}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {((committedValue / sortedInstruments.reduce((sum, inst) => sum + (inst.committed || 0), 0)) * 100).toFixed(1)}% of total
-                            </div>
-                          </td>
-                          
-                          <td className="px-4 py-4">
-                            <div className="flex items-center space-x-2">
-                              <div className="flex-1 bg-gray-200 rounded-full h-2">
-                                <div 
-                                  className="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full transition-all duration-300"
-                                  style={{ width: `${deploymentPercentage}%` }}
-                                />
-                              </div>
-                              <span className="text-sm font-medium text-gray-900 min-w-[3rem]">
-                                {deploymentPercentage.toFixed(1)}%
-                              </span>
-                            </div>
-                          </td>
-                          
-                          <td className="px-4 py-4">
-                            <div className="text-sm text-gray-900">
-                              ${deployedValue.toLocaleString()}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {deploymentPercentage > 0 ? `${((deployedValue / committedValue) * 100).toFixed(1)}%` : '0%'} of committed
-                            </div>
-                          </td>
-                          
-                          <td className="px-4 py-4">
-                            <div className="flex items-center">
-                              <Badge 
-                                variant={instrument.priority <= 3 ? "default" : "secondary"}
-                                className={instrument.priority <= 3 ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-800"}
-                              >
-                                #{instrument.priority}
-                              </Badge>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            
-            {/* Deployment Overview */}
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4">
-              <h4 className="text-sm font-medium text-gray-700 mb-3">Deployment Overview</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                                         <span className="text-gray-600">Fully Deployed (&gt;80%)</span>
-                    <span className="font-medium text-green-600">
-                      {sortedInstruments.filter(inst => (inst.deployed || 0) > 80).length} instruments
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Partially Deployed (20-80%)</span>
-                    <span className="font-medium text-yellow-600">
-                      {sortedInstruments.filter(inst => (inst.deployed || 0) >= 20 && (inst.deployed || 0) <= 80).length} instruments
-                    </span>
-                  </div>
-                                     <div className="flex justify-between text-sm">
-                     <span className="text-gray-600">Minimally Deployed (&lt;20%)</span>
-                     <span className="font-medium text-red-600">
-                       {sortedInstruments.filter(inst => (inst.deployed || 0) < 20).length} instruments
-                     </span>
-                   </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Total Dry Powder</span>
-                    <span className="font-medium text-blue-600">
-                      ${(sortedInstruments.reduce((sum, inst) => sum + (inst.committed || 0), 0) - 
-                         sortedInstruments.reduce((sum, inst) => sum + (inst.deployedValue || 0), 0)).toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Average Deployment</span>
-                    <span className="font-medium text-purple-600">
-                      {Math.round(sortedInstruments.reduce((sum, inst) => sum + (inst.deployed || 0), 0) / sortedInstruments.length)}%
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Instruments Used</span>
-                    <span className="font-medium text-gray-900">
-                      {sortedInstruments.length} types
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      }
-      
-      // Fallback to old priority-only display
-      return (
-        <div className="space-y-2">
-          {Object.entries(value).map(([instrument, priority]) => (
-            <div key={instrument} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-              <span className="text-sm font-medium text-gray-700">{instrument}</span>
-              <span className="text-sm text-gray-600">Priority: {priority}</span>
-            </div>
-          ))}
-        </div>
-      );
-    }
-    
-    if (fieldType === 'sectors' && typeof value === 'object') {
-      // Sort sectors by percentage (highest to lowest)
-      const sortedSectors = Object.entries(value)
-        .sort(([, a], [, b]) => (b as number) - (a as number))
-        .filter(([, percentage]) => percentage > 0);
-      
-      const totalAllocation = sortedSectors.reduce((sum, [, percentage]) => sum + (percentage as number), 0);
-      const topSector = sortedSectors[0];
-      const averageAllocation = sortedSectors.length > 0 ? totalAllocation / sortedSectors.length : 0;
-      
-      return (
-        <div className="space-y-4">
-          {/* Summary Statistics */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg p-4 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm opacity-90">Total Allocation</p>
-                  <p className="text-2xl font-bold">
-                    {totalAllocation.toFixed(1)}%
-                  </p>
-                </div>
-                <PieChart className="w-8 h-8 opacity-80" />
-              </div>
-            </div>
-            
-            <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-lg p-4 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm opacity-90">Primary Focus</p>
-                  <p className="text-lg font-bold truncate">
-                    {topSector ? topSector[0] : 'None'}
-                  </p>
-                  <p className="text-sm opacity-90">
-                    {topSector ? `${topSector[1]}%` : '0%'}
-                  </p>
-                </div>
-                <Target className="w-8 h-8 opacity-80" />
-              </div>
-            </div>
-            
-            <div className="bg-gradient-to-r from-violet-500 to-violet-600 rounded-lg p-4 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm opacity-90">Avg Allocation</p>
-                  <p className="text-2xl font-bold">
-                    {averageAllocation.toFixed(1)}%
-                  </p>
-                </div>
-                <BarChart3 className="w-8 h-8 opacity-80" />
-              </div>
-            </div>
-          </div>
-          
-          {/* Sectors Table */}
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Sector
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Allocation
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Percentage
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Rank
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {sortedSectors.map(([sector, percentage], index) => {
-                    const percentageValue = percentage as number;
-                    const sectorIcon = getSectorIcon(sector);
-                    
-                    return (
-                      <tr key={sector} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-4">
-                          <div className="flex items-center">
-                            <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-3">
-                              {sectorIcon}
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium text-gray-900">{sector}</p>
-                            </div>
-                          </div>
-                        </td>
-                        
-                        <td className="px-4 py-4">
-                          <div className="flex items-center space-x-2">
-                            <div className="flex-1 bg-gray-200 rounded-full h-2">
-                              <div 
-                                className="bg-gradient-to-r from-indigo-400 to-indigo-600 h-2 rounded-full transition-all duration-300"
-                                style={{ width: `${percentageValue}%` }}
-                              />
-                            </div>
-                            <span className="text-sm font-medium text-gray-900 min-w-[3rem]">
-                              {percentageValue.toFixed(1)}%
-                            </span>
-                          </div>
-                        </td>
-                        
-                        <td className="px-4 py-4">
-                          <div className="text-sm text-gray-900">
-                            {percentageValue.toFixed(1)}%
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {((percentageValue / totalAllocation) * 100).toFixed(1)}% of total
-                          </div>
-                        </td>
-                        
-                        <td className="px-4 py-4">
-                          <div className="flex items-center">
-                            <Badge 
-                              variant={index < 3 ? "default" : "secondary"}
-                              className={index < 3 ? "bg-indigo-100 text-indigo-800" : "bg-gray-100 text-gray-800"}
-                            >
-                              #{index + 1}
-                            </Badge>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          
-          {/* Sector Analysis */}
-          <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4">
-            <h4 className="text-sm font-medium text-gray-700 mb-3">Sector Analysis</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">High Focus (&gt;20%)</span>
-                  <span className="font-medium text-indigo-600">
-                    {sortedSectors.filter(([, percentage]) => (percentage as number) > 20).length} sectors
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Medium Focus (10-20%)</span>
-                  <span className="font-medium text-emerald-600">
-                    {sortedSectors.filter(([, percentage]) => (percentage as number) >= 10 && (percentage as number) <= 20).length} sectors
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Low Focus (&lt;10%)</span>
-                  <span className="font-medium text-yellow-600">
-                    {sortedSectors.filter(([, percentage]) => (percentage as number) < 10).length} sectors
-                  </span>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Sectors Covered</span>
-                  <span className="font-medium text-gray-900">
-                    {sortedSectors.length} sectors
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Average Allocation</span>
-                  <span className="font-medium text-violet-600">
-                    {averageAllocation.toFixed(1)}%
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Top 3 Concentration</span>
-                  <span className="font-medium text-indigo-600">
-                    {sortedSectors.slice(0, 3).reduce((sum, [, percentage]) => sum + (percentage as number), 0).toFixed(1)}%
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-    
-    if (fieldType === 'currency' && typeof value === 'number') {
-      return <span>${value.toLocaleString()}</span>;
-    }
-    
-    if (fieldType === 'number' && typeof value === 'number') {
-      return <span>{value.toLocaleString()}</span>;
-    }
-    
-    if (fieldType === 'url' && typeof value === 'string') {
-      // Special handling for supporting documents
-      if (fieldKey === 'supporting_document_url') {
-        const fileName = value.split('/').pop() || 'Document';
-        const truncatedUrl = value.length > 50 ? value.substring(0, 50) + '...' : value;
-        
-        return (
-          <div className="space-y-3">
-            {/* Truncated URL display */}
-            <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg border">
-              <FileText className="w-4 h-4 text-gray-500 flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-700 truncate">
-                  {fileName}
-                </p>
-                <p className="text-xs text-gray-500 truncate">
-                  {truncatedUrl}
-                </p>
-              </div>
-            </div>
-            
-            {/* Download button in prominent position */}
-            <div className="flex items-center justify-between">
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-400"
-                onClick={() => {
-                  try {
-                    // Simple approach like in admin - just open the link
-                    const url = value.startsWith('http') ? value : `https://${value}`;
-                    window.open(url, '_blank', 'noopener,noreferrer');
-                  } catch (error) {
-                    console.error('Failed to open document:', error);
-                  }
-                }}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Open Document
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-gray-600 hover:text-gray-800"
-                onClick={() => {
-                  try {
-                    const url = value.startsWith('http') ? value : `https://${value}`;
-                    window.open(url, '_blank', 'noopener,noreferrer');
-                  } catch (error) {
-                    console.error('Failed to open link:', error);
-                  }
-                }}
-              >
-                <ExternalLink className="w-4 h-4 mr-2" />
-                View Online
-              </Button>
-            </div>
-          </div>
-        );
-      }
-      
-      // Regular URL handling for other fields
-      const truncatedUrl = value.length > 60 ? value.substring(0, 60) + '...' : value;
-      
-      return (
-        <div className="flex items-center space-x-2">
-          <a 
-            href={value.startsWith('http') ? value : `https://${value}`} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-blue-700 hover:text-blue-800 underline truncate flex-1"
-            title={value}
-          >
-            {truncatedUrl}
-          </a>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-gray-600 hover:text-gray-800 flex-shrink-0"
-            onClick={() => {
-              try {
-                window.open(value.startsWith('http') ? value : `https://${value}`, '_blank', 'noopener,noreferrer');
-              } catch (error) {
-                console.error('Failed to open link:', error);
-              }
-            }}
-          >
-            <ExternalLink className="w-4 h-4" />
-          </Button>
-        </div>
-      );
-    }
-    
-    if (fieldType === 'text' && typeof value === 'string') {
-      const isExpanded = expandedTexts[fieldKey];
-      const shouldTruncate = value.length > 200;
-      
-      return (
-        <div>
-          <div className={`text-gray-900 ${!isExpanded && shouldTruncate ? 'line-clamp-3' : ''}`}>
-            {value}
-          </div>
-          {shouldTruncate && (
-            <button
-              onClick={() => setExpandedTexts(prev => ({ ...prev, [fieldKey]: !isExpanded }))}
-              className="text-blue-600 hover:text-blue-800 text-sm mt-2"
-            >
-              {isExpanded ? 'Show less' : 'Show more'}
-            </button>
-          )}
-        </div>
-      );
-    }
-    
-    return <span className="text-gray-900">{String(value)}</span>;
+  const getStageIcon = (stage: string) => {
+    const stageIcons: Record<string, any> = {
+      'Pre-Seed': Target,
+      'Seed': Target,
+      'Series A': TrendingUp,
+      'Series B': TrendingUp,
+      'Series C': TrendingUp,
+      'Growth': Rocket,
+      'Late Stage': Award,
+      'IPO': Star,
+      'Other': Target
+    };
+    return stageIcons[stage] || Target;
   };
 
-  const renderSection = (section: typeof sectionConfig[0], survey: SurveyResponse) => (
-    <section key={section.key} className="mb-8">
-      <Card className="shadow-sm border-gray-200">
-        <CardHeader className="pb-4">
-          <div className="flex items-center">
-            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
-              <section.icon className={`w-5 h-5 ${section.color}`} />
-            </div>
-            <CardTitle className={`text-lg ${section.color}`}>{section.title}</CardTitle>
+  if (loading) {
+    return (
+      <SidebarLayout>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading profile...</p>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {section.fields.map(field => {
-              const value = survey[field.key as keyof SurveyResponse];
-              const hasValue = value !== null && value !== undefined && value !== '' && 
-                !(Array.isArray(value) && value.length === 0);
-              
-              // Special handling for vehicle_type_other - only show if vehicle_type is not provided or is "Other"
-              if (field.key === 'vehicle_type_other') {
-                const vehicleType = survey.vehicle_type;
-                const shouldShowOther = !vehicleType || vehicleType === 'Other' || vehicleType === 'other';
-                if (!shouldShowOther) {
-                  return null; // Don't render this field
-                }
-              }
-              
-              // Special handling for markets_operated_other - only show if someone actually input something
-              if (field.key === 'markets_operated_other') {
-                const otherMarkets = survey.markets_operated_other;
-                const hasOtherMarkets = otherMarkets && otherMarkets.trim() !== '';
-                if (!hasOtherMarkets) {
-                  return null; // Don't render this field
-                }
-              }
-              
-              // Special handling for current_status_other - only show if current_status is "Other"
-              if (field.key === 'current_status_other') {
-                const currentStatus = survey.current_status;
-                const shouldShowOther = currentStatus === 'Other' || currentStatus === 'other';
-                if (!shouldShowOther) {
-                  return null; // Don't render this field
-                }
-              }
-              
-              const formattedValue = formatFieldValue(value, field.key, field.type, field.isLink, survey);
-              
-              // Don't render fields that return null (empty optional fields)
-              if (formattedValue === null) {
-                return null;
-              }
-              
-              return (
-                <div key={field.key} className={`p-4 rounded-lg border ${hasValue ? 'bg-white border-gray-200' : 'bg-gray-50 border-gray-100'}`}>
-                  <dt className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                    <field.icon className="w-4 h-4 mr-2 text-gray-500" />
-                    {field.label}
-                    {!hasValue && <span className="ml-2 text-xs text-gray-400">(Not provided)</span>}
-                  </dt>
-                  <dd className="text-base text-gray-900">
-                    {formattedValue}
-                  </dd>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-    </section>
-  );
-
-  if (userRole !== 'viewer' && userRole !== 'member' && userRole !== 'admin') {
-    return null;
+        </div>
+      </SidebarLayout>
+    );
   }
 
+  if (!profile) {
+    return (
+      <SidebarLayout>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+          <div className="text-center">
+            <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Profile Not Found</h2>
+            <p className="text-gray-600 mb-4">The requested profile could not be found.</p>
+            <Button onClick={() => navigate('/network')} variant="outline">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Network
+            </Button>
+          </div>
+        </div>
+      </SidebarLayout>
+    );
+  }
+
+  const profileName = profile.profile ? 
+    `${profile.profile.first_name} ${profile.profile.last_name}` : 
+    profile.participant_name || 'Unknown User';
+
+  const profileEmail = profile.profile?.email || profile.email_address || '';
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Professional Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
-                <User className="w-6 h-6 text-white" />
+    <SidebarLayout>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        {/* Header Section */}
+        <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-6">
+                <Button
+                  onClick={() => navigate('/network')}
+                  variant="ghost"
+                  size="sm"
+                  className="text-white hover:bg-white/20"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Network
+                </Button>
+                <div className="h-8 w-px bg-white/30"></div>
+                <div className="flex items-center space-x-4">
+                  <Avatar className="w-20 h-20 ring-4 ring-white/20">
+                    <AvatarImage src={profile.profile_picture_url || profile.profile?.profile_picture_url} />
+                    <AvatarFallback className="text-2xl font-bold bg-white/20 text-white">
+                      {profileName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h1 className="text-3xl font-bold">{profileName}</h1>
+                    <p className="text-blue-100 text-lg">{profile.fund_name}</p>
+                    <p className="text-blue-200">{profile.role_title || 'Fund Manager'}</p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <h1 className="text-2xl font-semibold text-gray-900">Fund Manager Profile</h1>
-                <p className="text-gray-600 text-sm">Professional fund manager details and insights</p>
+              <div className="flex items-center space-x-3">
+                {userRole === 'admin' && (
+                  <Button
+                    onClick={handleEdit}
+                    variant="outline"
+                    size="sm"
+                    className="bg-white/20 border-white/30 text-white hover:bg-white/30"
+                  >
+                    <EditIcon className="w-4 h-4 mr-2" />
+                    Edit Profile
+                  </Button>
+                )}
+                <Button
+                  onClick={fetchFundManagerData}
+                  variant="outline"
+                  size="sm"
+                  className="bg-white/20 border-white/30 text-white hover:bg-white/30"
+                >
+                  <RefreshIcon className="w-4 h-4 mr-2" />
+                  Refresh
+                </Button>
               </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="border-gray-300 text-gray-600"
-                onClick={fetchFundManagerData}
-                disabled={loading}
-              >
-                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                Last updated: {lastUpdated.toLocaleTimeString()}
-              </Button>
             </div>
           </div>
         </div>
 
-        {/* Professional Profile Card */}
-        <Card className="mb-8 shadow-lg border-0 overflow-hidden">
-          <CardContent className="p-0">
-            {/* Header with gradient background */}
-            <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 p-6 text-white">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-              <div className="flex items-center space-x-4 mb-4 md:mb-0">
-                {profile?.profile_picture_url ? (
-                    <Avatar className="w-20 h-20 border-4 border-white shadow-lg">
-                    <AvatarImage src={profile.profile_picture_url} alt={profile.first_name} />
-                      <AvatarFallback className="bg-white text-blue-600 text-xl font-bold">
-                      {profile.first_name?.[0]}{profile.last_name?.[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                ) : (
-                    <Avatar className="w-20 h-20 border-4 border-white shadow-lg bg-white">
-                      <AvatarFallback className="text-blue-600 text-xl font-bold">
-                      {profile?.first_name?.[0]}{profile?.last_name?.[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                )}
-                <div className="flex-1 min-w-0">
-                    <h2 className="text-2xl font-bold text-white mb-2 break-words">
-                    {profile?.first_name} {profile?.last_name}
-                  </h2>
-                  
-                    {/* Enhanced header information with better styling */}
-                    <div className="space-y-2">
-                      {/* Firm Name - Most prominent for 2021 data */}
-                      {(survey2021?.firm_name || activeSurvey?.vehicle_name) && (
-                        <div className="flex items-center text-white">
-                          <Building2 className="w-5 h-5 mr-3 flex-shrink-0 text-blue-200" />
-                          <span className="text-lg font-semibold break-words">
-                            {survey2021?.firm_name || activeSurvey?.vehicle_name}
-                          </span>
-                        </div>
-                      )}
-                      
-                      {/* Role Title */}
-                      {survey2021?.role_title && (
-                        <div className="flex items-center text-blue-100">
-                          <Briefcase className="w-4 h-4 mr-3 flex-shrink-0" />
-                          <span className="text-base font-medium">{survey2021.role_title}</span>
-                      </div>
-                    )}
-                    
-                    {/* Email */}
-                    {profile?.email && (
-                        <div className="flex items-center text-blue-100">
-                          <Mail className="w-4 h-4 mr-3 flex-shrink-0" />
-                        <span className="text-base break-all">{profile.email}</span>
-                      </div>
-                    )}
-                        </div>
-                      </div>
-                      </div>
-                
-                {/* Survey Year Selector */}
-                <div className="flex items-center space-x-3 bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-                  <Calendar className="w-5 h-5 text-blue-200" />
-                  <span className="text-blue-100 font-medium">Survey Year:</span>
-                  <select
-                    className="border border-white/30 rounded-md px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-white/50 bg-white/20 text-white placeholder-white/70"
-                    value={activeYear || ''}
-                    onChange={e => {
-                      const yr = Number(e.target.value);
-                      setActiveYear(yr);
-                      if (yr === 2021) {
-                        setActiveSurvey(null);
-                      } else {
-                        const selected = surveys.find(s => s.year === yr) || null;
-                        setActiveSurvey(selected);
-                      }
-                    }}
-                    aria-label="Select survey year"
-                  >
-                    {survey2021 && <option value={2021} className="text-gray-900">2021 ESCP Survey</option>}
-                    {availableYears.map(year => (
-                      <option key={year} value={year} className="text-gray-900">
-                        {year} CFF Survey
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-            
-            {/* Additional details section */}
-            <div className="p-6 bg-white">
-              {/* Summary Section */}
-              <div className="mb-6 p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg border border-blue-200">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                  <Building2 className="w-5 h-5 mr-2 text-blue-600" />
-                  Fund Summary
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {/* Firm Name */}
-                  {survey2021?.firm_name && (
-                    <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
-                      <p className="text-xs font-medium text-blue-600 uppercase tracking-wide">Firm Name</p>
-                      <p className="text-sm font-bold text-gray-900 mt-1">{survey2021.firm_name}</p>
-                </div>
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Column - Profile Info */}
+            <div className="lg:col-span-1 space-y-6">
+              {/* Profile Picture Upload */}
+              {userRole === 'admin' && (
+                <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
+                  <CardHeader>
+                    <CardTitle className="flex items-center text-lg">
+                      <CameraIcon className="w-5 h-5 mr-2 text-blue-600" />
+                      Profile Picture
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center">
+                      <Avatar className="w-24 h-24 mx-auto mb-4 ring-4 ring-blue-100">
+                        <AvatarImage src={profile.profile_picture_url || profile.profile?.profile_picture_url} />
+                        <AvatarFallback className="text-xl font-bold bg-blue-100 text-blue-600">
+                          {profileName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <Label htmlFor="profile-picture" className="cursor-pointer">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={uploadingImage}
+                          className="w-full"
+                        >
+                          {uploadingImage ? (
+                            <RefreshIcon className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <UploadIcon className="w-4 h-4 mr-2" />
+                          )}
+                          {uploadingImage ? 'Uploading...' : 'Upload Photo'}
+                        </Button>
+                      </Label>
+                      <Input
+                        id="profile-picture"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
               )}
-                  
-                  {/* Participant Role */}
-                  {survey2021?.role_title && (
-                    <div className="text-center p-3 bg-white rounded-lg border border-green-200">
-                      <p className="text-xs font-medium text-green-600 uppercase tracking-wide">Role</p>
-                      <p className="text-sm font-bold text-gray-900 mt-1">{survey2021.role_title}</p>
-                    </div>
-                  )}
-                  
-                  {/* Fund Stage */}
-                  {survey2021?.fund_stage && (
-                    <div className="text-center p-3 bg-white rounded-lg border border-purple-200">
-                      <p className="text-xs font-medium text-purple-600 uppercase tracking-wide">Fund Stage</p>
-                      <p className="text-sm font-bold text-gray-900 mt-1">{survey2021.fund_stage}</p>
-                    </div>
-                  )}
-                  
-                  {/* Investment Vehicle Type */}
-                  {survey2021?.investment_vehicle_type && survey2021.investment_vehicle_type.length > 0 && (
-                    <div className="text-center p-3 bg-white rounded-lg border border-orange-200">
-                      <p className="text-xs font-medium text-orange-600 uppercase tracking-wide">Vehicle Type</p>
-                      <p className="text-sm font-bold text-gray-900 mt-1">{survey2021.investment_vehicle_type[0]}</p>
-                      {survey2021.investment_vehicle_type.length > 1 && (
-                        <p className="text-xs text-gray-500 mt-1">+{survey2021.investment_vehicle_type.length - 1} more</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              {/* Detailed Information Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Geographic Focus */}
-                {survey2021?.geographic_focus && survey2021.geographic_focus.length > 0 && (
-                  <div className="flex items-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <Globe className="w-5 h-5 mr-3 text-blue-600" />
-                    <div>
-                      <p className="text-sm font-medium text-blue-800">Geographic Focus</p>
-                      <p className="text-sm text-blue-600">{survey2021.geographic_focus.join(', ')}</p>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Fund Stage */}
-                {survey2021?.fund_stage && (
-                  <div className="flex items-center p-3 bg-green-50 rounded-lg border border-green-200">
-                    <TrendingUp className="w-5 h-5 mr-3 text-green-600" />
-                    <div>
-                      <p className="text-sm font-medium text-green-800">Fund Stage</p>
-                      <p className="text-sm text-green-600">{survey2021.fund_stage}</p>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Investment Vehicle Type */}
-                {survey2021?.investment_vehicle_type && survey2021.investment_vehicle_type.length > 0 && (
-                  <div className="flex items-center p-3 bg-purple-50 rounded-lg border border-purple-200">
-                    <Briefcase className="w-5 h-5 mr-3 text-purple-600" />
-                    <div>
-                      <p className="text-sm font-medium text-purple-800">Vehicle Type</p>
-                      <p className="text-sm text-purple-600">{survey2021.investment_vehicle_type.join(', ')}</p>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Current Fund Size */}
-                {survey2021?.current_fund_size && (
-                  <div className="flex items-center p-3 bg-orange-50 rounded-lg border border-orange-200">
-                    <DollarSign className="w-5 h-5 mr-3 text-orange-600" />
-                    <div>
-                      <p className="text-sm font-medium text-orange-800">Current Fund Size</p>
-                      <p className="text-sm text-orange-600">{survey2021.current_fund_size}</p>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Target Fund Size */}
-                {survey2021?.target_fund_size && (
-                  <div className="flex items-center p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-                    <Target className="w-5 h-5 mr-3 text-indigo-600" />
-                    <div>
-                      <p className="text-sm font-medium text-indigo-800">Target Fund Size</p>
-                      <p className="text-sm text-indigo-600">{survey2021.target_fund_size}</p>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Team Based */}
-                {survey2021?.team_based && survey2021.team_based.length > 0 && (
-                  <div className="flex items-center p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                    <Users className="w-5 h-5 mr-3 text-yellow-600" />
-                    <div>
-                      <p className="text-sm font-medium text-yellow-800">Team Based</p>
-                      <p className="text-sm text-yellow-600">{survey2021.team_based.join(', ')}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        {loading ? (
-          <Card className="shadow-sm border-gray-200">
-            <CardContent className="p-12">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Loading fund manager details...</h3>
-                <p className="text-gray-500">Please wait while we fetch the information.</p>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (activeYear === 2021 && (userRole === 'admin' || userRole === 'member')) ? (
-          <Card className="shadow-sm border-gray-200">
-            <CardContent className="p-12">
-              {survey2021 ? (
-                <Survey2021Responses data={survey2021} role={userRole} />
-              ) : (
-                <div className="text-center">
-                  <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No 2021 survey data found</h3>
-                  <p className="text-gray-500">This fund manager hasn't completed the 2021 survey.</p>
-                </div>
+              {/* Contact Information */}
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-lg">
+                    <MessageSquare className="w-5 h-5 mr-2 text-green-600" />
+                    Contact Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {profileEmail && (
+                    <div className="flex items-center space-x-3">
+                      <Mail className="w-4 h-4 text-gray-500" />
+                      <span className="text-sm text-gray-700">{profileEmail}</span>
+                    </div>
+                  )}
+                  {profile.phone && (
+                    <div className="flex items-center space-x-3">
+                      <PhoneIcon className="w-4 h-4 text-gray-500" />
+                      <span className="text-sm text-gray-700">{profile.phone}</span>
+                    </div>
+                  )}
+                  {profile.website && (
+                    <div className="flex items-center space-x-3">
+                      <Globe2 className="w-4 h-4 text-gray-500" />
+                      <a 
+                        href={profile.website} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:underline"
+                      >
+                        {profile.website}
+                      </a>
+                    </div>
+                  )}
+                  {profile.linkedin && (
+                    <div className="flex items-center space-x-3">
+                      <Linkedin className="w-4 h-4 text-blue-600" />
+                      <a 
+                        href={profile.linkedin} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:underline"
+                      >
+                        LinkedIn Profile
+                      </a>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Social Media */}
+              {(profile.twitter || profile.facebook || profile.instagram || profile.youtube || profile.github) && (
+                <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
+                  <CardHeader>
+                    <CardTitle className="flex items-center text-lg">
+                      <NetworkIcon className="w-5 h-5 mr-2 text-purple-600" />
+                      Social Media
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {profile.twitter && (
+                      <div className="flex items-center space-x-3">
+                        <Twitter className="w-4 h-4 text-blue-400" />
+                        <a 
+                          href={profile.twitter} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:underline"
+                        >
+                          Twitter
+                        </a>
+                      </div>
+                    )}
+                    {profile.facebook && (
+                      <div className="flex items-center space-x-3">
+                        <Facebook className="w-4 h-4 text-blue-600" />
+                        <a 
+                          href={profile.facebook} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:underline"
+                        >
+                          Facebook
+                        </a>
+                      </div>
+                    )}
+                    {profile.instagram && (
+                      <div className="flex items-center space-x-3">
+                        <Instagram className="w-4 h-4 text-pink-500" />
+                        <a 
+                          href={profile.instagram} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:underline"
+                        >
+                          Instagram
+                        </a>
+                      </div>
+                    )}
+                    {profile.youtube && (
+                      <div className="flex items-center space-x-3">
+                        <Youtube className="w-4 h-4 text-red-500" />
+                        <a 
+                          href={profile.youtube} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:underline"
+                        >
+                          YouTube
+                        </a>
+                      </div>
+                    )}
+                    {profile.github && (
+                      <div className="flex items-center space-x-3">
+                        <Github className="w-4 h-4 text-gray-700" />
+                        <a 
+                          href={profile.github} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:underline"
+                        >
+                          GitHub
+                        </a>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               )}
-            </CardContent>
-          </Card>
-        ) : !activeSurvey ? (
-          <Card className="shadow-sm border-gray-200">
-            <CardContent className="p-12">
-              <div className="text-center">
-                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No survey data found</h3>
-                <p className="text-gray-500">This fund manager hasn't completed any surveys yet.</p>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-6">
-            {/* Professional Section Navigation */}
-            <Card className="shadow-sm border-gray-200">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium text-gray-700">
-                        Section {currentSection + 1} of {totalSections}
-                      </span>
-                      <div className="w-48 bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${((currentSection + 1) / totalSections) * 100}%` }}
+
+              {/* Quick Stats */}
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-lg">
+                    <BarChart3 className="w-5 h-5 mr-2 text-orange-600" />
+                    Quick Stats
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {profile.year_founded && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Founded</span>
+                      <span className="text-sm font-semibold text-gray-900">{profile.year_founded}</span>
+                    </div>
+                  )}
+                  {profile.team_size && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Team Size</span>
+                      <span className="text-sm font-semibold text-gray-900">{profile.team_size}</span>
+                    </div>
+                  )}
+                  {profile.aum && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">AUM</span>
+                      <span className="text-sm font-semibold text-gray-900">{profile.aum}</span>
+                    </div>
+                  )}
+                  {profile.target_capital && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Target Capital</span>
+                      <span className="text-sm font-semibold text-gray-900">{profile.target_capital}</span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right Column - Detailed Information */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Fund Information */}
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-xl">
+                    <Building2 className="w-6 h-6 mr-3 text-blue-600" />
+                    Fund Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Fund Name</Label>
+                      {isEditing ? (
+                        <Input
+                          value={editData.fund_name || ''}
+                          onChange={(e) => setEditData(prev => ({ ...prev, fund_name: e.target.value }))}
+                          className="mt-1"
                         />
+                      ) : (
+                        <p className="text-lg font-semibold text-gray-900 mt-1">{profile.fund_name}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Firm Name</Label>
+                      {isEditing ? (
+                        <Input
+                          value={editData.firm_name || ''}
+                          onChange={(e) => setEditData(prev => ({ ...prev, firm_name: e.target.value }))}
+                          className="mt-1"
+                        />
+                      ) : (
+                        <p className="text-lg font-semibold text-gray-900 mt-1">{profile.firm_name || 'N/A'}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Fund Type</Label>
+                      {isEditing ? (
+                        <Input
+                          value={editData.fund_type || ''}
+                          onChange={(e) => setEditData(prev => ({ ...prev, fund_type: e.target.value }))}
+                          className="mt-1"
+                        />
+                      ) : (
+                        <p className="text-lg font-semibold text-gray-900 mt-1">{profile.fund_type || 'N/A'}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Vehicle Type</Label>
+                      {isEditing ? (
+                        <Input
+                          value={editData.vehicle_type || ''}
+                          onChange={(e) => setEditData(prev => ({ ...prev, vehicle_type: e.target.value }))}
+                          className="mt-1"
+                        />
+                      ) : (
+                        <p className="text-lg font-semibold text-gray-900 mt-1">{profile.vehicle_type || 'N/A'}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Legal Domicile</Label>
+                      {isEditing ? (
+                        <Input
+                          value={editData.legal_domicile || ''}
+                          onChange={(e) => setEditData(prev => ({ ...prev, legal_domicile: e.target.value }))}
+                          className="mt-1"
+                        />
+                      ) : (
+                        <p className="text-lg font-semibold text-gray-900 mt-1">{profile.legal_domicile || 'N/A'}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Primary Investment Region</Label>
+                      {isEditing ? (
+                        <Input
+                          value={editData.primary_investment_region || ''}
+                          onChange={(e) => setEditData(prev => ({ ...prev, primary_investment_region: e.target.value }))}
+                          className="mt-1"
+                        />
+                      ) : (
+                        <p className="text-lg font-semibold text-gray-900 mt-1">{profile.primary_investment_region || 'N/A'}</p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Investment Focus */}
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-xl">
+                    <Target className="w-6 h-6 mr-3 text-green-600" />
+                    Investment Focus
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Sector Focus */}
+                  {profile.sector_focus && profile.sector_focus.length > 0 && (
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Sector Focus</Label>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {profile.sector_focus.map((sector, index) => {
+                          const IconComponent = getSectorIcon(sector);
+                          return (
+                            <Badge key={index} variant="secondary" className="flex items-center space-x-1 px-3 py-1">
+                              <IconComponent className="w-3 h-3" />
+                              <span>{sector}</span>
+                            </Badge>
+                          );
+                        })}
                       </div>
                     </div>
-                    <span className="text-sm text-gray-500">
-                      {visibleSections[currentSection]?.title}
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handlePreviousSection}
-                      disabled={currentSection === 0}
-                      className="flex items-center space-x-2"
-                    >
-                      <ArrowLeft className="w-4 h-4" />
-                      Previous
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleNextSection}
-                      disabled={currentSection === totalSections - 1}
-                      className="flex items-center space-x-2"
-                    >
-                      Next
-                      <ArrowRight className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-                
-                {/* Section Indicators */}
-                <div className="flex space-x-2">
-                  {visibleSections.map((section, index) => (
-                    <button
-                      key={section.key}
-                      onClick={() => setCurrentSection(index)}
-                      className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                        index === currentSection
-                          ? `${section.bgColor} ${section.borderColor} border text-gray-900`
-                          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                      }`}
-                    >
-                      <section.icon className="w-4 h-4" />
-                      <span className="hidden sm:inline">{section.title}</span>
-                    </button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                  )}
 
-            {/* Current Section */}
-            <div className="transition-all duration-300 ease-in-out">
-              {renderSection(visibleSections[currentSection], activeSurvey)}
+                  {/* Stage Focus */}
+                  {profile.stage_focus && profile.stage_focus.length > 0 && (
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Stage Focus</Label>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {profile.stage_focus.map((stage, index) => {
+                          const IconComponent = getStageIcon(stage);
+                          return (
+                            <Badge key={index} variant="outline" className="flex items-center space-x-1 px-3 py-1">
+                              <IconComponent className="w-3 h-3" />
+                              <span>{stage}</span>
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Geographic Focus */}
+                  {profile.geographic_focus && profile.geographic_focus.length > 0 && (
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Geographic Focus</Label>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {profile.geographic_focus.map((region, index) => (
+                          <Badge key={index} variant="secondary" className="px-3 py-1">
+                            <MapPin className="w-3 h-3 mr-1" />
+                            {region}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Investment Thesis */}
+              {(profile.thesis || profile.investment_thesis) && (
+                <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
+                  <CardHeader>
+                    <CardTitle className="flex items-center text-xl">
+                      <FileText className="w-6 h-6 mr-3 text-purple-600" />
+                      Investment Thesis
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {isEditing ? (
+                      <Textarea
+                        value={editData.thesis || editData.investment_thesis || ''}
+                        onChange={(e) => setEditData(prev => ({ 
+                          ...prev, 
+                          thesis: e.target.value,
+                          investment_thesis: e.target.value 
+                        }))}
+                        rows={6}
+                        className="mt-1"
+                      />
+                    ) : (
+                      <p className="text-gray-700 leading-relaxed">
+                        {profile.thesis || profile.investment_thesis}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Financial Information */}
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-xl">
+                    <DollarSign className="w-6 h-6 mr-3 text-green-600" />
+                    Financial Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Assets Under Management</Label>
+                      {isEditing ? (
+                        <Input
+                          value={editData.aum || ''}
+                          onChange={(e) => setEditData(prev => ({ ...prev, aum: e.target.value }))}
+                          className="mt-1"
+                        />
+                      ) : (
+                        <p className="text-lg font-semibold text-gray-900 mt-1">{profile.aum || 'N/A'}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Target Capital</Label>
+                      {isEditing ? (
+                        <Input
+                          value={editData.target_capital || ''}
+                          onChange={(e) => setEditData(prev => ({ ...prev, target_capital: e.target.value }))}
+                          className="mt-1"
+                        />
+                      ) : (
+                        <p className="text-lg font-semibold text-gray-900 mt-1">{profile.target_capital || 'N/A'}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Typical Check Size</Label>
+                      {isEditing ? (
+                        <Input
+                          value={editData.typical_check_size || ''}
+                          onChange={(e) => setEditData(prev => ({ ...prev, typical_check_size: e.target.value }))}
+                          className="mt-1"
+                        />
+                      ) : (
+                        <p className="text-lg font-semibold text-gray-900 mt-1">{profile.typical_check_size || 'N/A'}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Ticket Size Range</Label>
+                      {isEditing ? (
+                        <div className="flex space-x-2 mt-1">
+                          <Input
+                            placeholder="Min"
+                            value={editData.ticket_size_min || ''}
+                            onChange={(e) => setEditData(prev => ({ ...prev, ticket_size_min: e.target.value }))}
+                          />
+                          <Input
+                            placeholder="Max"
+                            value={editData.ticket_size_max || ''}
+                            onChange={(e) => setEditData(prev => ({ ...prev, ticket_size_max: e.target.value }))}
+                          />
+                        </div>
+                      ) : (
+                        <p className="text-lg font-semibold text-gray-900 mt-1">
+                          {profile.ticket_size_min && profile.ticket_size_max 
+                            ? `${profile.ticket_size_min} - ${profile.ticket_size_max}`
+                            : profile.ticket_size_min || profile.ticket_size_max || 'N/A'
+                          }
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Action Buttons */}
+              {isEditing && (
+                <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
+                  <CardContent className="pt-6">
+                    <div className="flex space-x-3">
+                      <Button onClick={handleSave} className="flex-1">
+                        <SaveIcon className="w-4 h-4 mr-2" />
+                        Save Changes
+                      </Button>
+                      <Button onClick={handleCancel} variant="outline" className="flex-1">
+                        <CloseIcon className="w-4 h-4 mr-2" />
+                        Cancel
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
-        )}
+        </div>
       </div>
-    </div>
+    </SidebarLayout>
   );
 };
 

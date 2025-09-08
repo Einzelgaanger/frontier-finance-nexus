@@ -82,8 +82,7 @@ SELECT
   'As of March 2020',
   'As of December 2020',
   'As of March 2020',
-  'As of December 2020',
-  NULL,
+  '',
   ARRAY['Closed-end fund'],
   'Current',
   'Target',
@@ -203,6 +202,7 @@ SELECT
   ARRAY['No']::text[],
   '',
   '2021-02-08 16:32:23'::timestamp,
+  now(),
   now()
 FROM auth.users u
 WHERE u.email = 'shiva@ankurcapital.com';

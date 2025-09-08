@@ -55,19 +55,76 @@ const Header = ({ showNav = true }: HeaderProps) => {
     return false;
   };
 
+  // Role-based badge configuration
+  const getRoleBadgeConfig = (role: string) => {
+    switch (role) {
+      case 'admin':
+        return {
+          label: 'Administrator',
+          icon: Shield,
+          className: 'px-3 py-1 bg-red-50 text-red-700 border-red-200',
+          popupClassName: 'bg-red-600 text-white',
+          description: 'Full system access and management capabilities',
+          features: [
+            'Manage all users and permissions',
+            'Access comprehensive analytics',
+            'Moderate network content',
+            'Configure system settings',
+            'View all survey responses',
+            'Manage member applications'
+          ]
+        };
+      case 'member':
+        return {
+          label: 'Member',
+          icon: User,
+          className: 'px-3 py-1 bg-green-50 text-green-700 border-green-200',
+          popupClassName: 'bg-green-600 text-white',
+          description: 'Full access to network and survey features',
+          features: [
+            'Complete network directory access',
+            'Submit and manage surveys',
+            'View detailed member profiles',
+            'Access member-only resources',
+            'Participate in network discussions',
+            'Download reports and data'
+          ]
+        };
+      case 'viewer':
+      default:
+        return {
+          label: 'Visitor',
+          icon: Eye,
+          className: 'px-3 py-1 bg-blue-50 text-blue-700 border-blue-200',
+          popupClassName: 'bg-blue-600 text-white',
+          description: 'Limited access to network resources',
+          features: [
+            'Browse limited directory of fund managers',
+            'View public profiles and basic information',
+            'Apply for full membership access',
+            'Access public network resources'
+          ]
+        };
+    }
+  };
+
+  const roleConfig = getRoleBadgeConfig(userRole || 'viewer');
+
   return (
     <header className="border-b border-gray-200 bg-white shadow-sm rounded-bl-xl rounded-br-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-          {/* Left side - Welcome to ESCP Network Text */}
+          {/* Left side - ESCP Network Text */}
           <div className="flex items-center">
             <div className="text-left">
               <h1 className="text-2xl font-semibold mb-0.5 text-black font-sans tracking-wide">
-                Welcome to ESCP Network
+                ESCP Network
               </h1>
-              <p className="text-sm text-black font-medium leading-tight max-w-xs">
-                Your gateway to the global fund manager community
-              </p>
+              {userRole !== 'admin' && (
+                <p className="text-sm text-black font-medium leading-tight max-w-xs">
+                  Your gateway to the global fund manager community
+                </p>
+              )}
             </div>
           </div>
 
@@ -121,14 +178,14 @@ const Header = ({ showNav = true }: HeaderProps) => {
                   <User className="w-4 h-4 text-gray-500" />
                   <span className="font-medium text-gray-800">{user.email}</span>
                   
-                  {/* Visitor Access Badge with Hover Popup */}
+                  {/* Role-based Access Badge with Hover Popup */}
                   <div className="relative group">
                     <Badge 
                       variant="outline" 
-                      className="px-3 py-1 bg-blue-50 text-blue-700 border-blue-200 cursor-help"
+                      className={`px-3 py-1 ${roleConfig.className} cursor-help`}
                     >
-                      <Eye className="w-4 h-4 mr-2" />
-                      Visitor Access
+                      <roleConfig.icon className="w-4 h-4 mr-2" />
+                      {roleConfig.label}
                     </Badge>
                     
                     {/* Hover Popup Card */}
@@ -136,33 +193,28 @@ const Header = ({ showNav = true }: HeaderProps) => {
                       <Card className="shadow-xl border-gray-200 bg-white">
                         <CardHeader className="pb-3">
                           <CardTitle className="text-lg flex items-center">
-                            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                              <Eye className="w-4 h-4 text-blue-600" />
+                            <div className={`w-8 h-8 ${roleConfig.className.split(' ')[1]} rounded-lg flex items-center justify-center mr-3`}>
+                              <roleConfig.icon className={`w-4 h-4 ${roleConfig.className.split(' ')[2]}`} />
                             </div>
                             Current Access Level
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                          <div className="text-center p-3 bg-blue-100 rounded-lg border border-blue-200">
-                            <Badge className="px-3 py-1 text-base bg-blue-600 text-white mb-2">
-                              <Eye className="w-4 h-4 mr-2" />
-                              Visitor Access
+                          <div className={`text-center p-3 ${roleConfig.className.split(' ')[1]} rounded-lg border ${roleConfig.className.split(' ')[3]}`}>
+                            <Badge className={`px-3 py-1 text-base ${roleConfig.popupClassName} mb-2`}>
+                              <roleConfig.icon className="w-4 h-4 mr-2" />
+                              {roleConfig.label}
                             </Badge>
-                            <p className="text-sm text-blue-800 font-medium">
-                              Limited access to network resources
+                            <p className={`text-sm ${roleConfig.className.split(' ')[2]} font-medium`}>
+                              {roleConfig.description}
                             </p>
                           </div>
                           
                           <div className="space-y-3">
                             <h5 className="font-semibold text-gray-800 text-center mb-3">What You Can Do Now</h5>
-                            {[
-                              'Browse limited directory of fund managers',
-                              'View public profiles and basic information',
-                              'Apply for full membership access',
-                              'Access public network resources'
-                            ].map((feature, i) => (
+                            {roleConfig.features.map((feature, i) => (
                               <div key={i} className="flex items-center text-gray-700 p-2 bg-gray-50 rounded-lg">
-                                <div className="w-2 h-2 bg-blue-500 rounded-full mr-3 flex-shrink-0"></div>
+                                <div className={`w-2 h-2 ${roleConfig.className.split(' ')[2].replace('text-', 'bg-').replace('-700', '-500')} rounded-full mr-3 flex-shrink-0`}></div>
                                 <span className="text-sm">{feature}</span>
                               </div>
                             ))}
@@ -253,7 +305,12 @@ const Header = ({ showNav = true }: HeaderProps) => {
                             <User className="w-5 h-5 text-gray-600" />
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-gray-900 truncate">{user.email}</p>
-                              <p className="text-xs text-gray-500 capitalize">Role: {userRole}</p>
+                              <div className="flex items-center space-x-2 mt-1">
+                                <Badge className={`px-2 py-1 text-xs ${roleConfig.className}`}>
+                                  <roleConfig.icon className="w-3 h-3 mr-1" />
+                                  {roleConfig.label}
+                                </Badge>
+                              </div>
                             </div>
                           </div>
                         </div>

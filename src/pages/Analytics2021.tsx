@@ -40,6 +40,7 @@ import {
   Target,
   Globe,
   Building2,
+  Building,
   PieChart as PieChartIcon,
   BarChart3,
   Activity,
@@ -315,6 +316,15 @@ const Analytics2021: React.FC = () => {
       setSurveyData((data as unknown as Survey2021Data[]) || []);
       setLastUpdated(new Date());
       
+      // Debug: Log survey data to verify structure
+      console.log('Survey data loaded:', data?.length || 0, 'records');
+      if (data && data.length > 0) {
+        console.log('Sample survey record:', data[0]);
+        console.log('Investment vehicle types in sample:', data[0].investment_vehicle_type);
+        console.log('Current fund size in sample:', data[0].current_fund_size);
+        console.log('All current fund sizes:', data.map(s => s.current_fund_size));
+      }
+      
       // Calculate data quality metrics
       const totalRecords = data?.length || 0;
       setDataQuality({
@@ -413,17 +423,59 @@ const Analytics2021: React.FC = () => {
 
   // Data processing functions
   const getFundStageDistribution = () => {
-    const distribution = surveyData.reduce((acc, survey) => {
-      const stage = survey.fund_stage;
-      acc[stage] = (acc[stage] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    if (surveyData.length === 0) return [];
 
-    return Object.entries(distribution).map(([stage, count]) => ({
-      stage: stage.length > 30 ? stage.substring(0, 30) + '...' : stage,
+    // Define all possible survey options with their clean labels
+    const surveyOptions = {
+      'Open ended - fundraising and heading towards equivalent of 1st close (i.e. lack sufficient committed funds to cover fund economics)': 'Open-ended (Fundraising)',
+      'Open-ended - achieved equivalent of 1st close with sufficient committed funds to cover fund economics': 'Open-ended (Active)',
+      'Closed ended - fundraising': 'Closed-ended (Fundraising)',
+      'Closed ended - completed first close': 'Closed-ended (1st Close)',
+      'Closed ended - completed second close': 'Closed-ended (2nd Close)',
+      'Second fund/vehicle': 'Second Fund/Vehicle',
+      'Third or later fund/vehicle': 'Third+ Fund/Vehicle',
+      'Other': 'Other'
+    };
+
+    // Initialize all categories with 0 count
+    const distribution: Record<string, number> = {};
+    Object.values(surveyOptions).forEach(category => {
+      distribution[category] = 0;
+    });
+
+    // Count actual responses
+    surveyData.forEach(survey => {
+      const stage = survey.fund_stage?.trim() || '';
+      
+      // Find matching category
+      let category = 'Other'; // Default fallback
+      
+      // Check for exact matches first
+      if (surveyOptions[stage as keyof typeof surveyOptions]) {
+        category = surveyOptions[stage as keyof typeof surveyOptions];
+      } else {
+        // Check for partial matches for robustness
+        for (const [option, label] of Object.entries(surveyOptions)) {
+          if (stage.includes(option.split(' - ')[0]) || option.includes(stage.split(' - ')[0])) {
+            category = label;
+            break;
+          }
+        }
+      }
+      
+      distribution[category] = (distribution[category] || 0) + 1;
+    });
+
+    // Convert to array and calculate percentages
+    const total = surveyData.length;
+    return Object.entries(distribution)
+      .map(([stage, count]) => ({
+        stage,
       count,
-      percentage: ((count / surveyData.length) * 100).toFixed(1)
-    }));
+        percentage: ((count / total) * 100).toFixed(1)
+      }))
+      .filter(item => item.count > 0) // Only show categories with responses
+      .sort((a, b) => b.count - a.count); // Sort by count descending
   };
 
   const getGeographicDistribution = () => {
@@ -445,49 +497,117 @@ const Analytics2021: React.FC = () => {
   };
 
   const getInvestmentSizeDistribution = () => {
+    if (surveyData.length === 0) return [];
+
     const distribution = surveyData.reduce((acc, survey) => {
-      const size = survey.current_fund_size;
-      acc[size] = (acc[size] || 0) + 1;
+      const size = survey.current_fund_size?.trim() || '';
+      
+      // Map survey responses to clean category names
+      let category = 'Other';
+      
+      if (size === 'Current') {
+        category = 'Current Fund Size';
+      } else if (size === 'Target') {
+        category = 'Target Fund Size';
+      } else if (size.toLowerCase().includes('current')) {
+        category = 'Current Fund Size';
+      } else if (size.toLowerCase().includes('target')) {
+        category = 'Target Fund Size';
+      } else if (size === '' || size === null) {
+        category = 'Not Specified';
+      } else {
+        category = 'Other';
+      }
+      
+      acc[category] = (acc[category] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
-    return Object.entries(distribution).map(([size, count]) => ({
-      size: size.length > 20 ? size.substring(0, 20) + '...' : size,
+    // Convert to array and calculate percentages
+    const total = surveyData.length;
+    return Object.entries(distribution)
+      .map(([size, count]) => ({
+        size,
       count,
-      percentage: ((count / surveyData.length) * 100).toFixed(1)
-    }));
+        percentage: ((count / total) * 100).toFixed(1)
+      }))
+      .sort((a, b) => b.count - a.count); // Sort by count descending
   };
 
   const getSectorDistribution = () => {
+    if (surveyData.length === 0) return [];
+
     const distribution: Record<string, number> = {};
+    let totalSectorMentions = 0;
+
+    // Count sector mentions across all surveys
     surveyData.forEach(survey => {
       survey.target_sectors.forEach(sector => {
         distribution[sector] = (distribution[sector] || 0) + 1;
+        totalSectorMentions++;
       });
     });
 
+    // Helper function to create shorter display labels
+    const getShortLabel = (sector: string) => {
+      if (sector.includes('/')) {
+        // Take the first part before the first "/"
+        return sector.split('/')[0].trim();
+      }
+      return sector;
+    };
+
+    // Calculate percentages based on total sector mentions (not survey count)
     return Object.entries(distribution)
       .sort(([, a], [, b]) => b - a)
       .slice(0, 8)
       .map(([sector, count]) => ({ 
-        sector, 
+        sector, // Full name for tooltips
+        sectorShort: getShortLabel(sector), // Short name for chart labels
         count,
-        percentage: ((count / surveyData.length) * 100).toFixed(1)
+        percentage: totalSectorMentions > 0 ? ((count / totalSectorMentions) * 100).toFixed(1) : '0.0'
       }));
   };
 
   const getCOVIDImpactDistribution = () => {
+    // Define the exact survey options in order of severity (negative to positive)
+    const impactOptions = [
+      "Significant negative impact",
+      "Somewhat negative impact", 
+      "Neither positive nor negative impact",
+      "Somewhat positive impact",
+      "Significant positive impact"
+    ];
+
     const distribution = surveyData.reduce((acc, survey) => {
       const impact = survey.covid_impact_aggregate;
+      if (impact) {
       acc[impact] = (acc[impact] || 0) + 1;
+      }
       return acc;
     }, {} as Record<string, number>);
 
-    return Object.entries(distribution).map(([impact, count]) => ({
-      impact: impact.length > 25 ? impact.substring(0, 25) + '...' : impact,
-      count,
-      percentage: ((count / surveyData.length) * 100).toFixed(1)
-    }));
+    // Return data in the defined order, only showing options with responses
+    return impactOptions
+      .map(impact => ({
+        impact,
+        impactShort: getCOVIDImpactShortLabel(impact),
+        count: distribution[impact] || 0,
+        percentage: surveyData.length > 0 ? ((distribution[impact] || 0) / surveyData.length * 100).toFixed(1) : '0.0'
+      }))
+      .filter(item => item.count > 0); // Only show options with actual responses
+  };
+
+  // Helper function to create shorter labels for COVID impact
+  const getCOVIDImpactShortLabel = (impact: string) => {
+    const shortLabels: Record<string, string> = {
+      "Significant negative impact": "Significant negative",
+      "Somewhat negative impact": "Somewhat negative",
+      "Neither positive nor negative impact": "Neutral impact",
+      "Somewhat positive impact": "Somewhat positive",
+      "Significant positive impact": "Significant positive"
+    };
+    return shortLabels[impact] || impact;
   };
 
   const getNetworkValueDistribution = () => {
@@ -505,22 +625,375 @@ const Analytics2021: React.FC = () => {
   };
 
   const getInvestmentTimelineData = () => {
-    const timelineData = surveyData.map(survey => ({
-      firm: survey.firm_name.substring(0, 15) + '...',
-      legalEntity: new Date(survey.legal_entity_date).getFullYear(),
-      firstClose: new Date(survey.first_close_date).getFullYear(),
-      firstInvestment: new Date(survey.first_investment_date).getFullYear()
-    }));
+    if (surveyData.length === 0) return [];
 
-    return timelineData.slice(0, 10);
+    // Define all possible survey options with their clean, brief labels
+    const surveyOptions = {
+      'Open ended - fundraising and heading towards equivalent of 1st close (i.e. lack sufficient committed funds to cover fund economics)': 'Open-ended (Fundraising)',
+      'Open-ended - achieved equivalent of 1st close with sufficient committed funds to cover fund economics': 'Open-ended (Active)',
+      'Closed ended - fundraising': 'Closed-ended (Fundraising)',
+      'Closed ended - completed first close': 'Closed-ended (1st Close)',
+      'Closed ended - completed second close': 'Closed-ended (2nd Close)',
+      'Second fund/vehicle': 'Second Fund',
+      'Third or later fund/vehicle': 'Third+ Fund',
+      'Other': 'Other'
+    };
+
+    // Initialize all categories with 0 count
+    const distribution: Record<string, number> = {};
+    Object.values(surveyOptions).forEach(category => {
+      distribution[category] = 0;
+    });
+
+    // Count actual responses
+    surveyData.forEach(survey => {
+      const stage = survey.fund_stage?.trim() || '';
+      
+      // Find matching category
+      let category = 'Other'; // Default fallback
+      
+      // Check for exact matches first
+      if (surveyOptions[stage as keyof typeof surveyOptions]) {
+        category = surveyOptions[stage as keyof typeof surveyOptions];
+      } else {
+        // Check for partial matches for robustness
+        for (const [option, label] of Object.entries(surveyOptions)) {
+          if (stage.includes(option.split(' - ')[0]) || option.includes(stage.split(' - ')[0])) {
+            category = label;
+            break;
+          }
+        }
+      }
+      
+      distribution[category] = (distribution[category] || 0) + 1;
+    });
+
+    // Convert to array and calculate percentages
+    const total = surveyData.length;
+    return Object.entries(distribution)
+      .map(([stage, count]) => ({
+        stage,
+        count,
+        percentage: total > 0 ? ((count / total) * 100).toFixed(1) : '0.0'
+      }))
+      .filter(item => item.count > 0) // Only show categories with responses
+      .sort((a, b) => b.count - a.count);
   };
 
   const getInvestmentCountsData = () => {
-    return surveyData.map(survey => ({
-      firm: survey.firm_name.substring(0, 15) + '...',
-      march2020: parseInt(survey.investments_march_2020.split('-')[0]) || 0,
-      december2020: parseInt(survey.investments_december_2020.split('-')[0]) || 0
-    })).slice(0, 15);
+    // Parse investment counts more robustly
+    const investmentData = surveyData.map(survey => {
+      const marchText = survey.investments_march_2020 || '';
+      const decemberText = survey.investments_december_2020 || '';
+      
+      // Extract numbers from text like "As of March 2020" or "5-10"
+      const marchMatch = marchText.match(/(\d+)/);
+      const decemberMatch = decemberText.match(/(\d+)/);
+      
+      return {
+        firm: survey.firm_name.length > 20 ? survey.firm_name.substring(0, 20) + '...' : survey.firm_name,
+        march2020: marchMatch ? parseInt(marchMatch[1]) : 0,
+        december2020: decemberMatch ? parseInt(decemberMatch[1]) : 0
+      };
+    }).filter(item => item.march2020 > 0 || item.december2020 > 0)
+      .sort((a, b) => (b.march2020 + b.december2020) - (a.march2020 + a.december2020))
+      .slice(0, 10);
+
+    return investmentData;
+  };
+
+  // New function for investment vehicle types with proper analysis
+  const getInvestmentVehicleData = () => {
+    if (surveyData.length === 0) return [];
+
+    // Define all possible survey options with their clean labels and full names
+    const surveyOptions = {
+      'Closed-end fund': { label: 'Closed-end fund', fullName: 'Closed-end fund' },
+      'Open-ended vehicle / Limited liability company or equivalent': { label: 'Open-ended vehicle / LLC', fullName: 'Open-ended vehicle / Limited liability company or equivalent' },
+      'Registered non-bank finance company': { label: 'Registered non-bank finance company', fullName: 'Registered non-bank finance company' },
+      'Registered bank / financial institution': { label: 'Registered bank / financial institution', fullName: 'Registered bank / financial institution' },
+      'Angel network': { label: 'Angel network', fullName: 'Angel network' },
+      'Other': { label: 'Other', fullName: 'Other' }
+    };
+
+    console.log('Processing investment vehicle data for', surveyData.length, 'surveys');
+
+    // Initialize all categories with 0 count
+    const distribution: Record<string, { count: number; fullName: string }> = {};
+    Object.values(surveyOptions).forEach(option => {
+      distribution[option.label] = { count: 0, fullName: option.fullName };
+    });
+
+    // Count actual responses
+    surveyData.forEach((survey, surveyIndex) => {
+      if (surveyIndex < 3) { // Debug first 3 surveys
+        console.log(`Survey ${surveyIndex} vehicle types:`, survey.investment_vehicle_type);
+      }
+      
+      survey.investment_vehicle_type.forEach(vehicle => {
+        const trimmedVehicle = vehicle?.trim() || '';
+        
+        // Find matching category
+        let category = 'Other'; // Default fallback
+        
+        // Check for exact matches first
+        if (surveyOptions[trimmedVehicle as keyof typeof surveyOptions]) {
+          category = surveyOptions[trimmedVehicle as keyof typeof surveyOptions].label;
+        } else {
+          // Check for partial matches for robustness
+          for (const [option, optionData] of Object.entries(surveyOptions)) {
+            if (trimmedVehicle.includes(option.split(' / ')[0]) || option.includes(trimmedVehicle.split(' / ')[0])) {
+              category = optionData.label;
+              break;
+            }
+          }
+        }
+        
+        if (surveyIndex < 3) { // Debug first 3 surveys
+          console.log(`  Vehicle: "${trimmedVehicle}" -> Category: "${category}"`);
+        }
+        
+        distribution[category].count = (distribution[category].count || 0) + 1;
+      });
+    });
+
+    // Calculate total responses for debugging
+    const totalResponses = Object.values(distribution).reduce((sum, item) => sum + item.count, 0);
+    const totalFunds = surveyData.length;
+    
+    // Convert to array and calculate percentages
+    // For multi-select questions, calculate percentage based on number of funds, not total responses
+    const result = Object.entries(distribution)
+      .map(([vehicle, data]) => ({
+        vehicle,
+        fullName: data.fullName,
+        count: data.count,
+        percentage: totalFunds > 0 ? ((data.count / totalFunds) * 100).toFixed(1) : '0.0'
+      }))
+      .sort((a, b) => b.count - a.count); // Show all categories, even with 0 responses
+    
+    // Debug: Log the result to verify data structure
+    console.log('Investment Vehicle Data:', result);
+    console.log('Total survey records (funds):', totalFunds);
+    console.log('Total vehicle type responses:', totalResponses);
+    console.log('Percentage calculation: based on total funds, not total responses');
+    console.log('Sample data entry:', result[0]);
+    console.log('Distribution object:', distribution);
+    console.log('Categories with 0 responses:', result.filter(item => item.count === 0));
+    console.log('Categories with responses:', result.filter(item => item.count > 0));
+    
+    return result;
+  };
+
+  // New function for business model analysis with proper mapping
+  const getBusinessModelData = () => {
+    if (surveyData.length === 0) return [];
+
+    // Define all possible survey options with their clean labels and full names
+    const surveyOptions = {
+      'Livelihood Sustaining Enterprises (formal/informal family run businesses targeting incremental growth)': { 
+        label: 'Livelihood Sustaining', 
+        fullName: 'Livelihood Sustaining Enterprises (formal/informal family run businesses targeting incremental growth)' 
+      },
+      'Dynamic Enterprises (proven business models operating in established industries with moderate growth potential)': { 
+        label: 'Dynamic Enterprises', 
+        fullName: 'Dynamic Enterprises (proven business models operating in established industries with moderate growth potential)' 
+      },
+      'Niche Ventures (innovative products/services targeting niche markets with growth ambitions)': { 
+        label: 'Niche Ventures', 
+        fullName: 'Niche Ventures (innovative products/services targeting niche markets with growth ambitions)' 
+      },
+      'High-Growth Ventures (disruptive business models targeting large markets with high growth potential)': { 
+        label: 'High-Growth Ventures', 
+        fullName: 'High-Growth Ventures (disruptive business models targeting large markets with high growth potential)' 
+      },
+      'Real assets / infrastructure': { 
+        label: 'Real Assets / Infrastructure', 
+        fullName: 'Real assets / infrastructure' 
+      },
+      'Other': { 
+        label: 'Other', 
+        fullName: 'Other' 
+      }
+    };
+
+    console.log('Processing business model data for', surveyData.length, 'surveys');
+
+    // Initialize all categories with 0 count
+    const distribution: Record<string, { count: number; fullName: string }> = {};
+    Object.values(surveyOptions).forEach(option => {
+      distribution[option.label] = { count: 0, fullName: option.fullName };
+    });
+
+    // Count actual responses
+    surveyData.forEach((survey, surveyIndex) => {
+      if (surveyIndex < 3) { // Debug first 3 surveys
+        console.log(`Survey ${surveyIndex} business models:`, survey.business_model_targeted);
+      }
+      
+      survey.business_model_targeted.forEach(model => {
+        const trimmedModel = model?.trim() || '';
+        
+        // Find matching category
+        let category = 'Other'; // Default fallback
+        
+        // Check for exact matches first
+        if (surveyOptions[trimmedModel as keyof typeof surveyOptions]) {
+          category = surveyOptions[trimmedModel as keyof typeof surveyOptions].label;
+        } else {
+          // Check for partial matches for robustness
+          for (const [option, optionData] of Object.entries(surveyOptions)) {
+            if (trimmedModel.includes(option.split(' (')[0]) || option.includes(trimmedModel.split(' (')[0])) {
+              category = optionData.label;
+              break;
+            }
+          }
+        }
+        
+        if (surveyIndex < 3) { // Debug first 3 surveys
+          console.log(`  Model: "${trimmedModel}" -> Category: "${category}"`);
+        }
+        
+        distribution[category].count = (distribution[category].count || 0) + 1;
+      });
+    });
+
+    // Calculate total responses for debugging
+    const totalResponses = Object.values(distribution).reduce((sum, item) => sum + item.count, 0);
+    const totalFunds = surveyData.length;
+    
+    // Convert to array and calculate percentages
+    // For multi-select questions, calculate percentage based on number of funds, not total responses
+    const result = Object.entries(distribution)
+      .map(([model, data]) => ({
+        model,
+        fullModel: data.fullName,
+        count: data.count,
+        percentage: totalFunds > 0 ? ((data.count / totalFunds) * 100).toFixed(1) : '0.0'
+      }))
+      .sort((a, b) => b.count - a.count); // Show all categories, even with 0 responses
+    
+    // Debug: Log the result to verify data structure
+    console.log('Business Model Data:', result);
+    console.log('Total survey records (funds):', totalFunds);
+    console.log('Total business model responses:', totalResponses);
+    console.log('Percentage calculation: based on total funds, not total responses');
+    console.log('Categories with 0 responses:', result.filter(item => item.count === 0));
+    console.log('Categories with responses:', result.filter(item => item.count > 0));
+    
+    return result;
+  };
+
+  // New function for fund size analysis with proper mapping and statistical accuracy
+  const getFundSizeData = () => {
+    if (surveyData.length === 0) return [];
+
+    // Define all possible survey options with their clean labels and full names
+    const surveyOptions = {
+      '< $1 million': { 
+        label: '< $1M', 
+        fullName: '< $1 million',
+        order: 1
+      },
+      '$1-4 million': { 
+        label: '$1-4M', 
+        fullName: '$1-4 million',
+        order: 2
+      },
+      '$5-9 million': { 
+        label: '$5-9M', 
+        fullName: '$5-9 million',
+        order: 3
+      },
+      '$10-19 million': { 
+        label: '$10-19M', 
+        fullName: '$10-19 million',
+        order: 4
+      },
+      '$20-29 million': { 
+        label: '$20-29M', 
+        fullName: '$20-29 million',
+        order: 5
+      },
+      '$30 million or more': { 
+        label: '$30M+', 
+        fullName: '$30 million or more',
+        order: 6
+      }
+    };
+
+    console.log('Processing fund size data for', surveyData.length, 'surveys');
+
+    // Initialize all categories with 0 count
+    const distribution: Record<string, { count: number; fullName: string; order: number }> = {};
+    Object.values(surveyOptions).forEach(option => {
+      distribution[option.label] = { count: 0, fullName: option.fullName, order: option.order };
+    });
+
+    // Count actual responses
+    surveyData.forEach((survey, surveyIndex) => {
+      if (surveyIndex < 5) { // Debug first 5 surveys
+        console.log(`Survey ${surveyIndex} fund size:`, survey.current_fund_size);
+        console.log(`Survey ${surveyIndex} raw data:`, survey);
+      }
+      
+      const size = survey.current_fund_size?.trim() || '';
+      
+      if (size) {
+        // Find matching category
+        let category = 'Other'; // Default fallback
+        
+        // Check for exact matches first
+        if (surveyOptions[size as keyof typeof surveyOptions]) {
+          category = surveyOptions[size as keyof typeof surveyOptions].label;
+        } else {
+          // Check for partial matches for robustness
+          for (const [option, optionData] of Object.entries(surveyOptions)) {
+            if (size.includes(option.split(' ')[0]) || option.includes(size.split(' ')[0])) {
+              category = optionData.label;
+              break;
+            }
+          }
+        }
+        
+        if (surveyIndex < 5) { // Debug first 5 surveys
+          console.log(`  Size: "${size}" -> Category: "${category}"`);
+        }
+        
+        if (distribution[category]) {
+          distribution[category].count = (distribution[category].count || 0) + 1;
+        }
+      } else {
+        if (surveyIndex < 5) { // Debug first 5 surveys
+          console.log(`  No fund size data for survey ${surveyIndex}`);
+        }
+      }
+    });
+
+    // Calculate total responses for debugging
+    const totalResponses = Object.values(distribution).reduce((sum, item) => sum + item.count, 0);
+    const totalFunds = surveyData.length;
+    
+    // Convert to array and calculate percentages
+    const result = Object.entries(distribution)
+      .map(([size, data]) => ({
+        size,
+        fullName: data.fullName,
+        count: data.count,
+        percentage: totalFunds > 0 ? ((data.count / totalFunds) * 100).toFixed(1) : '0.0',
+        order: data.order
+      }))
+      .sort((a, b) => a.order - b.order); // Sort by predefined order (smallest to largest)
+    
+    // Debug: Log the result to verify data structure
+    console.log('Fund Size Data:', result);
+    console.log('Total survey records (funds):', totalFunds);
+    console.log('Total fund size responses:', totalResponses);
+    console.log('Percentage calculation: based on total funds');
+    console.log('Categories with 0 responses:', result.filter(item => item.count === 0));
+    console.log('Categories with responses:', result.filter(item => item.count > 0));
+    
+    return result;
   };
 
   // SDG First-choice distribution (from redesigned Q21 top_sdgs record)
@@ -577,21 +1050,163 @@ const Analytics2021: React.FC = () => {
 
   // Gender considerations comparison (Consolidated Q22)
   const getGenderConsiderationsData = () => {
+    if (surveyData.length === 0) return [];
+
+    // Define the actual gender criteria found in the data
+    const surveyStatements = [
+      "Women ownership/participation interest is ≥ 50%",
+      "Female staffing is ≥ 50%",
+      "Provide specific reporting on gender related indicators for your investors/funders",
+      "Require specific reporting on gender related indicators by your investees/borrowers",
+      "Majority women ownership (>50%)",
+      "Greater than 33% of women in senior management",
+      "Women represent at least 33% - 50% of direct workforce",
+      "Women represent at least 33% - 50% of indirect workforce (e.g. supply chain/distribution channel, or both)",
+      "Have policies in place that promote gender equality (e.g. equal compensation)",
+      "Women are target beneficiaries of the product/service",
+      "Enterprise reports on specific gender related indicators to investors",
+      "Board member female representation (>33%)",
+      "Female CEO",
+      "Other"
+    ];
+
+
     const dataMap: Record<string, { invest: number; req: number }> = {};
+    
+    // Initialize all survey statements with zero counts
+    surveyStatements.forEach(statement => {
+      dataMap[statement] = { invest: 0, req: 0 };
+    });
+    
     surveyData.forEach(s => {
+      // Process investment considerations - these contain the actual specific gender criteria they consider
       (s.gender_considerations_investment || []).forEach(item => {
-        if (!dataMap[item]) dataMap[item] = { invest: 0, req: 0 };
-        dataMap[item].invest += 1;
+        // Skip generic entries
+        if (item && item !== 'Investment Consideration' && item !== 'Investment Requirement') {
+          // Find match in survey statements (more flexible matching)
+          const exactMatch = surveyStatements.find(statement => {
+            const itemLower = item.toLowerCase().trim();
+            const statementLower = statement.toLowerCase().trim();
+            
+            // Try exact match first
+            if (itemLower === statementLower) return true;
+            
+            // Try partial matching for common variations
+            if (itemLower.includes('women ownership') && statementLower.includes('women ownership')) return true;
+            if (itemLower.includes('senior management') && statementLower.includes('senior management')) return true;
+            if (itemLower.includes('direct workforce') && statementLower.includes('direct workforce')) return true;
+            if (itemLower.includes('indirect workforce') && statementLower.includes('indirect workforce')) return true;
+            if (itemLower.includes('gender equality') && statementLower.includes('gender equality')) return true;
+            if (itemLower.includes('target beneficiaries') && statementLower.includes('target beneficiaries')) return true;
+            if (itemLower.includes('gender related indicators') && statementLower.includes('gender related indicators')) return true;
+            if (itemLower.includes('board member') && statementLower.includes('board member')) return true;
+            if (itemLower.includes('female ceo') && statementLower.includes('female ceo')) return true;
+            if (itemLower === 'other' && statementLower === 'other') return true;
+            
+            return false;
+          });
+          
+          if (exactMatch) {
+            dataMap[exactMatch].invest += 1;
+          } else {
+            // If no exact match found, check if it's an "Other" type response
+            if (item.toLowerCase().includes('other') || item.toLowerCase().includes('additional') || item.toLowerCase().includes('custom')) {
+              dataMap['Other'].invest += 1;
+            }
+          }
+        }
       });
+      
+      // Process requirements - these contain the actual specific gender criteria they require
       (s.gender_considerations_requirement || []).forEach(item => {
-        if (!dataMap[item]) dataMap[item] = { invest: 0, req: 0 };
-        dataMap[item].req += 1;
+        // Skip generic entries
+        if (item && item !== 'Investment Consideration' && item !== 'Investment Requirement') {
+          // Find match in survey statements (more flexible matching)
+          const exactMatch = surveyStatements.find(statement => {
+            const itemLower = item.toLowerCase().trim();
+            const statementLower = statement.toLowerCase().trim();
+            
+            // Try exact match first
+            if (itemLower === statementLower) return true;
+            
+            // Try partial matching for common variations
+            if (itemLower.includes('women ownership') && statementLower.includes('women ownership')) return true;
+            if (itemLower.includes('senior management') && statementLower.includes('senior management')) return true;
+            if (itemLower.includes('direct workforce') && statementLower.includes('direct workforce')) return true;
+            if (itemLower.includes('indirect workforce') && statementLower.includes('indirect workforce')) return true;
+            if (itemLower.includes('gender equality') && statementLower.includes('gender equality')) return true;
+            if (itemLower.includes('target beneficiaries') && statementLower.includes('target beneficiaries')) return true;
+            if (itemLower.includes('gender related indicators') && statementLower.includes('gender related indicators')) return true;
+            if (itemLower.includes('board member') && statementLower.includes('board member')) return true;
+            if (itemLower.includes('female ceo') && statementLower.includes('female ceo')) return true;
+            if (itemLower === 'other' && statementLower === 'other') return true;
+            
+            return false;
+          });
+          
+          if (exactMatch) {
+            dataMap[exactMatch].req += 1;
+          } else {
+            // If no exact match found, check if it's an "Other" type response
+            if (item.toLowerCase().includes('other') || item.toLowerCase().includes('additional') || item.toLowerCase().includes('custom')) {
+              dataMap['Other'].req += 1;
+            }
+          }
+        }
       });
     });
-    return Object.entries(dataMap)
-      .map(([item, v]) => ({ item, invest: v.invest, requirement: v.req }))
-      .sort((a, b) => (b.invest + b.requirement) - (a.invest + a.requirement))
-      .slice(0, 12);
+
+    // Helper function to create shorter display labels
+    const getShortLabel = (item: string) => {
+      // Create very short labels for chart readability
+      const shortLabels: Record<string, string> = {
+        "Women ownership/participation interest is ≥ 50%": "Women ownership ≥50%",
+        "Female staffing is ≥ 50%": "Female staffing ≥50%",
+        "Provide specific reporting on gender related indicators for your investors/funders": "Gender reporting to investors",
+        "Require specific reporting on gender related indicators by your investees/borrowers": "Gender reporting by investees",
+        "Majority women ownership (>50%)": "Women ownership >50%",
+        "Greater than 33% of women in senior management": "Women senior mgmt >33%",
+        "Women represent at least 33% - 50% of direct workforce": "Women direct 33-50%",
+        "Women represent at least 33% - 50% of indirect workforce (e.g. supply chain/distribution channel, or both)": "Women indirect 33-50%",
+        "Have policies in place that promote gender equality (e.g. equal compensation)": "Gender policies",
+        "Women are target beneficiaries of the product/service": "Women beneficiaries",
+        "Enterprise reports on specific gender related indicators to investors": "Gender reporting",
+        "Board member female representation (>33%)": "Board women >33%",
+        "Female CEO": "Female CEO",
+        "Other": "Other"
+      };
+      
+      return shortLabels[item] || item;
+    };
+
+    
+    // Return data in the exact order of survey statements, only showing those with data
+    return surveyStatements
+      .map(statement => ({
+        item: statement, // Full survey statement for tooltips
+        itemShort: getShortLabel(statement), // Short name for chart labels
+        invest: dataMap[statement].invest,
+        requirement: dataMap[statement].req
+      }))
+      .filter(item => item.invest > 0 || item.requirement > 0); // Only show items with actual data
+  };
+
+  const getAverageTeamSize = () => {
+    if (surveyData.length === 0) return '0';
+    
+    const teamSizes = surveyData
+      .map(survey => {
+        const fteText = survey.current_ftes;
+        // Extract number from text like "5-10", "10+", "1-5", etc.
+        const match = fteText.match(/(\d+)/);
+        return match ? parseInt(match[1]) : 0;
+      })
+      .filter(size => size > 0);
+    
+    if (teamSizes.length === 0) return '0';
+    
+    const average = teamSizes.reduce((sum, size) => sum + size, 0) / teamSizes.length;
+    return average.toFixed(1);
   };
 
   const getRandomColor = () => {
@@ -631,165 +1246,174 @@ const Analytics2021: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <style>{analyticsStyles}</style>
       {userRole !== 'admin' && <Header />}
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">2021 ESCP Survey Analytics</h1>
-              <p className="text-gray-600 mt-1">Comprehensive analysis of Early Stage Capital Providers 2021 Convening Survey</p>
+      <div className="max-w-7xl mx-auto px-4 py-4">
+        {/* Compact Header with Integrated Controls */}
+        <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-lg p-4 mb-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold text-gray-900">2021 ESCP Survey Analytics</h1>
+              <p className="text-sm text-gray-600 mt-1">Early Stage Capital Providers 2021 Convening Survey Analysis</p>
             </div>
-            <div className="flex items-center space-x-4">
-              <Badge variant="secondary" className="text-sm">
-                Total Responses: {surveyData.length}
-              </Badge>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant={selectedSection === 'overview' ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedSection('overview')}
+                className="min-w-[50px] text-xs h-8"
+              >
+                2021
+              </Button>
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={fetchSurveyData}
-                disabled={loading}
+                disabled
+                className="min-w-[50px] text-xs h-8 opacity-50 cursor-not-allowed relative group"
+                title="Coming Soon"
               >
-                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                Refresh
+                2022
+                <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-3 py-2 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-50">
+                  Coming Soon
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                </div>
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled
+                className="min-w-[50px] text-xs h-8 opacity-50 cursor-not-allowed relative group"
+                title="Coming Soon"
+              >
+                2023
+                <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-3 py-2 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-50">
+                  Coming Soon
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
             </div>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled
+                className="min-w-[50px] text-xs h-8 opacity-50 cursor-not-allowed relative group"
+                title="Coming Soon"
+              >
+                2024
+                <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-3 py-2 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-50">
+                  Coming Soon
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
           </div>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled
+                className="min-w-[50px] text-xs h-8 opacity-50 cursor-not-allowed relative group"
+                title="Coming Soon"
+              >
+                2025
+                <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-3 py-2 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-50">
+                  Coming Soon
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
         </div>
-
-        {/* Data Quality Indicators */}
-        <div className="mb-8">
-          <Card className="analytics-insight-card shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="analytics-card-title">
-                    <CheckCircle className="w-5 h-5 mr-2 text-blue-600" />
-                    Data Quality Metrics
-                  </h3>
-                  <p className="text-sm text-gray-600">Comprehensive data validation and quality assessment</p>
-                </div>
-                <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
-                  {dataQuality.completeness > 80 ? 'Excellent' : dataQuality.completeness > 60 ? 'Good' : 'Needs Attention'}
-                </Badge>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="text-center">
-                  <p className="analytics-stat-label">Data Completeness</p>
-                  <p className="analytics-stat-value">{dataQuality.completeness.toFixed(1)}%</p>
-                  <p className="analytics-stat-change positive">+{dataQuality.completeness - 75}% vs target</p>
-                </div>
-                <div className="text-center">
-                  <p className="analytics-stat-label">Data Accuracy</p>
-                  <p className="analytics-stat-value">{dataQuality.accuracy.toFixed(1)}%</p>
-                  <p className="analytics-stat-change positive">+{dataQuality.accuracy - 70}% vs target</p>
-                </div>
-                <div className="text-center">
-                  <p className="analytics-stat-label">Data Freshness</p>
-                  <p className="analytics-stat-value">{dataQuality.freshness.toFixed(1)}%</p>
-                  <p className="analytics-stat-change positive">+{dataQuality.freshness - 60}% vs target</p>
-                </div>
-                <div className="text-center">
-                  <p className="analytics-stat-label">Data Consistency</p>
-                  <p className="analytics-stat-value">{dataQuality.consistency.toFixed(1)}%</p>
-                  <p className="analytics-stat-change positive">+{dataQuality.consistency - 65}% vs target</p>
+              </Button>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Insights and Trends */}
-        <div className="mb-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {insights.length > 0 && (
-            <Card className="analytics-insight-card shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center">
-                  <Lightbulb className="w-5 h-5 mr-2 text-blue-600" />
-                  Key Insights
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {insights.slice(0, 3).map((insight, index) => (
-                    <div key={index} className="text-sm text-gray-700 p-2 bg-white/50 rounded">
-                      {insight}
-                    </div>
-                  ))}
                 </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {trends.length > 0 && (
-            <Card className="analytics-trend-card shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center">
-                  <TrendingUp className="w-5 h-5 mr-2 text-green-600" />
-                  Emerging Trends
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {trends.slice(0, 3).map((trend, index) => (
-                    <div key={index} className="text-sm text-gray-700 p-2 bg-white/50 rounded">
-                      {trend}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {warnings.length > 0 && (
-            <Card className="analytics-warning-card shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center">
-                  <AlertCircle className="w-5 h-5 mr-2 text-yellow-600" />
-                  Areas of Concern
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {warnings.slice(0, 3).map((warning, index) => (
-                    <div key={index} className="text-sm text-gray-700 p-2 bg-white/50 rounded">
-                      {warning}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
 
         {/* Main Analytics Tabs */}
         <Tabs value={selectedSection} onValueChange={setSelectedSection} className="w-full">
-          <TabsList className="mb-6 grid grid-cols-4 md:grid-cols-7 gap-2 bg-white/80 backdrop-blur-sm border border-slate-200">
-            <TabsTrigger value="overview" className="text-xs font-medium">Overview</TabsTrigger>
-            <TabsTrigger value="background" className="text-xs font-medium">Background</TabsTrigger>
-            <TabsTrigger value="investment" className="text-xs font-medium">Investment</TabsTrigger>
-            <TabsTrigger value="portfolio" className="text-xs font-medium">Portfolio</TabsTrigger>
-            <TabsTrigger value="covid" className="text-xs font-medium">COVID-19</TabsTrigger>
-            <TabsTrigger value="network" className="text-xs font-medium">Network</TabsTrigger>
-            <TabsTrigger value="convening" className="text-xs font-medium">Convening</TabsTrigger>
+          <TabsList className="mb-4 grid grid-cols-4 md:grid-cols-7 gap-1 bg-white/90 backdrop-blur-sm border border-slate-200 shadow-sm">
+            <TabsTrigger value="overview" className="text-xs font-medium py-2">Overview</TabsTrigger>
+            <TabsTrigger value="background" className="text-xs font-medium py-2">Background</TabsTrigger>
+            <TabsTrigger value="investment" className="text-xs font-medium py-2">Investment</TabsTrigger>
+            <TabsTrigger value="portfolio" className="text-xs font-medium py-2">Portfolio</TabsTrigger>
+            <TabsTrigger value="covid" className="text-xs font-medium py-2">COVID-19</TabsTrigger>
+            <TabsTrigger value="network" className="text-xs font-medium py-2">Network</TabsTrigger>
+            <TabsTrigger value="convening" className="text-xs font-medium py-2">Convening</TabsTrigger>
           </TabsList>
 
           {/* Overview Section */}
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Fund Stage Distribution</CardTitle>
-                  <CardDescription>Current stage of investment vehicles</CardDescription>
+          <TabsContent value="overview" className="space-y-4">
+            {/* Key Metrics Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+              <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-medium text-blue-600">Total Respondents</p>
+                      <p className="text-xl font-bold text-blue-900">{surveyData.length}</p>
+                      <p className="text-xs text-blue-700">Completed surveys</p>
+                </div>
+                    <Users className="h-6 w-6 text-blue-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+              <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-medium text-green-600">Survey Completion</p>
+                      <p className="text-xl font-bold text-green-900">
+                        {surveyData.length}
+                      </p>
+                      <p className="text-xs text-green-700">Completed responses</p>
+                    </div>
+                    <CheckCircle className="h-6 w-6 text-green-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+              <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-medium text-purple-600">Active Funds</p>
+                      <p className="text-xl font-bold text-purple-900">
+                        {surveyData.filter(s => s.fund_stage && !s.fund_stage.toLowerCase().includes('pre')).length}
+                      </p>
+                      <p className="text-xs text-purple-700">Beyond pre-fund stage</p>
+                    </div>
+                    <Building2 className="h-6 w-6 text-purple-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+              <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-medium text-orange-600">Avg Team Size</p>
+                      <p className="text-xl font-bold text-orange-900">
+                        {getAverageTeamSize()}
+                      </p>
+                      <p className="text-xs text-orange-700">Full-time employees</p>
+                    </div>
+                    <Users className="h-6 w-6 text-orange-600" />
+                </div>
+              </CardContent>
+            </Card>
+        </div>
+
+            {/* Main Analytics Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Fund Stage Distribution */}
+              <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center">
+                    <Building2 className="h-4 w-4 mr-2 text-blue-600" />
+                    Fund Stage Distribution
+                  </CardTitle>
+                  <CardDescription className="text-xs">Current stage of investment vehicles in the network</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
+                <CardContent className="pt-0">
+                  <ResponsiveContainer width="100%" height={250}>
                     <PieChart>
                       <Pie
                         data={getFundStageDistribution()}
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={({ stage, percent }) => `${stage} ${(percent * 100).toFixed(0)}%`}
+                        label={({ stage, percent }) => `${(percent * 100).toFixed(0)}%`}
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="count"
@@ -798,193 +1422,868 @@ const Analytics2021: React.FC = () => {
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip />
+                      <Tooltip 
+                        formatter={(value, name, props) => [
+                          `${value} funds (${props.payload.percentage}%)`,
+                          props.payload.stage
+                        ]}
+                        contentStyle={{
+                          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                          border: 'none',
+                          borderRadius: '12px',
+                          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                          padding: '12px 16px',
+                          fontSize: '14px',
+                          fontWeight: '600',
+                          color: '#374151',
+                          backdropFilter: 'blur(8px)'
+                        }}
+                        labelStyle={{
+                          fontWeight: '700',
+                          fontSize: '15px',
+                          color: '#1f2937',
+                          marginBottom: '4px'
+                        }}
+                        itemStyle={{
+                          fontWeight: '600',
+                          fontSize: '14px',
+                          color: '#4b5563'
+                        }}
+                      />
                     </PieChart>
                   </ResponsiveContainer>
+                  <div className="mt-4 space-y-2">
+                    {getFundStageDistribution().slice(0, 3).map((item, index) => (
+                      <div key={index} className="flex items-center justify-between text-sm">
+                        <div className="flex items-center">
+                          <div 
+                            className="w-3 h-3 rounded-full mr-2" 
+                            style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                          />
+                          <span className="font-medium text-blue-800">{item.stage}</span>
+                        </div>
+                        <span className="text-blue-600 font-semibold">{item.count} funds</span>
+                      </div>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Geographic Focus</CardTitle>
-                  <CardDescription>Top regions of operation</CardDescription>
+              {/* Geographic Focus */}
+              <Card className="bg-gradient-to-br from-green-50 to-emerald-100 border-green-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center">
+                    <Globe className="h-4 w-4 mr-2 text-green-600" />
+                    Geographic Focus Distribution
+                  </CardTitle>
+                  <CardDescription className="text-xs">Top regions of operation and investment focus across the network</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={getGeographicDistribution()}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="region" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="#8884d8" />
+                <CardContent className="pt-0">
+                  <ResponsiveContainer width="100%" height={250}>
+                    <BarChart data={getGeographicDistribution()} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis 
+                        dataKey="region" 
+                        tick={{ 
+                          fontSize: 12,
+                          fontWeight: '600',
+                          fill: '#374151'
+                        }}
+                        angle={-90}
+                        textAnchor="end"
+                        height={80}
+                        interval={0}
+                      />
+                      <YAxis 
+                        tick={{ 
+                          fontSize: 12,
+                          fontWeight: '600',
+                          fill: '#374151'
+                        }} 
+                      />
+                      <Tooltip 
+                        formatter={(value, name, props) => [
+                          `${value} funds (${props.payload.percentage}%)`,
+                          'Number of Funds'
+                        ]}
+                        contentStyle={{
+                          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                          border: 'none',
+                          borderRadius: '12px',
+                          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                          padding: '12px 16px',
+                          fontSize: '14px',
+                          fontWeight: '600',
+                          color: '#374151',
+                          backdropFilter: 'blur(8px)'
+                        }}
+                        labelStyle={{
+                          fontWeight: '700',
+                          fontSize: '15px',
+                          color: '#1f2937',
+                          marginBottom: '4px'
+                        }}
+                        itemStyle={{
+                          fontWeight: '600',
+                          fontSize: '14px',
+                          color: '#4b5563'
+                        }}
+                      />
+                      <Bar dataKey="count" fill="#10B981" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
+                  <div className="mt-4 space-y-2">
+                    {getGeographicDistribution().slice(0, 3).map((item, index) => (
+                      <div key={index} className="flex items-center justify-between text-sm">
+                        <div className="flex items-center">
+                          <div 
+                            className="w-3 h-3 rounded-full mr-2" 
+                            style={{ backgroundColor: '#10B981' }}
+                          />
+                          <span className="font-medium text-green-800">{item.region}</span>
+                        </div>
+                        <span className="text-green-600 font-semibold">{item.count} funds</span>
+                      </div>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Investment Size Distribution</CardTitle>
-                  <CardDescription>Current fund sizes</CardDescription>
+              {/* Current Fund Size Distribution */}
+              <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center">
+                    <DollarSign className="h-4 w-4 mr-2 text-purple-600" />
+                    Fund Size Status Distribution
+                  </CardTitle>
+                  <CardDescription className="text-xs">Current vs Target fund size reporting across the network</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={getInvestmentSizeDistribution()}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="size" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="#82ca9d" />
+                <CardContent className="pt-0">
+                  <ResponsiveContainer width="100%" height={250}>
+                    <BarChart data={getInvestmentSizeDistribution()} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis 
+                        dataKey="size" 
+                        tick={{ 
+                          fontSize: 12,
+                          fontWeight: '600',
+                          fill: '#374151'
+                        }}
+                        angle={-90}
+                        textAnchor="end"
+                        height={80}
+                        interval={0}
+                      />
+                      <YAxis 
+                        tick={{ 
+                          fontSize: 12,
+                          fontWeight: '600',
+                          fill: '#374151'
+                        }} 
+                      />
+                      <Tooltip 
+                        formatter={(value, name, props) => [
+                          `${value} funds (${props.payload.percentage}%)`,
+                          'Number of Funds'
+                        ]}
+                        contentStyle={{
+                          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                          border: 'none',
+                          borderRadius: '12px',
+                          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                          padding: '12px 16px',
+                          fontSize: '14px',
+                          fontWeight: '600',
+                          color: '#374151',
+                          backdropFilter: 'blur(8px)'
+                        }}
+                        labelStyle={{
+                          fontWeight: '700',
+                          fontSize: '15px',
+                          color: '#1f2937',
+                          marginBottom: '4px'
+                        }}
+                        itemStyle={{
+                          fontWeight: '600',
+                          fontSize: '14px',
+                          color: '#4b5563'
+                        }}
+                      />
+                      <Bar dataKey="count" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
+                  <div className="mt-4 space-y-2">
+                    {getInvestmentSizeDistribution().slice(0, 3).map((item, index) => (
+                      <div key={index} className="flex items-center justify-between text-sm">
+                        <div className="flex items-center">
+                          <div 
+                            className="w-3 h-3 rounded-full mr-2" 
+                            style={{ backgroundColor: '#8B5CF6' }}
+                          />
+                          <span className="font-medium text-purple-800">{item.size}</span>
+                        </div>
+                        <span className="text-purple-600 font-semibold">{item.count} funds</span>
+                      </div>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
-            </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Gender Considerations: Investment vs Requirement</CardTitle>
-                <CardDescription>Comparison of adoption across the network (Q22)</CardDescription>
+              {/* Target Sectors */}
+              <Card className="bg-gradient-to-br from-orange-50 to-amber-100 border-orange-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center">
+                    <Target className="h-4 w-4 mr-2 text-orange-600" />
+                    Target Sectors Distribution
+                  </CardTitle>
+                  <CardDescription className="text-xs">Most popular investment sectors and focus areas across the network</CardDescription>
               </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={320}>
-                  <ComposedChart data={getGenderConsiderationsData()} margin={{ top: 10, right: 20, bottom: 20, left: 10 }}>
+                <CardContent className="pt-0">
+                  <ResponsiveContainer width="100%" height={250}>
+                    <BarChart data={getSectorDistribution()} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis dataKey="item" tick={{ fontSize: 12 }} angle={-20} textAnchor="end" height={60} />
-                    <YAxis tick={{ fontSize: 12 }} />
-                    <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: 8 }} />
-                    <Legend />
-                    <Bar dataKey="invest" fill="#3B82F6" name="Investment Consideration" radius={[6,6,0,0]} />
-                    <Bar dataKey="requirement" fill="#10B981" name="Investment Requirement" radius={[6,6,0,0]} />
-                  </ComposedChart>
+                      <XAxis 
+                        dataKey="sectorShort" 
+                        tick={{ 
+                          fontSize: 12,
+                          fontWeight: '600',
+                          fill: '#374151'
+                        }}
+                        angle={-90}
+                        textAnchor="end"
+                        height={80}
+                        interval={0}
+                      />
+                      <YAxis 
+                        tick={{ 
+                          fontSize: 12,
+                          fontWeight: '600',
+                          fill: '#374151'
+                        }} 
+                      />
+                      <Tooltip 
+                        formatter={(value, name, props) => [
+                          `${value} mentions (${props.payload.percentage}%)`,
+                          'Sector Mentions'
+                        ]}
+                        labelFormatter={(label, payload) => {
+                          // Show the full sector name in tooltip label
+                          return payload && payload[0] ? payload[0].payload.sector : label;
+                        }}
+                        contentStyle={{
+                          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                          border: 'none',
+                          borderRadius: '12px',
+                          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                          padding: '12px 16px',
+                          fontSize: '14px',
+                          fontWeight: '600',
+                          color: '#374151',
+                          backdropFilter: 'blur(8px)'
+                        }}
+                        labelStyle={{
+                          fontWeight: '700',
+                          fontSize: '15px',
+                          color: '#1f2937',
+                          marginBottom: '4px'
+                        }}
+                        itemStyle={{
+                          fontWeight: '600',
+                          fontSize: '14px',
+                          color: '#4b5563'
+                        }}
+                      />
+                      <Bar dataKey="count" fill="#F59E0B" radius={[4, 4, 0, 0]} />
+                    </BarChart>
                 </ResponsiveContainer>
+                  <div className="mt-4 space-y-2">
+                    {getSectorDistribution().slice(0, 3).map((item, index) => (
+                      <div key={index} className="flex items-center justify-between text-sm">
+                        <div className="flex items-center">
+                          <div 
+                            className="w-3 h-3 rounded-full mr-2" 
+                            style={{ backgroundColor: '#F59E0B' }}
+                          />
+                          <span className="font-medium text-orange-800">{item.sectorShort}</span>
+                        </div>
+                        <span className="text-orange-600 font-semibold">{item.count} mentions</span>
+                      </div>
+                    ))}
+                  </div>
               </CardContent>
             </Card>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Sector Focus</CardTitle>
-                  <CardDescription>Top investment sectors</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={getSectorDistribution()} margin={{ top: 10, right: 20, bottom: 20, left: 10 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                      <XAxis dataKey="sector" tick={{ fontSize: 12 }} angle={-20} textAnchor="end" height={60} />
-                      <YAxis tick={{ fontSize: 12 }} />
-                      <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: 8 }} />
-                      <Bar dataKey="count" fill="#ff6b6b" radius={[6,6,0,0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">COVID-19 Impact Overview</CardTitle>
-                  <CardDescription>Aggregate impact on investment vehicles</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={getCOVIDImpactDistribution()}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="impact" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="#ff6b6b" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
             </div>
+
+            {/* Gender Considerations Analysis */}
+            <Card className="bg-gradient-to-br from-pink-50 to-rose-100 border-pink-200">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center">
+                  <Heart className="h-4 w-4 mr-2 text-pink-600" />
+                  Gender Considerations in Investment Decisions
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Comparison of gender considerations as investment factors vs. explicit requirements across the network
+                </CardDescription>
+                </CardHeader>
+              <CardContent className="pt-0">
+                  <ResponsiveContainer width="100%" height={300}>
+                  <ComposedChart data={getGenderConsiderationsData()} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis 
+                      dataKey="itemShort" 
+                      tick={{ 
+                        fontSize: 12,
+                        fontWeight: '600',
+                        fill: '#374151'
+                      }} 
+                      angle={-90} 
+                      textAnchor="end" 
+                      height={80}
+                      interval={0}
+                    />
+                    <YAxis 
+                      tick={{ 
+                        fontSize: 12,
+                        fontWeight: '600',
+                        fill: '#374151'
+                      }} 
+                    />
+                    <Tooltip 
+                      labelFormatter={(label, payload) => {
+                        // Show the full item name in tooltip label
+                        return payload && payload[0] ? payload[0].payload.item : label;
+                      }}
+                      contentStyle={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                        border: 'none',
+                        borderRadius: '12px',
+                        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                        padding: '12px 16px',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        color: '#374151',
+                        backdropFilter: 'blur(8px)'
+                      }}
+                      labelStyle={{
+                        fontWeight: '700',
+                        fontSize: '15px',
+                        color: '#1f2937',
+                        marginBottom: '4px'
+                      }}
+                      itemStyle={{
+                        fontWeight: '600',
+                        fontSize: '14px',
+                        color: '#4b5563'
+                      }}
+                    />
+                    <Legend 
+                      wrapperStyle={{
+                        paddingTop: '20px',
+                        fontSize: '14px',
+                        fontWeight: '600'
+                      }}
+                    />
+                    <Bar 
+                      dataKey="invest" 
+                      fill="#EC4899" 
+                      name="Investment Consideration" 
+                      radius={[4, 4, 0, 0]} 
+                    />
+                    <Bar 
+                      dataKey="requirement" 
+                      fill="#F97316" 
+                      name="Investment Requirement" 
+                      radius={[4, 4, 0, 0]} 
+                    />
+                  </ComposedChart>
+                  </ResponsiveContainer>
+                <div className="mt-4 p-4 bg-pink-100/50 rounded-lg border border-pink-200">
+                  <p className="text-sm text-pink-800">
+                    <strong>Key Insight:</strong> This analysis shows the difference between funds that consider gender factors 
+                    in their investment decisions versus those that have explicit gender requirements. The gap indicates 
+                    opportunities for more structured gender lens investing approaches.
+                  </p>
+                </div>
+                </CardContent>
+              </Card>
+
+            {/* COVID-19 Impact Analysis */}
+            <Card className="bg-gradient-to-br from-red-50 to-rose-100 border-red-200">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center text-red-800">
+                  <Activity className="h-4 w-4 mr-2 text-red-600" />
+                  COVID-19 Impact on Investment Vehicles
+                </CardTitle>
+                <CardDescription className="text-xs text-red-600">Aggregate impact assessment from fund managers across the network</CardDescription>
+                </CardHeader>
+              <CardContent className="pt-0">
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={getCOVIDImpactDistribution()} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis 
+                      dataKey="impactShort" 
+                      tick={{ 
+                        fontSize: 12, 
+                        fontWeight: '600', 
+                        fill: '#374151' 
+                      }}
+                      angle={-90}
+                      textAnchor="end"
+                      height={60}
+                      interval={0}
+                    />
+                    <YAxis 
+                      tick={{ 
+                        fontSize: 12, 
+                        fontWeight: '600', 
+                        fill: '#374151' 
+                      }} 
+                    />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                        border: 'none',
+                        borderRadius: '12px',
+                        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                        padding: '12px 16px',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        color: '#374151',
+                        backdropFilter: 'blur(8px)'
+                      }}
+                      labelFormatter={(label, payload) => {
+                        // Show the full impact name in tooltip
+                        return payload && payload[0] ? payload[0].payload.impact : label;
+                      }}
+                      formatter={(value, name, props) => {
+                        const percentage = props.payload.percentage;
+                        return [`${value} funds (${percentage}%)`, 'Count'];
+                      }}
+                    />
+                    <Bar dataKey="count" fill="#ef4444" radius={[6,6,0,0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                
+                {/* Summary Section */}
+                <div className="mt-4 space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-red-700 font-medium">Total Responses:</span>
+                    <span className="text-red-800 font-bold">{getCOVIDImpactDistribution().reduce((sum, item) => sum + item.count, 0)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-red-700 font-medium">Most Common Impact:</span>
+                    <span className="text-red-800 font-bold">
+                      {getCOVIDImpactDistribution().length > 0 
+                        ? getCOVIDImpactDistribution().sort((a, b) => b.count - a.count)[0].impactShort
+                        : 'N/A'
+                      }
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="mt-4 p-3 bg-red-100/50 rounded-lg border border-red-200">
+                  <p className="text-sm text-red-800">
+                    <strong>Key Insight:</strong> This analysis shows the distribution of COVID-19's impact on investment vehicles 
+                    and operations across the network, helping identify common challenges and opportunities.
+                  </p>
+                </div>
+                </CardContent>
+              </Card>
           </TabsContent>
 
           {/* Background Section */}
           <TabsContent value="background" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Fund Timeline Analysis</CardTitle>
-                <CardDescription>Legal entity, first close, and first investment dates</CardDescription>
+            {/* Fund Stage Distribution */}
+            <Card className="bg-gradient-to-br from-indigo-50 to-blue-100 border-indigo-200">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center">
+                  <Building className="h-4 w-4 mr-2 text-indigo-600" />
+                  Fund Stage Distribution
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Current stage of development across the ESCP Network
+                </CardDescription>
               </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={400}>
-                  <ComposedChart data={getInvestmentTimelineData()}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="firm" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="legalEntity" fill="#8884d8" name="Legal Entity" />
-                    <Bar dataKey="firstClose" fill="#82ca9d" name="First Close" />
-                    <Bar dataKey="firstInvestment" fill="#ffc658" name="First Investment" />
-                  </ComposedChart>
+              <CardContent className="pt-0">
+                <ResponsiveContainer width="100%" height={350}>
+                  <BarChart data={getInvestmentTimelineData()} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis 
+                      dataKey="stage" 
+                      tick={{ 
+                        fontSize: 12,
+                        fontWeight: '700',
+                        fill: '#374151'
+                      }} 
+                      angle={-90} 
+                      textAnchor="end" 
+                      height={100}
+                      interval={0}
+                    />
+                    <YAxis 
+                      tick={{ 
+                        fontSize: 12,
+                        fontWeight: '600',
+                        fill: '#374151'
+                      }} 
+                    />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                        border: 'none',
+                        borderRadius: '12px',
+                        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                        padding: '12px 16px',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        color: '#374151',
+                        backdropFilter: 'blur(8px)'
+                      }}
+                      labelStyle={{
+                        fontWeight: '700',
+                        fontSize: '15px',
+                        color: '#1f2937',
+                        marginBottom: '4px'
+                      }}
+                      itemStyle={{
+                        fontWeight: '600',
+                        fontSize: '14px',
+                        color: '#4b5563'
+                      }}
+                      formatter={(value: number, name: string, props: { payload?: { percentage?: string } }) => [
+                        `${value} funds (${props.payload?.percentage}%)`,
+                        'Count'
+                      ]}
+                    />
+                    <Bar 
+                      dataKey="count" 
+                      fill="#4F46E5" 
+                      radius={[4, 4, 0, 0]} 
+                    />
+                  </BarChart>
                 </ResponsiveContainer>
+                <div className="mt-4 p-4 bg-indigo-100/50 rounded-lg border border-indigo-200">
+                  <p className="text-sm text-indigo-800">
+                    <strong>Key Insight:</strong> The network shows a diverse mix of fund stages, with {getInvestmentTimelineData()[0]?.stage} 
+                    representing the largest segment at {getInvestmentTimelineData()[0]?.percentage}% of respondents.
+                  </p>
+                </div>
               </CardContent>
             </Card>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Investment Vehicle Types</CardTitle>
-                  <CardDescription>Distribution of fund structures</CardDescription>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Investment Vehicle Types */}
+              <Card className="bg-gradient-to-br from-purple-50 to-violet-100 border-purple-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center">
+                    <TrendingUp className="h-4 w-4 mr-2 text-purple-600" />
+                    Investment Vehicle Types
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    Distribution of fund structures across the network
+                  </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={Object.entries(surveyData.reduce((acc, survey) => {
-                          survey.investment_vehicle_type.forEach(type => {
-                            acc[type] = (acc[type] || 0) + 1;
-                          });
-                          return acc;
-                        }, {} as Record<string, number>)).map(([name, value]) => ({ name, value }))}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {Object.entries(surveyData.reduce((acc, survey) => {
-                          survey.investment_vehicle_type.forEach(type => {
-                            acc[type] = (acc[type] || 0) + 1;
-                          });
-                          return acc;
-                        }, {} as Record<string, number>)).map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
+                <CardContent className="pt-0">
+                  {(() => {
+                    const vehicleData = getInvestmentVehicleData();
+                    const dataWithResponses = vehicleData.filter(item => item.count > 0);
+                    return (
+                      <ResponsiveContainer width="100%" height={350}>
+                        <PieChart>
+                          <Pie
+                            data={dataWithResponses}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            outerRadius={120}
+                            innerRadius={20}
+                            fill="#8884d8"
+                            dataKey="count"
+                            paddingAngle={2}
+                            nameKey="vehicle"
+                          >
+                            {dataWithResponses.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip 
+                            content={({ active, payload }) => {
+                              if (active && payload && payload.length) {
+                                const data = payload[0].payload;
+                                console.log('Custom tooltip - data:', data);
+                                return (
+                                  <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
+                                    <p className="font-bold text-gray-900 text-sm mb-1">
+                                      {data.fullName || data.vehicle}
+                                    </p>
+                                    <p className="text-gray-600 text-xs">
+                                      {data.count} funds ({data.percentage}% of total funds)
+                                    </p>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            }}
+                          />
+                          <Legend 
+                            wrapperStyle={{
+                              paddingTop: '20px',
+                              fontSize: '14px',
+                              fontWeight: '600'
+                            }}
+                            formatter={(value, entry) => {
+                              const data = vehicleData.find(item => item.vehicle === value);
+                              return data ? `${value} (${data.count})` : value;
+                            }}
+                          />
                     </PieChart>
                   </ResponsiveContainer>
+                    );
+                  })()}
+                  
+                  {/* Key Insights */}
+                  <div className="mt-4 p-4 bg-purple-50 rounded-lg border border-purple-100">
+                    <h4 className="text-sm font-semibold text-purple-800 mb-2">Key Insights</h4>
+                    <p className="text-xs text-purple-700 leading-relaxed">
+                      {(() => {
+                        const vehicleData = getInvestmentVehicleData();
+                        if (vehicleData.length === 0) return 'No data available';
+                        
+                        const totalResponses = vehicleData.reduce((sum, item) => sum + item.count, 0);
+                        const totalFunds = surveyData.length; // Calculate total funds here
+                        const dataWithResponses = vehicleData.filter(item => item.count > 0);
+                        const topCategory = dataWithResponses[0];
+                        const otherCount = vehicleData.find(item => item.vehicle === 'Other')?.count || 0;
+                        const zeroResponseCategories = vehicleData.filter(item => item.count === 0);
+                        
+                        let insight = `The network shows ${totalResponses} total investment vehicle responses across ${dataWithResponses.length} active categories out of ${vehicleData.length} predefined options.`;
+                        if (topCategory) {
+                          insight += ` ${topCategory.vehicle} represents the largest segment at ${topCategory.percentage}% of funds.`;
+                        }
+                        if (otherCount > 0) {
+                          insight += ` ${otherCount} funds (${((otherCount / totalFunds) * 100).toFixed(1)}%) selected "Other" vehicle types.`;
+                        }
+                        if (zeroResponseCategories.length > 0) {
+                          insight += ` ${zeroResponseCategories.length} predefined categories have no responses: ${zeroResponseCategories.map(c => c.vehicle).join(', ')}.`;
+                        }
+                        
+                        return insight;
+                      })()}
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Business Model Focus</CardTitle>
-                  <CardDescription>Target business models</CardDescription>
+              {/* Business Model Focus */}
+              <Card className="bg-gradient-to-br from-emerald-50 to-green-100 border-emerald-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center">
+                    <Target className="h-4 w-4 mr-2 text-emerald-600" />
+                    Business Model Focus
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    Target business models across the network
+                  </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={Object.entries(surveyData.reduce((acc, survey) => {
-                      survey.business_model_targeted.forEach(model => {
-                        acc[model] = (acc[model] || 0) + 1;
-                      });
-                      return acc;
-                    }, {} as Record<string, number>)).map(([model, count]) => ({ model, count }))}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="model" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="#82ca9d" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                <CardContent className="pt-0">
+                  {(() => {
+                    const businessModelData = getBusinessModelData();
+                    const dataWithResponses = businessModelData.filter(item => item.count > 0);
+                    return (
+                      <ResponsiveContainer width="100%" height={350}>
+                        <BarChart data={dataWithResponses} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <XAxis 
+                            dataKey="model" 
+                            tick={{ 
+                              fontSize: 11,
+                              fontWeight: '700',
+                              fill: '#374151'
+                            }} 
+                            angle={-90} 
+                            textAnchor="end" 
+                            height={100}
+                            interval={0}
+                          />
+                          <YAxis 
+                            tick={{ 
+                              fontSize: 12,
+                              fontWeight: '600',
+                              fill: '#374151'
+                            }} 
+                          />
+                          <Tooltip 
+                            content={({ active, payload }) => {
+                              if (active && payload && payload.length) {
+                                const data = payload[0].payload;
+                                console.log('Business Model tooltip - data:', data);
+                                return (
+                                  <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
+                                    <p className="font-bold text-gray-900 text-sm mb-1">
+                                      {data.fullModel || data.model}
+                                    </p>
+                                    <p className="text-gray-600 text-xs">
+                                      {data.count} funds ({data.percentage}% of total funds)
+                                    </p>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            }}
+                          />
+                          <Bar 
+                            dataKey="count" 
+                            fill="#10B981" 
+                            radius={[4, 4, 0, 0]} 
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    );
+                  })()}
+                  
+                  {/* Key Insights */}
+                  <div className="mt-4 p-4 bg-emerald-50 rounded-lg border border-emerald-100">
+                    <h4 className="text-sm font-semibold text-emerald-800 mb-2">Key Insights</h4>
+                    <p className="text-xs text-emerald-700 leading-relaxed">
+                      {(() => {
+                        const businessModelData = getBusinessModelData();
+                        if (businessModelData.length === 0) return 'No data available';
+                        
+                        const totalResponses = businessModelData.reduce((sum, item) => sum + item.count, 0);
+                        const totalFunds = surveyData.length;
+                        const dataWithResponses = businessModelData.filter(item => item.count > 0);
+                        const topCategory = dataWithResponses[0];
+                        const otherCount = businessModelData.find(item => item.model === 'Other')?.count || 0;
+                        const zeroResponseCategories = businessModelData.filter(item => item.count === 0);
+                        
+                        let insight = `The network shows ${totalResponses} total business model responses across ${dataWithResponses.length} active categories out of ${businessModelData.length} predefined options.`;
+                        if (topCategory) {
+                          insight += ` ${topCategory.model} represents the largest segment at ${topCategory.percentage}% of funds.`;
+                        }
+                        if (otherCount > 0) {
+                          insight += ` ${otherCount} funds (${((otherCount / totalFunds) * 100).toFixed(1)}%) selected "Other" business models.`;
+                        }
+                        if (zeroResponseCategories.length > 0) {
+                          insight += ` ${zeroResponseCategories.length} predefined categories have no responses: ${zeroResponseCategories.map(c => c.model).join(', ')}.`;
+                        }
+                        
+                        return insight;
+                      })()}
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             </div>
+
+            {/* Fund Size Analysis */}
+            <Card className="bg-gradient-to-br from-amber-50 to-orange-100 border-amber-200">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center">
+                  <DollarSign className="h-4 w-4 mr-2 text-amber-600" />
+                  Current Fund Size Distribution
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Size distribution of current funds across the network
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0">
+                {(() => {
+                  const fundSizeData = getFundSizeData();
+                  const dataWithResponses = fundSizeData.filter(item => item.count > 0);
+                  return (
+                    <ResponsiveContainer width="100%" height={350}>
+                      <BarChart data={dataWithResponses} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis 
+                          dataKey="size" 
+                          tick={{ 
+                            fontSize: 11,
+                            fontWeight: '700',
+                            fill: '#374151'
+                          }} 
+                          angle={-90} 
+                          textAnchor="end" 
+                          height={100}
+                          interval={0}
+                        />
+                        <YAxis 
+                          tick={{ 
+                            fontSize: 12,
+                            fontWeight: '600',
+                            fill: '#374151'
+                          }} 
+                        />
+                        <Tooltip 
+                          content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                              const data = payload[0].payload;
+                              console.log('Fund Size tooltip - data:', data);
+                              return (
+                                <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
+                                  <p className="font-bold text-gray-900 text-sm mb-1">
+                                    {data.fullName || data.size}
+                                  </p>
+                                  <p className="text-gray-600 text-xs">
+                                    {data.count} funds ({data.percentage}% of total funds)
+                                  </p>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                        <Bar 
+                          dataKey="count" 
+                          fill="#F59E0B" 
+                          radius={[4, 4, 0, 0]} 
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  );
+                })()}
+                
+                {/* Key Insights */}
+                <div className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-100">
+                  <h4 className="text-sm font-semibold text-amber-800 mb-2">Key Insights</h4>
+                  <p className="text-xs text-amber-700 leading-relaxed">
+                    {(() => {
+                      const fundSizeData = getFundSizeData();
+                      if (fundSizeData.length === 0) return 'No data available';
+                      
+                      const totalResponses = fundSizeData.reduce((sum, item) => sum + item.count, 0);
+                      const totalFunds = surveyData.length;
+                      const dataWithResponses = fundSizeData.filter(item => item.count > 0);
+                      const topCategory = dataWithResponses.reduce((max, item) => item.count > max.count ? item : max, dataWithResponses[0]);
+                      const zeroResponseCategories = fundSizeData.filter(item => item.count === 0);
+                      
+                      // Calculate size distribution insights
+                      const smallFunds = fundSizeData.filter(item => ['< $1M', '$1-4M'].includes(item.size)).reduce((sum, item) => sum + item.count, 0);
+                      const mediumFunds = fundSizeData.filter(item => ['$5-9M', '$10-19M'].includes(item.size)).reduce((sum, item) => sum + item.count, 0);
+                      const largeFunds = fundSizeData.filter(item => ['$20-29M', '$30M+'].includes(item.size)).reduce((sum, item) => sum + item.count, 0);
+                      
+                      let insight = `The network shows ${totalResponses} total fund size responses across ${dataWithResponses.length} active categories out of ${fundSizeData.length} predefined options.`;
+                      if (topCategory) {
+                        insight += ` ${topCategory.fullName} represents the largest segment at ${topCategory.percentage}% of funds.`;
+                      }
+                      if (smallFunds > 0) {
+                        insight += ` Small funds (< $5M) represent ${((smallFunds / totalFunds) * 100).toFixed(1)}% of the network.`;
+                      }
+                      if (mediumFunds > 0) {
+                        insight += ` Medium funds ($5-19M) represent ${((mediumFunds / totalFunds) * 100).toFixed(1)}% of the network.`;
+                      }
+                      if (largeFunds > 0) {
+                        insight += ` Large funds ($20M+) represent ${((largeFunds / totalFunds) * 100).toFixed(1)}% of the network.`;
+                      }
+                      if (zeroResponseCategories.length > 0) {
+                        insight += ` ${zeroResponseCategories.length} predefined categories have no responses: ${zeroResponseCategories.map(c => c.size).join(', ')}.`;
+                      }
+                      
+                      return insight;
+                    })()}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Investment Section */}

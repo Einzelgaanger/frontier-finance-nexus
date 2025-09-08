@@ -114,7 +114,7 @@ const Analytics = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [surveyData, setSurveyData] = useState([]);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedYear, setSelectedYear] = useState(2021);
   const [showFilters, setShowFilters] = useState(false);
   const [timeRange, setTimeRange] = useState('all');
   const [lastUpdated, setLastUpdated] = useState(new Date());
@@ -700,29 +700,8 @@ const Analytics = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <style>{analyticsStyles}</style>
-      {userRole !== 'admin' && <Header />}
+      <Header />
       <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Year Selector */}
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Survey Analytics</h1>
-            <p className="text-gray-600 mt-1">Comprehensive analysis of survey responses</p>
-          </div>
-          <div className="flex items-center space-x-4">
-            <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Select Year" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="2025">2025 (Current)</SelectItem>
-                <SelectItem value="2024">2024 ESCP Survey</SelectItem>
-                <SelectItem value="2023">2023 ESCP Survey</SelectItem>
-                <SelectItem value="2022">2022 CFF Survey</SelectItem>
-                <SelectItem value="2021">2021 ESCP Survey</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
 
         {/* Year-specific Analytics */}
         {selectedYear === 2024 && <Analytics2024 />}

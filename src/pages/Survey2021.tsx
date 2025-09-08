@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useSurveyPersistence } from '@/hooks/useSurveyPersistence';
+import { useSurveyStatus } from '@/hooks/useSurveyStatus';
 import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/layout/Header';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, ArrowRight, Save, Send } from 'lucide-react';
+import ReadOnlySurvey2021 from '@/components/survey/ReadOnlySurvey2021';
 
 // Schema for 2021 survey
 const survey2021Schema = z.object({
@@ -132,10 +134,11 @@ type Survey2021FormData = z.infer<typeof survey2021Schema>;
 const Survey2021: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { isSurveyCompleted } = useSurveyStatus();
   const [currentSection, setCurrentSection] = useState(1);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  
+
   // Initialize persistence hook
   const {
     saveCurrentSection,
@@ -146,7 +149,7 @@ const Survey2021: React.FC = () => {
     getSavedFormData,
     saveFormData,
   } = useSurveyPersistence({ surveyKey: 'survey2021' });
-  
+
   const totalSections = 7;
   const progress = (currentSection / totalSections) * 100;
 
@@ -286,6 +289,13 @@ const Survey2021: React.FC = () => {
     saveCurrentSection(currentSection);
     saveScrollPosition();
   }, [currentSection]);
+
+  // Check if survey is completed and show read-only version
+  const surveyCompleted = isSurveyCompleted('2021');
+  
+  if (surveyCompleted) {
+    return <ReadOnlySurvey2021 />;
+  }
 
   const handleNext = () => {
     if (currentSection < totalSections) {

@@ -652,7 +652,7 @@ const Admin = () => {
 
       {/* Analytics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+        <Card className="bg-blue-500 text-white">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Funds</CardTitle>
             <Building2 className="h-4 w-4" />
@@ -672,7 +672,7 @@ const Admin = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
+        <Card className="bg-emerald-500 text-white">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Capital</CardTitle>
             <DollarSign className="h-4 w-4" />
@@ -692,7 +692,7 @@ const Admin = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
+        <Card className="bg-violet-500 text-white">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Avg Ticket Size</CardTitle>
             <TrendingUp className="h-4 w-4" />
@@ -712,7 +712,7 @@ const Admin = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
+        <Card className="bg-amber-500 text-white">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Active Markets</CardTitle>
             <Globe className="h-4 w-4" />
@@ -823,7 +823,7 @@ const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-slate-50">
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
@@ -846,7 +846,7 @@ const Admin = () => {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card className="bg-gradient-to-br from-sky-50 to-sky-100 border border-sky-200 shadow-sm hover:shadow-md transition-all duration-200">
+          <Card className="bg-sky-50 border border-sky-200 shadow-sm hover:shadow-md transition-all duration-200">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -862,7 +862,7 @@ const Admin = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 shadow-sm hover:shadow-md transition-all duration-200">
+          <Card className="bg-emerald-50 border border-emerald-200 shadow-sm hover:shadow-md transition-all duration-200">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -878,7 +878,7 @@ const Admin = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 shadow-sm hover:shadow-md transition-all duration-200">
+          <Card className="bg-amber-50 border border-amber-200 shadow-sm hover:shadow-md transition-all duration-200">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -894,7 +894,7 @@ const Admin = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-violet-50 to-violet-100 border border-violet-200 shadow-sm hover:shadow-md transition-all duration-200">
+          <Card className="bg-violet-50 border border-violet-200 shadow-sm hover:shadow-md transition-all duration-200">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -1035,25 +1035,25 @@ const Admin = () => {
                   {membershipRequests.map((request, index) => {
                     // Create different bright colors for each application card
                     const cardColors = [
-                      'from-blue-50/80 to-blue-100/80 border-blue-200',
-                      'from-green-50/80 to-green-100/80 border-green-200',
-                      'from-yellow-50/80 to-yellow-100/80 border-yellow-200',
-                      'from-orange-50/80 to-orange-100/80 border-orange-200',
-                      'from-purple-50/80 to-purple-100/80 border-purple-200',
-                      'from-pink-50/80 to-pink-100/80 border-pink-200',
-                      'from-indigo-50/80 to-indigo-100/80 border-indigo-200',
-                      'from-teal-50/80 to-teal-100/80 border-teal-200',
-                      'from-cyan-50/80 to-cyan-100/80 border-cyan-200',
-                      'from-rose-50/80 to-rose-100/80 border-rose-200',
-                      'from-violet-50/80 to-violet-100/80 border-violet-200',
-                      'from-amber-50/80 to-amber-100/80 border-amber-200'
+                      'bg-blue-50 border-blue-200',
+                      'bg-emerald-50 border-emerald-200',
+                      'bg-yellow-50 border-yellow-200',
+                      'bg-amber-50 border-amber-200',
+                      'bg-violet-50 border-violet-200',
+                      'bg-pink-50 border-pink-200',
+                      'bg-indigo-50 border-indigo-200',
+                      'bg-teal-50 border-teal-200',
+                      'bg-cyan-50 border-cyan-200',
+                      'bg-rose-50 border-rose-200',
+                      'bg-purple-50 border-purple-200',
+                      'bg-orange-50 border-orange-200'
                     ];
                     const colorClass = cardColors[index % cardColors.length];
                     
                     return (
                       <Card 
                         key={request.id} 
-                        className={`group bg-gradient-to-br ${colorClass} backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer min-h-[320px]`}
+                        className={`group ${colorClass} backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer min-h-[320px]`}
                         onClick={() => handleViewApplication(request)}
                       >
                         <CardHeader className="pb-4">
@@ -1182,23 +1182,23 @@ const Admin = () => {
                 {membershipRequests.filter(r => r.status === 'approved').map((request, index) => {
                   // Create different bright colors for each member card
                   const cardColors = [
-                    'from-green-50/80 to-green-100/80 border-green-200',
-                    'from-emerald-50/80 to-emerald-100/80 border-emerald-200',
-                    'from-teal-50/80 to-teal-100/80 border-teal-200',
-                    'from-cyan-50/80 to-cyan-100/80 border-cyan-200',
-                    'from-blue-50/80 to-blue-100/80 border-blue-200',
-                    'from-indigo-50/80 to-indigo-100/80 border-indigo-200',
-                    'from-purple-50/80 to-purple-100/80 border-purple-200',
-                    'from-violet-50/80 to-violet-100/80 border-violet-200',
-                    'from-fuchsia-50/80 to-fuchsia-100/80 border-fuchsia-200',
-                    'from-pink-50/80 to-pink-100/80 border-pink-200',
-                    'from-rose-50/80 to-rose-100/80 border-rose-200',
-                    'from-orange-50/80 to-orange-100/80 border-orange-200'
+                    'bg-emerald-50 border-emerald-200',
+                    'bg-green-50 border-green-200',
+                    'bg-teal-50 border-teal-200',
+                    'bg-cyan-50 border-cyan-200',
+                    'bg-blue-50 border-blue-200',
+                    'bg-indigo-50 border-indigo-200',
+                    'bg-violet-50 border-violet-200',
+                    'bg-purple-50 border-purple-200',
+                    'bg-fuchsia-50 border-fuchsia-200',
+                    'bg-pink-50 border-pink-200',
+                    'bg-rose-50 border-rose-200',
+                    'bg-orange-50 border-orange-200'
                   ];
                   const colorClass = cardColors[index % cardColors.length];
                   
                   return (
-                    <Card key={request.id} className={`hover:shadow-lg transition-all duration-200 bg-gradient-to-br ${colorClass} backdrop-blur-sm`}>
+                    <Card key={request.id} className={`hover:shadow-lg transition-all duration-200 ${colorClass} backdrop-blur-sm`}>
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between gap-2">
                           <CardTitle className="text-sm font-medium truncate flex-1">{request.applicant_name}</CardTitle>
@@ -1276,23 +1276,23 @@ const Admin = () => {
                 createdViewers.map((viewer, index) => {
                   // Create different bright colors for each viewer card
                   const cardColors = [
-                    'from-purple-50/80 to-purple-100/80 border-purple-200',
-                    'from-violet-50/80 to-violet-100/80 border-violet-200',
-                    'from-fuchsia-50/80 to-fuchsia-100/80 border-fuchsia-200',
-                    'from-pink-50/80 to-pink-100/80 border-pink-200',
-                    'from-rose-50/80 to-rose-100/80 border-rose-200',
-                    'from-indigo-50/80 to-indigo-100/80 border-indigo-200',
-                    'from-blue-50/80 to-blue-100/80 border-blue-200',
-                    'from-cyan-50/80 to-cyan-100/80 border-cyan-200',
-                    'from-teal-50/80 to-teal-100/80 border-teal-200',
-                    'from-emerald-50/80 to-emerald-100/80 border-emerald-200',
-                    'from-green-50/80 to-green-100/80 border-green-200',
-                    'from-yellow-50/80 to-yellow-100/80 border-yellow-200'
+                    'bg-violet-50 border-violet-200',
+                    'bg-purple-50 border-purple-200',
+                    'bg-fuchsia-50 border-fuchsia-200',
+                    'bg-pink-50 border-pink-200',
+                    'bg-rose-50 border-rose-200',
+                    'bg-indigo-50 border-indigo-200',
+                    'bg-blue-50 border-blue-200',
+                    'bg-cyan-50 border-cyan-200',
+                    'bg-teal-50 border-teal-200',
+                    'bg-emerald-50 border-emerald-200',
+                    'bg-green-50 border-green-200',
+                    'bg-yellow-50 border-yellow-200'
                   ];
                   const colorClass = cardColors[index % cardColors.length];
                   
                   return (
-                    <Card key={viewer.user_id} className={`hover:shadow-lg transition-all duration-200 bg-gradient-to-br ${colorClass} backdrop-blur-sm`}>
+                    <Card key={viewer.user_id} className={`hover:shadow-lg transition-all duration-200 ${colorClass} backdrop-blur-sm`}>
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between gap-2">
                           <CardTitle className="text-sm font-medium truncate flex-1">

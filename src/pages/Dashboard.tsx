@@ -1,9 +1,12 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import Header from '@/components/layout/Header';
+import SidebarLayout from '@/components/layout/SidebarLayout';
 import ViewerDashboard from '@/components/dashboard/ViewerDashboard';
 import MemberDashboard from '@/components/dashboard/MemberDashboard';
 import AdminDashboard from '@/components/dashboard/AdminDashboard';
+import AdminDashboardV2 from '@/components/dashboard/AdminDashboardV2';
+import NetworkV2 from '@/pages/NetworkV2';
 import { useEffect } from 'react';
 
 const Dashboard = () => {
@@ -32,13 +35,21 @@ const Dashboard = () => {
     );
   }
 
+  // Use sidebar layout for admin users, regular layout for others
+  if (userRole === 'admin') {
+    return (
+      <SidebarLayout>
+        <AdminDashboardV2 />
+      </SidebarLayout>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {userRole === 'viewer' && <ViewerDashboard />}
         {userRole === 'member' && <MemberDashboard />}
-        {userRole === 'admin' && <AdminDashboard />}
       </div>
     </div>
   );

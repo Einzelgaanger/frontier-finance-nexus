@@ -2,10 +2,13 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Calendar, ArrowRight } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { CheckCircle, Calendar, FileText, ArrowRight } from 'lucide-react';
+import { useSurveyStatus } from '@/hooks/useSurveyStatus';
 
 const SurveyNavigation: React.FC = () => {
   const location = useLocation();
+  const { surveyStatuses, loading, isSurveyCompleted } = useSurveyStatus();
   
   const surveys = [
     {
@@ -54,27 +57,46 @@ const SurveyNavigation: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {surveys.map((survey) => {
           const isActive = location.pathname === survey.path;
+          const isCompleted = isSurveyCompleted(survey.year);
+          const surveyStatus = surveyStatuses.find(s => s.year === survey.year);
           
           return (
             <Card 
               key={survey.year} 
               className={`${survey.color} border-2 hover:shadow-lg transition-shadow duration-200 ${
                 isActive ? 'ring-2 ring-blue-500' : ''
-              }`}
+              } ${isCompleted ? 'ring-2 ring-green-500' : ''}`}
             >
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className={`p-2 rounded-lg ${survey.color.replace('bg-', 'bg-').replace('-50', '-100')}`}>
-                      <Calendar className={`w-5 h-5 ${survey.textColor}`} />
+                      {isCompleted ? (
+                        <CheckCircle className={`w-5 h-5 ${survey.textColor}`} />
+                      ) : (
+                        <Calendar className={`w-5 h-5 ${survey.textColor}`} />
+                      )}
                     </div>
                     <div>
-                      <CardTitle className={`text-xl ${survey.textColor}`}>
-                        {survey.title}
-                      </CardTitle>
+                      <div className="flex items-center space-x-2">
+                        <CardTitle className={`text-xl ${survey.textColor}`}>
+                          {survey.title}
+                        </CardTitle>
+                        {isCompleted && (
+                          <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            Completed
+                          </Badge>
+                        )}
+                      </div>
                       <p className="text-sm text-gray-600 mt-1">
                         {survey.description}
                       </p>
+                      {isCompleted && surveyStatus?.completedAt && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          Completed on {new Date(surveyStatus.completedAt).toLocaleDateString()}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div className="text-2xl font-bold text-gray-400">
@@ -87,25 +109,35 @@ const SurveyNavigation: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2 text-sm text-gray-600">
                     <FileText className="w-4 h-4" />
-                    <span>Multi-section survey</span>
+                    <span>{isCompleted ? 'View Responses' : 'Multi-section survey'}</span>
                   </div>
                   
                   <Link to={survey.path}>
                     <Button 
-                      variant={isActive ? "default" : "outline"}
-                      className="flex items-center space-x-2"
+                      variant={isCompleted ? "secondary" : (isActive ? "default" : "outline")}
+                      className={`flex items-center space-x-2 ${
+                        isCompleted ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100' : ''
+                      }`}
                     >
-                      {isActive ? 'Continue' : 'Start'}
+                      {isCompleted ? 'View Responses' : (isActive ? 'Continue' : 'Start')}
                       <ArrowRight className="w-4 h-4" />
                     </Button>
                   </Link>
                 </div>
                 
-                {isActive && (
+                {isActive && !isCompleted && (
                   <div className="mt-4 p-3 bg-white rounded-lg border border-gray-200">
                     <p className="text-sm text-gray-700">
                       <strong>Currently Active:</strong> You're working on this survey. 
                       Your progress is automatically saved.
+                    </p>
+                  </div>
+                )}
+                
+                {isCompleted && (
+                  <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                    <p className="text-sm text-green-700">
+                      <strong>Survey Completed:</strong> Click "View Responses" to review your submitted answers.
                     </p>
                   </div>
                 )}

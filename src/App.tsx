@@ -11,7 +11,7 @@ import { useLoadingStore } from "@/store/loading-store";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
-import Network from "./pages/Network";
+import NetworkWrapper from "./components/NetworkWrapper";
 import FundManagerDetail from "./pages/FundManagerDetail";
 import Survey from "./pages/Survey";
 import Survey2021 from "./pages/Survey2021";
@@ -22,8 +22,8 @@ import Profile from "./pages/Profile";
 import ViewerSettings from "./pages/ViewerSettings";
 import ResetPassword from "./pages/ResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
-import Admin from "./pages/Admin";
-import Analytics from "./pages/Analytics";
+import AdminWrapper from "./components/AdminWrapper";
+import AnalyticsWrapper from "./components/AnalyticsWrapper";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -49,7 +49,7 @@ const App = () => {
             } />
             <Route path="/network" element={
               <ProtectedRoute requiredRole="viewer">
-                <Network />
+                <NetworkWrapper />
               </ProtectedRoute>
             } />
             <Route path="/network/fund-manager/:userId" element={
@@ -96,12 +96,12 @@ const App = () => {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/admin" element={
               <ProtectedRoute requiredRole="admin">
-                <Admin />
+                <AdminWrapper />
               </ProtectedRoute>
             } />
             <Route path="/analytics" element={
               <ProtectedRoute requiredRole="admin">
-                <Analytics />
+                <AnalyticsWrapper />
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />

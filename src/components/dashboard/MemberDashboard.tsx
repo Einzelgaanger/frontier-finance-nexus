@@ -86,13 +86,13 @@ const MemberDashboard = () => {
           .select('id, completed_at')
           .eq('user_id', user.id)
           .not('completed_at', 'is', null)
-          .single(),
+          .maybeSingle(),
         supabase
           .from('survey_responses_2021')
           .select('id, completed_at')
           .eq('user_id', user.id)
           .not('completed_at', 'is', null)
-          .single()
+          .maybeSingle()
       ]);
       
       const hasRegularSurvey = regularSurveyData.data && !regularSurveyData.error;

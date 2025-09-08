@@ -584,7 +584,7 @@ const Network = () => {
                   className="px-3 py-1 bg-emerald-100/80 text-emerald-700 border-emerald-200"
                 >
                   <Eye className="w-4 h-4 mr-2" />
-                  Visitor Access
+                  {userRole === 'admin' ? 'Administrator' : userRole === 'member' ? 'Member' : 'Visitor'} Access
                 </Badge>
               </div>
             </div>
