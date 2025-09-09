@@ -160,19 +160,27 @@ const AdminV2 = () => {
   const fetchAllData = useCallback(async () => {
     setLoading(true);
     try {
-      const [requestsResult, managersResult, logsResult] = await Promise.all([
+      const [requestsResult, logsResult] = await Promise.all([
         supabase.from('membership_requests').select('*').order('created_at', { ascending: false }),
-        supabase.from('fund_managers').select('*').order('created_at', { ascending: false }),
         supabase.from('activity_logs').select('*').order('created_at', { ascending: false }).limit(50)
       ]);
 
       if (requestsResult.error) throw requestsResult.error;
-      if (managersResult.error) throw managersResult.error;
       if (logsResult.error) throw logsResult.error;
 
-      setMembershipRequests(requestsResult.data || []);
-      setFundManagers(managersResult.data || []);
-      setActivityLogs(logsResult.data || []);
+      setMembershipRequests((requestsResult.data || []).map(req => ({
+        ...req,
+        information_sharing: typeof req.information_sharing === 'string' 
+          ? JSON.parse(req.information_sharing) 
+          : req.information_sharing || {}
+      })));
+      setFundManagers([]); // No fund_managers table, set empty array
+      setActivityLogs((logsResult.data || []).map(log => ({
+        ...log,
+        details: typeof log.details === 'string' 
+          ? JSON.parse(log.details) 
+          : log.details || {}
+      })));
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
@@ -704,8 +712,8 @@ const AdminV2 = () => {
         {/* Modals */}
         <CreateUserModal
           open={showCreateUserModal}
-          onOpenChange={setShowCreateUserModal}
-          onUserCreated={fetchAllData}
+          onClose={() => setShowCreateUserModal(false)}
+          onSuccess={fetchAllData}
         />
 
         <Dialog open={showApplicationModal} onOpenChange={setShowApplicationModal}>

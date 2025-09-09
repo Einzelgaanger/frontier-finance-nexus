@@ -52,7 +52,7 @@ export default function Analytics2024() {
         .select('*');
 
       if (error) throw error;
-      setData(responses || []);
+      setData(responses as any || []);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {

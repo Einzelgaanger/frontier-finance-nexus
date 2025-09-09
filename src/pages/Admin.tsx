@@ -64,11 +64,16 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
+interface DataCache {
+  [key: string]: any;
+}
+
 interface FundManager {
   id: string;
   user_id: string;
   fund_name: string;
   website: string | null;
+  status: string;
 }
 
 interface MembershipRequest {
@@ -131,8 +136,17 @@ const Admin = () => {
   const [pendingRoleChange, setPendingRoleChange] = useState<{requestId: string, newRole: 'viewer' | 'member'} | null>(null);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [showCreateUserModal, setShowCreateUserModal] = useState(false);
-  const [createdViewers, setCreatedViewers] = useState<Array<{ user_id: string; role: string }>>([]);
+  const [createdViewers, setCreatedViewers] = useState<Array<{ 
+    user_id: string; 
+    role: string; 
+    profiles?: { 
+      first_name?: string; 
+      last_name?: string; 
+      email?: string; 
+    } 
+  }>>([]);
   const [analyticsData, setAnalyticsData] = useState<{ surveys: any[] }>({ surveys: [] });
+  const [dataCache, setDataCache] = useState<DataCache>({});
   
   // Optimized loading states
   const [applicationsLoading, setApplicationsLoading] = useState(false);
@@ -203,11 +217,27 @@ const Admin = () => {
           profiles: profilesMap.get(viewer.user_id) || { first_name: 'Unknown', last_name: 'User', email: 'unknown@example.com' }
         }));
 
-        // Set all data at once
-        setMembershipRequests(applicationsResult.data || []);
-        setFundManagers(membersResult.data || []);
+        // Set all data at once - fix type conversions
+        setMembershipRequests((applicationsResult.data || []).map(req => ({
+          ...req,
+          information_sharing: typeof req.information_sharing === 'string' 
+            ? JSON.parse(req.information_sharing) 
+            : req.information_sharing || {}
+        })));
+        setFundManagers((membersResult.data || []).map(member => ({
+          id: member.id,
+          user_id: member.user_id,
+          fund_name: member.vehicle_name || '',
+          website: member.vehicle_websites?.[0] || '',
+          status: 'active'
+        })));
         setCreatedViewers(viewersWithProfiles);
-        setActivityLogs(activityResult.data || []);
+        setActivityLogs((activityResult.data || []).map(log => ({
+          ...log,
+          details: typeof log.details === 'string' 
+            ? JSON.parse(log.details) 
+            : log.details || {}
+        })));
         
       } catch (error) {
         console.error(`Error fetching admin dashboard (attempt ${retryCount + 1}):`, error);
@@ -1296,9 +1326,9 @@ const Admin = () => {
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between gap-2">
                           <CardTitle className="text-sm font-medium truncate flex-1">
-                            {viewer.profiles ? (() => {
-                              const firstName = viewer.profiles.first_name || '';
-                              const lastName = viewer.profiles.last_name || '';
+                            {(() => {
+                              const firstName = viewer.profiles?.first_name || '';
+                              const lastName = viewer.profiles?.last_name || '';
                               const fullName = `${firstName} ${lastName}`.trim();
                               
                               // If both first and last name are "User", show "Unknown User"
@@ -1312,13 +1342,13 @@ const Admin = () => {
                               }
                               
                               // If we have an email, show part of it
-                              if (viewer.profiles.email) {
+                              if (viewer.profiles?.email) {
                                 const emailPart = viewer.profiles.email.split('@')[0];
                                 return emailPart || 'Unknown User';
                               }
                               
                               return 'Unknown User';
-                            })() : 'No Name'}
+                            })()}
                           </CardTitle>
                           <Badge variant="default" className="bg-purple-100/80 text-purple-800 flex-shrink-0">User</Badge>
                         </div>
@@ -1720,18 +1750,23 @@ const Admin = () => {
                             <h4 className="font-semibold text-gray-900 text-base sm:text-lg">Information Sharing</h4>
                           </div>
                           <div className="space-y-3 text-xs sm:text-sm">
-                            {selectedRequest.information_sharing?.topics && selectedRequest.information_sharing.topics.length > 0 ? (
+                            {selectedRequest.information_sharing && 
+                             typeof selectedRequest.information_sharing === 'object' && 
+                             'topics' in selectedRequest.information_sharing &&
+                             Array.isArray(selectedRequest.information_sharing.topics) &&
+                             selectedRequest.information_sharing.topics.length > 0 ? (
                               <div className="space-y-2">
-                                {selectedRequest.information_sharing.topics.map((topic, index) => (
+                                {selectedRequest.information_sharing.topics.map((topic: any, index: number) => (
                                   <div key={index} className="flex items-center gap-2">
                                     <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
                                     <span className="text-gray-700 break-words">{topic}</span>
                                   </div>
                                 ))}
-                                {selectedRequest.information_sharing.other && (
+                                {'other' in selectedRequest.information_sharing && 
+                                 selectedRequest.information_sharing.other && (
                                   <div className="flex items-center gap-2">
                                     <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
-                                    <span className="text-gray-700 break-words">Other: {selectedRequest.information_sharing.other}</span>
+                                    <span className="text-gray-700 break-words">Other: {String(selectedRequest.information_sharing.other)}</span>
                                   </div>
                                 )}
                               </div>

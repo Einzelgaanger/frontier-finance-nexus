@@ -88,13 +88,16 @@ const Analytics2022: React.FC = () => {
   const loadSurveyData = async () => {
     try {
       setLoading(true);
+      // Note: survey_responses_2022 table doesn't exist, using survey_responses with year filter
       const { data, error } = await supabase
-        .from('survey_responses_2022')
+        .from('survey_responses')
         .select('*')
+        .eq('year', 2022)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setSurveyData(data || []);
+      // Note: Using survey_responses with year filter instead of separate tables
+      setSurveyData(data.filter(item => item.year === 2022) as any || []);
     } catch (error) {
       console.error('Error loading 2022 survey data:', error);
     } finally {

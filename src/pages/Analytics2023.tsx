@@ -51,7 +51,7 @@ export default function Analytics2023() {
         .select('*');
 
       if (error) throw error;
-      setData(responses || []);
+      setData(responses as any || []);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
