@@ -498,7 +498,13 @@ export function MembershipRequestModal({ open, onClose }: MembershipRequestModal
                       <Input
                         placeholder="Please specify"
                         value={formData.information_sharing.other_text}
-                        onChange={(e) => handleCheckboxChange('other_text', e.target.value)}
+                        onChange={(e) => setFormData(prev => ({
+                          ...prev,
+                          information_sharing: {
+                            ...prev.information_sharing,
+                            other_text: e.target.value
+                          }
+                        }))}
                       />
                     </div>
                   )}

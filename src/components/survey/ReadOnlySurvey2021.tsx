@@ -177,8 +177,8 @@ const ReadOnlySurvey2021: React.FC = () => {
             .maybeSingle();
           if (error) console.error('Error fetching 2021 survey data:', error);
           if (response) {
-            setSurveyData(response as Survey2021FormData);
-            form.reset(response as Survey2021FormData);
+            setSurveyData(response as unknown as Survey2021FormData);
+            form.reset(response as unknown as Survey2021FormData);
           }
           setLoading(false);
         };

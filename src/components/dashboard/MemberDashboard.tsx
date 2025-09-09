@@ -77,7 +77,7 @@ const MemberDashboard = () => {
       if (!user) return;
 
       // 1. Network Connections (placeholder - would need network table)
-      const networkConnections = 12; // Mock data for now
+      const networkConnections = "12"; // Mock data for now
 
       // 2. Profile Completion - check both regular and 2021 surveys
       const [regularSurveyData, survey2021Data] = await Promise.all([
