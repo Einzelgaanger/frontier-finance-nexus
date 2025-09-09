@@ -14,7 +14,10 @@ import {
   User,
   Crown,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  FileText,
+  Calendar,
+  Eye
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -63,7 +66,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
       href: "/dashboard", 
       icon: LayoutDashboard, 
       roles: ["admin", "member", "viewer"],
-      description: "Overview and analytics",
+      description: userRole === "viewer" ? "Your overview and insights" : "Overview and analytics",
       badge: null,
       shortcut: "D",
       color: "blue"
@@ -73,10 +76,60 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
       href: "/network", 
       icon: Network, 
       roles: ["admin", "member", "viewer"],
-      description: "Fund manager directory",
+      description: userRole === "viewer" ? "Browse approved fund managers" : "Fund manager directory",
       badge: "12",
       shortcut: "N",
       color: "green"
+    },
+    { 
+      name: "Surveys", 
+      href: "/survey", 
+      icon: FileText, 
+      roles: ["admin", "member", "viewer"],
+      description: userRole === "viewer" ? "View available surveys" : "Complete and manage surveys",
+      badge: null,
+      shortcut: "S",
+      color: "purple"
+    },
+    { 
+      name: "Survey 2021", 
+      href: "/survey/2021", 
+      icon: Calendar, 
+      roles: ["admin", "member", "viewer"],
+      description: userRole === "viewer" ? "View 2021 survey data" : "2021 ESCP Network Survey",
+      badge: null,
+      shortcut: "1",
+      color: "orange"
+    },
+    { 
+      name: "Survey 2022", 
+      href: "/survey/2022", 
+      icon: Calendar, 
+      roles: ["admin", "member", "viewer"],
+      description: userRole === "viewer" ? "View 2022 survey data" : "2022 ESCP Network Survey",
+      badge: null,
+      shortcut: "2",
+      color: "orange"
+    },
+    { 
+      name: "Survey 2023", 
+      href: "/survey/2023", 
+      icon: Calendar, 
+      roles: ["admin", "member", "viewer"],
+      description: userRole === "viewer" ? "View 2023 survey data" : "2023 ESCP Network Survey",
+      badge: null,
+      shortcut: "3",
+      color: "orange"
+    },
+    { 
+      name: "Survey 2024", 
+      href: "/survey/2024", 
+      icon: Calendar, 
+      roles: ["admin", "member", "viewer"],
+      description: userRole === "viewer" ? "View 2024 survey data" : "2024 ESCP Network Survey",
+      badge: null,
+      shortcut: "4",
+      color: "orange"
     },
     { 
       name: "Analytics", 
@@ -135,6 +188,15 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
         border: 'border-transparent',
         accent: 'bg-orange-500'
       },
+      purple: {
+        icon: 'text-purple-500',
+        iconBg: 'bg-purple-50',
+        text: 'text-gray-700',
+        bg: isActive ? 'bg-purple-50' : 'bg-transparent',
+        hover: 'hover:bg-gray-50',
+        border: 'border-transparent',
+        accent: 'bg-purple-500'
+      },
       red: {
         icon: 'text-red-500',
         iconBg: 'bg-red-50',
@@ -161,6 +223,10 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
     if (href === "/dashboard" && location.pathname === "/dashboard") return true;
     if (href === "/network" && location.pathname === "/network") return true;
     if (href === "/survey" && location.pathname === "/survey") return true;
+    if (href === "/survey/2021" && location.pathname === "/survey/2021") return true;
+    if (href === "/survey/2022" && location.pathname === "/survey/2022") return true;
+    if (href === "/survey/2023" && location.pathname === "/survey/2023") return true;
+    if (href === "/survey/2024" && location.pathname === "/survey/2024") return true;
     if (href === "/analytics" && location.pathname === "/analytics") return true;
     if (href === "/admin" && location.pathname.startsWith("/admin")) return true;
     return false;
@@ -216,6 +282,22 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
             e.preventDefault();
             navigate('/survey');
             break;
+          case '1':
+            e.preventDefault();
+            navigate('/survey/2021');
+            break;
+          case '2':
+            e.preventDefault();
+            navigate('/survey/2022');
+            break;
+          case '3':
+            e.preventDefault();
+            navigate('/survey/2023');
+            break;
+          case '4':
+            e.preventDefault();
+            navigate('/survey/2024');
+            break;
           case 'a':
             e.preventDefault();
             navigate('/analytics');
@@ -258,15 +340,17 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
           <div className="flex items-center justify-between p-4 border-b border-gray-100 transition-all duration-300">
             {!sidebarCollapsed && (
             <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-sm">
-                  <Crown className="w-4 h-4 text-white" />
+                <div className={`w-8 h-8 ${roleConfig.className} rounded-lg flex items-center justify-center shadow-sm`}>
+                  <roleConfig.icon className="w-4 h-4 text-white" />
               </div>
               <div>
                   <h1 className="text-lg font-semibold text-gray-900 transition-colors">
                     ESCP Network
                   </h1>
                   <p className="text-xs text-gray-500 transition-colors">
-                    Admin Portal
+                    {userRole === 'admin' ? 'Admin Portal' : 
+                     userRole === 'member' ? 'Member Portal' : 
+                     'Visitor Portal'}
                   </p>
                 </div>
               </div>
@@ -447,6 +531,10 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
                   {location.pathname === '/dashboard' && 'Dashboard'}
                   {location.pathname === '/network' && 'Network Directory'}
                   {location.pathname === '/survey' && 'Survey Center'}
+                  {location.pathname === '/survey/2021' && '2021 ESCP Network Survey'}
+                  {location.pathname === '/survey/2022' && '2022 ESCP Network Survey'}
+                  {location.pathname === '/survey/2023' && '2023 ESCP Network Survey'}
+                  {location.pathname === '/survey/2024' && '2024 ESCP Network Survey'}
                   {location.pathname === '/analytics' && 'Analytics Hub'}
                   {location.pathname.startsWith('/admin') && 'Admin Panel'}
                 </h2>
@@ -454,6 +542,10 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
                   {location.pathname === '/dashboard' && 'Overview of your network and activities'}
                   {location.pathname === '/network' && 'Browse and connect with fund managers'}
                   {location.pathname === '/survey' && 'Complete and manage surveys'}
+                  {location.pathname === '/survey/2021' && 'Complete the 2021 ESCP Network Survey'}
+                  {location.pathname === '/survey/2022' && 'Complete the 2022 ESCP Network Survey'}
+                  {location.pathname === '/survey/2023' && 'Complete the 2023 ESCP Network Survey'}
+                  {location.pathname === '/survey/2024' && 'Complete the 2024 ESCP Network Survey'}
                   {location.pathname === '/analytics' && 'Data insights and comprehensive reports'}
                   {location.pathname.startsWith('/admin') && 'Manage users, content, and system settings'}
                 </p>

@@ -35,7 +35,7 @@ const Dashboard = () => {
     );
   }
 
-  // Use sidebar layout for admin users, regular layout for others
+  // Use sidebar layout for all user types
   if (userRole === 'admin') {
     return (
       <SidebarLayout>
@@ -44,12 +44,29 @@ const Dashboard = () => {
     );
   }
 
+  if (userRole === 'member') {
+    return (
+      <SidebarLayout>
+        <MemberDashboard />
+      </SidebarLayout>
+    );
+  }
+
+  if (userRole === 'viewer') {
+    return (
+      <SidebarLayout>
+        <ViewerDashboard />
+      </SidebarLayout>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {userRole === 'viewer' && <ViewerDashboard />}
-        {userRole === 'member' && <MemberDashboard />}
+        <div className="text-center py-8">
+          <p className="text-gray-500">Unknown user role</p>
+        </div>
       </div>
     </div>
   );

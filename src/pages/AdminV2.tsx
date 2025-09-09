@@ -1,97 +1,17 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import SidebarLayout from '@/components/layout/SidebarLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import {
-  Building2,
-  FileText,
-  Users,
-  Globe,
-  TrendingUp,
-  DollarSign,
-  UserPlus,
-  UserCheck,
-  AlertTriangle,
-  Calendar,
-  Eye,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Activity,
-  UserX,
-  UserCog,
-  Briefcase,
-  MapPin,
-  Target,
-  Award,
-  MessageSquare,
-  User,
-  Mail,
-  RefreshCw,
-  Loader2,
-  Database,
-  Shield,
-  Settings,
-  BarChart3,
-  PieChart,
-  LineChart,
-  Download,
-  Filter,
-  Search,
-  Plus,
-  Edit,
-  Trash2,
-  MoreHorizontal,
-  ExternalLink,
-  Zap,
-  Star,
-  Bell,
-  Lock,
-  Unlock,
-  Archive,
-  Send,
-  Copy,
-  Share2,
-  Link,
-  File
-} from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { Link as RouterLink } from 'react-router-dom';
-import { Json } from '@/integrations/supabase/types';
-import CreateUserModal from '@/components/admin/CreateUserModal';
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  PieChart as RechartsPieChart,
-  Pie,
-  Cell,
-  LineChart as RechartsLineChart,
-  Line
-} from 'recharts';
+import AdminFundManagers from '@/components/admin/AdminFundManagers';
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#84CC16', '#F97316'];
 
-interface FundManager {
+interface Profile {
   id: string;
-  user_id: string;
-  fund_name: string;
-  website: string | null;
   email: string;
-  status: string;
+  first_name: string | null;
+  last_name: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 interface MembershipRequest {
@@ -148,7 +68,7 @@ const AdminV2 = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [membershipRequests, setMembershipRequests] = useState<MembershipRequest[]>([]);
-  const [fundManagers, setFundManagers] = useState<FundManager[]>([]);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -160,18 +80,18 @@ const AdminV2 = () => {
   const fetchAllData = useCallback(async () => {
     setLoading(true);
     try {
-      const [requestsResult, managersResult, logsResult] = await Promise.all([
+      const [requestsResult, profilesResult, logsResult] = await Promise.all([
         supabase.from('membership_requests').select('*').order('created_at', { ascending: false }),
-        supabase.from('fund_managers').select('*').order('created_at', { ascending: false }),
+        supabase.from('profiles').select('*').order('created_at', { ascending: false }),
         supabase.from('activity_logs').select('*').order('created_at', { ascending: false }).limit(50)
       ]);
 
       if (requestsResult.error) throw requestsResult.error;
-      if (managersResult.error) throw managersResult.error;
+      if (profilesResult.error) throw profilesResult.error;
       if (logsResult.error) throw logsResult.error;
 
       setMembershipRequests(requestsResult.data || []);
-      setFundManagers(managersResult.data || []);
+      setProfiles(profilesResult.data || []);
       setActivityLogs(logsResult.data || []);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -195,19 +115,19 @@ const AdminV2 = () => {
     const pendingRequests = membershipRequests.filter(r => r.status === 'pending').length;
     const approvedRequests = membershipRequests.filter(r => r.status === 'approved').length;
     const rejectedRequests = membershipRequests.filter(r => r.status === 'rejected').length;
-    const totalFundManagers = fundManagers.length;
-    const activeFundManagers = fundManagers.filter(f => f.status === 'active').length;
+    const totalProfiles = profiles.length;
+    const activeProfiles = profiles.length; // All profiles are considered active
 
     return {
       totalRequests,
       pendingRequests,
       approvedRequests,
       rejectedRequests,
-      totalFundManagers,
-      activeFundManagers,
+      totalProfiles,
+      activeProfiles,
       approvalRate: totalRequests > 0 ? Math.round((approvedRequests / totalRequests) * 100) : 0
     };
-  }, [membershipRequests, fundManagers]);
+  }, [membershipRequests, profiles]);
 
   // Filter data
   const filteredRequests = useMemo(() => {
@@ -408,9 +328,9 @@ const AdminV2 = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-purple-600">Active Members</p>
-                    <p className="text-3xl font-bold text-purple-900">{stats.activeFundManagers}</p>
-                    <p className="text-xs text-purple-600 mt-1">Network members</p>
+                    <p className="text-sm font-medium text-purple-600">Total Users</p>
+                    <p className="text-3xl font-bold text-purple-900">{stats.activeProfiles}</p>
+                    <p className="text-xs text-purple-600 mt-1">Registered users</p>
                   </div>
                   <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
                     <Users className="w-6 h-6 text-white" />
@@ -630,28 +550,33 @@ const AdminV2 = () => {
             <TabsContent value="members" className="space-y-6">
               <Card className="border-0 shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-lg font-semibold text-gray-900">Fund Managers</CardTitle>
-                  <CardDescription>Active members in the network</CardDescription>
+                  <CardTitle className="text-lg font-semibold text-gray-900">User Profiles</CardTitle>
+                  <CardDescription>All registered users in the system</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {fundManagers.map((manager) => (
-                      <div key={manager.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                    {profiles.map((profile) => (
+                      <div key={profile.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                         <div className="flex items-center space-x-4">
                           <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                            <Building2 className="w-5 h-5 text-blue-600" />
+                            <User className="w-5 h-5 text-blue-600" />
                           </div>
                           <div>
-                            <p className="font-semibold text-gray-900">{manager.fund_name}</p>
-                            <p className="text-sm text-gray-600">{manager.email}</p>
+                            <p className="font-semibold text-gray-900">
+                              {profile.first_name && profile.last_name 
+                                ? `${profile.first_name} ${profile.last_name}` 
+                                : profile.email
+                              }
+                            </p>
+                            <p className="text-sm text-gray-600">{profile.email}</p>
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Badge 
                             variant="default" 
-                            className={manager.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}
+                            className="bg-green-100 text-green-700"
                           >
-                            {manager.status}
+                            Active
                           </Badge>
                           <Button size="sm" variant="outline">
                             <Eye className="w-4 h-4" />
