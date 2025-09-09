@@ -35,23 +35,13 @@ const Dashboard = () => {
     );
   }
 
-  // Use sidebar layout for admin users, regular layout for others
-  if (userRole === 'admin') {
-    return (
-      <SidebarLayout>
-        <AdminDashboardV2 />
-      </SidebarLayout>
-    );
-  }
-
+  // Use sidebar layout for all authenticated users
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {userRole === 'viewer' && <ViewerDashboard />}
-        {userRole === 'member' && <MemberDashboard />}
-      </div>
-    </div>
+    <SidebarLayout>
+      {userRole === 'admin' && <AdminDashboardV2 />}
+      {userRole === 'viewer' && <ViewerDashboard />}
+      {userRole === 'member' && <MemberDashboard />}
+    </SidebarLayout>
   );
 };
 

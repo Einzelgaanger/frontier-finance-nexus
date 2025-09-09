@@ -14,7 +14,9 @@ import {
   User,
   Crown,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  FileText,
+  Eye
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -77,6 +79,16 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
       badge: "12",
       shortcut: "N",
       color: "green"
+    },
+    { 
+      name: "Survey", 
+      href: "/survey", 
+      icon: FileText, 
+      roles: ["member", "viewer"],
+      description: "Complete surveys and assessments",
+      badge: null,
+      shortcut: "S",
+      color: "orange"
     },
     { 
       name: "Analytics", 
