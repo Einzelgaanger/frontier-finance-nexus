@@ -3,11 +3,11 @@ import { useAuth } from '@/hooks/useAuth';
 import Header from '@/components/layout/Header';
 import SidebarLayout from '@/components/layout/SidebarLayout';
 import ViewerDashboard from '@/components/dashboard/ViewerDashboard';
-import MemberDashboard from '@/components/dashboard/MemberDashboard';
 import AdminDashboard from '@/components/dashboard/AdminDashboard';
 import AdminDashboardV2 from '@/components/dashboard/AdminDashboardV2';
 import NetworkV2 from '@/pages/NetworkV2';
 import { useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const { userRole, loading, refreshUserRole } = useAuth();
@@ -45,11 +45,7 @@ const Dashboard = () => {
   }
 
   if (userRole === 'member') {
-    return (
-      <SidebarLayout>
-        <MemberDashboard />
-      </SidebarLayout>
-    );
+    return <Navigate to="/network" replace />;
   }
 
   if (userRole === 'viewer') {

@@ -1,773 +1,841 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Eye, 
-  UserPlus, 
-  Building2, 
-  Users, 
-  Globe, 
-  FileText, 
-  ShieldCheck, 
-  ChartBar, 
-  Network,
-  RefreshCw,
-  Award,
-  CheckCircle,
-  Clock,
-  MapPin,
-  DollarSign,
-  ArrowRight,
-  ArrowUpRight,
-  Star,
-  Zap,
-  Target,
-  TrendingUp,
-  Sparkles,
-  Crown,
-  Gem,
-  Flame,
-  Activity,
-  Home,
-  BarChart3,
-  Bell,
-  Settings2,
-  User,
-  LogIn,
-  Lock,
-  Unlock,
-  EyeOff,
-  Maximize,
-  Minimize,
-  RotateCw,
-  Loader2,
-  AlertCircle,
-  Info,
-  CheckCircle2,
-  XCircle,
-  AlertTriangle,
-  HelpCircle as HelpCircleIcon,
-  MessageSquare,
-  ThumbsUp,
-  ThumbsDown,
-  Star as StarIcon,
-  StarOff,
-  BookmarkPlus,
-  BookmarkMinus,
-  Share,
-  Copy,
-  Edit,
-  Trash2,
-  Archive,
-  ArchiveRestore,
-  Pin,
-  PinOff,
-  Flag,
-  FlagOff,
-  Tag,
-  Tags,
-  Hash,
-  AtSign,
-  Percent,
-  DollarSign as DollarSignIcon,
-  Euro,
-  PoundSterling,
-  Yen,
-  Rupee,
-  Bitcoin,
-  CreditCard,
-  Banknote,
-  Coins,
-  PiggyBank,
-  TrendingUp as TrendingUpIcon,
-  TrendingDown as TrendingDownIcon,
-  BarChart,
-  BarChart2,
-  BarChart3 as BarChart3Icon,
-  LineChart as LineChartIcon,
-  AreaChart,
-  Scatter,
-  Radar,
-  Gauge,
-  Activity as ActivityIcon,
-  Pulse,
-  Heart as HeartIcon,
-  Zap as ZapIcon,
-  Flash,
-  Thunder,
-  Lightning,
-  Sun,
-  Moon,
-  Cloud,
-  CloudRain,
-  CloudSnow,
-  CloudLightning,
-  Wind,
-  Thermometer,
-  Droplets,
-  Umbrella,
-  Sunrise,
-  Sunset,
-  Compass,
-  Map,
-  MapPin as MapPinIcon,
-  Navigation,
-  Route,
-  Waypoints,
-  Flag as FlagIcon,
-  FlagOff as FlagOffIcon,
-  Pin as PinIcon,
-  PinOff as PinOffIcon,
-  Target as TargetIcon,
-  Crosshair,
-  Focus,
-  Aim,
-  Scope,
-  Telescope,
-  Microscope,
-  Camera,
-  Video,
-  Image,
-  ImageIcon,
-  Palette,
-  Brush,
-  Pen,
-  Pencil,
-  Highlighter,
-  Eraser,
-  Paintbrush,
-  PaintBucket,
-  Scissors,
-  Cut,
-  Copy as CopyIcon,
-  Paste,
-  Clipboard,
-  ClipboardList,
-  ClipboardCheck,
-  ClipboardCopy,
-  ClipboardPaste,
-  ClipboardX,
-  File,
-  FileText as FileTextIcon,
-  FileImage,
-  FileVideo,
-  FileAudio,
-  FileArchive,
-  FileCode,
-  FileSpreadsheet,
-  FilePdf,
-  FileWord,
-  FileExcel,
-  FilePowerpoint,
-  FileZip,
-  FileJson,
-  FileXml,
-  FileCss,
-  FileHtml,
-  FileJs,
-  FileTs,
-  FileJsx,
-  FileTsx,
-  FileVue,
-  FileReact,
-  FileAngular,
-  FileSvelte,
-  FileSolid,
-  FileQwik,
-  FileAstro,
-  Folder,
-  FolderOpen,
-  FolderPlus,
-  FolderMinus,
-  FolderX,
-  FolderCheck,
-  FolderLock,
-  FolderUnlock,
-  FolderUp,
-  FolderDown,
-  FolderLeft,
-  FolderRight,
-  FolderSearch,
-  FolderHeart,
-  FolderStar,
-  FolderBookmark,
-  FolderPin,
-  FolderArchive,
-  FolderTrash,
-  FolderRestore,
-  FolderSync,
-  FolderRefresh,
-  FolderRotate,
-  FolderRotateCw,
-  FolderRotateCcw,
-  FolderMove,
-  FolderCopy,
-  FolderPaste,
-  FolderCut,
-  FolderDuplicate,
-  FolderShare,
-  FolderDownload,
-  FolderUpload,
-  FolderCloud,
-  FolderCloudUpload,
-  FolderCloudDownload,
-  FolderCloudSync,
-  FolderCloudRefresh,
-  FolderCloudRotate,
-  FolderCloudRotateCw,
-  FolderCloudRotateCcw,
-  FolderCloudMove,
-  FolderCloudCopy,
-  FolderCloudPaste,
-  FolderCloudCut,
-  FolderCloudDuplicate,
-  FolderCloudShare
-} from 'lucide-react';
-import { ESCPApplicationModal } from './ESCPApplicationModal';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-
-const LoadingScreen = () => {
-  const [progress, setProgress] = useState(0);
-  const [currentTip, setCurrentTip] = useState(0);
-  
-  const loadingTips = React.useMemo(() => [
-    { icon: TrendingUp, text: "Analyzing market trends..." },
-    { icon: DollarSign, text: "Preparing fund manager insights..." },
-    { icon: ChartBar, text: "Loading investment data..." },
-    { icon: BarChart3, text: "Calculating portfolio metrics..." },
-    { icon: Network, text: "Connecting to global network..." }
-  ], []);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(timer);
-          return 100;
-        }
-        return prev + 2;
-      });
-    }, 100);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    const tipTimer = setInterval(() => {
-      setCurrentTip(prev => (prev + 1) % loadingTips.length);
-    }, 2000);
-
-    return () => clearInterval(tipTimer);
-  }, [loadingTips.length]);
-
-  return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="max-w-md w-full mx-auto text-center">
-        <div className="mb-8">
-          <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Network className="w-8 h-8 text-white" />
-          </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Loading ESCP Network</h2>
-          <p className="text-gray-600">Preparing your dashboard...</p>
-        </div>
-        
-        <div className="mb-6">
-          <Progress value={progress} className="w-full" />
-          <p className="text-sm text-gray-500 mt-2">{progress}% complete</p>
-        </div>
-        
-        <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
-          {React.createElement(loadingTips[currentTip].icon, { className: "w-4 h-4" })}
-          <span>{loadingTips[currentTip].text}</span>
-        </div>
-      </div>
-    </div>
-  );
-};
+import { FileText, Upload, Link, Plus, CheckCircle } from 'lucide-react';
+import { CountrySelector } from '@/components/survey/CountrySelector';
 
 const ViewerDashboardV2 = () => {
-  const [showApplicationModal, setShowApplicationModal] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [currentAnimationStep, setCurrentAnimationStep] = useState(0);
-  const [activeTab, setActiveTab] = useState('overview');
-  const [networkStats, setNetworkStats] = useState({
-    totalMembers: 0,
-    activeFunds: 0,
-    totalAUM: 0,
-    regions: 0
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [currentSection, setCurrentSection] = useState(1);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [showApplicationForm, setShowApplicationForm] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    // Background Information
+    applicant_name: '',
+    email: user?.email || '',
+    vehicle_name: '',
+    organization_website: '',
+    domicile_countries: [] as string[],
+    
+    // Team Information
+    role_job_title: '',
+    team_overview: '',
+    
+    // Vehicle Information
+    investment_thesis: '',
+    typical_check_size: '',
+    number_of_investments: '',
+    amount_raised_to_date: '',
+    supporting_documents: [] as string[],
+    supporting_document_links: [] as string[],
+    
+    // Network Expectations
+    expectations_from_network: '',
+    how_heard_about_network: '',
+    topics_of_interest: [] as string[],
   });
-  const [recentActivity, setRecentActivity] = useState([]);
-  const [featuredMembers, setFeaturedMembers] = useState([]);
 
-  useEffect(() => {
-    // Simulate loading time
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    if (!isLoading) {
-      // Auto-rotate through animation steps
-      const interval = setInterval(() => {
-        setCurrentAnimationStep(prev => (prev + 1) % 4);
-      }, 3000);
-      return () => clearInterval(interval);
-    }
-  }, [isLoading]);
-
-  // Mock data for demonstration
-  useEffect(() => {
-    if (!isLoading) {
-      setNetworkStats({
-        totalMembers: 127,
-        activeFunds: 89,
-        totalAUM: 2500000000,
-        regions: 23
-      });
-      
-      setRecentActivity([
-        { id: 1, type: 'new_member', message: 'New member joined from Africa', time: '2 hours ago' },
-        { id: 2, type: 'survey_completed', message: '2024 survey completed by 15 members', time: '4 hours ago' },
-        { id: 3, type: 'fund_launched', message: 'New $50M fund launched in Asia', time: '1 day ago' }
-      ]);
-      
-      setFeaturedMembers([
-        { id: 1, name: 'Sarah Chen', fund: 'Emerging Markets Capital', region: 'Asia', aum: '$150M' },
-        { id: 2, name: 'Marcus Johnson', fund: 'African Growth Partners', region: 'Africa', aum: '$75M' },
-        { id: 3, name: 'Elena Rodriguez', fund: 'Latin America Ventures', region: 'Americas', aum: '$200M' }
-      ]);
-    }
-  }, [isLoading]);
-
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
-
-  const animationSteps = [
-    {
-      icon: FileText,
-      title: "Complete Application",
-      description: "Fill out our comprehensive form with your fund details and investment thesis",
-      color: "bg-emerald-100",
-      iconColor: "text-emerald-600"
-    },
-    {
-      icon: ShieldCheck,
-      title: "Admin Review",
-      description: "Our team conducts thorough due diligence and reviews your application",
-      color: "bg-blue-100",
-      iconColor: "text-blue-600"
-    },
-    {
-      icon: UserPlus,
-      title: "Account Upgrade",
-      description: "Upon approval, your account is upgraded to full member status",
-      color: "bg-purple-100",
-      iconColor: "text-purple-600"
-    },
-    {
-      icon: ChartBar,
-      title: "Member Survey",
-      description: "Participate in annual surveys to contribute to industry insights",
-      color: "bg-orange-100",
-      iconColor: "text-orange-600"
-    }
+  const topics = [
+    'Investment Opportunities',
+    'Market Research',
+    'Due Diligence',
+    'Regulatory Updates',
+    'Technology Trends',
+    'ESG Practices',
+    'Risk Management',
+    'Fundraising',
+    'Exit Strategies',
+    'Networking Events'
   ];
 
-  return (
-    <div className="p-6 space-y-8">
-      {/* Ultra-Modern Header */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-3xl p-8 text-white">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-48 translate-x-48"></div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full translate-y-32 -translate-x-32"></div>
-        
-        <div className="relative z-10">
-          <div className="flex items-center justify-between">
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                  <Network className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
-                    ESCP Network
-                  </h1>
-                  <p className="text-purple-100 text-lg font-medium">
-                    Discover the world's leading emerging market fund managers
-                  </p>
-                </div>
+  const uploadToDatabase = async (file: File, userId: string) => {
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64Data = reader.result as string;
+        const fileData = {
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type,
+          data: base64Data,
+          uploadedAt: new Date().toISOString()
+        };
+        resolve(JSON.stringify(fileData));
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length > 5) {
+      toast({
+        title: "Too many files",
+        description: "Maximum 5 files allowed",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const uploadedFiles: string[] = [];
+      for (const file of files) {
+        if (file.size > 10 * 1024 * 1024) {
+          toast({
+            title: "File too large",
+            description: `${file.name} exceeds 10MB limit`,
+            variant: "destructive"
+          });
+          continue;
+        }
+        const fileData = await uploadToDatabase(file, user?.id || 'anonymous');
+        uploadedFiles.push(fileData);
+        toast({
+          title: "File Uploaded Successfully",
+          description: `${file.name} uploaded to database`,
+          variant: "default"
+        });
+      }
+      setFormData(prev => ({
+        ...prev,
+        supporting_documents: [...prev.supporting_documents, ...uploadedFiles]
+      }));
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      toast({
+        title: "Upload Failed",
+        description: "Failed to upload files. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleLinkUpload = async (link: string) => {
+    if (!link.trim()) return;
+    
+    setUploading(true);
+    try {
+      const linkData = {
+        fileName: link,
+        fileSize: 0,
+        fileType: 'link',
+        data: link,
+        uploadedAt: new Date().toISOString()
+      };
+      
+      setFormData(prev => ({
+        ...prev,
+        supporting_document_links: [...prev.supporting_document_links, JSON.stringify(linkData)]
+      }));
+      
+      toast({
+        title: "Link Added Successfully",
+        description: "Document link added to your application",
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('Error adding link:', error);
+      toast({
+        title: "Link Addition Failed",
+        description: "Failed to add link. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleTopicToggle = (topic: string) => {
+    setFormData(prev => ({
+      ...prev,
+      topics_of_interest: prev.topics_of_interest.includes(topic)
+        ? prev.topics_of_interest.filter(t => t !== topic)
+        : [...prev.topics_of_interest, topic]
+    }));
+  };
+
+  const validateSection = (section: number): boolean => {
+    switch (section) {
+      case 1:
+        return !!(formData.applicant_name && formData.email && formData.vehicle_name && formData.organization_website && formData.domicile_countries.length > 0);
+      case 2:
+        return !!(formData.role_job_title && formData.team_overview);
+      case 3:
+        return !!(formData.investment_thesis && formData.typical_check_size && formData.number_of_investments && formData.amount_raised_to_date);
+      case 4:
+        return !!(formData.expectations_from_network && formData.how_heard_about_network);
+      default:
+        return true;
+    }
+  };
+
+  const handleNext = async () => {
+    if (!validateSection(currentSection)) {
+      toast({
+        title: "Incomplete Section",
+        description: "Please fill in all required fields before proceeding.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (currentSection === 4) {
+      await handleSubmit();
+    } else {
+      setCurrentSection(prev => prev + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentSection > 1) {
+      setCurrentSection(prev => prev - 1);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!validateSection(4)) {
+      toast({
+        title: "Incomplete Application",
+        description: "Please fill in all required fields before submitting.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const applicationData = {
+        ...formData,
+        supporting_documents: formData.supporting_documents,
+        status: 'pending',
+        submitted_at: new Date().toISOString(),
+        user_id: user?.id
+      };
+
+      const { error } = await supabase
+        .from('membership_requests')
+        .insert([applicationData]);
+
+      if (error) {
+        throw error;
+      }
+
+      setShowSuccessMessage(true);
+      toast({
+        title: "Application Submitted Successfully!",
+        description: "Your application has been submitted for review. We'll get back to you soon.",
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('Error submitting application:', error);
+      toast({
+        title: "Submission Failed",
+        description: "Failed to submit application. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderSection = (section: number) => {
+    switch (section) {
+      case 1:
+        return (
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Background Information</h3>
+              <p className="text-gray-600 mb-6">Tell us about yourself and your organization.</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="applicant_name">Full Name *</Label>
+                <Input
+                  id="applicant_name"
+                  value={formData.applicant_name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, applicant_name: e.target.value }))}
+                  placeholder="Enter your full name"
+                />
               </div>
               
-              <div className="flex items-center space-x-6">
-                <div className="flex items-center space-x-2">
-                  <Sparkles className="w-5 h-5 text-yellow-300" />
-                  <span className="text-sm font-medium">{networkStats.totalMembers} Active Members</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Globe className="w-5 h-5 text-cyan-300" />
-                  <span className="text-sm font-medium">{networkStats.regions} Global Regions</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <TrendingUp className="w-5 h-5 text-green-300" />
-                  <span className="text-sm font-medium">${(networkStats.totalAUM / 1000000000).toFixed(1)}B AUM</span>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="Enter your email"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="vehicle_name">Vehicle/Organization Name *</Label>
+                <Input
+                  id="vehicle_name"
+                  value={formData.vehicle_name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, vehicle_name: e.target.value }))}
+                  placeholder="Enter vehicle or organization name"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="organization_website">Organization Website *</Label>
+                <Input
+                  id="organization_website"
+                  value={formData.organization_website}
+                  onChange={(e) => setFormData(prev => ({ ...prev, organization_website: e.target.value }))}
+                  placeholder="https://example.com"
+                />
               </div>
             </div>
             
-            <div className="hidden lg:flex items-center space-x-4">
+            <div className="space-y-2">
+              <Label>Domicile Countries *</Label>
+              <CountrySelector
+                value={formData.domicile_countries || []}
+                onChange={(countries) => setFormData(prev => ({ ...prev, domicile_countries: countries }))}
+                placeholder="Select countries where your organization is domiciled"
+                label="Domicile Countries"
+              />
+            </div>
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Team Information</h3>
+              <p className="text-gray-600 mb-6">Tell us about your team and your role.</p>
+            </div>
+            
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="role_job_title">Your Role/Job Title *</Label>
+                <Input
+                  id="role_job_title"
+                  value={formData.role_job_title}
+                  onChange={(e) => setFormData(prev => ({ ...prev, role_job_title: e.target.value }))}
+                  placeholder="e.g., Managing Partner, Investment Director"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="team_overview">Team Overview *</Label>
+                <Textarea
+                  id="team_overview"
+                  value={formData.team_overview}
+                  onChange={(e) => setFormData(prev => ({ ...prev, team_overview: e.target.value }))}
+                  placeholder="Describe your team structure, key members, and their backgrounds"
+                  rows={4}
+                />
+              </div>
+            </div>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Vehicle Information</h3>
+              <p className="text-gray-600 mb-6">Tell us about your investment vehicle and strategy.</p>
+            </div>
+            
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="investment_thesis">Investment Thesis *</Label>
+                <Textarea
+                  id="investment_thesis"
+                  value={formData.investment_thesis}
+                  onChange={(e) => setFormData(prev => ({ ...prev, investment_thesis: e.target.value }))}
+                  placeholder="Describe your investment strategy, focus areas, and approach"
+                  rows={4}
+                />
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="typical_check_size">Typical Check Size *</Label>
+                  <Select
+                    value={formData.typical_check_size}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, typical_check_size: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select check size range" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="under-100k">Under $100K</SelectItem>
+                      <SelectItem value="100k-500k">$100K - $500K</SelectItem>
+                      <SelectItem value="500k-1m">$500K - $1M</SelectItem>
+                      <SelectItem value="1m-5m">$1M - $5M</SelectItem>
+                      <SelectItem value="5m-10m">$5M - $10M</SelectItem>
+                      <SelectItem value="over-10m">Over $10M</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="number_of_investments">Number of Investments *</Label>
+                  <Select
+                    value={formData.number_of_investments}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, number_of_investments: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select number of investments" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1-5">1-5</SelectItem>
+                      <SelectItem value="6-10">6-10</SelectItem>
+                      <SelectItem value="11-20">11-20</SelectItem>
+                      <SelectItem value="21-50">21-50</SelectItem>
+                      <SelectItem value="over-50">Over 50</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="amount_raised_to_date">Amount Raised to Date *</Label>
+                <Select
+                  value={formData.amount_raised_to_date}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, amount_raised_to_date: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select amount raised" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="under-10m">Under $10M</SelectItem>
+                    <SelectItem value="10m-25m">$10M - $25M</SelectItem>
+                    <SelectItem value="25m-50m">$25M - $50M</SelectItem>
+                    <SelectItem value="50m-100m">$50M - $100M</SelectItem>
+                    <SelectItem value="100m-250m">$100M - $250M</SelectItem>
+                    <SelectItem value="over-250m">Over $250M</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Supporting Documents */}
+              <div className="space-y-4">
+                <Label>Supporting Documents</Label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                  <div className="text-center">
+                    <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-sm text-gray-600 mb-4">
+                      Upload supporting documents (pitch decks, financials, etc.)
+                    </p>
+                    <input
+                      type="file"
+                      multiple
+                      accept=".pdf,.doc,.docx,.ppt,.pptx"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                      id="file-upload"
+                      aria-label="Upload supporting documents"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => document.getElementById('file-upload')?.click()}
+                      disabled={uploading}
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      {uploading ? 'Uploading...' : 'Choose Files'}
+                    </Button>
+                    <p className="text-xs text-gray-500 mt-2">Max 5 files, 10MB each</p>
+                  </div>
+                  
+                  {/* Display uploaded files */}
+                  {formData.supporting_documents.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                      <p className="text-sm font-medium">Uploaded Files:</p>
+                      {formData.supporting_documents.map((fileData, index) => {
+                        const parsedData = JSON.parse(fileData);
+                        return (
+                          <div key={index} className="flex items-center text-xs text-gray-600">
+                            <FileText className="w-3 h-3 mr-2" />
+                            <span className="truncate">{parsedData.fileName}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+                
+                {/* Document Links */}
+                <div className="space-y-2">
+                  <Label>Document Links (Optional)</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Paste document links here"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          handleLinkUpload(e.currentTarget.value);
+                          e.currentTarget.value = '';
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        const input = document.querySelector('input[placeholder="Paste document links here"]') as HTMLInputElement;
+                        if (input?.value) {
+                          handleLinkUpload(input.value);
+                          input.value = '';
+                        }
+                      }}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  
+                  {/* Display uploaded links */}
+                  {formData.supporting_document_links.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      {formData.supporting_document_links.map((linkData, index) => {
+                        const parsedData = JSON.parse(linkData);
+                        return (
+                          <div key={index} className="flex items-center text-xs text-gray-600">
+                            <Link className="w-3 h-3 mr-2" />
+                            <span className="truncate">{parsedData.fileName}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Network Expectations</h3>
+              <p className="text-gray-600 mb-6">Tell us about your expectations from the ESCP Network.</p>
+            </div>
+            
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="expectations_from_network">What do you expect from the ESCP Network? *</Label>
+                <Textarea
+                  id="expectations_from_network"
+                  value={formData.expectations_from_network}
+                  onChange={(e) => setFormData(prev => ({ ...prev, expectations_from_network: e.target.value }))}
+                  placeholder="Describe how you plan to use the network and what value you hope to gain"
+                  rows={4}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="how_heard_about_network">How did you hear about the ESCP Network? *</Label>
+                <Textarea
+                  id="how_heard_about_network"
+                  value={formData.how_heard_about_network}
+                  onChange={(e) => setFormData(prev => ({ ...prev, how_heard_about_network: e.target.value }))}
+                  placeholder="Tell us how you discovered the ESCP Network"
+                  rows={3}
+                />
+              </div>
+              
+              <div className="space-y-4">
+                <Label>Topics of Interest (Select all that apply)</Label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {topics.map((topic) => (
+                    <div key={topic} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={topic}
+                        checked={formData.topics_of_interest.includes(topic)}
+                        onCheckedChange={() => handleTopicToggle(topic)}
+                      />
+                      <Label htmlFor={topic} className="text-sm font-normal">
+                        {topic}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  if (showSuccessMessage) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center py-12">
+            <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-12 h-12 text-green-600" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Application Submitted Successfully!</h1>
+            <p className="text-lg text-gray-600 mb-8">
+              Thank you for your interest in joining the ESCP Network. Your application has been submitted for review.
+              We'll get back to you within 5-7 business days.
+            </p>
+            <Button
+              onClick={() => {
+                setShowSuccessMessage(false);
+                setShowApplicationForm(false);
+                setCurrentSection(1);
+                setFormData({
+                  applicant_name: '',
+                  email: user?.email || '',
+                  vehicle_name: '',
+                  organization_website: '',
+                  domicile_countries: [],
+                  role_job_title: '',
+                  team_overview: '',
+                  investment_thesis: '',
+                  typical_check_size: '',
+                  number_of_investments: '',
+                  amount_raised_to_date: '',
+                  supporting_documents: [],
+                  supporting_document_links: [],
+                  expectations_from_network: '',
+                  how_heard_about_network: '',
+                  topics_of_interest: [],
+                });
+              }}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Submit Another Application
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Preview/Landing Page
+  if (!showApplicationForm) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6">
+        {/* Header */}
+        <div className="max-w-4xl mx-auto mb-12">
+          <div className="text-center">
+            <h1 className="text-5xl font-bold text-gray-900 mb-6">
+              Join the ESCP Network
+            </h1>
+            <p className="text-2xl text-gray-600 mb-8">
+              Connect with the world's leading emerging market fund managers
+            </p>
+          </div>
+        </div>
+
+        {/* Preview Cards */}
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            {/* Network Benefits */}
+            <div className="bg-white rounded-lg shadow-lg p-8">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6">
+                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Global Network</h3>
+              <p className="text-gray-600 mb-4">
+                Connect with 200+ fund managers across 25+ countries in emerging markets.
+              </p>
+              <ul className="text-sm text-gray-500 space-y-2">
+                <li>• Access to exclusive investment opportunities</li>
+                <li>• Peer-to-peer knowledge sharing</li>
+                <li>• Regional market insights</li>
+              </ul>
+            </div>
+
+            {/* Survey Access */}
+            <div className="bg-white rounded-lg shadow-lg p-8">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Market Intelligence</h3>
+              <p className="text-gray-600 mb-4">
+                Access comprehensive survey data and market insights from 2021-2024.
+              </p>
+              <ul className="text-sm text-gray-500 space-y-2">
+                <li>• Annual industry surveys</li>
+                <li>• Investment trend analysis</li>
+                <li>• Fund performance benchmarks</li>
+              </ul>
+            </div>
+
+            {/* Professional Development */}
+            <div className="bg-white rounded-lg shadow-lg p-8">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-6">
+                <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Professional Growth</h3>
+              <p className="text-gray-600 mb-4">
+                Enhance your expertise through exclusive events and resources.
+              </p>
+              <ul className="text-sm text-gray-500 space-y-2">
+                <li>• Exclusive webinars and workshops</li>
+                <li>• Best practice sharing</li>
+                <li>• Regulatory updates</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Application Preview */}
+          <div className="bg-white rounded-lg shadow-lg p-8 mb-12">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Ready to Join?</h2>
+              <p className="text-lg text-gray-600 mb-8">
+                Complete our simple 4-step application process to become a member
+              </p>
+            </div>
+
+            {/* Application Steps Preview */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-blue-600 font-bold">1</span>
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">Background Info</h3>
+                <p className="text-sm text-gray-600">Tell us about yourself and your organization</p>
+              </div>
+              
+              <div className="text-center">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-blue-600 font-bold">2</span>
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">Team Details</h3>
+                <p className="text-sm text-gray-600">Share information about your team</p>
+              </div>
+              
+              <div className="text-center">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-blue-600 font-bold">3</span>
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">Vehicle Info</h3>
+                <p className="text-sm text-gray-600">Describe your investment strategy</p>
+              </div>
+              
+              <div className="text-center">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-blue-600 font-bold">4</span>
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">Expectations</h3>
+                <p className="text-sm text-gray-600">Tell us about your network goals</p>
+              </div>
+            </div>
+
+            {/* CTA Button */}
+            <div className="text-center">
               <Button
-                variant="secondary"
-                size="sm"
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-                onClick={() => setShowApplicationModal(true)}
+                onClick={() => setShowApplicationForm(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold"
+                size="lg"
               >
-                <UserPlus className="w-4 h-4 mr-2" />
-                Join Network
+                Start Application
+              </Button>
+              <p className="text-sm text-gray-500 mt-4">
+                Takes approximately 10-15 minutes to complete
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      {/* Header with Back Button */}
+      <div className="max-w-4xl mx-auto mb-8">
+        <div className="flex items-center justify-between mb-8">
+          <Button
+            variant="outline"
+            onClick={() => setShowApplicationForm(false)}
+            className="flex items-center"
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Overview
+          </Button>
+        </div>
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            ESCP Network Application
+          </h1>
+          <p className="text-xl text-gray-600 mb-8">
+            Join the world's leading emerging market fund manager network
+          </p>
+        </div>
+      </div>
+      
+      {/* Application Form */}
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          <div className="space-y-6">
+            {/* Progress Bar */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm text-gray-600">
+                <span>Step {currentSection} of 4</span>
+                <span>{Math.round((currentSection / 4) * 100)}% Complete</span>
+              </div>
+              <Progress value={(currentSection / 4) * 100} className="w-full" />
+            </div>
+
+            {/* Form Content */}
+            {renderSection(currentSection)}
+
+            {/* Navigation Buttons */}
+            <div className="flex justify-between pt-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handlePrevious}
+                disabled={currentSection === 1}
+              >
+                Previous
+              </Button>
+              
+              <Button
+                type="button"
+                onClick={handleNext}
+                disabled={loading}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {loading ? 'Submitting...' : currentSection === 4 ? 'Submit Application' : 'Next'}
               </Button>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="group hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-blue-50 via-blue-100 to-indigo-100 border-blue-200 hover:border-blue-300">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Users className="w-5 h-5 text-blue-600" />
-                  <p className="text-sm font-semibold text-blue-700">Total Members</p>
-                </div>
-                <p className="text-3xl font-bold text-blue-900">{networkStats.totalMembers}</p>
-                <div className="flex items-center space-x-1">
-                  <ArrowUpRight className="w-4 h-4 text-green-600" />
-                  <span className="text-xs text-green-600 font-medium">+12% this month</span>
-                </div>
-              </div>
-              <div className="w-16 h-16 bg-blue-500/20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Users className="w-8 h-8 text-blue-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="group hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-emerald-50 via-green-100 to-teal-100 border-green-200 hover:border-green-300">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Building2 className="w-5 h-5 text-green-600" />
-                  <p className="text-sm font-semibold text-green-700">Active Funds</p>
-                </div>
-                <p className="text-3xl font-bold text-green-900">{networkStats.activeFunds}</p>
-                <div className="flex items-center space-x-1">
-                  <Flame className="w-4 h-4 text-orange-500" />
-                  <span className="text-xs text-orange-600 font-medium">Growing network</span>
-                </div>
-              </div>
-              <div className="w-16 h-16 bg-green-500/20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Building2 className="w-8 h-8 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="group hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-purple-50 via-purple-100 to-violet-100 border-purple-200 hover:border-purple-300">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <DollarSign className="w-5 h-5 text-purple-600" />
-                  <p className="text-sm font-semibold text-purple-700">Total AUM</p>
-                </div>
-                <p className="text-3xl font-bold text-purple-900">${(networkStats.totalAUM / 1000000000).toFixed(1)}B</p>
-                <div className="flex items-center space-x-1">
-                  <TrendingUp className="w-4 h-4 text-green-500" />
-                  <span className="text-xs text-green-600 font-medium">+8% growth</span>
-                </div>
-              </div>
-              <div className="w-16 h-16 bg-purple-500/20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <DollarSign className="w-8 h-8 text-purple-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="group hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100 border-orange-200 hover:border-orange-300">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Globe className="w-5 h-5 text-orange-600" />
-                  <p className="text-sm font-semibold text-orange-700">Global Reach</p>
-                </div>
-                <p className="text-3xl font-bold text-orange-900">{networkStats.regions}</p>
-                <div className="flex items-center space-x-1">
-                  <MapPin className="w-4 h-4 text-blue-500" />
-                  <span className="text-xs text-blue-600 font-medium">Countries</span>
-                </div>
-              </div>
-              <div className="w-16 h-16 bg-orange-500/20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Globe className="w-8 h-8 text-orange-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Content Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 bg-white/80 backdrop-blur-sm">
-          <TabsTrigger value="overview" className="flex items-center space-x-2">
-            <Home className="w-4 h-4" />
-            <span>Overview</span>
-          </TabsTrigger>
-          <TabsTrigger value="network" className="flex items-center space-x-2">
-            <Network className="w-4 h-4" />
-            <span>Network</span>
-          </TabsTrigger>
-          <TabsTrigger value="insights" className="flex items-center space-x-2">
-            <BarChart3 className="w-4 h-4" />
-            <span>Insights</span>
-          </TabsTrigger>
-          <TabsTrigger value="join" className="flex items-center space-x-2">
-            <UserPlus className="w-4 h-4" />
-            <span>Join</span>
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Recent Activity */}
-            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center text-gray-900">
-                  <Activity className="w-5 h-5 mr-2 text-blue-600" />
-                  Recent Activity
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {recentActivity.map((activity) => (
-                  <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-900">{activity.message}</p>
-                      <p className="text-xs text-gray-500">{activity.time}</p>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Featured Members */}
-            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center text-gray-900">
-                  <Star className="w-5 h-5 mr-2 text-yellow-600" />
-                  Featured Members
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {featuredMembers.map((member) => (
-                  <div key={member.id} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                    <Avatar className="w-10 h-10">
-                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                        {member.name.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-900">{member.name}</p>
-                      <p className="text-sm text-gray-600">{member.fund}</p>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <Badge variant="secondary" className="text-xs">{member.region}</Badge>
-                        <span className="text-xs text-gray-500">{member.aum}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        {/* Network Tab */}
-        <TabsContent value="network" className="space-y-6">
-          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center text-gray-900">
-                <Network className="w-5 h-5 mr-2 text-blue-600" />
-                Network Directory
-              </CardTitle>
-              <CardDescription>
-                Explore our global network of fund managers and investment professionals
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12">
-                <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Network className="w-12 h-12 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">Access Full Network</h3>
-                <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                  Join the network to access detailed profiles, contact information, and investment opportunities.
-                </p>
-                <Button 
-                  onClick={() => setShowApplicationModal(true)}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-                >
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  Join Network
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Insights Tab */}
-        <TabsContent value="insights" className="space-y-6">
-          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center text-gray-900">
-                <BarChart3 className="w-5 h-5 mr-2 text-green-600" />
-                Market Insights
-              </CardTitle>
-              <CardDescription>
-                Access exclusive data and analytics from our network
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12">
-                <div className="w-24 h-24 bg-gradient-to-br from-green-100 to-teal-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <BarChart3 className="w-12 h-12 text-green-600" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">Exclusive Insights</h3>
-                <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                  Get access to comprehensive market data, investment trends, and network analytics.
-                </p>
-                <Button 
-                  onClick={() => setShowApplicationModal(true)}
-                  className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white"
-                >
-                  <BarChart3 className="w-4 h-4 mr-2" />
-                  Access Insights
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Join Tab */}
-        <TabsContent value="join" className="space-y-6">
-          <div className="bg-gradient-to-br from-amber-50 via-beige-100 to-stone-50 rounded-2xl p-8">
-            <div className="flex flex-col lg:flex-row gap-8">
-              {/* Left Side - Content */}
-              <div className="flex-1 flex flex-col justify-center">
-                <div className="max-w-2xl">
-                  {/* Hero Section */}
-                  <div className="mb-8">
-                    <h2 className="text-4xl font-light text-gray-800 mb-4 leading-tight">
-                      Join the <span className="font-medium text-indigo-600">ESCP Network</span>
-                    </h2>
-                    <p className="text-lg text-gray-600 leading-relaxed">
-                      Connect with emerging market fund managers worldwide and unlock new investment opportunities through our exclusive network.
-                    </p>
-                  </div>
-
-                  {/* Key Benefits */}
-                  <div className="mb-8 space-y-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
-                      <span className="text-gray-700">Full network access to fund managers</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                      <span className="text-gray-700">Global investment insights and data</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                      <span className="text-gray-700">Exclusive networking events</span>
-                    </div>
-                  </div>
-
-                  {/* Application Button */}
-                  <Button 
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out hover:scale-105 rounded-xl"
-                    onClick={() => setShowApplicationModal(true)}
-                  >
-                    <FileText className="w-6 h-6 mr-3" />
-                    Start Your Application
-                  </Button>
-                </div>
-              </div>
-
-              {/* Right Side - Animation */}
-              <div className="flex-1 flex items-center justify-center">
-                <div className="relative w-full max-w-lg">
-                  {/* Animated Content */}
-                  <div className="relative">
-                    {animationSteps.map((step, index) => (
-                      <div
-                        key={index}
-                        className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
-                          index === currentAnimationStep 
-                            ? 'opacity-100 scale-100 rotate-0' 
-                            : 'opacity-0 scale-95 rotate-2'
-                        }`}
-                      >
-                        <div className={`${step.color} rounded-3xl p-8 shadow-xl border border-white/50`}>
-                          <div className="text-center">
-                            <div className={`w-20 h-20 ${step.color.replace('bg-', 'bg-').replace('-100', '-200')} rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg`}>
-                              <step.icon className={`w-10 h-10 ${step.iconColor}`} />
-                            </div>
-                            <h3 className="text-2xl font-medium text-gray-800 mb-4">
-                              {step.title}
-                            </h3>
-                            <p className="text-base text-gray-600 leading-relaxed text-center">
-                              {step.description}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Progress Dots */}
-                  <div className="flex justify-center space-x-3 mt-8">
-                    {animationSteps.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentAnimationStep(index)}
-                      title={`Go to step ${index + 1}`}
-                      className={`w-4 h-4 rounded-full transition-all duration-300 ${
-                        index === currentAnimationStep 
-                          ? 'bg-indigo-500 scale-125' 
-                          : 'bg-gray-300 hover:bg-gray-400'
-                      }`}
-                    />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
-      
-      {/* Application Modal */}
-      <ESCPApplicationModal 
-        open={showApplicationModal} 
-        onClose={() => setShowApplicationModal(false)} 
-      />
     </div>
   );
 };

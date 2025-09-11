@@ -23,9 +23,25 @@ const GoogleIcon = () => (
 
 const getErrorMessage = (error: unknown): string => {
   if (error && typeof error === 'object' && 'message' in error && typeof (error as any).message === 'string') {
-    return (error as any).message;
+    const message = (error as any).message;
+    
+    // Handle specific error cases
+    if (message.includes('500')) {
+      return 'Server error (500). This might be a temporary Supabase service issue. Please try again in a few moments.';
+    }
+    if (message.includes('Invalid login credentials')) {
+      return 'Invalid email or password. Please check your credentials and try again.';
+    }
+    if (message.includes('Email not confirmed')) {
+      return 'Please check your email and click the confirmation link before signing in.';
+    }
+    if (message.includes('Too many requests')) {
+      return 'Too many login attempts. Please wait a few minutes before trying again.';
+    }
+    
+    return message;
   }
-  return 'An unexpected error occurred';
+  return 'An unexpected error occurred. Please try again.';
 };
 
 export default function AuthForm() {
@@ -196,7 +212,7 @@ export default function AuthForm() {
 
 
   return (
-    <div className="min-h-screen bg-cover bg-center bg-fixed flex items-center justify-center p-4" style={{ backgroundImage: 'url(/auth.jpg)' }}>
+    <div className="min-h-screen bg-cover bg-center bg-fixed flex items-center justify-center p-4 font-rubik" style={{ backgroundImage: 'url(/auth.jpg)' }}>
       <Card className="w-full max-w-md border border-blue-600/40 bg-blue-700/30 backdrop-blur-md relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-white">

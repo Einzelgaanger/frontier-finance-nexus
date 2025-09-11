@@ -11,13 +11,13 @@ import {
   LogOut,
   Menu,
   X,
-  User,
   Crown,
   ChevronLeft,
   ChevronRight,
   FileText,
   Calendar,
-  Eye
+  ArrowLeft,
+  Send
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -55,6 +55,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
     setSidebarOpen(false);
   };
 
+
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
@@ -65,10 +66,9 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
       name: "Dashboard", 
       href: "/dashboard", 
       icon: LayoutDashboard, 
-      roles: ["admin", "member", "viewer"],
-      description: userRole === "viewer" ? "Your overview and insights" : "Overview and analytics",
+      roles: ["admin", "viewer"],
+      description: (userRole === "viewer" || !userRole) ? "Your overview and insights" : "Overview and analytics",
       badge: null,
-      shortcut: "D",
       color: "blue"
     },
     { 
@@ -76,59 +76,26 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
       href: "/network", 
       icon: Network, 
       roles: ["admin", "member", "viewer"],
-      description: userRole === "viewer" ? "Browse approved fund managers" : "Fund manager directory",
-      badge: "12",
-      shortcut: "N",
+      description: (userRole === "viewer" || !userRole) ? "Browse approved fund managers" : "Fund manager directory",
+      badge: null,
       color: "green"
     },
     { 
       name: "Surveys", 
       href: "/survey", 
       icon: FileText, 
-      roles: ["admin", "member", "viewer"],
-      description: userRole === "viewer" ? "View available surveys" : "Complete and manage surveys",
+      roles: ["member", "viewer"],
+      description: (userRole === "viewer" || !userRole) ? "View survey data and insights" : "Complete and view surveys",
       badge: null,
-      shortcut: "S",
       color: "purple"
     },
     { 
-      name: "Survey 2021", 
-      href: "/survey/2021", 
-      icon: Calendar, 
-      roles: ["admin", "member", "viewer"],
-      description: userRole === "viewer" ? "View 2021 survey data" : "2021 ESCP Network Survey",
+      name: "Application", 
+      href: "/application", 
+      icon: Send, 
+      roles: ["viewer"],
+      description: "Submit membership application",
       badge: null,
-      shortcut: "1",
-      color: "orange"
-    },
-    { 
-      name: "Survey 2022", 
-      href: "/survey/2022", 
-      icon: Calendar, 
-      roles: ["admin", "member", "viewer"],
-      description: userRole === "viewer" ? "View 2022 survey data" : "2022 ESCP Network Survey",
-      badge: null,
-      shortcut: "2",
-      color: "orange"
-    },
-    { 
-      name: "Survey 2023", 
-      href: "/survey/2023", 
-      icon: Calendar, 
-      roles: ["admin", "member", "viewer"],
-      description: userRole === "viewer" ? "View 2023 survey data" : "2023 ESCP Network Survey",
-      badge: null,
-      shortcut: "3",
-      color: "orange"
-    },
-    { 
-      name: "Survey 2024", 
-      href: "/survey/2024", 
-      icon: Calendar, 
-      roles: ["admin", "member", "viewer"],
-      description: userRole === "viewer" ? "View 2024 survey data" : "2024 ESCP Network Survey",
-      badge: null,
-      shortcut: "4",
       color: "orange"
     },
     { 
@@ -138,7 +105,6 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
       roles: ["admin"],
       description: "Data insights and reports",
       badge: null,
-      shortcut: "A",
       color: "red"
     },
     { 
@@ -147,123 +113,38 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
       icon: Shield, 
       roles: ["admin"],
       description: "User and system management",
-      badge: "5",
-      shortcut: "P",
+      badge: null,
       color: "black"
     },
   ];
 
 
   const filteredNavItems = navigationItems.filter(item => 
-    userRole && item.roles.includes(userRole)
+    userRole ? item.roles.includes(userRole) : item.roles.includes('viewer')
   );
 
-  // Helper function to get smooth color classes
+  // Helper function to get clean color classes
   const getSmoothColorClasses = (color: string, isActive: boolean = false) => {
-    const colorMap = {
-      blue: {
-        icon: 'text-blue-500',
-        iconBg: 'bg-blue-50',
-        text: 'text-gray-700',
-        bg: isActive ? 'bg-blue-50' : 'bg-transparent',
-        hover: 'hover:bg-gray-50',
-        border: 'border-transparent',
-        accent: 'bg-blue-500'
-      },
-      green: {
-        icon: 'text-green-500',
-        iconBg: 'bg-green-50',
-        text: 'text-gray-700',
-        bg: isActive ? 'bg-green-50' : 'bg-transparent',
-        hover: 'hover:bg-gray-50',
-        border: 'border-transparent',
-        accent: 'bg-green-500'
-      },
-      orange: {
-        icon: 'text-orange-500',
-        iconBg: 'bg-orange-50',
-        text: 'text-gray-700',
-        bg: isActive ? 'bg-orange-50' : 'bg-transparent',
-        hover: 'hover:bg-gray-50',
-        border: 'border-transparent',
-        accent: 'bg-orange-500'
-      },
-      purple: {
-        icon: 'text-purple-500',
-        iconBg: 'bg-purple-50',
-        text: 'text-gray-700',
-        bg: isActive ? 'bg-purple-50' : 'bg-transparent',
-        hover: 'hover:bg-gray-50',
-        border: 'border-transparent',
-        accent: 'bg-purple-500'
-      },
-      red: {
-        icon: 'text-red-500',
-        iconBg: 'bg-red-50',
-        text: 'text-gray-700',
-        bg: isActive ? 'bg-red-50' : 'bg-transparent',
-        hover: 'hover:bg-gray-50',
-        border: 'border-transparent',
-        accent: 'bg-red-500'
-      },
-      black: {
-        icon: 'text-gray-700',
-        iconBg: 'bg-gray-50',
-        text: 'text-gray-700',
-        bg: isActive ? 'bg-gray-50' : 'bg-transparent',
-        hover: 'hover:bg-gray-50',
-        border: 'border-transparent',
-        accent: 'bg-gray-700'
-      }
+    return {
+      icon: isActive ? 'text-black' : 'text-[#f5f5dc]',
+      iconBg: isActive ? 'bg-[#f5f5dc]' : 'bg-[#f5f5dc]/20',
+      text: isActive ? 'text-[#f5f5dc] font-semibold' : 'text-[#f5f5dc]',
+      bg: isActive ? 'bg-[#f5f5dc]/20' : 'bg-transparent',
+      hover: 'hover:bg-[#f5f5dc]/10 hover:shadow-lg hover:scale-[1.02]',
+      border: 'border-transparent',
+      accent: 'bg-[#f5f5dc]'
     };
-    return colorMap[color as keyof typeof colorMap] || colorMap.blue;
   };
 
   const isActive = (href: string) => {
     if (href === "/dashboard" && location.pathname === "/dashboard") return true;
+    if (href === "/survey" && location.pathname.startsWith("/survey")) return true;
     if (href === "/network" && location.pathname === "/network") return true;
-    if (href === "/survey" && location.pathname === "/survey") return true;
-    if (href === "/survey/2021" && location.pathname === "/survey/2021") return true;
-    if (href === "/survey/2022" && location.pathname === "/survey/2022") return true;
-    if (href === "/survey/2023" && location.pathname === "/survey/2023") return true;
-    if (href === "/survey/2024" && location.pathname === "/survey/2024") return true;
     if (href === "/analytics" && location.pathname === "/analytics") return true;
     if (href === "/admin" && location.pathname.startsWith("/admin")) return true;
     return false;
   };
 
-  const getRoleConfig = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return {
-          label: 'Administrator',
-          icon: Crown,
-          className: 'bg-gradient-to-r from-red-500 to-red-600 text-white',
-          description: 'Full system access',
-          color: 'text-red-500'
-        };
-      case 'member':
-        return {
-          label: 'Member',
-          icon: User,
-          className: 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white',
-          description: 'Network access',
-          color: 'text-emerald-500'
-        };
-      case 'viewer':
-      default:
-        return {
-          label: 'Visitor',
-          icon: Eye,
-          className: 'bg-gradient-to-r from-blue-500 to-blue-600 text-white',
-          description: 'Limited access',
-          color: 'text-blue-500'
-        };
-    }
-  };
-
-
-  const roleConfig = getRoleConfig(userRole || 'viewer');
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -274,29 +155,13 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
             e.preventDefault();
             navigate('/dashboard');
             break;
-          case 'n':
-            e.preventDefault();
-            navigate('/network');
-            break;
           case 's':
             e.preventDefault();
             navigate('/survey');
             break;
-          case '1':
+          case 'n':
             e.preventDefault();
-            navigate('/survey/2021');
-            break;
-          case '2':
-            e.preventDefault();
-            navigate('/survey/2022');
-            break;
-          case '3':
-            e.preventDefault();
-            navigate('/survey/2023');
-            break;
-          case '4':
-            e.preventDefault();
-            navigate('/survey/2024');
+            navigate('/network');
             break;
           case 'a':
             e.preventDefault();
@@ -319,7 +184,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
   }, [navigate, sidebarCollapsed]);
 
   return (
-    <div className="min-h-screen flex transition-all duration-300 bg-gray-50">
+    <div className="min-h-screen transition-all duration-300 bg-[#f5f5dc]">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div 
@@ -329,55 +194,17 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
       )}
 
       {/* Sidebar */}
-      <div className={cn(
-        "fixed inset-y-0 left-0 z-50 transform transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 lg:flex-shrink-0",
-        sidebarOpen ? "translate-x-0" : "-translate-x-full",
-        sidebarCollapsed ? "w-16" : "w-72",
-        "bg-white border-r border-gray-100 shadow-sm"
-      )}>
+      <div 
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 transform transition-all duration-300 ease-in-out lg:translate-x-0",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full",
+          "w-24",
+          "bg-black border-r-2 border-beige shadow-2xl overflow-hidden rounded-r-2xl font-rubik"
+        )}
+      >
         <div className="flex flex-col h-screen overflow-hidden">
-          {/* Sidebar Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-100 transition-all duration-300">
-            {!sidebarCollapsed && (
-            <div className="flex items-center space-x-3">
-                <div className={`w-8 h-8 ${roleConfig.className} rounded-lg flex items-center justify-center shadow-sm`}>
-                  <roleConfig.icon className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                  <h1 className="text-lg font-semibold text-gray-900 transition-colors">
-                    ESCP Network
-                  </h1>
-                  <p className="text-xs text-gray-500 transition-colors">
-                    {userRole === 'admin' ? 'Admin Portal' : 
-                     userRole === 'member' ? 'Member Portal' : 
-                     'Visitor Portal'}
-                  </p>
-                </div>
-              </div>
-            )}
-            <div className="flex items-center space-x-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="lg:hidden"
-              onClick={() => setSidebarOpen(false)}
-            >
-              <X className="w-5 h-5" />
-            </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="hidden lg:flex"
-              >
-                {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-              </Button>
-            </div>
-          </div>
-
-
           {/* Navigation */}
-          <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+          <nav className="flex-1 p-2 space-y-1 overflow-hidden bg-black min-h-0">
             {filteredNavItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.href);
@@ -388,134 +215,56 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
                   key={item.name}
                   onClick={() => handleNavigation(item.href)}
                   className={cn(
-                    "w-full flex items-center justify-center px-3 py-2.5 rounded-lg transition-all duration-200 group relative",
+                    "w-full flex flex-col items-center px-2 py-3 rounded-xl transition-all duration-500 group relative transform",
                     colors.bg,
                     colors.hover,
-                    active && "shadow-sm",
-                    sidebarCollapsed ? "justify-center" : "justify-between"
+                    colors.border,
+                    active && "shadow-xl ring-2 ring-beige/30"
                   )}
-                  title={sidebarCollapsed ? item.name : undefined}
+                  title={item.name}
                 >
                   <div className={cn(
-                    "flex items-center transition-all duration-200",
-                    sidebarCollapsed ? "justify-center" : "space-x-3"
+                    "p-1.5 rounded-xl transition-all duration-500 shadow-md group-hover:shadow-lg group-hover:scale-110 mb-1.5",
+                    colors.iconBg,
+                    active && "shadow-xl"
                   )}>
-                    <div className={cn(
-                      "p-2 rounded-lg transition-all duration-200",
-                      colors.iconBg,
-                      active && "shadow-sm",
-                      sidebarCollapsed ? "p-2.5" : "p-2"
-                    )}>
-                      <Icon className={cn("transition-colors", colors.icon, sidebarCollapsed ? "w-5 h-5" : "w-4 h-4")} />
-                    </div>
-                    {!sidebarCollapsed && (
-                      <>
-                        <div className="text-left">
-                          <p className={cn("font-medium text-sm transition-colors", colors.text)}>
-                            {item.name}
-                          </p>
-                        </div>
-                      </>
-                    )}
+                    <Icon className={cn("transition-colors w-4 h-4", colors.icon)} />
                   </div>
-                  {!sidebarCollapsed && (
-                    <div className="flex items-center space-x-2">
-                      {item.badge && (
-                        <Badge className="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full">
-                          {item.badge}
-                        </Badge>
-                      )}
-                      <kbd className="px-2 py-0.5 bg-gray-100 text-gray-500 text-xs rounded-md">
-                        {item.shortcut}
-                      </kbd>
-                    </div>
-                  )}
-                  {active && (
-                    <div className={cn("absolute left-0 top-0 bottom-0 w-1 rounded-r-full", colors.accent)} />
-                  )}
+                  <div className="text-center">
+                    <p className={cn("font-medium text-xs transition-colors", colors.text)}>
+                      {item.name}
+                    </p>
+                  </div>
                 </button>
               );
             })}
           </nav>
 
           {/* Sign Out Button */}
-          <div className="relative">
+          <div className="p-2">
             <button
               onClick={handleSignOut}
-              className={cn(
-                "w-full flex items-center px-3 py-2.5 rounded-lg transition-all duration-200 group hover:bg-red-50",
-                sidebarCollapsed ? "justify-center" : "justify-between"
-              )}
-              title={sidebarCollapsed ? "Sign Out" : undefined}
+              className="w-full flex flex-col items-center px-2 py-3 rounded-xl transition-all duration-500 group hover:bg-[#f5f5dc]/10 hover:shadow-lg hover:scale-[1.02]"
+              title="Sign Out"
             >
-              <div className={cn(
-                "flex items-center transition-all duration-200",
-                sidebarCollapsed ? "justify-center" : "space-x-3"
-              )}>
-                <div className={cn(
-                  "p-2 rounded-lg bg-red-50 transition-all duration-200",
-                  sidebarCollapsed ? "p-2.5" : "p-2"
-                )}>
-                  <LogOut className={cn("text-red-500", sidebarCollapsed ? "w-5 h-5" : "w-4 h-4")} />
-                </div>
-                {!sidebarCollapsed && (
-                  <div className="text-left">
-                    <p className="font-medium text-sm text-gray-700">
-                      Sign Out
-                    </p>
-                  </div>
-                )}
+              <div className="p-1.5 rounded-xl bg-[#f5f5dc]/20 transition-all duration-500 shadow-md group-hover:shadow-lg group-hover:scale-110 mb-1.5">
+                <LogOut className="text-[#f5f5dc] w-4 h-4" />
               </div>
-              {!sidebarCollapsed && (
-                <ChevronRight className="w-4 h-4 text-gray-400" />
-              )}
+              <div className="text-center">
+                <p className="font-medium text-xs text-[#f5f5dc]">
+                  Sign Out
+                </p>
+              </div>
             </button>
           </div>
 
-          {/* User Info */}
-          <div className="relative">
-            <button
-              onClick={() => console.log('User info clicked')}
-              className={cn(
-                "w-full flex items-center px-3 py-2.5 rounded-lg transition-all duration-200 group hover:bg-blue-50",
-                sidebarCollapsed ? "justify-center" : "justify-between"
-              )}
-              title={sidebarCollapsed ? `${user?.email} - ${roleConfig.label}` : undefined}
-            >
-              <div className={cn(
-                "flex items-center transition-all duration-200",
-                sidebarCollapsed ? "justify-center" : "space-x-3"
-              )}>
-                <div className={cn(
-                  "p-2 rounded-lg bg-blue-50 transition-all duration-200",
-                  sidebarCollapsed ? "p-2.5" : "p-2"
-                )}>
-                  <User className={cn("text-blue-500", sidebarCollapsed ? "w-5 h-5" : "w-4 h-4")} />
-                </div>
-                {!sidebarCollapsed && (
-                  <div className="text-left">
-                    <p className="font-medium text-sm text-gray-700 truncate">
-                      {user?.email}
-                    </p>
-                    <Badge className="mt-1 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
-                      <roleConfig.icon className="w-3 h-3 mr-1" />
-                      {roleConfig.label}
-                    </Badge>
-                  </div>
-                )}
-              </div>
-              {!sidebarCollapsed && (
-                <ChevronRight className="w-4 h-4 text-gray-400" />
-              )}
-            </button>
-          </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen">
+      <div className="flex flex-col min-w-0 bg-[#f5f5dc] ml-24">
         {/* Top Header */}
-        <header className="border-b border-gray-200 px-6 py-4 flex-shrink-0 transition-colors bg-white">
+        <header className="border-b-2 border-black px-6 py-4 transition-colors bg-[#f5f5dc] font-rubik sticky top-0 z-10">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button
@@ -526,37 +275,74 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
               >
                 <Menu className="w-5 h-5" />
               </Button>
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 transition-colors">
-                  {location.pathname === '/dashboard' && 'Dashboard'}
-                  {location.pathname === '/network' && 'Network Directory'}
-                  {location.pathname === '/survey' && 'Survey Center'}
-                  {location.pathname === '/survey/2021' && '2021 ESCP Network Survey'}
-                  {location.pathname === '/survey/2022' && '2022 ESCP Network Survey'}
-                  {location.pathname === '/survey/2023' && '2023 ESCP Network Survey'}
-                  {location.pathname === '/survey/2024' && '2024 ESCP Network Survey'}
-                  {location.pathname === '/analytics' && 'Analytics Hub'}
-                  {location.pathname.startsWith('/admin') && 'Admin Panel'}
-                </h2>
-                <p className="text-sm text-gray-500 transition-colors">
-                  {location.pathname === '/dashboard' && 'Overview of your network and activities'}
-                  {location.pathname === '/network' && 'Browse and connect with fund managers'}
-                  {location.pathname === '/survey' && 'Complete and manage surveys'}
-                  {location.pathname === '/survey/2021' && 'Complete the 2021 ESCP Network Survey'}
-                  {location.pathname === '/survey/2022' && 'Complete the 2022 ESCP Network Survey'}
-                  {location.pathname === '/survey/2023' && 'Complete the 2023 ESCP Network Survey'}
-                  {location.pathname === '/survey/2024' && 'Complete the 2024 ESCP Network Survey'}
-                  {location.pathname === '/analytics' && 'Data insights and comprehensive reports'}
-                  {location.pathname.startsWith('/admin') && 'Manage users, content, and system settings'}
-                </p>
-              </div>
+                <div>
+                  {location.pathname === '/dashboard' ? (
+                    <>
+                      <h2 className="text-2xl font-bold text-black transition-colors">
+                        Welcome back, Administrator
+                      </h2>
+                      <p className="text-sm text-black/70 transition-colors">
+                        Here's what's happening with your network today
+                      </p>
+                    </>
+                  ) : location.pathname.startsWith('/network/fund-manager/') ? (
+                    <div className="flex items-center space-x-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate('/network')}
+                        className="flex items-center space-x-2"
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                        <span>Back to Network</span>
+                      </Button>
+                      <div className="h-6 w-px bg-gray-300"></div>
+                      <h2 className="text-2xl font-bold text-black transition-colors">
+                        Fund Manager Details
+                      </h2>
+                    </div>
+                  ) : (
+                    <>
+                      <h2 className="text-2xl font-bold text-black transition-colors">
+                        {location.pathname.startsWith('/survey') && 'Surveys'}
+                        {location.pathname === '/network' && 'Network Directory'}
+                        {location.pathname === '/analytics' && 'Analytics Hub'}
+                        {location.pathname.startsWith('/admin') && 'Admin Panel'}
+                      </h2>
+                      <p className="text-sm text-black/70 transition-colors">
+                        {location.pathname.startsWith('/survey') && 'Complete and view survey responses'}
+                        {location.pathname === '/network' && 'Browse and connect with fund managers'}
+                        {location.pathname === '/analytics' && 'Data insights and comprehensive reports'}
+                        {location.pathname.startsWith('/admin') && 'Manage users, content, and system settings'}
+                      </p>
+                    </>
+                  )}
+                </div>
             </div>
+            
+            {/* Right side - User info for dashboard */}
+            {location.pathname === '/dashboard' && (
+              <div className="flex items-center space-x-4">
+                {/* User Info */}
+                <div className="flex items-center space-x-3 bg-gray-200 rounded-2xl px-4 py-2 border-2 border-gray-300">
+                  {/* Profile Picture */}
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                    {user?.email?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-medium text-black">
+                      {user?.email}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
             
           </div>
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden">
+        <main className="flex-1 bg-[#f5f5dc]">
           {children}
         </main>
       </div>

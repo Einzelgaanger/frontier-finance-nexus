@@ -145,7 +145,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Handle redirect after successful authentication
           if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && 
               window.location.pathname === '/auth') {
-            window.location.href = '/dashboard';
+            // Redirect members to network, others to dashboard
+            const redirectPath = userRole === 'member' ? '/network' : '/dashboard';
+            window.location.href = redirectPath;
           }
         } else {
           setUserRole(null);
@@ -211,10 +213,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      console.log('Attempting sign in for:', email);
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
+      
+      if (error) {
+        console.error('Supabase auth error:', error);
+        // Handle specific error types
+        if (error.message.includes('500')) {
+          console.error('Server error (500) - This might be a Supabase service issue');
+        }
+      } else {
+        console.log('Sign in successful:', data);
+      }
+      
       return { error };
     } catch (error) {
       console.error('Sign in error:', error);

@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import Header from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -12,6 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
+import { ArrowLeft } from 'lucide-react';
 
 // Basic schema for the 2023 MSME Financing Survey
 const survey2023Schema = z.object({
@@ -127,6 +128,7 @@ const survey2023Schema = z.object({
 type Survey2023FormData = z.infer<typeof survey2023Schema>;
 
 export default function Survey2023() {
+  const navigate = useNavigate();
   const [currentSection, setCurrentSection] = useState(1);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -464,7 +466,306 @@ export default function Survey2023() {
     return (
     <div className="space-y-6">
       <h3 className="text-xl font-semibold">Section 2: Organizational Background and Team</h3>
-        <p className="text-sm text-gray-600">(Temporarily simplified)</p>
+      
+      <FormField
+        control={form.control}
+        name="legal_entity_achieved"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>1. When was the legal entity achieved? (MM/YYYY)</FormLabel>
+            <FormControl>
+              <Input {...field} placeholder="MM/YYYY" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="first_close_achieved"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>2. When was the first close achieved? (MM/YYYY)</FormLabel>
+            <FormControl>
+              <Input {...field} placeholder="MM/YYYY" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="first_investment_achieved"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>3. When was the first investment achieved? (MM/YYYY)</FormLabel>
+            <FormControl>
+              <Input {...field} placeholder="MM/YYYY" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="geographic_markets"
+        render={() => (
+          <FormItem>
+            <FormLabel>4. Which geographic markets do you focus on? *</FormLabel>
+            <div className="grid grid-cols-2 gap-3">
+              {['Africa - East Africa', 'Africa - West Africa', 'Africa - Southern Africa', 'Africa - North Africa', 'Middle East and North Africa', 'Asia - South Asia', 'Asia - Southeast Asia', 'Global'].map((market) => (
+                <FormField
+                  key={market}
+                  control={form.control}
+                  name="geographic_markets"
+                  render={({ field }) => {
+                    return (
+                      <FormItem
+                        key={market}
+                        className="flex flex-row items-start space-x-3 space-y-0"
+                      >
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value?.includes(market)}
+                            onCheckedChange={(checked) => {
+                              return checked
+                                ? field.onChange([...field.value, market])
+                                : field.onChange(
+                                    field.value?.filter(
+                                      (value) => value !== market
+                                    )
+                                  )
+                            }}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal">
+                          {market}
+                        </FormLabel>
+                      </FormItem>
+                    )
+                  }}
+                />
+              ))}
+            </div>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="geographic_markets_other"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Other geographic markets (please specify)</FormLabel>
+            <FormControl>
+              <Input {...field} placeholder="Specify other markets" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="team_based"
+        render={() => (
+          <FormItem>
+            <FormLabel>5. Where is your team based? *</FormLabel>
+            <div className="grid grid-cols-2 gap-3">
+              {['Africa - East Africa', 'Africa - West Africa', 'Africa - Southern Africa', 'Africa - North Africa', 'Middle East and North Africa', 'Asia - South Asia', 'Asia - Southeast Asia', 'Global', 'Other'].map((location) => (
+                <FormField
+                  key={location}
+                  control={form.control}
+                  name="team_based"
+                  render={({ field }) => {
+                    return (
+                      <FormItem
+                        key={location}
+                        className="flex flex-row items-start space-x-3 space-y-0"
+                      >
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value?.includes(location)}
+                            onCheckedChange={(checked) => {
+                              return checked
+                                ? field.onChange([...field.value, location])
+                                : field.onChange(
+                                    field.value?.filter(
+                                      (value) => value !== location
+                                    )
+                                  )
+                            }}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal">
+                          {location}
+                        </FormLabel>
+                      </FormItem>
+                    )
+                  }}
+                />
+              ))}
+            </div>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="team_based_other"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Other team location (please specify)</FormLabel>
+            <FormControl>
+              <Input {...field} placeholder="Specify other location" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <div className="grid grid-cols-3 gap-4">
+        <FormField
+          control={form.control}
+          name="fte_staff_2022"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>6a. FTE staff in 2022</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  {...field} 
+                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                  placeholder="0" 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="fte_staff_current"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>6b. FTE staff currently</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  {...field} 
+                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                  placeholder="0" 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="fte_staff_2024_est"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>6c. FTE staff estimated for 2024</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  {...field} 
+                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                  placeholder="0" 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <FormField
+        control={form.control}
+        name="principals_count"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>7. Number of principals</FormLabel>
+            <FormControl>
+              <Input 
+                type="number" 
+                {...field} 
+                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                placeholder="0" 
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="gender_inclusion"
+        render={() => (
+          <FormItem>
+            <FormLabel>8. Gender inclusion in your team *</FormLabel>
+            <div className="grid grid-cols-2 gap-3">
+              {['Gender diversity in investment team', 'Gender diversity in portfolio companies', 'Gender-focused fund', 'Gender lens investing', 'Other'].map((inclusion) => (
+                <FormField
+                  key={inclusion}
+                  control={form.control}
+                  name="gender_inclusion"
+                  render={({ field }) => {
+                    return (
+                      <FormItem
+                        key={inclusion}
+                        className="flex flex-row items-start space-x-3 space-y-0"
+                      >
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value?.includes(inclusion)}
+                            onCheckedChange={(checked) => {
+                              return checked
+                                ? field.onChange([...field.value, inclusion])
+                                : field.onChange(
+                                    field.value?.filter(
+                                      (value) => value !== inclusion
+                                    )
+                                  )
+                            }}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal">
+                          {inclusion}
+                        </FormLabel>
+                      </FormItem>
+                    )
+                  }}
+                />
+              ))}
+            </div>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="gender_inclusion_other"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Other gender inclusion (please specify)</FormLabel>
+            <FormControl>
+              <Input {...field} placeholder="Specify other gender inclusion" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     </div>
   );
   }
@@ -473,7 +774,321 @@ export default function Survey2023() {
     return (
     <div className="space-y-6">
       <h3 className="text-xl font-semibold">Section 3: Vehicle Construct</h3>
-        <p className="text-sm text-gray-600">(Temporarily simplified)</p>
+      
+      <FormField
+        control={form.control}
+        name="legal_domicile"
+        render={() => (
+          <FormItem>
+            <FormLabel>1. Legal domicile of your fund *</FormLabel>
+            <div className="grid grid-cols-2 gap-3">
+              {['Mauritius', 'Cayman Islands', 'Luxembourg', 'Netherlands', 'United Kingdom', 'United States', 'South Africa', 'Kenya', 'Nigeria', 'Other'].map((domicile) => (
+                <FormField
+                  key={domicile}
+                  control={form.control}
+                  name="legal_domicile"
+                  render={({ field }) => {
+                    return (
+                      <FormItem
+                        key={domicile}
+                        className="flex flex-row items-start space-x-3 space-y-0"
+                      >
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value?.includes(domicile)}
+                            onCheckedChange={(checked) => {
+                              return checked
+                                ? field.onChange([...field.value, domicile])
+                                : field.onChange(
+                                    field.value?.filter(
+                                      (value) => value !== domicile
+                                    )
+                                  )
+                            }}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal">
+                          {domicile}
+                        </FormLabel>
+                      </FormItem>
+                    )
+                  }}
+                />
+              ))}
+            </div>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="legal_domicile_other"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Other legal domicile (please specify)</FormLabel>
+            <FormControl>
+              <Input {...field} placeholder="Specify other domicile" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <div className="grid grid-cols-2 gap-4">
+        <FormField
+          control={form.control}
+          name="currency_investments"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>2a. Currency for investments *</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="USD">USD</SelectItem>
+                  <SelectItem value="EUR">EUR</SelectItem>
+                  <SelectItem value="GBP">GBP</SelectItem>
+                  <SelectItem value="ZAR">ZAR</SelectItem>
+                  <SelectItem value="KES">KES</SelectItem>
+                  <SelectItem value="NGN">NGN</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="currency_lp_commitments"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>2b. Currency for LP commitments *</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="USD">USD</SelectItem>
+                  <SelectItem value="EUR">EUR</SelectItem>
+                  <SelectItem value="GBP">GBP</SelectItem>
+                  <SelectItem value="ZAR">ZAR</SelectItem>
+                  <SelectItem value="KES">KES</SelectItem>
+                  <SelectItem value="NGN">NGN</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <FormField
+        control={form.control}
+        name="fund_type_status"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>3. Fund type/status *</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select fund type" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="Closed-end fund">Closed-end fund</SelectItem>
+                <SelectItem value="Open-ended vehicle">Open-ended vehicle</SelectItem>
+                <SelectItem value="Limited liability company">Limited liability company</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="fund_type_status_other"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Other fund type (please specify)</FormLabel>
+            <FormControl>
+              <Input {...field} placeholder="Specify other fund type" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <div className="grid grid-cols-3 gap-4">
+        <FormField
+          control={form.control}
+          name="current_funds_raised"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>4a. Current funds raised (USD)</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  {...field} 
+                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                  placeholder="0" 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="current_amount_invested"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>4b. Current amount invested (USD)</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  {...field} 
+                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                  placeholder="0" 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="target_fund_size"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>4c. Target fund size (USD)</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  {...field} 
+                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                  placeholder="0" 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <FormField
+        control={form.control}
+        name="target_investments_count"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>5. Target number of investments</FormLabel>
+            <FormControl>
+              <Input 
+                type="number" 
+                {...field} 
+                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                placeholder="0" 
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="follow_on_investment_permitted"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>6. Are follow-on investments permitted? *</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select option" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="Yes">Yes</SelectItem>
+                <SelectItem value="No">No</SelectItem>
+                <SelectItem value="Case by case">Case by case</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="concessionary_capital"
+        render={() => (
+          <FormItem>
+            <FormLabel>7. Concessionary capital *</FormLabel>
+            <div className="grid grid-cols-2 gap-3">
+              {['Government grants', 'Tax incentives', 'Loan guarantees', 'Technical assistance', 'Other'].map((capital) => (
+                <FormField
+                  key={capital}
+                  control={form.control}
+                  name="concessionary_capital"
+                  render={({ field }) => {
+                    return (
+                      <FormItem
+                        key={capital}
+                        className="flex flex-row items-start space-x-3 space-y-0"
+                      >
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value?.includes(capital)}
+                            onCheckedChange={(checked) => {
+                              return checked
+                                ? field.onChange([...field.value, capital])
+                                : field.onChange(
+                                    field.value?.filter(
+                                      (value) => value !== capital
+                                    )
+                                  )
+                            }}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal">
+                          {capital}
+                        </FormLabel>
+                      </FormItem>
+                    )
+                  }}
+                />
+              ))}
+            </div>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="concessionary_capital_other"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Other concessionary capital (please specify)</FormLabel>
+            <FormControl>
+              <Input {...field} placeholder="Specify other capital" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     </div>
   );
   }
@@ -482,7 +1097,101 @@ export default function Survey2023() {
     return (
     <div className="space-y-6">
       <h3 className="text-xl font-semibold">Section 4: Investment Thesis</h3>
-        <p className="text-sm text-gray-600">(Temporarily simplified)</p>
+      
+      <FormField
+        control={form.control}
+        name="sustainable_development_goals"
+        render={() => (
+          <FormItem>
+            <FormLabel>1. Which Sustainable Development Goals (SDGs) does your fund target? *</FormLabel>
+            <div className="grid grid-cols-2 gap-3">
+              {['No Poverty', 'Zero Hunger', 'Good Health', 'Quality Education', 'Gender Equality', 'Clean Water', 'Affordable Energy', 'Decent Work', 'Industry Innovation', 'Reduced Inequalities', 'Sustainable Cities', 'Responsible Consumption', 'Climate Action', 'Life Below Water', 'Life on Land', 'Peace and Justice', 'Partnerships'].map((sdg) => (
+                <FormField
+                  key={sdg}
+                  control={form.control}
+                  name="sustainable_development_goals"
+                  render={({ field }) => {
+                    return (
+                      <FormItem
+                        key={sdg}
+                        className="flex flex-row items-start space-x-3 space-y-0"
+                      >
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value?.includes(sdg)}
+                            onCheckedChange={(checked) => {
+                              return checked
+                                ? field.onChange([...field.value, sdg])
+                                : field.onChange(
+                                    field.value?.filter(
+                                      (value) => value !== sdg
+                                    )
+                                  )
+                            }}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal">
+                          {sdg}
+                        </FormLabel>
+                      </FormItem>
+                    )
+                  }}
+                />
+              ))}
+            </div>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="gender_lens_investing"
+        render={() => (
+          <FormItem>
+            <FormLabel>2. Gender lens investing approach</FormLabel>
+            <div className="space-y-3">
+              <FormField
+                control={form.control}
+                name="gender_lens_investing"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Do you have a gender lens investing approach?</FormLabel>
+                    <Select onValueChange={(value) => field.onChange({...field.value, approach: value})}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select approach" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Yes">Yes</SelectItem>
+                        <SelectItem value="No">No</SelectItem>
+                        <SelectItem value="Planning to implement">Planning to implement</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="gender_lens_investing_other"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Additional details on gender lens investing</FormLabel>
+            <FormControl>
+              <Input {...field} placeholder="Provide additional details" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     </div>
   );
   }
@@ -491,7 +1200,53 @@ export default function Survey2023() {
     return (
     <div className="space-y-6">
       <h3 className="text-xl font-semibold">Section 5: Pipeline Sourcing and Portfolio Construction</h3>
-        <p className="text-sm text-gray-600">(Temporarily simplified)</p>
+      
+      <FormField
+        control={form.control}
+        name="average_investment_size"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>1. Average investment size *</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select size range" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="0-50k">$0 - $50,000</SelectItem>
+                <SelectItem value="50k-100k">$50,000 - $100,000</SelectItem>
+                <SelectItem value="100k-250k">$100,000 - $250,000</SelectItem>
+                <SelectItem value="250k-500k">$250,000 - $500,000</SelectItem>
+                <SelectItem value="500k-1m">$500,000 - $1,000,000</SelectItem>
+                <SelectItem value="1m+">$1,000,000+</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="capital_raise_percentage"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>2. What percentage of capital raise do you typically provide? (%)</FormLabel>
+            <FormControl>
+              <Input 
+                type="number" 
+                {...field} 
+                onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                placeholder="0" 
+                min="0"
+                max="100"
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     </div>
   );
   }
@@ -500,7 +1255,123 @@ export default function Survey2023() {
     return (
     <div className="space-y-6">
       <h3 className="text-xl font-semibold">Section 6: Portfolio Value Creation and Exits</h3>
-        <p className="text-sm text-gray-600">(Temporarily simplified)</p>
+      
+      <FormField
+        control={form.control}
+        name="business_development_support"
+        render={() => (
+          <FormItem>
+            <FormLabel>1. What business development support do you provide? *</FormLabel>
+            <div className="grid grid-cols-2 gap-3">
+              {['Strategic guidance', 'Financial management', 'Operations support', 'Marketing assistance', 'Technology support', 'Legal support', 'Other'].map((support) => (
+                <FormField
+                  key={support}
+                  control={form.control}
+                  name="business_development_support"
+                  render={({ field }) => {
+                    return (
+                      <FormItem
+                        key={support}
+                        className="flex flex-row items-start space-x-3 space-y-0"
+                      >
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value?.includes(support)}
+                            onCheckedChange={(checked) => {
+                              return checked
+                                ? field.onChange([...field.value, support])
+                                : field.onChange(
+                                    field.value?.filter(
+                                      (value) => value !== support
+                                    )
+                                  )
+                            }}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal">
+                          {support}
+                        </FormLabel>
+                      </FormItem>
+                    )
+                  }}
+                />
+              ))}
+            </div>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="investment_timeframe"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>2. Typical investment timeframe *</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select timeframe" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="0-1 years">0-1 years</SelectItem>
+                <SelectItem value="1-3 years">1-3 years</SelectItem>
+                <SelectItem value="3-5 years">3-5 years</SelectItem>
+                <SelectItem value="5-7 years">5-7 years</SelectItem>
+                <SelectItem value="7+ years">7+ years</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="exit_form"
+        render={() => (
+          <FormItem>
+            <FormLabel>3. Preferred exit forms *</FormLabel>
+            <div className="grid grid-cols-2 gap-3">
+              {['IPO', 'Strategic acquisition', 'Financial acquisition', 'Management buyout', 'Other'].map((exit) => (
+                <FormField
+                  key={exit}
+                  control={form.control}
+                  name="exit_form"
+                  render={({ field }) => {
+                    return (
+                      <FormItem
+                        key={exit}
+                        className="flex flex-row items-start space-x-3 space-y-0"
+                      >
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value?.includes(exit)}
+                            onCheckedChange={(checked) => {
+                              return checked
+                                ? field.onChange([...field.value, exit])
+                                : field.onChange(
+                                    field.value?.filter(
+                                      (value) => value !== exit
+                                    )
+                                  )
+                            }}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal">
+                          {exit}
+                        </FormLabel>
+                      </FormItem>
+                    )
+                  }}
+                />
+              ))}
+            </div>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     </div>
   );
   }
@@ -509,7 +1380,106 @@ export default function Survey2023() {
     return (
     <div className="space-y-6">
       <h3 className="text-xl font-semibold">Section 7: Performance to Date and Current Outlook</h3>
-        <p className="text-sm text-gray-600">(Temporarily simplified)</p>
+      
+      <div className="grid grid-cols-2 gap-4">
+        <FormField
+          control={form.control}
+          name="equity_investments_count"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>1a. Number of equity investments made</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  {...field} 
+                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                  placeholder="0" 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="debt_investments_count"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>1b. Number of debt investments made</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  {...field} 
+                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                  placeholder="0" 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <FormField
+          control={form.control}
+          name="equity_exits_count"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>2a. Number of equity exits achieved</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  {...field} 
+                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                  placeholder="0" 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="debt_exits_count"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>2b. Number of debt exits achieved</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  {...field} 
+                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                  placeholder="0" 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <FormField
+        control={form.control}
+        name="receive_survey_results"
+        render={({ field }) => (
+          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+            <FormControl>
+              <Checkbox
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+            </FormControl>
+            <div className="space-y-1 leading-none">
+              <FormLabel>
+                I would like to receive the survey results
+              </FormLabel>
+            </div>
+          </FormItem>
+        )}
+      />
     </div>
   );
   }
@@ -518,7 +1488,72 @@ export default function Survey2023() {
     return (
     <div className="space-y-6">
       <h3 className="text-xl font-semibold">Section 8: Future Research</h3>
-        <p className="text-sm text-gray-600">(Temporarily simplified)</p>
+      
+      <FormField
+        control={form.control}
+        name="future_research_data"
+        render={() => (
+          <FormItem>
+            <FormLabel>1. What additional data would be most valuable for future research? *</FormLabel>
+            <div className="grid grid-cols-2 gap-3">
+              {['Impact measurement', 'Financial performance', 'Portfolio company growth', 'Market analysis', 'Regulatory insights', 'Other'].map((data) => (
+                <FormField
+                  key={data}
+                  control={form.control}
+                  name="future_research_data"
+                  render={({ field }) => {
+                    return (
+                      <FormItem
+                        key={data}
+                        className="flex flex-row items-start space-x-3 space-y-0"
+                      >
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value?.includes(data)}
+                            onCheckedChange={(checked) => {
+                              return checked
+                                ? field.onChange([...field.value, data])
+                                : field.onChange(
+                                    field.value?.filter(
+                                      (value) => value !== data
+                                    )
+                                  )
+                            }}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal">
+                          {data}
+                        </FormLabel>
+                      </FormItem>
+                    )
+                  }}
+                />
+              ))}
+            </div>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="one_on_one_meeting"
+        render={({ field }) => (
+          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+            <FormControl>
+              <Checkbox
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+            </FormControl>
+            <div className="space-y-1 leading-none">
+              <FormLabel>
+                I would be interested in a one-on-one meeting to discuss the research
+              </FormLabel>
+            </div>
+          </FormItem>
+        )}
+      />
     </div>
   );
   }
@@ -539,8 +1574,14 @@ export default function Survey2023() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
       <div className="max-w-4xl mx-auto p-6">
+        {/* Back Button */}
+        <div className="mb-6">
+          <Button onClick={() => navigate('/survey')} variant="outline" size="sm">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Surveys
+          </Button>
+        </div>
         {renderIntroductoryBriefing()}
         
         <Form {...form}>

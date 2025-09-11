@@ -3,14 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { useAuth } from '@/hooks/useAuth';
 import {
   Users,
   UserCheck,
   Building2,
   TrendingUp,
   Activity,
-  Database,
-  Shield,
   Globe,
   FileText,
   BarChart3,
@@ -22,11 +21,9 @@ import {
   ArrowDownRight,
   Crown,
   Target,
-  Zap,
   Star,
   Eye,
   UserPlus,
-  Settings,
   Bell,
   Search
 } from 'lucide-react';
@@ -56,6 +53,7 @@ interface ActivityItem {
 
 const AdminDashboardV2 = () => {
   const { toast } = useToast();
+  const { user, userRole } = useAuth();
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [stats, setStats] = useState<StatCard[]>([
@@ -102,12 +100,6 @@ const AdminDashboardV2 = () => {
   ]);
 
   const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
-  const [systemStatus, setSystemStatus] = useState({
-    database: { status: 'Online', healthy: true, uptime: '99.9%' },
-    apiServices: { status: 'Healthy', healthy: true, uptime: '99.8%' },
-    authentication: { status: 'Active', healthy: true, uptime: '100%' },
-    fileStorage: { status: 'Connected', healthy: true, uptime: '99.7%' }
-  });
 
   const fetchAllData = useCallback(async () => {
     try {
@@ -235,6 +227,30 @@ const AdminDashboardV2 = () => {
       ];
       
       activities.push(...recentSurveys);
+
+      // Add recent application activities
+      try {
+        const { data: recentApplications, error: appError } = await supabase
+          .from('applications')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        if (!appError && recentApplications) {
+          const applicationActivities = recentApplications.map((app) => ({
+            id: `app-${app.id}`,
+            type: 'user' as const,
+            message: `New application from ${app.applicant_name} (${app.vehicle_name})`,
+            timestamp: new Date(app.created_at).toLocaleString(),
+            icon: UserPlus,
+            color: 'text-orange-600'
+          }));
+
+          activities.push(...applicationActivities);
+        }
+      } catch (error) {
+        console.error('Error fetching applications for activity:', error);
+      }
       
       // Add system activities
       activities.push(
@@ -243,7 +259,7 @@ const AdminDashboardV2 = () => {
           type: 'system',
           message: 'System backup completed',
           timestamp: '1 hour ago',
-          icon: Database,
+          icon: Activity,
           color: 'text-purple-600'
         },
         {
@@ -276,173 +292,95 @@ const AdminDashboardV2 = () => {
   }, [fetchAllData]);
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Welcome Section */}
-      <div className="bg-blue-600 rounded-2xl p-8 text-white">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Welcome back, Administrator</h1>
-            <p className="text-blue-100 text-lg">
-              Here's what's happening with your network today
+    <div className="p-3 bg-[#f5f5dc] font-rubik">
+      {/* Main Layout - Two Column */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        
+        {/* Left Side - Recent Activity */}
+        <div className="lg:col-span-2">
+          <div className="bg-[#f5f5dc] border-2 border-black rounded-lg p-5">
+            <div className="flex items-center mb-4">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-3">
+                <Activity className="w-4 h-4 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold text-black">Recent Activity</h3>
+            </div>
+            <p className="text-sm text-black/70 mb-4">
+              Latest network activities and system events
             </p>
-          </div>
-          <div className="hidden md:flex items-center space-x-4">
-            <Button
-              onClick={fetchAllData}
-              disabled={loading}
-              variant="secondary"
-              className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              Refresh Data
-            </Button>
-            <div className="text-right">
-              <p className="text-sm text-blue-100">Last updated</p>
-              <p className="font-medium">{lastUpdated.toLocaleTimeString()}</p>
+            <div className="space-y-3">
+              {recentActivity.map((activity, index) => {
+                const colors = [
+                  'bg-gradient-to-br from-green-500 to-green-600',
+                  'bg-gradient-to-br from-purple-500 to-purple-600',
+                  'bg-gradient-to-br from-orange-500 to-orange-600',
+                  'bg-gradient-to-br from-pink-500 to-pink-600',
+                  'bg-gradient-to-br from-indigo-500 to-indigo-600'
+                ];
+                const colorClass = colors[index % colors.length];
+                
+                return (
+                  <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-black/10 transition-colors border border-black/20">
+                    <div className={`w-8 h-8 rounded-lg ${colorClass} flex items-center justify-center`}>
+                      <activity.icon className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-black">{activity.message}</p>
+                      <p className="text-xs text-black/60">{activity.timestamp}</p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          <Card key={index} className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 mb-1">{stat.title}</p>
-                  <div className="text-3xl font-bold text-gray-900 mb-2">
-                    {loading ? (
-                      <div className="animate-pulse bg-gray-200 h-8 w-16 rounded"></div>
-                    ) : (
-                      stat.value
-                    )}
+        {/* Right Side - Stats Cards (Single Column) */}
+        <div className="space-y-2">
+          {stats.map((stat, index) => {
+            const colors = [
+              'bg-gradient-to-br from-blue-500 to-blue-600',
+              'bg-gradient-to-br from-green-500 to-green-600',
+              'bg-gradient-to-br from-purple-500 to-purple-600',
+              'bg-gradient-to-br from-orange-500 to-orange-600'
+            ];
+            const colorClass = colors[index % colors.length];
+            
+            return (
+              <div key={index} className="bg-[#f5f5dc] border-2 border-black rounded-lg p-3 hover:bg-black/10 transition-all duration-300">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-black/70 mb-1">{stat.title}</p>
+                    <div className="text-xl font-bold text-black mb-1">
+                      {loading ? (
+                        <div className="animate-pulse bg-black/20 h-5 w-10 rounded"></div>
+                      ) : (
+                        stat.value
+                      )}
+                    </div>
+                    <p className="text-xs text-black/60">{stat.description}</p>
                   </div>
-                  <p className="text-xs text-gray-500">{stat.description}</p>
+                  <div className={`w-6 h-6 ${colorClass} rounded-lg flex items-center justify-center`}>
+                    <stat.icon className="w-3 h-3 text-white" />
+                  </div>
                 </div>
-                <div className={`w-12 h-12 ${stat.bgColor} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-                  <stat.icon className={`w-6 h-6 ${stat.textColor}`} />
+                <div className="flex items-center mt-1">
+                  {stat.trend.isPositive ? (
+                    <ArrowUpRight className="w-3 h-3 text-green-600 mr-1" />
+                  ) : (
+                    <ArrowDownRight className="w-3 h-3 text-red-600 mr-1" />
+                  )}
+                  <span className={`text-xs font-medium ${stat.trend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                    +{stat.trend.value}%
+                  </span>
+                  <span className="text-xs text-black/60 ml-1">vs last month</span>
                 </div>
               </div>
-              <div className="flex items-center mt-4">
-                {stat.trend.isPositive ? (
-                  <ArrowUpRight className="w-4 h-4 text-green-500 mr-1" />
-                ) : (
-                  <ArrowDownRight className="w-4 h-4 text-red-500 mr-1" />
-                )}
-                <span className={`text-sm font-medium ${stat.trend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                  +{stat.trend.value}%
-                </span>
-                <span className="text-xs text-gray-500 ml-2">vs last month</span>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+            );
+          })}
+        </div>
+
       </div>
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Activity */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Activity className="w-5 h-5 mr-2 text-blue-600" />
-              Recent Activity
-            </CardTitle>
-            <div className="text-sm text-gray-600">
-              Latest network activities and system events
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className={`w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center`}>
-                    <activity.icon className={`w-4 h-4 ${activity.color}`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900">{activity.message}</p>
-                    <p className="text-xs text-gray-500">{activity.timestamp}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* System Status */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Database className="w-5 h-5 mr-2 text-green-600" />
-              System Status
-            </CardTitle>
-            <div className="text-sm text-gray-600">
-              Real-time system health monitoring
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {Object.entries(systemStatus).map(([key, status]) => (
-                <div key={key} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-2 h-2 rounded-full ${status.healthy ? 'bg-green-500' : 'bg-red-500'}`} />
-                    <span className="text-sm font-medium text-gray-900 capitalize">
-                      {key.replace(/([A-Z])/g, ' $1').trim()}
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <p className={`text-sm font-medium ${status.healthy ? 'text-green-600' : 'text-red-600'}`}>
-                      {status.status}
-                    </p>
-                    <p className="text-xs text-gray-500">{status.uptime}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Zap className="w-5 h-5 mr-2 text-yellow-600" />
-            Quick Actions
-          </CardTitle>
-          <div className="text-sm text-gray-600">
-            Common administrative tasks and shortcuts
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Link to="/admin">
-              <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center space-y-2 hover:bg-blue-50 hover:border-blue-200 transition-colors">
-                <Shield className="w-6 h-6 text-blue-600" />
-                <span className="text-sm font-medium">User Management</span>
-              </Button>
-            </Link>
-            <Link to="/analytics">
-              <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center space-y-2 hover:bg-purple-50 hover:border-purple-200 transition-colors">
-                <BarChart3 className="w-6 h-6 text-purple-600" />
-                <span className="text-sm font-medium">Analytics</span>
-              </Button>
-            </Link>
-            <Link to="/network">
-              <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center space-y-2 hover:bg-green-50 hover:border-green-200 transition-colors">
-                <Globe className="w-6 h-6 text-green-600" />
-                <span className="text-sm font-medium">Network Directory</span>
-              </Button>
-            </Link>
-            <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center space-y-2 hover:bg-orange-50 hover:border-orange-200 transition-colors">
-              <Settings className="w-6 h-6 text-orange-600" />
-              <span className="text-sm font-medium">System Settings</span>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };

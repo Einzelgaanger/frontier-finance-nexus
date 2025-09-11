@@ -231,7 +231,8 @@ import {
   FolderCloudPaste,
   FolderCloudCut,
   FolderCloudDuplicate,
-  FolderCloudShare
+  FolderCloudShare,
+  Settings
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Link, useNavigate } from 'react-router-dom';
@@ -551,24 +552,24 @@ const AdminNetworkCards = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       <div className="max-w-7xl mx-auto p-6 space-y-8">
-        {/* Ultra-Modern Header */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-3xl p-8 text-white">
-          <div className="absolute inset-0 bg-black/10"></div>
-          <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-48 translate-x-48"></div>
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full translate-y-32 -translate-x-32"></div>
+        {/* Professional Header */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 rounded-2xl p-8 text-white">
+          <div className="absolute inset-0 bg-black/5"></div>
+          <div className="absolute top-0 right-0 w-96 h-96 bg-white/3 rounded-full -translate-y-48 translate-x-48"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/3 rounded-full translate-y-32 -translate-x-32"></div>
           
           <div className="relative z-10">
             <div className="flex items-center justify-between">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                  <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/20">
                     <NetworkIcon className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+                    <h1 className="text-4xl font-bold text-white">
                       Network Management
                     </h1>
-                    <p className="text-purple-100 text-lg font-medium">
+                    <p className="text-slate-200 text-lg font-medium">
                       Manage and monitor the ESCP network members
                     </p>
                   </div>
@@ -890,104 +891,101 @@ const AdminNetworkCards = () => {
               </CardContent>
             </Card>
 
-            {/* Member Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {paginatedManagers.map((manager) => (
-                <Card 
-                  key={manager.id} 
-                  className="group hover:shadow-2xl transition-all duration-300 border-0 shadow-lg bg-white/90 backdrop-blur-sm hover:bg-white"
-                >
-                  <CardHeader className="pb-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <Avatar className="w-12 h-12">
-                          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+            {/* Clean Fund Manager Cards - Only Essential Info */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {paginatedManagers.map((manager, index) => {
+                // Color scheme based on index for distinct visual separation
+                const colorSchemes = [
+                  { bg: 'bg-gradient-to-br from-blue-50 to-blue-100', border: 'border-blue-200', accent: 'text-blue-600' },
+                  { bg: 'bg-gradient-to-br from-emerald-50 to-emerald-100', border: 'border-emerald-200', accent: 'text-emerald-600' },
+                  { bg: 'bg-gradient-to-br from-purple-50 to-purple-100', border: 'border-purple-200', accent: 'text-purple-600' },
+                  { bg: 'bg-gradient-to-br from-orange-50 to-orange-100', border: 'border-orange-200', accent: 'text-orange-600' },
+                  { bg: 'bg-gradient-to-br from-rose-50 to-rose-100', border: 'border-rose-200', accent: 'text-rose-600' },
+                  { bg: 'bg-gradient-to-br from-indigo-50 to-indigo-100', border: 'border-indigo-200', accent: 'text-indigo-600' }
+                ];
+                const colorScheme = colorSchemes[index % colorSchemes.length];
+                
+                return (
+                  <Card 
+                    key={manager.id} 
+                    className={`group hover:shadow-xl transition-all duration-300 border-2 ${colorScheme.border} ${colorScheme.bg} hover:scale-105 cursor-pointer`}
+                    onClick={() => {
+                      setSelectedManager(manager);
+                      addToRecentlyViewed(manager);
+                    }}
+                  >
+                    <CardContent className="p-6">
+                      {/* Profile Picture - Large and Centered */}
+                      <div className="flex justify-center mb-4">
+                        <Avatar className="w-20 h-20 border-4 border-white shadow-lg">
+                          <AvatarFallback className={`${colorScheme.accent} font-bold text-2xl bg-gradient-to-br from-white to-gray-100`}>
                             {manager.profile?.first_name?.[0]}{manager.profile?.last_name?.[0]}
                           </AvatarFallback>
                         </Avatar>
-                        <div>
-                          <h3 className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                            {manager.fund_name}
-                          </h3>
-                          <p className="text-sm text-gray-600">{manager.participant_name}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toggleFavorite(manager.id)}
-                          className="p-1"
-                        >
-                          <Star className={`w-4 h-4 ${favorites.has(manager.id) ? 'text-yellow-500 fill-current' : 'text-gray-400'}`} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedManager(manager);
-                            addToRecentlyViewed(manager);
-                          }}
-                          className="p-1"
-                        >
-                          <MoreHorizontal className="w-4 h-4 text-gray-400" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <MapPin className="w-4 h-4" />
-                        <span>{manager.primary_investment_region}</span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <Building2 className="w-4 h-4" />
-                        <span>{manager.fund_type}</span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <Users className="w-4 h-4" />
-                        <span>{manager.team_size} team members</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {manager.sector_focus?.slice(0, 3).map((sector, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
-                          {sector}
-                        </Badge>
-                      ))}
-                    </div>
-                    
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                      <div className="flex items-center space-x-2">
-                        <Badge 
-                          variant={manager.has_survey ? "default" : "secondary"}
-                          className={manager.has_survey ? "bg-green-100 text-green-800" : ""}
-                        >
-                          {manager.has_survey ? 'Complete' : 'Pending'}
-                        </Badge>
-                        <Badge variant="outline" className="text-xs">
-                          {manager.role_badge}
-                        </Badge>
                       </div>
                       
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedManager(manager);
-                          addToRecentlyViewed(manager);
-                        }}
-                      >
-                        <Eye className="w-4 h-4 mr-2" />
-                        View
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      {/* Firm Name - Prominent */}
+                      <div className="text-center mb-6">
+                        <h3 className="font-bold text-gray-900 text-xl leading-tight mb-2">
+                          {manager.firm_name || manager.fund_name || 'Unnamed Firm'}
+                        </h3>
+                      </div>
+                      
+                      {/* Team Based - Clean Display */}
+                      <div className="space-y-3 mb-4">
+                        <div className="flex items-center space-x-2">
+                          <Users className={`w-5 h-5 ${colorScheme.accent}`} />
+                          <span className="text-sm font-semibold text-gray-700">Team Based</span>
+                        </div>
+                        <div className="pl-7">
+                          {manager.team_based && manager.team_based.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {manager.team_based.slice(0, 3).map((location, idx) => (
+                                <Badge key={idx} variant="secondary" className="text-xs bg-gray-100 text-gray-700">
+                                  {location}
+                                </Badge>
+                              ))}
+                              {manager.team_based.length > 3 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{manager.team_based.length - 3}
+                                </Badge>
+                              )}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-gray-500">Not specified</p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Geographic Focus - Clean Display */}
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-2">
+                          <Globe className={`w-5 h-5 ${colorScheme.accent}`} />
+                          <span className="text-sm font-semibold text-gray-700">Geographic Focus</span>
+                        </div>
+                        <div className="pl-7">
+                          {manager.geographic_focus && manager.geographic_focus.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {manager.geographic_focus.slice(0, 3).map((region, idx) => (
+                                <Badge key={idx} variant="secondary" className="text-xs bg-gray-100 text-gray-700">
+                                  {region}
+                                </Badge>
+                              ))}
+                              {manager.geographic_focus.length > 3 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{manager.geographic_focus.length - 3}
+                                </Badge>
+                              )}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-gray-500">Not specified</p>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
 
             {/* Pagination */}

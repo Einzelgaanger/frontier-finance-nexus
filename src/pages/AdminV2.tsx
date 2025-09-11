@@ -1,7 +1,37 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import SidebarLayout from '@/components/layout/SidebarLayout';
 import AdminFundManagers from '@/components/admin/AdminFundManagers';
+import ApplicationManagement from '@/components/admin/ApplicationManagement';
+import CreateUserModal from '@/components/admin/CreateUserModal';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
+import { 
+  Shield, 
+  User, 
+  FileText, 
+  Clock, 
+  CheckCircle, 
+  Users, 
+  Activity, 
+  UserPlus, 
+  Mail, 
+  MapPin, 
+  Calendar, 
+  XCircle, 
+  Eye,
+  RefreshCw,
+  Search,
+  BarChart3
+} from 'lucide-react';
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#84CC16', '#F97316'];
 
@@ -433,117 +463,7 @@ const AdminV2 = () => {
 
             {/* Applications Tab */}
             <TabsContent value="applications" className="space-y-6">
-              {/* Filters */}
-              <Card className="border-0 shadow-sm">
-                <CardContent className="p-6">
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="flex-1">
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                        <Input
-                          placeholder="Search applications..."
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                          className="pl-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger className="w-full sm:w-48 border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                        <SelectValue placeholder="Filter by status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="approved">Approved</SelectItem>
-                        <SelectItem value="rejected">Rejected</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      onClick={() => setShowCreateUserModal(true)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
-                    >
-                      <UserPlus className="w-4 h-4 mr-2" />
-                      Create User
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Applications Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredRequests.map((request) => (
-                  <Card 
-                    key={request.id} 
-                    className="group border-0 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
-                    onClick={() => handleViewApplication(request)}
-                  >
-                    <CardHeader className="pb-4">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-                          {request.applicant_name}
-                        </CardTitle>
-                        <Badge 
-                          variant="default" 
-                          className={`text-xs font-medium ${
-                            request.status === 'pending' 
-                              ? 'bg-yellow-100 text-yellow-700 border-yellow-200' 
-                              : request.status === 'approved' 
-                              ? 'bg-green-100 text-green-700 border-green-200' 
-                              : 'bg-red-100 text-red-700 border-red-200'
-                          }`}
-                        >
-                          {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-                        </Badge>
-                      </div>
-                      <CardDescription className="text-gray-600">
-                        {request.vehicle_name}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Mail className="w-4 h-4 mr-2" />
-                        {request.email}
-                      </div>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <MapPin className="w-4 h-4 mr-2" />
-                        {request.domicile_country || 'Not specified'}
-                      </div>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Calendar className="w-4 h-4 mr-2" />
-                        {request.created_at ? new Date(request.created_at).toLocaleDateString() : 'Unknown'}
-                      </div>
-                      {request.status === 'pending' && (
-                        <div className="flex space-x-2 pt-2">
-                          <Button
-                            size="sm"
-                            className="bg-green-600 hover:bg-green-700 text-white flex-1"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleReviewApplication(request.id, 'approved');
-                            }}
-                          >
-                            <CheckCircle className="w-4 h-4 mr-1" />
-                            Approve
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            className="flex-1"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleReviewApplication(request.id, 'rejected');
-                            }}
-                          >
-                            <XCircle className="w-4 h-4 mr-1" />
-                            Reject
-                          </Button>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              <ApplicationManagement />
             </TabsContent>
 
             {/* Members Tab */}

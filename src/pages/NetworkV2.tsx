@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import {
+import { 
   Search,
   Filter,
   Grid3X3,
@@ -42,7 +42,8 @@ import {
   Flame,
   Play,
   Pause,
-  RefreshCw
+  RefreshCw,
+  ArrowUpRight
 } from 'lucide-react';
 
 interface FundManager {
@@ -94,7 +95,7 @@ interface FundManager {
   };
 }
 
-const NetworkV2 = () => {
+const NetworkV2 = React.memo(() => {
   const { userRole } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -102,6 +103,7 @@ const NetworkV2 = () => {
   const [fundManagers, setFundManagers] = useState<FundManager[]>([]);
   const [filteredManagers, setFilteredManagers] = useState<FundManager[]>([]);
   const [loading, setLoading] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRegion, setFilterRegion] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -122,7 +124,9 @@ const NetworkV2 = () => {
   // Fetch all fund managers
   const fetchFundManagers = useCallback(async () => {
     try {
+      if (initialLoad) {
       setLoading(true);
+      }
       console.log('Fetching network data...');
 
       // Fetch survey data to determine who has surveys
@@ -198,9 +202,11 @@ const NetworkV2 = () => {
         ];
       }
 
+      // Batch state updates to prevent blinking
       setFundManagers(processedManagers);
       setFilteredManagers(processedManagers);
       setLastUpdated(new Date());
+      setInitialLoad(false);
     } catch (error) {
       console.error('Error fetching fund managers:', error);
       toast({
@@ -211,7 +217,7 @@ const NetworkV2 = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, initialLoad]);
 
   useEffect(() => {
     fetchFundManagers();
@@ -408,169 +414,102 @@ const NetworkV2 = () => {
 
   return (
     <SidebarLayout>
-      <div className="p-6 space-y-8">
-        {/* Ultra-Modern Header Section */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-3xl p-8 text-white">
-          <div className="absolute inset-0 bg-black/10"></div>
-          <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-48 translate-x-48"></div>
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full translate-y-32 -translate-x-32"></div>
-          
-          <div className="relative z-10">
-            <div className="flex items-center justify-between">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                    <NetworkIcon className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
-                      Network Hub
-                    </h1>
-                    <p className="text-purple-100 text-lg font-medium">
-                      Discover & Connect with Global Fund Managers
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-6">
+      <div key="network-container" className="p-6 space-y-8 min-h-screen">
+
+        {/* Network Overview Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 relative z-0">
+          {/* Total Fund Managers */}
+          <Card className="group hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-blue-50 via-blue-100 to-indigo-100 border-blue-200 hover:border-blue-300 relative z-10">
+            <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+                <div className="space-y-1">
                   <div className="flex items-center space-x-2">
-                    <Sparkles className="w-5 h-5 text-yellow-300" />
-                    <span className="text-sm font-medium">{networkStats.total} Active Members</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Globe className="w-5 h-5 text-cyan-300" />
-                    <span className="text-sm font-medium">{networkStats.regions} Regions</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <TrendingUp className="w-5 h-5 text-green-300" />
-                    <span className="text-sm font-medium">{networkStats.completionRate}% Complete</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="hidden lg:flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <Button
-                    onClick={() => setIsAutoRefresh(!isAutoRefresh)}
-                    variant="secondary"
-                    size="sm"
-                    className={`${isAutoRefresh ? 'bg-green-500/20 text-green-100 border-green-400/30' : 'bg-white/20 text-white border-white/30'} hover:bg-white/30`}
-                  >
-                    {isAutoRefresh ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
-                    {isAutoRefresh ? 'Auto-Refresh ON' : 'Auto-Refresh OFF'}
-                  </Button>
-                  
-                  <Button
-                    onClick={fetchFundManagers}
-                    disabled={loading}
-                    variant="secondary"
-                    size="sm"
-                    className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-                  >
-                    <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                    Refresh
-                  </Button>
-                </div>
-                
-                <div className="text-right">
-                  <p className="text-sm text-purple-100">Last updated</p>
-                  <p className="font-semibold text-white">{lastUpdated.toLocaleTimeString()}</p>
-                </div>
+                    <Users className="w-4 h-4 text-blue-600" />
+                    <p className="text-xs font-semibold text-blue-700">Fund Managers</p>
+            </div>
+                  <p className="text-2xl font-bold text-blue-900">{networkStats.total}</p>
+                  <div className="flex items-center space-x-1">
+                    <NetworkIcon className="w-3 h-3 text-blue-500" />
+                    <span className="text-xs text-blue-600 font-medium">In network</span>
               </div>
             </div>
+                <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center group-hover:scale-102 transition-transform">
+                  <Users className="w-6 h-6 text-blue-600" />
           </div>
-        </div>
-
-        {/* Enhanced Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="group hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-blue-50 via-blue-100 to-indigo-100 border-blue-200 hover:border-blue-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Users className="w-5 h-5 text-blue-600" />
-                    <p className="text-sm font-semibold text-blue-700">Total Members</p>
-                  </div>
-                  <p className="text-3xl font-bold text-blue-900">{networkStats.total}</p>
-                  <div className="flex items-center space-x-1">
-                    <ArrowUpRight className="w-4 h-4 text-green-600" />
-                    <span className="text-xs text-green-600 font-medium">+12% this month</span>
-                  </div>
-                </div>
-                <div className="w-16 h-16 bg-blue-500/20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Users className="w-8 h-8 text-blue-600" />
-                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="group hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-emerald-50 via-green-100 to-teal-100 border-green-200 hover:border-green-300">
-            <CardContent className="p-6">
+          {/* Geographic Coverage */}
+          <Card className="group hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-emerald-50 via-green-100 to-teal-100 border-green-200 hover:border-green-300 relative z-10">
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <div className="flex items-center space-x-2">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                    <p className="text-sm font-semibold text-green-700">Profile Complete</p>
+                    <Globe className="w-4 h-4 text-green-600" />
+                    <p className="text-xs font-semibold text-green-700">Regions Covered</p>
                   </div>
-                  <p className="text-3xl font-bold text-green-900">{networkStats.withSurveys}</p>
+                  <p className="text-2xl font-bold text-green-900">{networkStats.regions}</p>
                   <div className="space-y-1">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-green-600">Completion Rate</span>
-                      <span className="font-semibold text-green-600">{networkStats.completionRate}%</span>
-                    </div>
-                    <Progress value={networkStats.completionRate} className="h-2" />
-                  </div>
-                </div>
-                <div className="w-16 h-16 bg-green-500/20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <CheckCircle className="w-8 h-8 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="group hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-purple-50 via-purple-100 to-violet-100 border-purple-200 hover:border-purple-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Globe className="w-5 h-5 text-purple-600" />
-                    <p className="text-sm font-semibold text-purple-700">Global Reach</p>
-                  </div>
-                  <p className="text-3xl font-bold text-purple-900">{networkStats.regions}</p>
-                  <div className="space-y-1">
-                    <p className="text-xs text-purple-600">Top Regions:</p>
+                    <p className="text-xs text-green-600">Global presence</p>
                     <div className="flex flex-wrap gap-1">
                       {networkStats.topRegions.slice(0, 2).map((region, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs bg-purple-200 text-purple-700">
+                        <Badge key={index} variant="secondary" className="text-xs bg-green-200 text-green-700">
                           {region}
                         </Badge>
                       ))}
                     </div>
                   </div>
                 </div>
-                <div className="w-16 h-16 bg-purple-500/20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Globe className="w-8 h-8 text-purple-600" />
+                <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center group-hover:scale-102 transition-transform">
+                  <Globe className="w-6 h-6 text-green-600" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="group hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100 border-orange-200 hover:border-orange-300">
-            <CardContent className="p-6">
+          {/* Fund Types Variety */}
+          <Card className="group hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-purple-50 via-purple-100 to-violet-100 border-purple-200 hover:border-purple-300 relative z-10">
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <div className="flex items-center space-x-2">
-                    <Building2 className="w-5 h-5 text-orange-600" />
-                    <p className="text-sm font-semibold text-orange-700">Active Funds</p>
+                    <Building2 className="w-4 h-4 text-purple-600" />
+                    <p className="text-xs font-semibold text-purple-700">Fund Types</p>
                   </div>
-                  <p className="text-3xl font-bold text-orange-900">{networkStats.activeMembers}</p>
+                  <p className="text-2xl font-bold text-purple-900">{networkStats.fundTypes}</p>
                   <div className="flex items-center space-x-1">
-                    <Flame className="w-4 h-4 text-orange-500" />
-                    <span className="text-xs text-orange-600 font-medium">Growing network</span>
+                    <Target className="w-3 h-3 text-purple-500" />
+                    <span className="text-xs text-purple-600 font-medium">Diverse strategies</span>
                   </div>
                 </div>
-                <div className="w-16 h-16 bg-orange-500/20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Building2 className="w-8 h-8 text-orange-600" />
+                <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center group-hover:scale-102 transition-transform">
+                  <Building2 className="w-6 h-6 text-purple-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Survey Completion Rate */}
+          <Card className="group hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100 border-orange-200 hover:border-orange-300 relative z-10">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4 text-orange-600" />
+                    <p className="text-xs font-semibold text-orange-700">Survey Complete</p>
+                  </div>
+                  <p className="text-2xl font-bold text-orange-900">{networkStats.withSurveys}</p>
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-orange-600">Completion Rate</span>
+                      <span className="font-semibold text-orange-600">{networkStats.completionRate}%</span>
+                    </div>
+                    <Progress value={networkStats.completionRate} className="h-1.5" />
+                </div>
+              </div>
+                <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center group-hover:scale-102 transition-transform">
+                  <CheckCircle className="w-6 h-6 text-orange-600" />
                 </div>
               </div>
             </CardContent>
@@ -585,12 +524,12 @@ const NetworkV2 = () => {
                 <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
                   <Search className="w-5 h-5 text-white" />
                 </div>
-                <div>
+              <div>
                   <CardTitle className="text-xl font-bold text-gray-900">Smart Discovery</CardTitle>
                   <CardDescription className="text-gray-600">
                     Find the perfect investment partners with AI-powered search
-                  </CardDescription>
-                </div>
+                </CardDescription>
+              </div>
               </div>
               
               <div className="flex items-center space-x-3">
@@ -628,7 +567,7 @@ const NetworkV2 = () => {
                     onClick={() => setViewMode('list')}
                   >
                     <List className="w-4 h-4" />
-                  </Button>
+                </Button>
                 </div>
               </div>
             </div>
@@ -638,10 +577,10 @@ const NetworkV2 = () => {
             {/* Enhanced Search Bar */}
             <div className="relative group">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-blue-500 transition-colors" />
-              <Input
+                <Input
                 placeholder="Search by name, firm, role, email, or investment focus..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-12 pr-4 py-3 text-lg border-2 border-gray-200 focus:border-blue-500 focus:ring-0 rounded-xl"
               />
               {searchTerm && (
@@ -654,97 +593,97 @@ const NetworkV2 = () => {
                   <X className="w-4 h-4" />
                 </Button>
               )}
-            </div>
+              </div>
 
-            {/* Advanced Filters */}
-            {showFilters && (
+              {/* Advanced Filters */}
+              {showFilters && (
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-gray-700">Region</label>
-                    <Select value={filterRegion} onValueChange={setFilterRegion}>
+                  <Select value={filterRegion} onValueChange={setFilterRegion}>
                       <SelectTrigger className="border-gray-300 focus:border-blue-500">
                         <SelectValue placeholder="All Regions" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Regions</SelectItem>
-                        {getRegions().map((region) => (
-                          <SelectItem key={region} value={region}>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Regions</SelectItem>
+                      {getRegions().map((region) => (
+                        <SelectItem key={region} value={region}>
                             <div className="flex items-center space-x-2">
                               <Globe className="w-4 h-4" />
                               <span>{region}</span>
                             </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   </div>
 
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-gray-700">Fund Type</label>
-                    <Select value={filterType} onValueChange={setFilterType}>
+                  <Select value={filterType} onValueChange={setFilterType}>
                       <SelectTrigger className="border-gray-300 focus:border-blue-500">
                         <SelectValue placeholder="All Types" />
-                      </SelectTrigger>
-                      <SelectContent>
+                    </SelectTrigger>
+                    <SelectContent>
                         <SelectItem value="all">All Types</SelectItem>
-                        {getFundTypes().map((type) => (
-                          <SelectItem key={type} value={type}>
+                      {getFundTypes().map((type) => (
+                        <SelectItem key={type} value={type}>
                             <div className="flex items-center space-x-2">
                               <Building2 className="w-4 h-4" />
                               <span>{type}</span>
                             </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   </div>
 
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-gray-700">Stage</label>
-                    <Select value={filterStage} onValueChange={setFilterStage}>
+                  <Select value={filterStage} onValueChange={setFilterStage}>
                       <SelectTrigger className="border-gray-300 focus:border-blue-500">
                         <SelectValue placeholder="All Stages" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Stages</SelectItem>
-                        {getFundStages().map((stage) => (
-                          <SelectItem key={stage} value={stage}>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Stages</SelectItem>
+                      {getFundStages().map((stage) => (
+                        <SelectItem key={stage} value={stage}>
                             <div className="flex items-center space-x-2">
                               <Target className="w-4 h-4" />
                               <span>{stage}</span>
                             </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   </div>
 
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-gray-700">Sort By</label>
-                    <div className="flex space-x-2">
-                      <Select value={sortBy} onValueChange={setSortBy}>
+                  <div className="flex space-x-2">
+                    <Select value={sortBy} onValueChange={setSortBy}>
                         <SelectTrigger className="border-gray-300 focus:border-blue-500">
-                          <SelectValue placeholder="Sort by" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="name">Name</SelectItem>
-                          <SelectItem value="region">Region</SelectItem>
-                          <SelectItem value="type">Type</SelectItem>
-                          <SelectItem value="stage">Stage</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                        <SelectValue placeholder="Sort by" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="name">Name</SelectItem>
+                        <SelectItem value="region">Region</SelectItem>
+                        <SelectItem value="type">Type</SelectItem>
+                        <SelectItem value="stage">Stage</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
                         className="px-3"
-                      >
-                        {sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
-                      </Button>
-                    </div>
+                    >
+                      {sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
+                    </Button>
                   </div>
                 </div>
+            </div>
                 
                 {/* Quick Filter Tags */}
                 <div className="space-y-2">
@@ -758,88 +697,29 @@ const NetworkV2 = () => {
                       <Heart className="w-4 h-4 mr-2" />
                       Favorites ({favorites.size})
                     </Button>
-                    <Button
+              <Button
                       variant="outline"
-                      size="sm"
+                size="sm"
                       onClick={() => setFilteredManagers(fundManagers.filter(m => m.has_survey))}
-                    >
+              >
                       <CheckCircle className="w-4 h-4 mr-2" />
                       Complete Profiles
-                    </Button>
-                    <Button
+              </Button>
+              <Button
                       variant="outline"
-                      size="sm"
+                size="sm"
                       onClick={() => setFilteredManagers(fundManagers.filter(m => m.fund_stage === 'Active'))}
-                    >
+              >
                       <Flame className="w-4 h-4 mr-2" />
                       Active Funds
-                    </Button>
-                  </div>
-                </div>
+              </Button>
+            </div>
+          </div>
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Enhanced View Controls */}
-        <div className="flex items-center justify-between bg-white/50 backdrop-blur-sm rounded-2xl p-4 border border-gray-200">
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <p className="text-sm font-semibold text-gray-700">
-                {filteredManagers.length} of {fundManagers.length} members
-              </p>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-                className="rounded-lg"
-              >
-                <Grid3X3 className="w-4 h-4 mr-2" />
-                Grid
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-                className="rounded-lg"
-              >
-                <List className="w-4 h-4 mr-2" />
-                List
-              </Button>
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-3">
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="border-blue-300 text-blue-600 hover:bg-blue-50"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="border-purple-300 text-purple-600 hover:bg-purple-50"
-            >
-              <Share2 className="w-4 h-4 mr-2" />
-              Share
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setShowQuickActions(!showQuickActions)}
-              className="border-gray-300"
-            >
-              <MoreHorizontal className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
 
         {/* Quick Actions Panel */}
         {showQuickActions && (
@@ -855,39 +735,60 @@ const NetworkV2 = () => {
                   >
                     <action.icon className="w-6 h-6 text-gray-600" />
                     <span className="text-sm font-medium text-gray-700">{action.label}</span>
-                  </Button>
+            </Button>
                 ))}
               </div>
             </CardContent>
           </Card>
         )}
 
-        {/* Enhanced Members Display */}
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[...Array(8)].map((_, i) => (
-              <Card key={i} className="animate-pulse border-0 shadow-lg">
+         {/* Enhanced Members Display */}
+         {loading && initialLoad ? (
+           <div className="space-y-6">
+             {/* Loading skeleton for stats cards */}
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+               {[...Array(4)].map((_, i) => (
+                 <Card key={i} className="animate-pulse border-0 shadow-lg">
+                   <CardContent className="p-6">
+                     <div className="flex items-center justify-between">
+                       <div className="space-y-2 flex-1">
+                         <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                         <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+                         <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                       </div>
+                       <div className="w-16 h-16 bg-gray-200 rounded-2xl"></div>
+          </div>
+                   </CardContent>
+                 </Card>
+               ))}
+        </div>
+
+             {/* Loading skeleton for member cards */}
+             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+               {[...Array(8)].map((_, i) => (
+                 <Card key={i} className="animate-pulse border-0 shadow-lg">
                 <CardContent className="p-6">
                   <div className="space-y-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
-                      <div className="space-y-2 flex-1">
-                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="h-3 bg-gray-200 rounded w-full"></div>
-                      <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-                    </div>
-                    <div className="flex space-x-2">
-                      <div className="h-6 bg-gray-200 rounded-full w-16"></div>
-                      <div className="h-6 bg-gray-200 rounded-full w-20"></div>
-                    </div>
+                       <div className="flex items-center space-x-3">
+                         <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+                         <div className="space-y-2 flex-1">
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                         </div>
+                       </div>
+                       <div className="space-y-2">
+                         <div className="h-3 bg-gray-200 rounded w-full"></div>
+                    <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                       </div>
+                       <div className="flex space-x-2">
+                         <div className="h-6 bg-gray-200 rounded-full w-16"></div>
+                         <div className="h-6 bg-gray-200 rounded-full w-20"></div>
+                       </div>
                   </div>
                 </CardContent>
               </Card>
             ))}
+             </div>
           </div>
         ) : filteredManagers.length === 0 ? (
           <Card className="border-0 shadow-lg">
@@ -902,8 +803,8 @@ const NetworkV2 = () => {
               <div className="flex items-center justify-center space-x-3">
                 <Button onClick={clearFilters} className="bg-blue-600 hover:bg-blue-700">
                   <RotateCcw className="w-4 h-4 mr-2" />
-                  Clear Filters
-                </Button>
+                Clear Filters
+              </Button>
                 <Button variant="outline" onClick={() => setSearchTerm('')}>
                   <Search className="w-4 h-4 mr-2" />
                   New Search
@@ -926,7 +827,7 @@ const NetworkV2 = () => {
                   <div className="flex space-x-4 overflow-x-auto pb-2">
                     {recentlyViewed.map((manager) => (
                       <div
-                        key={manager.id}
+                key={manager.id}
                         className="flex-shrink-0 w-48 p-3 bg-white/70 rounded-lg border border-amber-200 cursor-pointer hover:bg-white/90 transition-colors"
                         onClick={() => addToRecentlyViewed(manager)}
                       >
@@ -952,131 +853,85 @@ const NetworkV2 = () => {
               </Card>
             )}
 
-            {/* Members Grid/List */}
-            <div className={`grid gap-6 ${
-              viewMode === 'grid' 
-                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
-                : 'grid-cols-1'
-            }`}>
-              {paginatedManagers.map((manager) => (
-                <Card 
-                  key={manager.id} 
-                  className={`group hover:shadow-2xl transition-all duration-300 border-0 shadow-lg bg-white/90 backdrop-blur-sm hover:bg-white ${
-                    viewMode === 'list' ? 'flex items-center p-4' : ''
-                  }`}
-                >
-                  <CardContent className={viewMode === 'list' ? 'flex-1' : 'p-6'}>
-                    <div className={`${viewMode === 'list' ? 'flex items-center space-x-4' : 'space-y-4'}`}>
-                      {/* Avatar and Basic Info */}
-                      <div className={`flex items-center space-x-3 ${viewMode === 'list' ? 'flex-shrink-0' : ''}`}>
-                        <Avatar className="w-12 h-12">
-                          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
-                            {manager.profile?.first_name?.[0] || manager.participant_name?.[0] || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0 flex-1">
-                          <h3 className="font-bold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
-                            {manager.fund_name || manager.firm_name || 'Unnamed Fund'}
-                          </h3>
-                          <p className="text-sm text-gray-600 truncate">
-                            {manager.participant_name || 'Unknown Participant'}
-                          </p>
-                          {manager.role_title && (
-                            <p className="text-xs text-gray-500 truncate">
-                              {manager.role_title}
-                            </p>
-                          )}
+            {/* Clean Fund Manager Cards - Uniform Design */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 relative z-0">
+              {paginatedManagers.map((manager, index) => {
+                return (
+                  <Card 
+                    key={manager.id}
+                    className="group hover:shadow-2xl transition-all duration-500 border-0 shadow-lg bg-gradient-to-br from-gray-50 via-white to-gray-100 hover:scale-[1.02] cursor-pointer overflow-hidden relative z-10"
+                    onClick={() => {
+                      navigate(`/network/fund-manager/${manager.id}`, {
+                        state: { fundManager: manager }
+                      });
+                    }}
+                  >
+                    {/* Decorative background elements */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full -translate-y-16 translate-x-16 group-hover:scale-110 transition-transform duration-500"></div>
+                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-500/3 rounded-full translate-y-12 -translate-x-12 group-hover:scale-110 transition-transform duration-500"></div>
+                    
+                    <CardContent className="p-6 relative z-10">
+                      {/* Profile Picture - Larger */}
+                      <div className="flex justify-center mb-4">
+                        <div className="relative">
+                          <Avatar className="w-28 h-28 border-4 border-white shadow-xl ring-4 ring-blue-500/20">
+                            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-3xl">
+                              {manager.profile?.first_name?.[0] || manager.participant_name?.[0] || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          {/* Subtle glow effect */}
+                          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 opacity-20 blur-lg group-hover:opacity-30 transition-opacity duration-300"></div>
                         </div>
                       </div>
-
-                      {/* Details */}
-                      <div className={`space-y-3 ${viewMode === 'list' ? 'flex-1' : ''}`}>
-                        {/* Geographic Focus */}
-                        {manager.geographic_focus && manager.geographic_focus.length > 0 && (
-                          <div className="flex items-center space-x-2">
-                            <Globe className="w-4 h-4 text-blue-500" />
-                            <div className="flex flex-wrap gap-1">
-                              {manager.geographic_focus.slice(0, 2).map((region, index) => (
-                                <Badge key={index} variant="secondary" className="text-xs">
+                      
+                      {/* Firm Name - Compact */}
+                      <div className="text-center mb-4">
+                        <h3 className="font-bold text-gray-900 text-lg leading-tight group-hover:text-gray-800 transition-colors duration-300">
+                          {manager.firm_name || manager.fund_name || 'Unnamed Firm'}
+                        </h3>
+                      </div>
+                      
+                      {/* Geographic Focus - Compact */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-center space-x-2">
+                          <div className="p-1.5 rounded-full bg-blue-500/10">
+                            <Globe className="w-3 h-3 text-blue-500" />
+                          </div>
+                          <span className="text-xs font-semibold text-gray-600">Geographic Focus</span>
+                        </div>
+                        <div className="text-center">
+                          {manager.geographic_focus && manager.geographic_focus.length > 0 ? (
+                            <div className="flex flex-wrap justify-center gap-1">
+                              {manager.geographic_focus.slice(0, 2).map((region, idx) => (
+                                <Badge 
+                                  key={idx} 
+                                  variant="secondary" 
+                                  className="text-xs bg-blue-50 text-blue-700 border-0"
+                                >
                                   {region}
                                 </Badge>
                               ))}
                               {manager.geographic_focus.length > 2 && (
-                                <Badge variant="outline" className="text-xs">
+                                <Badge 
+                                  variant="outline" 
+                                  className="text-xs bg-white/60 border-blue-200 text-blue-600"
+                                >
                                   +{manager.geographic_focus.length - 2}
                                 </Badge>
                               )}
                             </div>
-                          </div>
-                        )}
-
-                        {/* Fund Type and Stage */}
-                        <div className="flex items-center space-x-4">
-                          {manager.vehicle_type && (
-                            <div className="flex items-center space-x-1">
-                              <Building2 className="w-4 h-4 text-purple-500" />
-                              <span className="text-sm text-gray-600">{manager.vehicle_type}</span>
-                            </div>
+                          ) : (
+                            <p className="text-xs text-gray-400 italic">Not specified</p>
                           )}
-                          {manager.fund_stage && (
-                            <div className="flex items-center space-x-1">
-                              <Target className="w-4 h-4 text-green-500" />
-                              <span className="text-sm text-gray-600">{manager.fund_stage}</span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Team Size */}
-                        {manager.team_size && (
-                          <div className="flex items-center space-x-2">
-                            <Users className="w-4 h-4 text-orange-500" />
-                            <span className="text-sm text-gray-600">{manager.team_size} team members</span>
-                          </div>
-                        )}
-
-                        {/* Survey Status */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            {manager.has_survey ? (
-                              <CheckCircle className="w-4 h-4 text-green-500" />
-                            ) : (
-                              <Clock className="w-4 h-4 text-yellow-500" />
-                            )}
-                            <span className="text-sm text-gray-600">
-                              {manager.has_survey ? 'Profile Complete' : 'Profile Incomplete'}
-                            </span>
-                          </div>
-                          
-                          <div className="flex items-center space-x-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => toggleFavorite(manager.id)}
-                              className="p-2 hover:bg-red-50"
-                            >
-                              <Heart className={`w-4 h-4 ${
-                                favorites.has(manager.id) ? 'text-red-500 fill-current' : 'text-gray-400'
-                              }`} />
-                            </Button>
-                            
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedManager(manager);
-                                addToRecentlyViewed(manager);
-                              }}
-                              className="p-2 hover:bg-blue-50"
-                            >
-                              <Eye className="w-4 h-4 text-gray-400" />
-                            </Button>
-                          </div>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      
+                      {/* Subtle hover indicator */}
+                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-300 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
 
             {/* Pagination */}
@@ -1123,6 +978,6 @@ const NetworkV2 = () => {
       </div>
     </SidebarLayout>
   );
-};
+});
 
 export default NetworkV2;

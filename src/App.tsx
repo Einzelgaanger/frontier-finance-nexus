@@ -20,6 +20,7 @@ import Survey2023 from "./pages/Survey2023";
 import Survey2024 from "./pages/Survey2024";
 import Profile from "./pages/Profile";
 import ViewerSettings from "./pages/ViewerSettings";
+import Application from "./pages/Application";
 import ResetPassword from "./pages/ResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import AdminWrapper from "./components/AdminWrapper";
@@ -38,7 +39,7 @@ const App = () => {
         <Toaster />
         <Sonner />
         <AuthProvider>
-        <BrowserRouter>
+        <BrowserRouter className="font-rubik">
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
@@ -48,12 +49,12 @@ const App = () => {
               </ProtectedRoute>
             } />
             <Route path="/network" element={
-              <ProtectedRoute requiredRole="viewer">
+              <ProtectedRoute>
                 <NetworkWrapper />
               </ProtectedRoute>
             } />
-            <Route path="/network/fund-manager/:userId" element={
-              <ProtectedRoute requiredRole="viewer">
+            <Route path="/network/fund-manager/:id" element={
+              <ProtectedRoute>
                 <FundManagerDetail />
               </ProtectedRoute>
             } />
@@ -90,6 +91,11 @@ const App = () => {
             <Route path="/viewer-settings" element={
               <ProtectedRoute requiredRole="viewer">
                 <ViewerSettings />
+              </ProtectedRoute>
+            } />
+            <Route path="/application" element={
+              <ProtectedRoute requiredRole="viewer">
+                <Application />
               </ProtectedRoute>
             } />
             <Route path="/reset-password" element={<ResetPassword />} />

@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useSurveyPersistence } from '@/hooks/useSurveyPersistence';
 import { useSurveyStatus } from '@/hooks/useSurveyStatus';
 import { supabase } from '@/integrations/supabase/client';
-import Header from '@/components/layout/Header';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -132,6 +132,7 @@ const survey2021Schema = z.object({
 type Survey2021FormData = z.infer<typeof survey2021Schema>;
 
 const Survey2021: React.FC = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   const { isSurveyCompleted } = useSurveyStatus();
@@ -2418,8 +2419,14 @@ const Survey2021: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
       <div className="max-w-4xl mx-auto p-6">
+        {/* Back Button */}
+        <div className="mb-6">
+          <Button onClick={() => navigate('/survey')} variant="outline" size="sm">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Surveys
+          </Button>
+        </div>
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">

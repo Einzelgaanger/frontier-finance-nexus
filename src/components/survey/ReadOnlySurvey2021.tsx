@@ -159,13 +159,40 @@ const ReadOnlySurvey2021: React.FC = () => {
     },
   });
 
+  // Normalize data to ensure all array fields are properly initialized
+  const normalizeSurveyData = (data: any): Survey2021FormData => {
+    return {
+      ...data,
+      geographic_focus: Array.isArray(data.geographic_focus) ? data.geographic_focus : [],
+      investment_vehicle: Array.isArray(data.investment_vehicle) ? data.investment_vehicle : [],
+      target_sectors: Array.isArray(data.target_sectors) ? data.target_sectors : [],
+      investment_lens: Array.isArray(data.investment_lens) ? data.investment_lens : [],
+      gender_considerations_investment: Array.isArray(data.gender_considerations_investment) ? data.gender_considerations_investment : [],
+      gender_considerations_requirement: Array.isArray(data.gender_considerations_requirement) ? data.gender_considerations_requirement : [],
+      gender_fund_vehicle: Array.isArray(data.gender_fund_vehicle) ? data.gender_fund_vehicle : [],
+      investment_forms: Array.isArray(data.investment_forms) ? data.investment_forms : [],
+      investment_monetization: Array.isArray(data.investment_monetization) ? data.investment_monetization : [],
+      covid_government_support: Array.isArray(data.covid_government_support) ? data.covid_government_support : [],
+      raising_capital_2021: Array.isArray(data.raising_capital_2021) ? data.raising_capital_2021 : [],
+      present_demystifying_session: Array.isArray(data.present_demystifying_session) ? data.present_demystifying_session : [],
+      portfolio_needs_ranking: data.portfolio_needs_ranking || {},
+      fund_capabilities_ranking: data.fund_capabilities_ranking || {},
+      covid_impact_portfolio: data.covid_impact_portfolio || {},
+      working_groups_ranking: data.working_groups_ranking || {},
+      webinar_content_ranking: data.webinar_content_ranking || {},
+      network_value_areas: data.network_value_areas || {},
+      convening_initiatives_ranking: data.convening_initiatives_ranking || {},
+    };
+  };
+
   useEffect(() => {
     if (user) {
       const data = getSurveyData('2021');
       if (data) {
-        setSurveyData(data as Survey2021FormData);
+        const normalizedData = normalizeSurveyData(data);
+        setSurveyData(normalizedData as Survey2021FormData);
         // Pre-fill the form with the data
-        form.reset(data as Survey2021FormData);
+        form.reset(normalizedData as Survey2021FormData);
         setLoading(false);
       } else {
         // Fallback fetch if hook didn't provide it
@@ -177,8 +204,9 @@ const ReadOnlySurvey2021: React.FC = () => {
             .maybeSingle();
           if (error) console.error('Error fetching 2021 survey data:', error);
           if (response) {
-            setSurveyData(response as Survey2021FormData);
-            form.reset(response as Survey2021FormData);
+            const normalizedData = normalizeSurveyData(response);
+            setSurveyData(normalizedData as Survey2021FormData);
+            form.reset(normalizedData as Survey2021FormData);
           }
           setLoading(false);
         };
@@ -248,7 +276,7 @@ const ReadOnlySurvey2021: React.FC = () => {
                     <div key={region} className="flex items-center space-x-2">
                       <Checkbox
                         id={`geographic_focus_${region}`}
-                        checked={form.watch("geographic_focus").includes(region)}
+                        checked={form.watch("geographic_focus")?.includes(region) || false}
                         disabled
                         className="bg-gray-50"
                       />
@@ -283,7 +311,7 @@ const ReadOnlySurvey2021: React.FC = () => {
                     <div key={vehicle} className="flex items-center space-x-2">
                       <Checkbox
                         id={`investment_vehicle_${vehicle}`}
-                        checked={form.watch("investment_vehicle").includes(vehicle)}
+                        checked={form.watch("investment_vehicle")?.includes(vehicle) || false}
                         disabled
                         className="bg-gray-50"
                       />
@@ -302,7 +330,7 @@ const ReadOnlySurvey2021: React.FC = () => {
                     <div key={sector} className="flex items-center space-x-2">
                       <Checkbox
                         id={`target_sectors_${sector}`}
-                        checked={form.watch("target_sectors").includes(sector)}
+                        checked={form.watch("target_sectors")?.includes(sector) || false}
                         disabled
                         className="bg-gray-50"
                       />
@@ -321,7 +349,7 @@ const ReadOnlySurvey2021: React.FC = () => {
                     <div key={lens} className="flex items-center space-x-2">
                       <Checkbox
                         id={`investment_lens_${lens}`}
-                        checked={form.watch("investment_lens").includes(lens)}
+                        checked={form.watch("investment_lens")?.includes(lens) || false}
                         disabled
                         className="bg-gray-50"
                       />
@@ -367,7 +395,7 @@ const ReadOnlySurvey2021: React.FC = () => {
                     <div key={consideration} className="flex items-center space-x-2">
                       <Checkbox
                         id={`gender_considerations_investment_${consideration}`}
-                        checked={form.watch("gender_considerations_investment").includes(consideration)}
+                        checked={form.watch("gender_considerations_investment")?.includes(consideration) || false}
                         disabled
                         className="bg-gray-50"
                       />
@@ -386,7 +414,7 @@ const ReadOnlySurvey2021: React.FC = () => {
                     <div key={requirement} className="flex items-center space-x-2">
                       <Checkbox
                         id={`gender_considerations_requirement_${requirement}`}
-                        checked={form.watch("gender_considerations_requirement").includes(requirement)}
+                        checked={form.watch("gender_considerations_requirement")?.includes(requirement) || false}
                         disabled
                         className="bg-gray-50"
                       />
@@ -405,7 +433,7 @@ const ReadOnlySurvey2021: React.FC = () => {
                     <div key={vehicle} className="flex items-center space-x-2">
                       <Checkbox
                         id={`gender_fund_vehicle_${vehicle}`}
-                        checked={form.watch("gender_fund_vehicle").includes(vehicle)}
+                        checked={form.watch("gender_fund_vehicle")?.includes(vehicle) || false}
                         disabled
                         className="bg-gray-50"
                       />
@@ -472,7 +500,7 @@ const ReadOnlySurvey2021: React.FC = () => {
                     <div key={form_type} className="flex items-center space-x-2">
                       <Checkbox
                         id={`investment_forms_${form_type}`}
-                        checked={form.watch("investment_forms").includes(form_type)}
+                        checked={form.watch("investment_forms")?.includes(form_type) || false}
                         disabled
                         className="bg-gray-50"
                       />
@@ -512,7 +540,7 @@ const ReadOnlySurvey2021: React.FC = () => {
                     <div key={monetization} className="flex items-center space-x-2">
                       <Checkbox
                         id={`investment_monetization_${monetization}`}
-                        checked={form.watch("investment_monetization").includes(monetization)}
+                        checked={form.watch("investment_monetization")?.includes(monetization) || false}
                         disabled
                         className="bg-gray-50"
                       />
@@ -572,7 +600,7 @@ const ReadOnlySurvey2021: React.FC = () => {
                     <div key={support} className="flex items-center space-x-2">
                       <Checkbox
                         id={`covid_government_support_${support}`}
-                        checked={form.watch("covid_government_support").includes(support)}
+                        checked={form.watch("covid_government_support")?.includes(support) || false}
                         disabled
                         className="bg-gray-50"
                       />
@@ -591,7 +619,7 @@ const ReadOnlySurvey2021: React.FC = () => {
                     <div key={raising} className="flex items-center space-x-2">
                       <Checkbox
                         id={`raising_capital_2021_${raising}`}
-                        checked={form.watch("raising_capital_2021").includes(raising)}
+                        checked={form.watch("raising_capital_2021")?.includes(raising) || false}
                         disabled
                         className="bg-gray-50"
                       />
@@ -684,7 +712,7 @@ const ReadOnlySurvey2021: React.FC = () => {
                     <div key={session} className="flex items-center space-x-2">
                       <Checkbox
                         id={`present_demystifying_session_${session}`}
-                        checked={form.watch("present_demystifying_session").includes(session)}
+                        checked={form.watch("present_demystifying_session")?.includes(session) || false}
                         disabled
                         className="bg-gray-50"
                       />

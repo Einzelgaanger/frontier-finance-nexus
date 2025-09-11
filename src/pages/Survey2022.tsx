@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -65,6 +66,7 @@ const survey2022Schema = z.object({
 type Survey2022FormData = z.infer<typeof survey2022Schema>;
 
 const Survey2022 = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   const [currentSection, setCurrentSection] = useState(1);
@@ -1329,8 +1331,14 @@ const Survey2022 = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
       <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Back Button */}
+        <div className="mb-6">
+          <Button onClick={() => navigate('/survey')} variant="outline" size="sm">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Surveys
+          </Button>
+        </div>
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>

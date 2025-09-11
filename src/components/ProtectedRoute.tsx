@@ -29,7 +29,9 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
     const requiredLevel = roleHierarchy[requiredRole];
     
     if (userLevel < requiredLevel) {
-      return <Navigate to="/dashboard" replace />;
+      // Redirect members to network, others to dashboard
+      const redirectPath = userRole === 'member' ? '/network' : '/dashboard';
+      return <Navigate to={redirectPath} replace />;
     }
   }
 

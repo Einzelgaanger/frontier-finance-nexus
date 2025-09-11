@@ -67,20 +67,8 @@ class SurveyStatusManager {
           }
         })(),
         
-        // 2022 Survey
-        (async () => {
-          try {
-            return await supabase
-              .from('survey_responses_2022')
-              .select('id, completed_at, *')
-              .eq('user_id', userId)
-              .not('completed_at', 'is', null)
-              .maybeSingle();
-          } catch (error) {
-            console.warn('2022 survey table not accessible:', error);
-            return { data: null, error: null };
-          }
-        })(),
+        // Remove 2022 Survey (table doesn't exist)
+        Promise.resolve({ data: null, error: null }),
         
         // 2023 Survey
         (async () => {
@@ -250,7 +238,11 @@ export const useSurveyStatus = () => {
         }
       });
 
-      return unsubscribe;
+      return () => {
+        if (typeof unsubscribe === 'function') {
+          unsubscribe();
+        }
+      };
     } else {
       // Clear data when user logs out
       setSurveyStatuses([]);
