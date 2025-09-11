@@ -210,29 +210,8 @@ const Network = () => {
         source: 'user_roles'
       }));
       
-      // Try to get users from auth.users if possible
-      let authUsers: any[] = [];
-      try {
-        const { data: authUsersData, error: authError } = await supabase
-          .from('auth.users')
-          .select('id, email, created_at');
-        
-        if (!authError && authUsersData) {
-          authUsers = authUsersData.map(user => ({
-            id: user.id,
-            email: user.email,
-            created_at: user.created_at,
-            first_name: (profilesResult.data || []).find(p => p.id === user.id)?.first_name || '',
-            last_name: (profilesResult.data || []).find(p => p.id === user.id)?.last_name || '',
-            source: 'auth_users'
-          }));
-        }
-      } catch (error) {
-        console.log('Could not fetch from auth.users directly');
-      }
-      
-      // Combine all users and remove duplicates
-      const allUserArrays = [profileUsers, survey2021Users, surveyUsers, roleUsers, authUsers];
+      // Combine all users from available sources
+      const allUserArrays = [profileUsers, survey2021Users, surveyUsers, roleUsers];
       const userMap = new Map();
       
       allUserArrays.forEach(userArray => {
@@ -584,7 +563,7 @@ const Network = () => {
                   className="px-3 py-1 bg-emerald-100/80 text-emerald-700 border-emerald-200"
                 >
                   <Eye className="w-4 h-4 mr-2" />
-                  {userRole === 'admin' ? 'Administrator' : userRole === 'member' ? 'Member' : 'Visitor'} Access
+                  {(userRole as string) === 'admin' ? 'Administrator' : (userRole as string) === 'member' ? 'Member' : 'Visitor'} Access
                 </Badge>
               </div>
             </div>
@@ -838,7 +817,7 @@ const Network = () => {
                  <div>
                    <p className="text-sm font-medium text-teal-700">With Surveys</p>
                    <p className="text-2xl font-bold text-teal-800">
-                     {filteredManagers.filter(m => m.has_survey).length}
+                     {filteredManagers.filter(m => m.fund_name && m.fund_name.trim() !== '').length}
                    </p>
                  </div>
                  <div className="w-10 h-10 bg-teal-200/60 rounded-full flex items-center justify-center">

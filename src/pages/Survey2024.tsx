@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import Header from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -134,6 +135,7 @@ const survey2024Schema = z.object({
 type Survey2024FormData = z.infer<typeof survey2024Schema>;
 
 export default function Survey2024() {
+	const { user } = useAuth();
 	const [currentSection, setCurrentSection] = useState(1);
 	const [loading, setLoading] = useState(false);
 	const [saving, setSaving] = useState(false);
@@ -272,12 +274,13 @@ export default function Survey2024() {
 	const saveDraft = async () => {
 		setSaving(true);
 		try {
-			const formData = form.getValues();
-			const { error } = await supabase
-				.from('survey_responses_2024')
-				.upsert({
-					...formData,
-				});
+		const formData = form.getValues();
+		const { error } = await supabase
+			.from('survey_responses_2024')
+			.upsert({
+				...formData,
+				user_id: user?.id || '',
+			} as any);
 
 			if (error) throw error;
 			toast({
@@ -298,11 +301,12 @@ export default function Survey2024() {
 	const handleSubmit = async (data: Survey2024FormData) => {
 		setLoading(true);
 		try {
-			const { error } = await supabase
-				.from('survey_responses_2024')
-				.upsert({
-					...data,
-				});
+		const { error } = await supabase
+			.from('survey_responses_2024')
+			.upsert({
+				...data,
+				user_id: user?.id || '',
+			} as any);
 
 			if (error) throw error;
 			toast({
@@ -2572,24 +2576,24 @@ export default function Survey2024() {
 								'Strategic sale/merger of company',
 								'Management buyout',
 								'Financial investor take-out',
-							].map((form) => (
+							].map((option) => (
 								<FormField
-									key={form}
+									key={option}
 									control={form.control}
 									name="investment_monetisation_forms"
 									render={({ field }) => (
 										<FormItem className="flex flex-row items-start space-x-3 space-y-0">
 											<FormControl>
 												<Checkbox
-													checked={field.value?.includes(form)}
+													checked={field.value?.includes(option)}
 													onCheckedChange={(checked) => {
 														return checked
-															? field.onChange([...field.value, form])
-															: field.onChange(field.value?.filter((value) => value !== form))
+															? field.onChange([...field.value, option])
+															: field.onChange(field.value?.filter((value) => value !== option))
 													}}
 												/>
 											</FormControl>
-											<FormLabel className="text-sm font-normal">{form}</FormLabel>
+											<FormLabel className="text-sm font-normal">{option}</FormLabel>
 										</FormItem>
 									)}
 								/>
