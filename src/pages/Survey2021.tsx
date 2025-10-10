@@ -338,12 +338,17 @@ const Survey2021: React.FC = () => {
       // Save to localStorage as backup
       saveFormData(formData);
       
-      // @ts-expect-error - Supabase table type mismatch
       const { error } = await supabase
         .from('survey_2021_responses')
         .upsert({
           user_id: user.id,
-          ...formData,
+          email_address: formData.email_address,
+          firm_name: formData.firm_name,
+          participant_name: formData.participant_name,
+          role_title: formData.role_title,
+          fund_stage: formData.fund_stage,
+          form_data: formData,
+          submission_status: 'draft',
           updated_at: new Date().toISOString(),
         });
 
@@ -375,10 +380,16 @@ const Survey2021: React.FC = () => {
         .from('survey_2021_responses')
         .upsert({
           user_id: user.id,
-          ...data,
+          email_address: data.email_address,
+          firm_name: data.firm_name,
+          participant_name: data.participant_name,
+          role_title: data.role_title,
+          fund_stage: data.fund_stage,
+          form_data: data,
+          submission_status: 'completed',
           completed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        } as unknown as Record<string, unknown>);
+        });
 
       if (error) throw error;
       

@@ -289,7 +289,13 @@ const Survey2022 = () => {
         .from('survey_2022_responses')
         .upsert({
           user_id: user.id,
-          ...formData,
+          email: formData.email,
+          name: formData.name,
+          role_title: formData.role_title,
+          organisation: formData.organisation,
+          legal_entity_date: formData.legal_entity_date,
+          form_data: formData,
+          submission_status: 'draft',
           updated_at: new Date().toISOString(),
         });
 
@@ -339,7 +345,13 @@ const Survey2022 = () => {
         .from('survey_2022_responses')
         .upsert({
           user_id: user.id,
-          ...data,
+          email: data.email,
+          name: data.name,
+          role_title: data.role_title,
+          organisation: data.organisation,
+          legal_entity_date: data.legal_entity_date,
+          form_data: data,
+          submission_status: 'completed',
           completed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         });

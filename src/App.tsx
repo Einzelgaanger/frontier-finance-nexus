@@ -39,8 +39,9 @@ const App = () => {
         <Toaster />
         <Sonner />
         <AuthProvider>
-        <BrowserRouter className="font-rubik">
-          <Routes>
+        <BrowserRouter>
+          <div className="font-rubik">
+            <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={
@@ -112,6 +113,7 @@ const App = () => {
             } />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </div>
         </BrowserRouter>
         </AuthProvider>
       </TooltipProvider>

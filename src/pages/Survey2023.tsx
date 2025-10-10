@@ -417,11 +417,18 @@ export default function Survey2023() {
     setSaving(true);
     try {
       const formData = form.getValues();
-      const { error } = await (supabase as any)
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { error } = await supabase
         .from('survey_2023_responses')
         .upsert({
-          user_id: (await supabase.auth.getUser()).data.user?.id,
-          ...formData,
+          user_id: user?.id,
+          email_address: formData.email_address,
+          organisation_name: formData.organisation_name,
+          fund_name: formData.fund_name,
+          funds_raising_investing: formData.funds_raising_investing,
+          form_data: formData,
+          submission_status: 'draft',
           updated_at: new Date().toISOString()
         });
 
