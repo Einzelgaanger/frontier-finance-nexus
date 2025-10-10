@@ -59,8 +59,7 @@ const Profile = () => {
           first_name: data.first_name || '',
           last_name: data.last_name || '',
           email: data.email || user.email || '',
-          
-          profile_picture_url: data.profile_picture_url || ''
+          profile_picture_url: ''
         });
       } else {
         // Create profile if it doesn't exist

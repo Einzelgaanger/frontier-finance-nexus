@@ -64,7 +64,7 @@ interface MembershipRequest {
   capital_raised?: string | null;
   supporting_documents?: string | null;
   supporting_document_links?: string | null;
-  information_sharing?: Record<string, unknown>;
+  information_sharing?: any;
   expectations?: string | null;
   how_heard_about_network?: string | null;
   status: string;
@@ -78,14 +78,14 @@ interface ActivityLogDetails {
   old_role?: string;
   new_role?: string;
   target_user_id?: string;
-  [key: string]: string | number | boolean | null | undefined | Record<string, unknown>;
+  [key: string]: any;
 }
 
 interface ActivityLog {
   id: string;
   user_id: string | null;
   action: string;
-  details: ActivityLogDetails;
+  details: any;
   created_at: string;
   user_agent: string | null;
 }

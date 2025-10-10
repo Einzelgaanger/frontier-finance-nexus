@@ -320,9 +320,9 @@ const Analytics2021: React.FC = () => {
       console.log('Survey data loaded:', data?.length || 0, 'records');
       if (data && data.length > 0) {
         console.log('Sample survey record:', data[0]);
-        console.log('Investment vehicle types in sample:', data[0].investment_vehicle_type);
-        console.log('Current fund size in sample:', data[0].current_fund_size);
-        console.log('All current fund sizes:', data.map(s => s.current_fund_size));
+        const formData = data[0].form_data as any || {};
+        console.log('Investment vehicle types in sample:', formData.investment_vehicle_type);
+        console.log('Current fund size in sample:', formData.current_fund_size);
       }
       
       // Calculate data quality metrics
