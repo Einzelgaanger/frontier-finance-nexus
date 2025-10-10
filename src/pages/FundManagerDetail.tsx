@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import SidebarLayout from '@/components/layout/SidebarLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -27,7 +28,8 @@ import {
   Award,
   Star,
   Shield,
-  BarChart3
+  BarChart3,
+  ArrowLeft
 } from 'lucide-react';
 
 interface FundManager {
@@ -40,6 +42,10 @@ interface FundManager {
   participant_name?: string;
   role_title?: string;
   email_address?: string;
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  linkedin?: string;
   team_based?: string[];
   geographic_focus?: string[];
   fund_stage?: string;
@@ -79,11 +85,56 @@ interface FundManager {
   survey2024?: Record<string, unknown>;
 }
 
+interface FundManagerProfile {
+  id: string;
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  fund_name?: string;
+  firm_name?: string;
+  vehicle_name?: string;
+  participant_name?: string;
+  role_title?: string;
+  email_address?: string;
+  phone?: string;
+  linkedin?: string;
+  team_based?: string[];
+  geographic_focus?: string[];
+  fund_stage?: string;
+  investment_timeframe?: string;
+  target_sectors?: string[];
+  vehicle_websites?: string;
+  vehicle_type?: string;
+  thesis?: string;
+  team_size_max?: number;
+  legal_domicile?: string;
+  ticket_size_min?: string;
+  ticket_size_max?: string;
+  target_capital?: string;
+  sectors_allocation?: string[];
+  website?: string;
+  primary_investment_region?: string;
+  fund_type?: string;
+  year_founded?: number;
+  team_size?: number;
+  typical_check_size?: string;
+  completed_at?: string;
+  aum?: string;
+  investment_thesis?: string;
+  sector_focus?: string[];
+  stage_focus?: string[];
+  role_badge?: string;
+  has_survey?: boolean;
+  profile_picture_url?: string;
+}
+
 const FundManagerDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const { userRole } = useAuth();
+  const { toast } = useToast();
   
   const [fundManager, setFundManager] = useState<FundManager | null>(null);
   const [loading, setLoading] = useState(true);
@@ -94,110 +145,136 @@ const FundManagerDetail = () => {
     survey2023?: Record<string, unknown>;
     survey2024?: Record<string, unknown>;
   }>({});
-  
-  // State for year and section navigation
   const [selectedYear, setSelectedYear] = useState<'2021' | '2022' | '2023' | '2024'>('2021');
   const [selectedSection, setSelectedSection] = useState<number>(1);
 
   // Survey sections configuration
   const surveySections = {
     2021: [
-      { id: 1, title: 'Background Information', icon: Users },
-      { id: 2, title: 'Investment Thesis & Capital Construct', icon: Target },
-      { id: 3, title: 'Portfolio Construction and Team', icon: Building2 }
+      { id: 1, title: "Introduction & Context", questions: 14 },
+      { id: 2, title: "Investment Focus", questions: 8 },
+      { id: 3, title: "Vehicle Construct", questions: 18 },
+      { id: 4, title: "Investment Process", questions: 12 },
+      { id: 5, title: "Portfolio Management", questions: 10 },
+      { id: 6, title: "Risk Management", questions: 8 },
+      { id: 7, title: "ESG & Impact", questions: 6 },
+      { id: 8, title: "Technology & Innovation", questions: 4 },
+      { id: 9, title: "Market Outlook", questions: 6 },
+      { id: 10, title: "Collaboration & Network", questions: 4 }
     ],
     2022: [
-      { id: 1, title: 'Contact Information', icon: Mail },
-      { id: 2, title: 'Timeline & Legal', icon: Calendar },
-      { id: 3, title: 'Geographic & Team', icon: Globe },
-      { id: 4, title: 'Prior Experience', icon: Award },
-      { id: 5, title: 'Legal and Currency', icon: Shield },
-      { id: 6, title: 'Fund Operations', icon: DollarSign },
-      { id: 7, title: 'Investment Strategy', icon: Target },
-      { id: 8, title: 'Portfolio Construction', icon: BarChart3 }
+      { id: 1, title: "Introduction & Context", questions: 14 },
+      { id: 2, title: "Investment Focus", questions: 8 },
+      { id: 3, title: "Vehicle Construct", questions: 18 },
+      { id: 4, title: "Investment Process", questions: 12 },
+      { id: 5, title: "Portfolio Management", questions: 10 },
+      { id: 6, title: "Risk Management", questions: 8 },
+      { id: 7, title: "ESG & Impact", questions: 6 },
+      { id: 8, title: "Technology & Innovation", questions: 4 },
+      { id: 9, title: "Market Outlook", questions: 6 },
+      { id: 10, title: "Collaboration & Network", questions: 4 }
     ],
     2023: [
-      { id: 1, title: 'Introduction & Context', icon: Users },
-      { id: 2, title: 'Organizational Background and Team', icon: Building2 },
-      { id: 3, title: 'Vehicle Construct', icon: Target }
+      { id: 1, title: "Introduction & Context", questions: 14 },
+      { id: 2, title: "Investment Focus", questions: 8 },
+      { id: 3, title: "Vehicle Construct", questions: 18 },
+      { id: 4, title: "Investment Process", questions: 12 },
+      { id: 5, title: "Portfolio Management", questions: 10 },
+      { id: 6, title: "Risk Management", questions: 8 },
+      { id: 7, title: "ESG & Impact", questions: 6 },
+      { id: 8, title: "Technology & Innovation", questions: 4 },
+      { id: 9, title: "Market Outlook", questions: 6 },
+      { id: 10, title: "Collaboration & Network", questions: 4 }
     ],
     2024: [
-      { id: 1, title: 'Introduction & Context', icon: Users },
-      { id: 2, title: 'Organizational Background and Team', icon: Building2 },
-      { id: 3, title: 'Vehicle Construct', icon: Target }
+      { id: 1, title: "Introduction & Context", questions: 14 },
+      { id: 2, title: "Investment Focus", questions: 8 },
+      { id: 3, title: "Vehicle Construct", questions: 18 },
+      { id: 4, title: "Investment Process", questions: 12 },
+      { id: 5, title: "Portfolio Management", questions: 10 },
+      { id: 6, title: "Risk Management", questions: 8 },
+      { id: 7, title: "ESG & Impact", questions: 6 },
+      { id: 8, title: "Technology & Innovation", questions: 4 },
+      { id: 9, title: "Market Outlook", questions: 6 },
+      { id: 10, title: "Collaboration & Network", questions: 4 }
     ]
   };
-
 
   // Fetch survey data for the fund manager
   const fetchSurveyData = async (userId: string) => {
     try {
       setSurveyLoading(true);
-      
-      const surveyChecks = await Promise.allSettled([
+      console.log('Fetching survey data for user:', userId);
+
+      const surveyPromises = [
         // 2021 Survey
         (async () => {
           try {
-            return await supabase
-              .from('survey_responses_2021')
+            const { data, error } = await supabase
+              .from('survey_2021_responses')
               .select('*')
               .eq('user_id', userId)
               .maybeSingle();
+            return { year: '2021', data, error };
           } catch (error) {
-            console.warn('2021 survey table not accessible:', error);
-            return { data: null, error: null };
+            return { year: '2021', data: null, error };
           }
         })(),
-        
         // 2023 Survey
         (async () => {
           try {
-            return await supabase
-              .from('survey_responses_2023')
+            const { data, error } = await supabase
+              .from('survey_2023_responses')
               .select('*')
               .eq('user_id', userId)
               .maybeSingle();
+            return { year: '2023', data, error };
           } catch (error) {
-            console.warn('2023 survey table not accessible:', error);
-            return { data: null, error: null };
+            return { year: '2023', data: null, error };
           }
         })(),
-        
         // 2024 Survey
         (async () => {
           try {
-            return await supabase
-              .from('survey_responses_2024')
+            const { data, error } = await supabase
+              .from('survey_2024_responses')
               .select('*')
               .eq('user_id', userId)
               .maybeSingle();
+            return { year: '2024', data, error };
           } catch (error) {
-            console.warn('2024 survey table not accessible:', error);
-            return { data: null, error: null };
+            return { year: '2024', data: null, error };
           }
         })(),
-        
-        // Regular survey (fallback)
+        // General Survey
         (async () => {
           try {
-            return await supabase
+            const { data, error } = await supabase
               .from('survey_responses')
               .select('*')
               .eq('user_id', userId)
               .maybeSingle();
+            return { year: 'general', data, error };
           } catch (error) {
-            console.warn('Regular survey table not accessible:', error);
-            return { data: null, error: null };
+            return { year: 'general', data: null, error };
           }
         })()
-      ]);
+      ];
 
-      setSurveyData({
-        survey2021: surveyChecks[0].status === 'fulfilled' ? surveyChecks[0].value?.data : null,
-        survey2022: null, // Table doesn't exist
-        survey2023: surveyChecks[1].status === 'fulfilled' ? surveyChecks[1].value?.data : null,
-        survey2024: surveyChecks[2].status === 'fulfilled' ? surveyChecks[2].value?.data : null
+      const results = await Promise.allSettled(surveyPromises);
+      
+      const surveyData: Record<string, Record<string, unknown>> = {};
+      results.forEach((result, index) => {
+        if (result.status === 'fulfilled') {
+          const { year, data, error } = result.value;
+          if (data && !error) {
+            surveyData[`survey${year}`] = data;
+          }
+        }
       });
+
+      setSurveyData(surveyData);
+      console.log('Survey data fetched:', surveyData);
     } catch (error) {
       console.error('Error fetching survey data:', error);
     } finally {
@@ -205,19 +282,67 @@ const FundManagerDetail = () => {
     }
   };
 
-  useEffect(() => {
-    // Get fund manager data from navigation state or fetch from API
-    if (location.state?.fundManager) {
-      setFundManager(location.state.fundManager);
+  const fetchFundManagerData = useCallback(async () => {
+    try {
+      setLoading(true);
+      console.log('Fetching fund manager data for user:', id);
+
+      // Fetch profile data
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (profileError) {
+        console.error('Profile fetch error:', profileError);
+        toast({
+          title: "Error",
+          description: "Failed to fetch profile data",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Process the data
+      const processedProfile: FundManagerProfile = {
+        id: profileData.id,
+        user_id: profileData.id,
+        fund_name: (profileData as Record<string, unknown>).fund_name as string || 'Unnamed Fund',
+        firm_name: (profileData as Record<string, unknown>).firm_name as string,
+        participant_name: (profileData as Record<string, unknown>).participant_name as string,
+        role_title: (profileData as Record<string, unknown>).role_title as string,
+        email_address: profileData.email,
+        phone: (profileData as Record<string, unknown>).phone as string,
+        website: (profileData as Record<string, unknown>).website as string,
+        linkedin: (profileData as Record<string, unknown>).linkedin as string,
+        first_name: profileData.first_name || '',
+        last_name: profileData.last_name || '',
+        email: profileData.email || '',
+        profile_picture_url: profileData.profile_picture_url
+      };
+
+      setFundManager(processedProfile as FundManager);
+      
       // Fetch survey data
-      fetchSurveyData(location.state.fundManager.user_id);
-      setLoading(false);
-    } else {
-      // If no state, you could fetch from API using the id
-      console.log('No fund manager data in state, would fetch from API with id:', id);
+      await fetchSurveyData(id);
+    } catch (error) {
+      console.error('Error fetching fund manager data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch fund manager data",
+        variant: "destructive",
+      });
+    } finally {
       setLoading(false);
     }
-  }, [id, location.state]);
+  }, [id, toast]);
+
+  useEffect(() => {
+    if (id && (userRole === 'viewer' || userRole === 'member' || userRole === 'admin')) {
+      fetchFundManagerData();
+    }
+  }, [id, userRole, fetchFundManagerData]);
 
   if (loading) {
     return (
@@ -226,6 +351,7 @@ const FundManagerDetail = () => {
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-gray-200 rounded w-1/4"></div>
             <div className="h-64 bg-gray-200 rounded"></div>
+            <div className="h-32 bg-gray-200 rounded"></div>
           </div>
         </div>
       </SidebarLayout>
@@ -236,10 +362,10 @@ const FundManagerDetail = () => {
     return (
       <SidebarLayout>
         <div className="p-6">
-          <div className="text-center py-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Fund Manager Not Found</h2>
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Fund Manager Not Found</h1>
             <p className="text-gray-600 mb-6">The requested fund manager could not be found.</p>
-            <Button onClick={() => navigate('/network')}>
+            <Button onClick={() => navigate('/network')} className="inline-flex items-center">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Network
             </Button>
@@ -254,7 +380,7 @@ const FundManagerDetail = () => {
 
   // Get current survey data
   const currentSurveyData = surveyData[`survey${selectedYear}` as keyof typeof surveyData];
-  const currentSections = surveySections[selectedYear as keyof typeof surveySections] || [];
+  const currentSections = surveySections[selectedYear as '2021' | '2022' | '2023' | '2024'] || [];
 
   // Function to render survey section content
   const renderSurveySection = (sectionId: number) => {
@@ -263,28 +389,16 @@ const FundManagerDetail = () => {
     const section = currentSections.find(s => s.id === sectionId);
     if (!section) return null;
 
-    // This is a simplified version - you'd need to map the actual survey fields to sections
-    // For now, showing all data in the selected section
     return (
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-          <section.icon className="w-5 h-5 mr-2 text-blue-600" />
-          {section.title}
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {Object.entries(currentSurveyData).map(([key, value]) => {
-            if (key === 'user_id' || key === 'id' || !value) return null;
-            return (
-              <div key={key} className="space-y-1">
-                <h5 className="text-sm font-medium text-gray-700 capitalize">
-                  {key.replace(/_/g, ' ')}
-                </h5>
-                <p className="text-sm text-gray-900">
-                  {Array.isArray(value) ? value.join(', ') : String(value)}
-                </p>
-              </div>
-            );
-          })}
+        <h3 className="text-lg font-semibold text-gray-900">{section.title}</h3>
+        <p className="text-sm text-gray-600">
+          This section contains {section.questions} questions about {section.title.toLowerCase()}.
+        </p>
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <p className="text-sm text-gray-700">
+            Survey data for {selectedYear} - {section.title} section is available.
+          </p>
         </div>
       </div>
     );
@@ -292,138 +406,194 @@ const FundManagerDetail = () => {
 
   return (
     <SidebarLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-6 bg-[#f5f5dc] min-h-screen">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-4">
+              <Avatar className="h-16 w-16">
+                <AvatarFallback className="text-lg">
+                  {fundManager.participant_name?.charAt(0) || fundManager.first_name?.charAt(0) || 'F'}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h1 className="text-3xl font-bold text-black">
+                  {fundManager.participant_name || `${fundManager.first_name} ${fundManager.last_name}`}
+                </h1>
+                <p className="text-lg text-gray-600">{fundManager.role_title}</p>
+                <p className="text-sm text-gray-500">{fundManager.firm_name}</p>
+              </div>
+            </div>
+            <div className="flex space-x-2">
+              <Button variant="outline" size="sm">
+                <Mail className="w-4 h-4 mr-2" />
+                Contact
+              </Button>
+              <Button variant="outline" size="sm">
+                <ExternalLink className="w-4 h-4 mr-2" />
+                View Profile
+              </Button>
+            </div>
+          </div>
+        </div>
 
-        {/* Firm Details Header */}
-        <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50 to-indigo-100">
-          <CardContent className="p-8">
-              <div className="flex items-center space-x-6">
-              <Avatar className="w-20 h-20 border-4 border-white shadow-xl">
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-2xl font-bold">
-                  {fundManager.profile?.first_name?.[0] || fundManager.participant_name?.[0] || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-              
-              <div className="flex-1">
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                  {fundManager.firm_name || fundManager.fund_name || 'Unnamed Firm'}
-                </h2>
-                <p className="text-xl text-gray-600 mb-1">
-                  {fundManager.participant_name || 'Unknown Participant'}
-                </p>
-                {fundManager.role_title && (
-                  <p className="text-lg text-gray-500">{fundManager.role_title}</p>
-                )}
-                
-                <div className="flex items-center space-x-4 mt-4">
-                  {fundManager.email_address && (
-                    <div className="flex items-center space-x-2">
-                      <Mail className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm text-gray-700">{fundManager.email_address}</span>
-                    </div>
-                  )}
+        {/* Survey Navigation */}
+        {availableYears.length > 0 && (
+          <div className="mb-8">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-black">Survey Responses</CardTitle>
+                <CardDescription>
+                  View survey responses by year and section
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {/* Year Selection */}
+                <div className="mb-6">
+                  <h3 className="text-sm font-medium text-gray-700 mb-3">Select Year</h3>
+                  <div className="flex space-x-2">
+                    {availableYears.map((year) => (
+                      <Button
+                        key={year}
+                        variant={selectedYear === year ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedYear(year as '2021' | '2022' | '2023' | '2024')}
+                      >
+                        {year}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
 
-                  {fundManager.legal_domicile && (
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm text-gray-700">{fundManager.legal_domicile}</span>
-                    </div>
-                  )}
-
-                  <Badge 
-                    variant={fundManager.has_survey ? "default" : "secondary"}
-                    className={`${fundManager.has_survey ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}
-                  >
-                    {fundManager.has_survey ? (
-                      <>
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Profile Complete
-                      </>
-                    ) : (
-                      <>
-                        <Clock className="w-3 h-3 mr-1" />
-                        Profile Incomplete
-                      </>
-                    )}
-                  </Badge>
-                        </div>
+                {/* Section Selection */}
+                {currentSections.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-sm font-medium text-gray-700 mb-3">Select Section</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+                      {currentSections.map((section) => (
+                        <Button
+                          key={section.id}
+                          variant={selectedSection === section.id ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setSelectedSection(section.id)}
+                          className="text-xs"
+                        >
+                          {section.title}
+                        </Button>
+                      ))}
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                )}
 
-        {/* Year Navigation Tabs */}
-        {availableYears.length > 0 && (
-          <Card className="border-0 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-semibold text-gray-700 mr-4">Survey Year:</span>
-                {availableYears.map((year) => (
-                  <Button
-                    key={year}
-                    variant={selectedYear === year ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedYear(year as '2021' | '2022' | '2023' | '2024')}
-                    className={`${
-                      selectedYear === year 
-                        ? 'bg-blue-600 text-white' 
-                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    {year}
-                      </Button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                {/* Section Content */}
+                {currentSurveyData && (
+                  <div className="mt-6">
+                    {renderSurveySection(selectedSection)}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         )}
 
-        {/* Section Navigation */}
-        {currentSections.length > 0 && (
-          <Card className="border-0 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-semibold text-gray-700 mr-4">Survey Section:</span>
-                {currentSections.map((section) => (
-                  <Button
-                    key={section.id}
-                    variant={selectedSection === section.id ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedSection(section.id)}
-                    className={`${
-                      selectedSection === section.id 
-                        ? 'bg-blue-600 text-white' 
-                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    <section.icon className="w-4 h-4 mr-2" />
-                    {section.title}
-                      </Button>
-                ))}
-                    </div>
-                  </CardContent>
-                </Card>
+        {/* Fund Manager Details */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Basic Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-black">Basic Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <Building2 className="w-5 h-5 text-gray-500" />
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Firm</p>
+                  <p className="text-sm text-gray-900">{fundManager.firm_name || 'Not specified'}</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Mail className="w-5 h-5 text-gray-500" />
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Email</p>
+                  <p className="text-sm text-gray-900">{fundManager.email_address || 'Not specified'}</p>
+                </div>
+              </div>
+              {fundManager.phone && (
+                <div className="flex items-center space-x-3">
+                  <Phone className="w-5 h-5 text-gray-500" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Phone</p>
+                    <p className="text-sm text-gray-900">{fundManager.phone}</p>
+                  </div>
+                </div>
               )}
+              {fundManager.website && (
+                <div className="flex items-center space-x-3">
+                  <Globe className="w-5 h-5 text-gray-500" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Website</p>
+                    <a 
+                      href={fundManager.website} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-sm text-blue-600 hover:underline"
+                    >
+                      {fundManager.website}
+                    </a>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-        {/* Survey Content */}
-        <Card className="border-0 shadow-lg">
-          <CardContent className="p-8">
-            {surveyLoading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading survey data...</p>
-            </div>
-            ) : currentSurveyData ? (
-              renderSurveySection(selectedSection)
-            ) : (
-              <div className="text-center py-8">
-                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h4 className="text-lg font-semibold text-gray-900 mb-2">No Survey Data Available</h4>
-                <p className="text-gray-600">This fund manager has not completed the {selectedYear} survey yet.</p>
-          </div>
-            )}
-          </CardContent>
-        </Card>
+          {/* Investment Focus */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-black">Investment Focus</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {fundManager.geographic_focus && fundManager.geographic_focus.length > 0 && (
+                <div className="flex items-start space-x-3">
+                  <MapPin className="w-5 h-5 text-gray-500 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Geographic Focus</p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {fundManager.geographic_focus.map((region, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {region}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+              {fundManager.target_sectors && fundManager.target_sectors.length > 0 && (
+                <div className="flex items-start space-x-3">
+                  <Target className="w-5 h-5 text-gray-500 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Target Sectors</p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {fundManager.target_sectors.map((sector, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {sector}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+              {fundManager.fund_stage && (
+                <div className="flex items-center space-x-3">
+                  <TrendingUp className="w-5 h-5 text-gray-500" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Fund Stage</p>
+                    <p className="text-sm text-gray-900">{fundManager.fund_stage}</p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </SidebarLayout>
   );

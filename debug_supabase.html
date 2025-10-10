@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Supabase Connection Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Supabase Connection Test</h1>
+    <button onclick="testConnection()">Test Connection</button>
+    <div id="result"></div>
+
+    <script>
+        // Replace with your actual Supabase URL and anon key
+        const SUPABASE_URL = 'https://qiqxdivyyjcbegdlptuq.supabase.co';
+        const SUPABASE_ANON_KEY = 'your-anon-key-here'; // Replace with your actual anon key
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        async function testConnection() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing connection...';
+            
+            try {
+                // Test 1: Basic connection
+                console.log('Testing basic connection...');
+                const { data, error } = await supabase
+                    .from('survey_2024_responses')
+                    .select('count')
+                    .limit(1);
+                
+                if (error) {
+                    resultDiv.innerHTML = `❌ Connection failed: ${error.message}`;
+                    console.error('Connection error:', error);
+                    return;
+                }
+                
+                resultDiv.innerHTML = '✅ Connection successful! Database is accessible.';
+                console.log('✅ Connection successful!');
+                
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Test failed: ${error.message}`;
+                console.error('Test failed:', error);
+            }
+        }
+    </script>
+</body>
+</html>

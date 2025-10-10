@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { logApplicationApproved, logApplicationRejected } from '@/utils/activityLogger';
 import {
   Search,
   Filter,
@@ -125,6 +126,16 @@ const ApplicationManagement = () => {
           if (roleError) {
             console.error('Error updating user role:', roleError);
           }
+        }
+      }
+
+      // Log the activity
+      const application = applications.find(app => app.id === applicationId);
+      if (application) {
+        if (newStatus === 'approved') {
+          await logApplicationApproved(applicationId, application.applicant_name, application.vehicle_name);
+        } else {
+          await logApplicationRejected(applicationId, application.applicant_name, application.vehicle_name);
         }
       }
 

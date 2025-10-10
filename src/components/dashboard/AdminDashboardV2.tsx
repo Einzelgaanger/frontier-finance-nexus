@@ -25,7 +25,8 @@ import {
   Eye,
   UserPlus,
   Bell,
-  Search
+  Search,
+  XCircle
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -34,7 +35,7 @@ import { Link } from 'react-router-dom';
 interface StatCard {
   title: string;
   value: string;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   description: string;
   trend: { value: number; isPositive: boolean };
   color: string;
@@ -47,7 +48,7 @@ interface ActivityItem {
   type: 'user' | 'survey' | 'system' | 'admin';
   message: string;
   timestamp: string;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   color: string;
 }
 
@@ -107,15 +108,33 @@ const AdminDashboardV2 = () => {
       console.log('AdminDashboardV2 - Fetching all data...');
       
       // Fetch data from available tables
-      const [survey2021Result, surveyResult, userRolesResult] = await Promise.all([
-        supabase.from('survey_responses_2021').select('id, user_id, created_at, firm_name, participant_name'),
+      const [
+        survey2021Result, 
+        survey2023Result, 
+        survey2024Result, 
+        surveyResult, 
+        userRolesResult, 
+        applicationsResult,
+        profilesResult
+      ] = await Promise.all([
+        supabase.from('survey_2021_responses').select('id, user_id, created_at, firm_name, participant_name'),
+        supabase.from('survey_2023_responses').select('id, user_id, created_at'),
+        supabase.from('survey_2024_responses').select('id, user_id, created_at'),
         supabase.from('survey_responses').select('id, user_id, created_at'),
-        supabase.from('user_roles').select('user_id, role')
+        supabase.from('user_roles').select('user_id, role'),
+        supabase.from('membership_requests').select('id, status, created_at'),
+        supabase.from('profiles').select('id, created_at')
       ]);
 
       // Handle errors gracefully
       if (survey2021Result.error) {
         console.warn('Could not fetch 2021 survey data:', survey2021Result.error);
+      }
+      if (survey2023Result.error) {
+        console.warn('Could not fetch 2023 survey data:', survey2023Result.error);
+      }
+      if (survey2024Result.error) {
+        console.warn('Could not fetch 2024 survey data:', survey2024Result.error);
       }
       if (surveyResult.error) {
         console.warn('Could not fetch regular survey data:', surveyResult.error);
@@ -123,31 +142,40 @@ const AdminDashboardV2 = () => {
       if (userRolesResult.error) {
         console.warn('Could not fetch user roles:', userRolesResult.error);
       }
+      if (applicationsResult.error) {
+        console.warn('Could not fetch membership requests data:', applicationsResult.error);
+      }
+      if (profilesResult.error) {
+        console.warn('Could not fetch profiles data:', profilesResult.error);
+      }
 
-      // Get unique users from survey data
+      // Get all survey data
       const survey2021Users = survey2021Result.data || [];
+      const survey2023Users = survey2023Result.data || [];
+      const survey2024Users = survey2024Result.data || [];
       const surveyUsers = surveyResult.data || [];
-      const allSurveyUsers = [...new Set([
-        ...survey2021Users.map(s => s.user_id),
-        ...surveyUsers.map(s => s.user_id)
-      ])];
-
-      // Get user roles
+      
+      // Get user roles and profiles
       const userRoles = userRolesResult.data || [];
+      const profiles = profilesResult.data || [];
       const roleMap = new Map(userRoles.map(ur => [ur.user_id, ur.role]));
 
-      // Calculate stats
-      const totalUsers = allSurveyUsers.length;
-      const activeMembers = allSurveyUsers.filter(userId => 
-        roleMap.get(userId) === 'member'
-      ).length;
-      const totalSurveyResponses = survey2021Users.length + surveyUsers.length;
+      // Get membership requests data
+      const membershipRequests = applicationsResult.data || [];
+      const pendingApplications = membershipRequests.filter(app => app.status === 'pending').length;
+
+      // Calculate real production metrics
+      const totalUsers = userRoles.length; // All users with roles in the system
+      const activeMembers = userRoles.filter(ur => ur.role === 'member').length; // Users with member role
+      const totalSurveyResponses = survey2021Users.length + survey2023Users.length + survey2024Users.length + surveyUsers.length;
       
-      // Calculate this month's surveys
+      // Calculate this month's surveys (keeping for potential future use)
       const thisMonth = new Date();
       thisMonth.setDate(1);
       const thisMonthSurveys = [
         ...survey2021Users.filter(s => new Date(s.created_at) >= thisMonth),
+        ...survey2023Users.filter(s => new Date(s.created_at) >= thisMonth),
+        ...survey2024Users.filter(s => new Date(s.created_at) >= thisMonth),
         ...surveyUsers.filter(s => new Date(s.created_at) >= thisMonth)
       ].length;
 
@@ -156,8 +184,14 @@ const AdminDashboardV2 = () => {
         activeMembers,
         totalSurveyResponses,
         thisMonthSurveys,
+        pendingApplications,
         survey2021Users: survey2021Users.length,
-        surveyUsers: surveyUsers.length
+        survey2023Users: survey2023Users.length,
+        survey2024Users: survey2024Users.length,
+        surveyUsers: surveyUsers.length,
+        userRoles: userRoles.length,
+        profiles: profiles.length,
+        totalUsersFromRoles: userRoles.length
       });
 
       setStats([
@@ -165,7 +199,7 @@ const AdminDashboardV2 = () => {
           title: 'Total Users',
           value: totalUsers.toString(),
           icon: Users,
-          description: 'Users with survey responses',
+          description: 'Users with assigned roles',
           trend: { value: 0, isPositive: true },
           color: 'bg-blue-500',
           bgColor: 'bg-blue-50',
@@ -175,7 +209,7 @@ const AdminDashboardV2 = () => {
           title: 'Active Members',
           value: activeMembers.toString(),
           icon: UserCheck,
-          description: 'Members with survey responses',
+          description: 'Users with member role',
           trend: { value: 0, isPositive: true },
           color: 'bg-green-500',
           bgColor: 'bg-green-50',
@@ -185,17 +219,17 @@ const AdminDashboardV2 = () => {
           title: 'Survey Responses',
           value: totalSurveyResponses.toString(),
           icon: FileText,
-          description: 'Total survey responses',
+          description: 'All survey submissions',
           trend: { value: 0, isPositive: true },
           color: 'bg-purple-500',
           bgColor: 'bg-purple-50',
           textColor: 'text-purple-700'
         },
         {
-          title: 'This Month',
-          value: thisMonthSurveys.toString(),
-          icon: Activity,
-          description: 'Responses this month',
+          title: 'Pending Applications',
+          value: pendingApplications.toString(),
+          icon: Clock,
+          description: 'Awaiting review',
           trend: { value: 0, isPositive: true },
           color: 'bg-orange-500',
           bgColor: 'bg-orange-50',
@@ -206,50 +240,117 @@ const AdminDashboardV2 = () => {
       // Generate recent activity from real data
       const activities: ActivityItem[] = [];
       
-      // Add recent survey responses
+      // Add recent survey responses from all years
       const recentSurveys = [
-        ...survey2021Users.slice(0, 3).map((survey, index) => ({
-          id: `survey-${survey.id}`,
+        ...survey2021Users.slice(0, 2).map((survey, index) => ({
+          id: `survey-2021-${survey.id}`,
           type: 'survey' as const,
-          message: `Survey response from ${survey.firm_name || 'Unknown Firm'}`,
+          message: `2021 Survey from ${survey.firm_name || 'Unknown Firm'}`,
           timestamp: new Date(survey.created_at).toLocaleString(),
           icon: FileText,
           color: 'text-blue-600'
         })),
-        ...surveyUsers.slice(0, 2).map((survey, index) => ({
-          id: `survey-reg-${survey.id}`,
+        ...survey2023Users.slice(0, 2).map((survey, index) => ({
+          id: `survey-2023-${survey.id}`,
           type: 'survey' as const,
-          message: 'Survey response submitted',
+          message: `2023 Survey response submitted`,
           timestamp: new Date(survey.created_at).toLocaleString(),
           icon: FileText,
-          color: 'text-blue-600'
+          color: 'text-purple-600'
+        })),
+        ...survey2024Users.slice(0, 2).map((survey, index) => ({
+          id: `survey-2024-${survey.id}`,
+          type: 'survey' as const,
+          message: `2024 Survey response submitted`,
+          timestamp: new Date(survey.created_at).toLocaleString(),
+          icon: FileText,
+          color: 'text-green-600'
+        })),
+        ...surveyUsers.slice(0, 1).map((survey, index) => ({
+          id: `survey-reg-${survey.id}`,
+          type: 'survey' as const,
+          message: 'General survey response submitted',
+          timestamp: new Date(survey.created_at).toLocaleString(),
+          icon: FileText,
+          color: 'text-orange-600'
         }))
       ];
       
       activities.push(...recentSurveys);
 
-      // Add recent application activities
+      // Add recent membership request activities
       try {
-        const { data: recentApplications, error: appError } = await supabase
-          .from('applications')
+        const { data: recentRequests, error: appError } = await supabase
+          .from('membership_requests')
           .select('*')
           .order('created_at', { ascending: false })
-          .limit(5);
+          .limit(3);
 
-        if (!appError && recentApplications) {
-          const applicationActivities = recentApplications.map((app) => ({
-            id: `app-${app.id}`,
+        if (!appError && recentRequests) {
+          const requestActivities = recentRequests.map((req) => ({
+            id: `req-${req.id}`,
             type: 'user' as const,
-            message: `New application from ${app.applicant_name} (${app.vehicle_name})`,
-            timestamp: new Date(app.created_at).toLocaleString(),
+            message: `New membership request from ${req.vehicle_name}`,
+            timestamp: new Date(req.created_at).toLocaleString(),
             icon: UserPlus,
             color: 'text-orange-600'
           }));
 
-          activities.push(...applicationActivities);
+          activities.push(...requestActivities);
         }
       } catch (error) {
-        console.error('Error fetching applications for activity:', error);
+        console.error('Error fetching membership requests for activity:', error);
+      }
+
+      // Add recent activity logs
+      try {
+        const { data: activityLogs, error: logError } = await supabase
+          .from('activity_logs')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        if (!logError && activityLogs) {
+          const logActivities = activityLogs.map((log) => {
+            let message = '';
+            let icon = Activity;
+            let color = 'text-gray-600';
+
+            const details = log.details as Record<string, unknown>;
+            switch (log.action) {
+              case 'application_submitted':
+                message = `Application submitted by ${details?.applicant_name || 'Unknown'}`;
+                icon = UserPlus;
+                color = 'text-orange-600';
+                break;
+              case 'application_approved':
+                message = `Application approved for ${details?.applicant_name || 'Unknown'}`;
+                icon = CheckCircle;
+                color = 'text-green-600';
+                break;
+              case 'application_rejected':
+                message = `Application rejected for ${details?.applicant_name || 'Unknown'}`;
+                icon = XCircle;
+                color = 'text-red-600';
+                break;
+              default:
+                message = log.action.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            }
+
+            return {
+              id: `log-${log.id}`,
+              type: 'admin' as const,
+              message,
+              timestamp: new Date(log.created_at).toLocaleString(),
+              icon,
+              color
+            };
+          });
+
+          activities.push(...logActivities);
+        }
+      } catch (error) {
+        console.error('Error fetching activity logs:', error);
       }
       
       // Add system activities

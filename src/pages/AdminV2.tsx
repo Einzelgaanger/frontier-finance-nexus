@@ -549,8 +549,8 @@ const AdminV2 = () => {
         {/* Modals */}
         <CreateUserModal
           open={showCreateUserModal}
-          onOpenChange={setShowCreateUserModal}
-          onUserCreated={fetchAllData}
+          onClose={() => setShowCreateUserModal(false)}
+          onSuccess={fetchAllData}
         />
 
         <Dialog open={showApplicationModal} onOpenChange={setShowApplicationModal}>

@@ -2,21 +2,21 @@ import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import SidebarLayout from '@/components/layout/SidebarLayout';
 import SurveyNavigation from '@/components/survey/SurveyNavigation';
-import ViewerSurveyNavigation from '@/components/survey/ViewerSurveyNavigation';
+import SurveyPage from '@/components/survey/SurveyPage';
 
 const Survey: React.FC = () => {
   const { userRole } = useAuth();
 
-  // Show viewer-specific survey page for viewers
-  if (userRole === 'viewer') {
+  // Show enhanced survey page for both viewers and members
+  if (userRole === 'viewer' || userRole === 'member') {
     return (
       <SidebarLayout>
-        <ViewerSurveyNavigation />
+        <SurveyPage />
       </SidebarLayout>
     );
   }
 
-  // Show regular survey page for members and admins
+  // Show regular survey page for admins
   return (
     <SidebarLayout>
       <SurveyNavigation />

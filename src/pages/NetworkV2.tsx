@@ -131,7 +131,7 @@ const NetworkV2 = React.memo(() => {
 
       // Fetch survey data to determine who has surveys
       const [survey2021Result, surveyResult] = await Promise.all([
-        supabase.from('survey_responses_2021').select('user_id, firm_name, participant_name, geographic_focus, investment_vehicle_type, fund_stage, current_ftes'),
+        supabase.from('survey_2021_responses').select('user_id, firm_name, participant_name, geographic_focus, investment_vehicle_type, fund_stage, current_ftes'),
         supabase.from('survey_responses').select('user_id')
       ]);
 
@@ -803,8 +803,8 @@ const NetworkV2 = React.memo(() => {
               <div className="flex items-center justify-center space-x-3">
                 <Button onClick={clearFilters} className="bg-blue-600 hover:bg-blue-700">
                   <RotateCcw className="w-4 h-4 mr-2" />
-                Clear Filters
-              </Button>
+                  Clear Filters
+                </Button>
                 <Button variant="outline" onClick={() => setSearchTerm('')}>
                   <Search className="w-4 h-4 mr-2" />
                   New Search

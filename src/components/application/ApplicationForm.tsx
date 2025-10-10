@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { logApplicationSubmitted } from '@/utils/activityLogger';
-import { FileText, Upload, Link, Plus, CheckCircle, Send } from 'lucide-react';
+import { FileText, Upload, Link, Plus, CheckCircle, Send, Clock, AlertCircle } from 'lucide-react';
 import { CountrySelector } from '@/components/survey/CountrySelector';
 
 const ApplicationForm = () => {
@@ -20,6 +20,8 @@ const ApplicationForm = () => {
   const [currentSection, setCurrentSection] = useState(1);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [existingApplication, setExistingApplication] = useState<any>(null);
+  const [checkingApplication, setCheckingApplication] = useState(true);
   
   const [formData, setFormData] = useState({
     // Background Information
@@ -59,6 +61,39 @@ const ApplicationForm = () => {
     'Regulatory Updates',
     'ESG Investing'
   ];
+
+  // Check for existing application
+  useEffect(() => {
+    const checkExistingApplication = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('membership_requests')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          setExistingApplication(data[0]);
+        }
+      } catch (error) {
+        console.error('Error checking existing application:', error);
+        toast({
+          title: "Error",
+          description: "Failed to check application status",
+          variant: "destructive"
+        });
+      } finally {
+        setCheckingApplication(false);
+      }
+    };
+
+    checkExistingApplication();
+  }, [user?.id, toast]);
 
   const checkSizes = [
     'Under $100K',
@@ -212,41 +247,46 @@ const ApplicationForm = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('applications')
+      const { data, error } = await supabase
+        .from('membership_requests')
         .insert([{
           user_id: user?.id,
           email: formData.email,
           applicant_name: formData.applicant_name,
           vehicle_name: formData.vehicle_name,
-          organization_website: formData.organization_website,
-          domicile_countries: formData.domicile_countries,
+          vehicle_website: formData.organization_website,
+          domicile_country: formData.domicile_countries.join(', '),
           role_job_title: formData.role_job_title,
-          team_overview: formData.team_overview,
-          investment_thesis: formData.investment_thesis,
-          typical_check_size: formData.typical_check_size,
-          number_of_investments: formData.number_of_investments,
-          amount_raised_to_date: formData.amount_raised_to_date,
-          supporting_documents: formData.supporting_documents,
-          supporting_document_links: formData.supporting_document_links,
-          expectations_from_network: formData.expectations_from_network,
+          team_size: formData.team_overview,
+          thesis: formData.investment_thesis,
+          ticket_size: formData.typical_check_size,
+          portfolio_investments: formData.number_of_investments,
+          capital_raised: formData.amount_raised_to_date,
+          supporting_documents: JSON.stringify(formData.supporting_documents),
+          expectations: formData.expectations_from_network,
           how_heard_about_network: formData.how_heard_about_network,
-          topics_of_interest: formData.topics_of_interest,
-        }]);
+          information_sharing: JSON.stringify(formData.topics_of_interest),
+          status: 'pending'
+        }])
+        .select();
 
       if (error) throw error;
 
       // Log the application submission
-      await logApplicationSubmitted(
-        data[0].id,
-        formData.applicant_name,
-        formData.vehicle_name
-      );
+      if (data && data.length > 0) {
+        await logApplicationSubmitted(
+          data[0].id,
+          formData.applicant_name,
+          formData.vehicle_name
+        );
+      }
 
       setShowSuccessMessage(true);
+      setExistingApplication(data[0]);
       toast({
         title: "Application submitted successfully!",
         description: "Your membership application has been submitted for review.",
+        variant: "default",
       });
     } catch (error) {
       console.error('Error submitting application:', error);
@@ -261,6 +301,105 @@ const ApplicationForm = () => {
   };
 
   const progress = (currentSection / totalSections) * 100;
+
+  // Show loading state while checking application status
+  if (checkingApplication) {
+    return (
+      <div className="max-w-2xl mx-auto p-6 bg-[#f5f5dc] rounded-lg border-2 border-black">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
+          <p className="text-black/70">Checking application status...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show pending application status
+  if (existingApplication && existingApplication.status === 'pending') {
+    return (
+      <div className="max-w-2xl mx-auto p-6 bg-[#f5f5dc] rounded-lg border-2 border-black">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Clock className="w-8 h-8 text-white" />
+          </div>
+          <h2 className="text-2xl font-bold text-black mb-2">Application Pending</h2>
+          <p className="text-black/70 mb-4">
+            Your membership application is currently under review. Our team will get back to you within 5-7 business days.
+          </p>
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+            <p className="text-sm text-orange-800">
+              <strong>Application Details:</strong><br />
+              Submitted on: {new Date(existingApplication.created_at).toLocaleDateString()}<br />
+              Vehicle: {existingApplication.vehicle_name}<br />
+              Status: Pending Review
+            </p>
+          </div>
+          <p className="text-sm text-black/60">
+            You cannot submit another application while this one is pending.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show approved application status
+  if (existingApplication && existingApplication.status === 'approved') {
+    return (
+      <div className="max-w-2xl mx-auto p-6 bg-[#f5f5dc] rounded-lg border-2 border-black">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="w-8 h-8 text-white" />
+          </div>
+          <h2 className="text-2xl font-bold text-black mb-2">Application Approved!</h2>
+          <p className="text-black/70 mb-4">
+            Congratulations! Your membership application has been approved. You are now a member of the ESCP Network.
+          </p>
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <p className="text-sm text-green-800">
+              <strong>Application Details:</strong><br />
+              Approved on: {new Date(existingApplication.updated_at || existingApplication.created_at).toLocaleDateString()}<br />
+              Vehicle: {existingApplication.vehicle_name}<br />
+              Status: Approved
+            </p>
+          </div>
+          <p className="text-sm text-black/60">
+            You now have full access to the network features.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show rejected application status - allow resubmission
+  if (existingApplication && existingApplication.status === 'rejected') {
+    return (
+      <div className="max-w-2xl mx-auto p-6 bg-[#f5f5dc] rounded-lg border-2 border-black">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-8 h-8 text-white" />
+          </div>
+          <h2 className="text-2xl font-bold text-black mb-2">Application Not Approved</h2>
+          <p className="text-black/70 mb-4">
+            Unfortunately, your previous application was not approved. You may submit a new application.
+          </p>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p className="text-sm text-red-800">
+              <strong>Previous Application:</strong><br />
+              Submitted on: {new Date(existingApplication.created_at).toLocaleDateString()}<br />
+              Vehicle: {existingApplication.vehicle_name}<br />
+              Status: Rejected
+            </p>
+          </div>
+          <Button 
+            onClick={() => setExistingApplication(null)}
+            className="bg-black text-[#f5f5dc] hover:bg-black/80"
+          >
+            Submit New Application
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (showSuccessMessage) {
     return (
@@ -393,8 +532,9 @@ const ApplicationForm = () => {
           <div>
             <Label className="text-black font-medium">Domicile Countries *</Label>
             <CountrySelector
-              selectedCountries={formData.domicile_countries}
-              onCountriesChange={(countries) => handleInputChange('domicile_countries', countries)}
+              value={formData.domicile_countries || []}
+              onChange={(countries) => handleInputChange('domicile_countries', countries)}
+              label=""
             />
           </div>
         </div>
@@ -493,6 +633,8 @@ const ApplicationForm = () => {
                   onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
                   className="hidden"
                   accept=".pdf,.doc,.docx,.txt"
+                  aria-label="Upload supporting documents"
+                  title="Upload supporting documents"
                 />
                 <Button
                   type="button"

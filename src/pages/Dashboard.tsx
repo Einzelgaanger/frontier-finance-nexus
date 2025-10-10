@@ -5,6 +5,7 @@ import SidebarLayout from '@/components/layout/SidebarLayout';
 import ViewerDashboard from '@/components/dashboard/ViewerDashboard';
 import AdminDashboard from '@/components/dashboard/AdminDashboard';
 import AdminDashboardV2 from '@/components/dashboard/AdminDashboardV2';
+import MemberDashboard from '@/components/dashboard/MemberDashboard';
 import NetworkV2 from '@/pages/NetworkV2';
 import { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
@@ -45,7 +46,11 @@ const Dashboard = () => {
   }
 
   if (userRole === 'member') {
-    return <Navigate to="/network" replace />;
+    return (
+      <SidebarLayout>
+        <MemberDashboard />
+      </SidebarLayout>
+    );
   }
 
   if (userRole === 'viewer') {

@@ -66,8 +66,8 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
       name: "Dashboard", 
       href: "/dashboard", 
       icon: LayoutDashboard, 
-      roles: ["admin", "viewer"],
-      description: (userRole === "viewer" || !userRole) ? "Your overview and insights" : "Overview and analytics",
+      roles: ["admin", "member", "viewer"],
+      description: (userRole === "viewer" || !userRole) ? "Your overview and insights" : userRole === "member" ? "Your member dashboard and activity" : "Overview and analytics",
       badge: null,
       color: "blue"
     },
@@ -276,13 +276,31 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
                 <Menu className="w-5 h-5" />
               </Button>
                 <div>
-                  {location.pathname === '/dashboard' ? (
+                  {location.pathname === '/dashboard' && userRole === 'admin' ? (
                     <>
                       <h2 className="text-2xl font-bold text-black transition-colors">
                         Welcome back, Administrator
                       </h2>
                       <p className="text-sm text-black/70 transition-colors">
                         Here's what's happening with your network today
+                      </p>
+                    </>
+                  ) : location.pathname === '/dashboard' && userRole === 'viewer' ? (
+                    <>
+                      <h2 className="text-2xl font-bold text-black transition-colors">
+                        Welcome to ESCP Network
+                      </h2>
+                      <p className="text-sm text-black/70 transition-colors">
+                        Your gateway to the world's leading emerging market fund managers
+                      </p>
+                    </>
+                  ) : location.pathname === '/dashboard' && userRole === 'member' ? (
+                    <>
+                      <h2 className="text-2xl font-bold text-black transition-colors">
+                        Good morning, {user?.email?.split('@')[0] || 'Member'}!
+                      </h2>
+                      <p className="text-sm text-black/70 transition-colors">
+                        Welcome to the ESCP Network member portal. Access your surveys, connect with peers, and explore insights.
                       </p>
                     </>
                   ) : location.pathname.startsWith('/network/fund-manager/') ? (
@@ -329,10 +347,22 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
                   <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
                     {user?.email?.charAt(0).toUpperCase() || 'U'}
                   </div>
-                  <div className="text-center">
+                  <div className="text-left">
                     <p className="text-sm font-medium text-black">
                       {user?.email}
                     </p>
+                    {/* Role Badge */}
+                    <div className="mt-1">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        userRole === 'admin' 
+                          ? 'bg-red-100 text-red-800' 
+                          : userRole === 'member' 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {userRole?.charAt(0).toUpperCase() + userRole?.slice(1) || 'Viewer'}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -56,7 +56,7 @@ class SurveyStatusManager {
         (async () => {
           try {
             return await supabase
-              .from('survey_responses_2021')
+              .from('survey_2021_responses')
               .select('id, completed_at, *')
               .eq('user_id', userId)
               .not('completed_at', 'is', null)
@@ -74,7 +74,7 @@ class SurveyStatusManager {
         (async () => {
           try {
             return await supabase
-              .from('survey_responses_2023')
+              .from('survey_2023_responses')
               .select('id, completed_at, *')
               .eq('user_id', userId)
               .not('completed_at', 'is', null)
@@ -89,7 +89,7 @@ class SurveyStatusManager {
         (async () => {
           try {
             return await supabase
-              .from('survey_responses_2024')
+              .from('survey_2024_responses')
               .select('id, completed_at, *')
               .eq('user_id', userId)
               .not('completed_at', 'is', null)

@@ -557,7 +557,7 @@ export type Database = {
         }
         Relationships: []
       }
-      survey_responses_2021: {
+      survey_2021_responses: {
         Row: {
           additional_comments: string | null
           business_model_targeted: string[]
@@ -755,7 +755,7 @@ export type Database = {
         }
         Relationships: []
       }
-      survey_responses_2023: {
+      survey_2023_responses: {
         Row: {
           additional_comments: string | null
           briefing_acknowledged: boolean
@@ -953,7 +953,7 @@ export type Database = {
         }
         Relationships: []
       }
-      survey_responses_2024: {
+      survey_2024_responses: {
         Row: {
           additional_sdgs: string | null
           amount_invested_2022: number | null

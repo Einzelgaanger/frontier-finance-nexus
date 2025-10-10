@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -412,6 +412,11 @@ const FieldBoolean: React.FC<{
 const Survey2021Responses: React.FC<{ data: Survey2021Data; role: string }> = ({ data, role }) => {
   const isMember = role === 'member';
   const showAll = role === 'admin';
+  
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   console.log('Survey2021Responses received data:', data);
   console.log('Survey2021Responses role:', role);

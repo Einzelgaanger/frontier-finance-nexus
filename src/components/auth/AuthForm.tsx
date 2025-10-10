@@ -58,7 +58,7 @@ export default function AuthForm() {
     lastName: '' 
   });
   
-  const { signIn, signUp, signInWithGoogle } = useAuth();
+  const { signIn, signUp, signInWithGoogle, signInWithMagicLink } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -209,8 +209,25 @@ export default function AuthForm() {
       setIsLoading(false);
     }
   };
-
-
+  const handleMagicLink = async () => {
+    if (!signInForm.email) {
+      toast({ title: 'Email required', description: 'Please enter your email to receive a magic link.', variant: 'destructive' });
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const { error } = await signInWithMagicLink(signInForm.email);
+      if (error) {
+        toast({ title: 'Magic link failed', description: getErrorMessage(error), variant: 'destructive' });
+      } else {
+        toast({ title: 'Check your inbox', description: 'We sent you a magic sign-in link. Open it to continue.' });
+      }
+    } catch (error: unknown) {
+      toast({ title: 'Magic link error', description: getErrorMessage(error), variant: 'destructive' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <div className="min-h-screen bg-cover bg-center bg-fixed flex items-center justify-center p-4 font-rubik" style={{ backgroundImage: 'url(/auth.jpg)' }}>
       <Card className="w-full max-w-md border border-blue-600/40 bg-blue-700/30 backdrop-blur-md relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide">
@@ -303,6 +320,9 @@ export default function AuthForm() {
                 
                 <Button type="submit" className="w-full bg-blue-600/80 hover:bg-blue-600 text-white backdrop-blur-sm" disabled={isLoading}>
                   {isLoading ? 'Signing In...' : 'Sign In'}
+                </Button>
+                <Button type="button" onClick={handleMagicLink} className="w-full mt-2 bg-blue-700/20 hover:bg-blue-700/30 text-white border border-blue-600/40 backdrop-blur-sm" disabled={isLoading || !signInForm.email}>
+                  Email me a magic link
                 </Button>
               </form>
             </TabsContent>

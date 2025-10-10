@@ -308,7 +308,7 @@ const Analytics2021: React.FC = () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('survey_responses_2021')
+        .from('survey_2021_responses')
         .select('*')
         .order('created_at', { ascending: false });
 
