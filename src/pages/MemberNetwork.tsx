@@ -250,7 +250,7 @@ const MemberNetwork = React.memo(() => {
             year_founded: 2020, // Default year since it's not in survey data
             role_title: roleTitle || 'Fund Manager',
             created_at: new Date().toISOString(),
-            user_role: userRole || 'member' // Default to member if no role found
+            role_badge: userRole || 'viewer'
           };
         });
       } else {
