@@ -11,7 +11,6 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: unknown }>;
   signUp: (email: string, password: string, metadata?: Record<string, unknown>) => Promise<{ error: unknown }>;
   signOut: () => Promise<void>;
-  signInWithGoogle: () => Promise<{ error: unknown }>;
   signInWithMagicLink: (email: string) => Promise<{ error: unknown }>;
   resetPassword: (email: string) => Promise<{ error: unknown }>;
   refreshUserRole: () => Promise<void>;
@@ -274,21 +273,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signInWithGoogle = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`
-        }
-      });
-      return { error };
-    } catch (error) {
-      console.error('Google sign in error:', error);
-      return { error };
-    }
-  };
-
   const signInWithMagicLink = async (email: string) => {
     try {
       const { error } = await supabase.auth.signInWithOtp({
@@ -303,6 +287,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error };
     }
   };
+  
   const resetPassword = async (email: string) => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -324,7 +309,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signIn,
       signUp,
       signOut,
-      signInWithGoogle,
       signInWithMagicLink,
       resetPassword,
       refreshUserRole,
