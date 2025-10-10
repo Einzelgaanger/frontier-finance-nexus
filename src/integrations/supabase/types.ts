@@ -1642,6 +1642,10 @@ export type Database = {
         }
         Returns: Json
       }
+      create_user_with_profile: {
+        Args: { org_name: string; user_email: string }
+        Returns: string
+      }
       create_viewer_survey_data: {
         Args: { p_survey_data: Json; p_survey_year: number; p_user_id: string }
         Returns: string

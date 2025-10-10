@@ -179,7 +179,7 @@ const Header = ({ showNav = true }: HeaderProps) => {
                   <span className="font-medium text-gray-800">{user.email}</span>
                   
                   {/* Role-based Access Badge with Hover Popup */}
-                  <div className="relative group">
+                  <div className={`relative ${userRole === 'admin' ? '' : 'group'}`}>
                     <Badge 
                       variant="outline" 
                       className={`px-3 py-1 ${roleConfig.className} cursor-help`}
