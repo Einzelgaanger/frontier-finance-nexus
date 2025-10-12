@@ -32,7 +32,7 @@ export default function MagicLinkFallback() {
       const { error } = await signInWithMagicLink(email);
       
       if (error) {
-        setError(error.message || 'Failed to send magic link. Please try again.');
+        setError(typeof (error as any)?.message === 'string' ? (error as any).message : 'Failed to send magic link. Please try again.');
       } else {
         setMagicLinkSent(true);
         setSuccess('Magic link sent! Check your email and click the link to sign in.');
@@ -62,7 +62,7 @@ export default function MagicLinkFallback() {
       const { error } = await resetPassword(email);
       
       if (error) {
-        setError(error.message || 'Failed to send password reset email. Please try again.');
+        setError(typeof (error as any)?.message === 'string' ? (error as any).message : 'Failed to send password reset email. Please try again.');
       } else {
         setSuccess('Password reset email sent! Check your email for instructions.');
         toast({
