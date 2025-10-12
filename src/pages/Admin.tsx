@@ -859,9 +859,16 @@ const Admin = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-800 mb-2">Admin Dashboard</h1>
-              <p className="text-slate-600">Manage applications, members, and network activities</p>
+            <div className="flex items-center space-x-4">
+              <img 
+                src="/CFF LOGO.png" 
+                alt="CFF Logo" 
+                className="h-10 w-auto object-contain"
+              />
+              <div>
+                <h1 className="text-3xl font-bold text-slate-800 mb-2">Admin Dashboard</h1>
+                <p className="text-slate-600">Manage applications, members, and network activities</p>
+              </div>
             </div>
             <Button
               onClick={refreshData}

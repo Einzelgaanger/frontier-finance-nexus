@@ -276,9 +276,11 @@ const AdminV2 = () => {
           <div className="px-8 py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Shield className="w-6 h-6 text-white" />
-                </div>
+                <img 
+                  src="/CFF LOGO.png" 
+                  alt="CFF Logo" 
+                  className="h-12 w-auto object-contain"
+                />
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900">Admin Control Center</h1>
                   <p className="text-gray-600 mt-1">Comprehensive network management and analytics</p>

@@ -114,18 +114,20 @@ const Header = ({ showNav = true }: HeaderProps) => {
     <header className="border-b border-gray-200 bg-white shadow-sm rounded-bl-xl rounded-br-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-          {/* Left side - ESCP Network Text */}
+          {/* Left side - CFF Logo */}
           <div className="flex items-center">
-            <div className="text-left">
-              <h1 className="text-2xl font-semibold mb-0.5 text-black font-sans tracking-wide">
-                ESCP Network
-              </h1>
-              {userRole !== 'admin' && (
+            <img 
+              src="/CFF LOGO.png" 
+              alt="CFF Logo" 
+              className="h-12 w-auto object-contain"
+            />
+            {userRole !== 'admin' && (
+              <div className="ml-4 text-left">
                 <p className="text-sm text-black font-medium leading-tight max-w-xs">
                   Your gateway to the global fund manager community
                 </p>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {showNav && user && (

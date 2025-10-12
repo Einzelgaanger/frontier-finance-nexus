@@ -1252,8 +1252,8 @@ const Analytics2021: React.FC = () => {
         <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-lg p-4 mb-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-gray-900">2021 ESCP Survey Analytics</h1>
-              <p className="text-sm text-gray-600 mt-1">Early Stage Capital Providers 2021 Convening Survey Analysis</p>
+              <h1 className="text-2xl font-bold text-gray-900">2021 CFF Survey Analytics</h1>
+              <p className="text-sm text-gray-600 mt-1">Collaborative for Frontier Finance 2021 Survey Analysis</p>
             </div>
             <div className="flex items-center space-x-2">
               <Button

@@ -50,7 +50,7 @@ export default function AuthForm() {
     companyName: ''
   });
   
-  const { signIn, signUp, signInWithMagicLink } = useAuth();
+  const { signIn, signUp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -179,32 +179,17 @@ export default function AuthForm() {
     }
   };
 
-  const handleMagicLink = async () => {
-    if (!signInForm.email) {
-      toast({ title: 'Email required', description: 'Please enter your email to receive a magic link.', variant: 'destructive' });
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const { error } = await signInWithMagicLink(signInForm.email);
-      if (error) {
-        toast({ title: 'Magic link failed', description: getErrorMessage(error), variant: 'destructive' });
-      } else {
-        toast({ title: 'Check your inbox', description: 'We sent you a magic sign-in link. Open it to continue.' });
-      }
-    } catch (error: unknown) {
-      toast({ title: 'Magic link error', description: getErrorMessage(error), variant: 'destructive' });
-    } finally {
-      setIsLoading(false);
-    }
-  };
   return (
     <div className="min-h-screen bg-cover bg-center bg-fixed flex items-center justify-center p-4 font-rubik" style={{ backgroundImage: 'url(/auth.jpg)' }}>
       <Card className="w-full max-w-md border border-blue-600/40 bg-blue-700/30 backdrop-blur-md relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-white">
-            Collaborative Frontier
-          </CardTitle>
+          <div className="flex justify-center mb-4">
+            <img 
+              src="/CFF LOGO.png" 
+              alt="CFF Logo" 
+              className="h-20 w-auto object-contain"
+            />
+          </div>
           <CardDescription className="text-white/90">
             Fund Manager Database Platform
           </CardDescription>
@@ -270,9 +255,6 @@ export default function AuthForm() {
                 
                 <Button type="submit" className="w-full bg-blue-600/80 hover:bg-blue-600 text-white backdrop-blur-sm" disabled={isLoading}>
                   {isLoading ? 'Signing In...' : 'Sign In'}
-                </Button>
-                <Button type="button" onClick={handleMagicLink} className="w-full mt-2 bg-blue-700/20 hover:bg-blue-700/30 text-white border border-blue-600/40 backdrop-blur-sm" disabled={isLoading || !signInForm.email}>
-                  Email me a magic link
                 </Button>
               </form>
             </TabsContent>
@@ -409,7 +391,6 @@ export default function AuthForm() {
                 <ul className="space-y-1 text-xs">
                   <li><span className="font-medium">Viewer:</span> Browse the network directory</li>
                   <li><span className="font-medium">Member:</span> Access to member data and survey</li>
-                  <li><span className="font-medium">Admin:</span> Full platform management</li>
                 </ul>
               </div>
             </div>

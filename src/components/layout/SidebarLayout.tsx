@@ -288,7 +288,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
                   ) : location.pathname === '/dashboard' && userRole === 'viewer' ? (
                     <>
                       <h2 className="text-2xl font-bold text-black transition-colors">
-                        Welcome to ESCP Network
+                        Welcome to CFF Network
                       </h2>
                       <p className="text-sm text-black/70 transition-colors">
                         Your gateway to the world's leading emerging market fund managers
@@ -300,7 +300,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
                         Good morning, {user?.email?.split('@')[0] || 'Member'}!
                       </h2>
                       <p className="text-sm text-black/70 transition-colors">
-                        Welcome to the ESCP Network member portal. Access your surveys, connect with peers, and explore insights.
+                        Welcome to the CFF Network member portal. Access your surveys, connect with peers, and explore insights.
                       </p>
                     </>
                   ) : location.pathname.startsWith('/network/fund-manager/') ? (
