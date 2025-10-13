@@ -656,11 +656,11 @@ const ViewerDashboardV2 = () => {
         {/* Welcome Section */}
         <div className="relative z-10 pt-6 pb-4">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
+            <div className="text-left">
               <h1 className="text-2xl font-bold text-gray-800 mb-2">
                 Welcome
               </h1>
-              <p className="text-sm text-gray-600 mb-6 max-w-2xl mx-auto">
+              <p className="text-sm text-gray-600 mb-6 max-w-2xl">
                 Your gateway to the global fund manager community and comprehensive market intelligence
               </p>
             </div>

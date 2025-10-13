@@ -389,7 +389,7 @@ const Survey2022 = () => {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-lg font-semibold text-gray-900">1. Name *</FormLabel>
+                <FormLabel>1. Name *</FormLabel>
                 <FormControl>
                   <Input placeholder="Your full name" {...field} />
                 </FormControl>
@@ -403,7 +403,7 @@ const Survey2022 = () => {
             name="role_title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-lg font-semibold text-gray-900">2. Role or title *</FormLabel>
+                <FormLabel>2. Role or title *</FormLabel>
                 <FormControl>
                   <Input placeholder="Your role or title" {...field} />
                 </FormControl>
@@ -417,7 +417,7 @@ const Survey2022 = () => {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-lg font-semibold text-gray-900">3. Email address *</FormLabel>
+                <FormLabel>3. Email address *</FormLabel>
                 <FormControl>
                   <Input type="email" placeholder="your.email@example.com" {...field} />
                 </FormControl>
@@ -431,7 +431,7 @@ const Survey2022 = () => {
             name="organisation"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-lg font-semibold text-gray-900">4. Name of organisation *</FormLabel>
+                <FormLabel>4. Name of organisation *</FormLabel>
                 <FormControl>
                   <Input placeholder="Your organisation name" {...field} />
                 </FormControl>
@@ -447,7 +447,7 @@ const Survey2022 = () => {
     <div className="space-y-6">
       <div className="space-y-6">
           <div>
-            <FormLabel className="text-lg font-semibold text-gray-900">5. Timeline. When did your current fund/investment vehicle achieve each of the following?</FormLabel>
+            <FormLabel>5. Timeline. When did your current fund/investment vehicle achieve each of the following?</FormLabel>
             <p className="text-sm text-gray-600 mb-4">
               (Please provide a date for each of three points in your fund's evolution)
             </p>
@@ -525,7 +525,7 @@ const Survey2022 = () => {
           </div>
 
           <div>
-            <FormLabel className="text-lg font-semibold text-gray-900">6. In what geographic markets do you operate?</FormLabel>
+            <FormLabel>6. In what geographic markets do you operate?</FormLabel>
             <p className="text-sm text-gray-600 mb-4">
               (select as many as applicable)
             </p>
@@ -606,7 +606,7 @@ const Survey2022 = () => {
           </div>
 
           <div>
-            <FormLabel className="text-lg font-semibold text-gray-900">7. Where is your Team based?</FormLabel>
+            <FormLabel>7. Where is your Team based?</FormLabel>
             <p className="text-sm text-gray-600 mb-4">
               (select as many as applicable)
             </p>
@@ -687,7 +687,7 @@ const Survey2022 = () => {
           </div>
 
           <div>
-            <FormLabel className="text-lg font-semibold text-gray-900">8. Number of current and forecasted Full Time Equivalent staff members (FTEs) including principals</FormLabel>
+            <FormLabel>8. Number of current and forecasted Full Time Equivalent staff members (FTEs) including principals</FormLabel>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
@@ -4086,7 +4086,7 @@ const Survey2022 = () => {
 
   return (
     <SidebarLayout>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 pb-16">
         <div className={`max-w-6xl mx-auto ${!showIntro ? 'pr-72' : ''}` }>
         {/* Back Button hidden on intro */}
         {!showIntro && null}
@@ -4100,7 +4100,7 @@ const Survey2022 = () => {
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">
+                <h2 className="text-base font-semibold">
                   Section {currentSection}: {getSectionTitle(currentSection)}
                 </h2>
               </div>

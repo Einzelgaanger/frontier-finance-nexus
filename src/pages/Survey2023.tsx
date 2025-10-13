@@ -610,7 +610,7 @@ export default function Survey2023() {
         name="email_address"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-lg font-semibold text-gray-900">1. Email address *</FormLabel>
+            <FormLabel>1. Email address *</FormLabel>
             <FormControl>
               <Input {...field} type="email" placeholder="Enter your email address" disabled={isReadOnly} />
             </FormControl>
@@ -624,7 +624,7 @@ export default function Survey2023() {
         name="organisation_name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-lg font-semibold text-gray-900">2. Name of organisation *</FormLabel>
+            <FormLabel>2. Name of organisation *</FormLabel>
             <FormControl>
               <Input {...field} placeholder="Enter organisation name" disabled={isReadOnly} />
             </FormControl>
@@ -638,7 +638,7 @@ export default function Survey2023() {
         name="funds_raising_investing"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-lg font-semibold text-gray-900">3. How many funds are you currently raising and/or investing? *</FormLabel>
+            <FormLabel>3. How many funds are you currently raising and/or investing? *</FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger disabled={isReadOnly}>
@@ -662,7 +662,7 @@ export default function Survey2023() {
         name="fund_name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-lg font-semibold text-gray-900">4. Name of Fund to which this survey applies (that is Fund 1) *</FormLabel>
+            <FormLabel>4. Name of Fund to which this survey applies (that is Fund 1) *</FormLabel>
             <FormControl>
               <Input {...field} placeholder="Enter fund name" disabled={isReadOnly} />
             </FormControl>
@@ -681,7 +681,7 @@ export default function Survey2023() {
         name="legal_entity_achieved"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-lg font-semibold text-gray-900">5. Timeline. When did your fund/investment vehicle achieve each of the following? (Please provide a date for each of three points in your fund's evolution)</FormLabel>
+            <FormLabel>5. Timeline. When did your fund/investment vehicle achieve each of the following? (Please provide a date for each of three points in your fund's evolution)</FormLabel>
             <div className="space-y-4">
               <div>
                 <FormLabel className="text-sm font-medium">Legal Entity</FormLabel>
@@ -758,7 +758,7 @@ export default function Survey2023() {
         name="geographic_markets"
         render={() => (
           <FormItem>
-            <FormLabel className="text-lg font-semibold text-gray-900">6. In what geographic markets do you invest? (select as many as applicable)</FormLabel>
+            <FormLabel>6. In what geographic markets do you invest? (select as many as applicable)</FormLabel>
             <div className="grid grid-cols-2 gap-3">
               {['US', 'Europe', 'Africa: West Africa', 'Africa: East Africa', 'Africa: Central Africa', 'Africa: Southern Africa', 'Africa: North Africa', 'Middle East', 'Other (please specify)'].map((market) => (
                 <FormField
@@ -823,7 +823,7 @@ export default function Survey2023() {
         name="team_based"
         render={() => (
           <FormItem>
-            <FormLabel className="text-lg font-semibold text-gray-900">7. Where is your Team based? (select as many as applicable)</FormLabel>
+            <FormLabel>7. Where is your Team based? (select as many as applicable)</FormLabel>
             <div className="grid grid-cols-2 gap-3">
               {['US', 'Europe', 'Africa: West Africa', 'Africa: East Africa', 'Africa: Central Africa', 'Africa: Southern Africa', 'Africa: North Africa', 'Middle East', 'Other (please specify)'].map((location) => (
                 <FormField
@@ -881,7 +881,7 @@ export default function Survey2023() {
       )}
 
       <div className="space-y-4">
-        <FormLabel className="text-lg font-semibold text-gray-900">8. Number of current and forecasted Full Time Equivalent staff members (FTEs) including principals</FormLabel>
+        <FormLabel>8. Number of current and forecasted Full Time Equivalent staff members (FTEs) including principals</FormLabel>
       <div className="grid grid-cols-3 gap-4">
         <FormField
           control={form.control}
@@ -4047,7 +4047,7 @@ Which of the following would you be prepared to make available? [note: we are cu
 
   return (
     <SidebarLayout>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 pb-16">
         <div className={`max-w-6xl mx-auto ${!showIntro ? 'pr-72' : ''}`}>
         {/* Back Button hidden on intro */}
         {!showIntro && null}
@@ -4060,7 +4060,7 @@ Which of the following would you be prepared to make available? [note: we are cu
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">
+                <h2 className="text-base font-semibold">
                   Section {currentSection}: {getSectionTitle(currentSection)}
                   {isReadOnly && <span className="ml-2 text-sm text-gray-500">(Read-Only View)</span>}
                 </h2>

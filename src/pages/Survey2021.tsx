@@ -479,7 +479,7 @@ const Survey2021: React.FC = () => {
         name="email_address"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-lg font-semibold text-gray-900">Email address *</FormLabel>
+            <FormLabel>Email address *</FormLabel>
             <FormControl>
               <Input {...field} type="email" placeholder="your.email@example.com" />
             </FormControl>
@@ -492,7 +492,7 @@ const Survey2021: React.FC = () => {
         name="firm_name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-lg font-semibold text-gray-900">Name of firm *</FormLabel>
+            <FormLabel>Name of firm *</FormLabel>
             <FormControl>
               <Input {...field} placeholder="Enter your firm name" />
             </FormControl>
@@ -505,7 +505,7 @@ const Survey2021: React.FC = () => {
         name="participant_name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-lg font-semibold text-gray-900">Name of participant *</FormLabel>
+            <FormLabel>Name of participant *</FormLabel>
             <FormControl>
               <Input {...field} placeholder="Enter participant name" />
             </FormControl>
@@ -518,7 +518,7 @@ const Survey2021: React.FC = () => {
         name="role_title"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-lg font-semibold text-gray-900">Role / title of participant *</FormLabel>
+            <FormLabel>Role / title of participant *</FormLabel>
             <FormControl>
               <Input {...field} placeholder="Enter your role/title" />
             </FormControl>
@@ -528,7 +528,7 @@ const Survey2021: React.FC = () => {
       />
 
       <div>
-        <Label className="text-lg font-semibold text-gray-900">Where is your team based? *</Label>
+        <Label>Where is your team based? *</Label>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
             "US/Europe", "Asia - South Asia", "Asia - Central Asia", "Asia - South East Asia",
@@ -569,7 +569,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label className="text-lg font-semibold text-gray-900">What is the geographic focus of your fund/vehicle? *</Label>
+        <Label>What is the geographic focus of your fund/vehicle? *</Label>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
             "US/Europe", "Asia - South Asia", "Asia - Central Asia", "Asia - South East Asia",
@@ -610,7 +610,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label htmlFor="fund_stage" className="text-lg font-semibold text-gray-900">What is the stage of your current fund/vehicle's operations? *</Label>
+        <Label htmlFor="fund_stage" >What is the stage of your current fund/vehicle's operations? *</Label>
         <Select onValueChange={(value) => {
           form.setValue("fund_stage", value);
           // Clear the "Other" field if not selecting "Other"
@@ -657,7 +657,7 @@ const Survey2021: React.FC = () => {
       {/* Question 7: Timeline */}
       <div className="space-y-4">
         <div>
-          <Label className="text-lg font-semibold text-gray-900">7. When did your current fund/investment vehicle achieve each of the following?</Label>
+          <Label >7. When did your current fund/investment vehicle achieve each of the following?</Label>
         </div>
         
         <div className="grid grid-cols-3 gap-4">
@@ -741,7 +741,7 @@ const Survey2021: React.FC = () => {
       {/* Question 8: Number of investments */}
       <div className="space-y-4">
         <div>
-          <Label className="text-lg font-semibold text-gray-900">8. Please specify the number of investments made to date by your current vehicle</Label>
+          <Label >8. Please specify the number of investments made to date by your current vehicle</Label>
         </div>
         
         <div className="grid grid-cols-2 gap-6">
@@ -798,7 +798,7 @@ const Survey2021: React.FC = () => {
       {/* Question 10: Type of investment vehicle */}
       <div className="space-y-4">
         <div>
-          <Label className="text-lg font-semibold text-gray-900">10. Type of investment vehicle *</Label>
+          <Label >10. Type of investment vehicle *</Label>
         </div>
         
         <div className="grid grid-cols-2 gap-3 mt-2">
@@ -842,7 +842,7 @@ const Survey2021: React.FC = () => {
       {/* Question 11: Fund size */}
       <div className="space-y-4">
         <div>
-          <Label className="text-lg font-semibold text-gray-900">11. What is the current (hard commitments raised) and target size of your fund / investment vehicle?</Label>
+          <Label >11. What is the current (hard commitments raised) and target size of your fund / investment vehicle?</Label>
         </div>
         
         <div className="grid grid-cols-2 gap-6">
@@ -884,7 +884,7 @@ const Survey2021: React.FC = () => {
       {/* Question 12: Investment timeframe */}
       <div className="space-y-4">
         <div>
-          <Label className="text-lg font-semibold text-gray-900">12. Typical investment timeframe *</Label>
+          <Label >12. Typical investment timeframe *</Label>
         </div>
         
         <Select onValueChange={(value) => {
@@ -921,7 +921,7 @@ const Survey2021: React.FC = () => {
       {/* Question 13: Type of business model targeted */}
       <div className="space-y-4">
         <div>
-          <Label className="text-lg font-semibold text-gray-900">13. Type of business model targeted *</Label>
+          <Label >13. Type of business model targeted *</Label>
         </div>
         
         <div className="grid grid-cols-2 gap-3 mt-2">
@@ -968,7 +968,7 @@ const Survey2021: React.FC = () => {
       {/* Question 14: Stage of business model targeted */}
       <div className="space-y-4">
         <div>
-          <Label className="text-lg font-semibold text-gray-900">14. Stage of business model targeted *</Label>
+          <Label >14. Stage of business model targeted *</Label>
         </div>
         
         <div className="grid grid-cols-2 gap-3 mt-2">
@@ -1013,7 +1013,7 @@ const Survey2021: React.FC = () => {
       {/* Question 15: Key financing needs of portfolio enterprises */}
       <div className="space-y-4">
         <div>
-          <Label className="text-lg font-semibold text-gray-900">15. Key financing needs of portfolio enterprises (at time of initial investment/funding) *</Label>
+          <Label >15. Key financing needs of portfolio enterprises (at time of initial investment/funding) *</Label>
         </div>
         
         <div className="grid grid-cols-2 gap-3 mt-2">
@@ -1060,7 +1060,7 @@ const Survey2021: React.FC = () => {
       {/* Question 16: Target sources of capital for your fund */}
       <div className="space-y-4">
         <div>
-          <Label className="text-lg font-semibold text-gray-900">16. Target sources of capital for your fund *</Label>
+          <Label >16. Target sources of capital for your fund *</Label>
         </div>
         
         <div className="grid grid-cols-2 gap-3 mt-2">
@@ -1105,7 +1105,7 @@ const Survey2021: React.FC = () => {
       {/* Question 17: Target IRR */}
       <div className="space-y-4">
         <div>
-          <Label className="text-lg font-semibold text-gray-900">17. What is your target Internal Rate of Return (IRR) for investors (in USD equivalent)?</Label>
+          <Label >17. What is your target Internal Rate of Return (IRR) for investors (in USD equivalent)?</Label>
         </div>
         
         <div className="grid grid-cols-2 gap-6">
@@ -1145,7 +1145,7 @@ const Survey2021: React.FC = () => {
       {/* Question 18: Impact vs financial return orientation */}
       <div className="space-y-4">
         <div>
-          <Label className="text-lg font-semibold text-gray-900">18. How would you frame the impact vs financial return orientation of your capital vehicle? *</Label>
+          <Label >18. How would you frame the impact vs financial return orientation of your capital vehicle? *</Label>
         </div>
         
         <Select onValueChange={(value) => {
@@ -1182,7 +1182,7 @@ const Survey2021: React.FC = () => {
       {/* Question 19: Explicit lens/focus */}
       <div className="space-y-4">
         <div>
-          <Label className="text-lg font-semibold text-gray-900">19. Does your fund/vehicle have an explicit lens/focus? *</Label>
+          <Label >19. Does your fund/vehicle have an explicit lens/focus? *</Label>
         </div>
         
         <div className="grid grid-cols-2 gap-3 mt-2">
@@ -1224,7 +1224,7 @@ const Survey2021: React.FC = () => {
       {/* Question 20: Report Sustainable Development Goals */}
       <div className="space-y-4">
         <div>
-          <Label className="text-lg font-semibold text-gray-900">20. Does your fund/investment vehicle specifically report any Sustainable Development Goals? *</Label>
+          <Label >20. Does your fund/investment vehicle specifically report any Sustainable Development Goals? *</Label>
         </div>
         
         <div className="flex items-center space-x-4">
@@ -1257,7 +1257,7 @@ const Survey2021: React.FC = () => {
       {form.watch("report_sustainable_development_goals") && (
         <div className="space-y-4">
           <div>
-            <Label className="text-lg font-semibold text-gray-900">21. If yes, select SDGs and assign rank for each (First, Second, Third, or Other):</Label>
+            <Label >21. If yes, select SDGs and assign rank for each (First, Second, Third, or Other):</Label>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
@@ -1303,7 +1303,7 @@ const Survey2021: React.FC = () => {
       {/* Question 22: Gender considerations - categorize each as Investment Consideration, Investment Requirement, or None */}
       <div className="space-y-4">
         <div>
-          <Label className="text-lg font-semibold text-gray-900">22. Do any of the following gender considerations apply when making investment/financing considerations?</Label>
+          <Label >22. Do any of the following gender considerations apply when making investment/financing considerations?</Label>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
           {[
@@ -1420,7 +1420,7 @@ const Survey2021: React.FC = () => {
       {/* Question 23: Do any of the following apply to your fund/vehicle? */}
       <div className="space-y-4">
         <div>
-          <Label className="text-lg font-semibold text-gray-900">23. Do any of the following apply to your fund/vehicle? *</Label>
+          <Label >23. Do any of the following apply to your fund/vehicle? *</Label>
           <div className="text-sm text-gray-600">Check all that apply.</div>
         </div>
         
@@ -1466,7 +1466,7 @@ const Survey2021: React.FC = () => {
     <div className="space-y-6">
       <div className="space-y-3">
         <div>
-          <Label className="text-lg font-semibold text-gray-900">25. What is the typical size of investment in your portfolio companies at the time of initial investment (in USD)?</Label>
+          <Label >25. What is the typical size of investment in your portfolio companies at the time of initial investment (in USD)?</Label>
         </div>
         <div className="grid grid-cols-2 gap-6">
           <div>
@@ -1505,7 +1505,7 @@ const Survey2021: React.FC = () => {
       </div>
         
       <div>
-        <Label className="text-lg font-semibold text-gray-900">26. What forms of investment do you typically make? *</Label>
+        <Label >26. What forms of investment do you typically make? *</Label>
         <div className="text-sm text-gray-600">Check all that apply.</div>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
@@ -1553,7 +1553,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label className="text-lg font-semibold text-gray-900">26. What are your target investment sectors/focus areas? *</Label>
+        <Label >26. What are your target investment sectors/focus areas? *</Label>
         <div className="text-sm text-gray-600">Check all that apply.</div>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
@@ -1639,7 +1639,7 @@ const Survey2021: React.FC = () => {
   const renderSection4 = () => (
     <div className="space-y-6">
       <div>
-        <Label className="text-lg font-semibold text-gray-900">29. During the first 3 years of an investment, what are the key needs of portfolio enterprises? Please provide one ranking per row: 1 = highest need, 5 = lowest need *</Label>
+        <Label >29. During the first 3 years of an investment, what are the key needs of portfolio enterprises? Please provide one ranking per row: 1 = highest need, 5 = lowest need *</Label>
         <div className="space-y-4 mt-2">
           {[
             "Finance, budgeting, accounting, cash and tax management",
@@ -1729,7 +1729,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label className="text-lg font-semibold text-gray-900">31. What is the typical form of investment monetization/exit? *</Label>
+        <Label >31. What is the typical form of investment monetization/exit? *</Label>
         <div className="text-sm text-gray-600">Check all that apply.</div>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
@@ -1775,7 +1775,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label htmlFor="exits_achieved" className="text-lg font-semibold text-gray-900">32. How many exits has your vehicle achieved to date (ie exits/monetizations for equity investments and full repayments for debt investments)? *</Label>
+        <Label htmlFor="exits_achieved" >32. How many exits has your vehicle achieved to date (ie exits/monetizations for equity investments and full repayments for debt investments)? *</Label>
         <Select onValueChange={(value) => {
           form.setValue("exits_achieved", value);
           if (value !== 'Other') {
@@ -1809,7 +1809,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label className="text-lg font-semibold text-gray-900">33. Fund capabilities and resources – what are the areas of desired investment/support for your fund? Please provide one ranking per row: 1 = highest need, 5 = lowest need *</Label>
+        <Label >33. Fund capabilities and resources – what are the areas of desired investment/support for your fund? Please provide one ranking per row: 1 = highest need, 5 = lowest need *</Label>
         <div className="space-y-4 mt-2">
           {[
             "Fundraising with access to global LPs",
@@ -1905,7 +1905,7 @@ const Survey2021: React.FC = () => {
   const renderSection5 = () => (
     <div className="space-y-6">
       <div>
-        <Label htmlFor="covid_impact_aggregate" className="text-lg font-semibold text-gray-900">33. At an aggregate level, please indicate the impact of COVID-19 on your investment vehicle and operations. *</Label>
+        <Label htmlFor="covid_impact_aggregate" >33. At an aggregate level, please indicate the impact of COVID-19 on your investment vehicle and operations. *</Label>
         <Select onValueChange={(value) => form.setValue("covid_impact_aggregate", value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select impact level" />
@@ -1921,7 +1921,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label className="text-lg font-semibold text-gray-900">34. What impact has COVID-19 had on the following aspects of your portfolio companies? *</Label>
+        <Label >34. What impact has COVID-19 had on the following aspects of your portfolio companies? *</Label>
         <div className="space-y-4 mt-2">
           {[
             "Staff attendance", "Customer demand", "Ability to pay staff salaries",
@@ -1958,7 +1958,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label className="text-lg font-semibold text-gray-900">35. Have you received any financial or non-financial support from any government programs or grant funding related to COVID-19? *</Label>
+        <Label >35. Have you received any financial or non-financial support from any government programs or grant funding related to COVID-19? *</Label>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
             "Yes, government support (financial)",
@@ -2001,7 +2001,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label className="text-lg font-semibold text-gray-900">36. Do you anticipate raising new LP/investor funds in 2021? If yes, for what purpose? *</Label>
+        <Label >36. Do you anticipate raising new LP/investor funds in 2021? If yes, for what purpose? *</Label>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
             "N/A - have no plans to raise capital in 2021", "Stabilize operations of existing portfolio companies",
@@ -2043,7 +2043,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label className="text-lg font-semibold text-gray-900">37. Regarding your current fund/investment vehicle, which of the following is under consideration? *</Label>
+        <Label >37. Regarding your current fund/investment vehicle, which of the following is under consideration? *</Label>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
             "No change planned",
@@ -2078,7 +2078,7 @@ const Survey2021: React.FC = () => {
   const renderSection6 = () => (
     <div className="space-y-6">
       <div>
-        <Label className="text-lg font-semibold text-gray-900">38. Overall, how valuable have you found your participation in the ESCP network? *</Label>
+        <Label >38. Overall, how valuable have you found your participation in the ESCP network? *</Label>
         <Select onValueChange={(value) => form.setValue('network_value_rating', value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select rating (1 = Most valuable, 5 = Least valuable)" />
@@ -2094,7 +2094,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label className="text-lg font-semibold text-gray-900">39. Please indicate which working groups you have found the most valuable. Please provide one ranking per row (or for each group you have engaged with): 1 = most valuable, 5 = least valuable, N/A = not engaged *</Label>
+        <Label >39. Please indicate which working groups you have found the most valuable. Please provide one ranking per row (or for each group you have engaged with): 1 = most valuable, 5 = least valuable, N/A = not engaged *</Label>
         <div className="space-y-4 mt-2">
           {[
             'Fund Economics',
@@ -2127,7 +2127,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label className="text-lg font-semibold text-gray-900">40. Do you have suggestions of new working group topics/formats you would like to see? *</Label>
+        <Label >40. Do you have suggestions of new working group topics/formats you would like to see? *</Label>
         <div className="mt-2">
           <textarea
             id="new_working_group_suggestions"
@@ -2139,7 +2139,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label className="text-lg font-semibold text-gray-900">41. Please indicate which webinar content you have found the most valuable. Please provide one ranking per row (or for each webinar you attended/watched): 1 = most valuable, 5 = least valuable, N/A = not attended *</Label>
+        <Label >41. Please indicate which webinar content you have found the most valuable. Please provide one ranking per row (or for each webinar you attended/watched): 1 = most valuable, 5 = least valuable, N/A = not attended *</Label>
         <div className="space-y-4 mt-2">
           {[
             'Gender lens investing (facilitated by Suzanne Biegel)',
@@ -2178,7 +2178,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label className="text-lg font-semibold text-gray-900">42. Do you have suggestions of new webinar topics/formats you would like to see? *</Label>
+        <Label >42. Do you have suggestions of new webinar topics/formats you would like to see? *</Label>
         <div className="mt-2">
           <textarea
             id="new_webinar_suggestions"
@@ -2190,7 +2190,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label className="text-lg font-semibold text-gray-900">43. Do you prefer Slack or WhatsApp as a communication platform for the network? *</Label>
+        <Label >43. Do you prefer Slack or WhatsApp as a communication platform for the network? *</Label>
         <Select onValueChange={(value) => {
           form.setValue('communication_platform', value);
           if (value !== 'Other') {
@@ -2227,7 +2227,7 @@ const Survey2021: React.FC = () => {
   const renderSection7 = () => (
     <div className="space-y-6">
       <div>
-        <Label className="text-lg font-semibold text-gray-900">44. What are the main areas of value that you have received from the network to date? Please provide one ranking per row: 1 = most valuable, 5 = least valuable *</Label>
+        <Label >44. What are the main areas of value that you have received from the network to date? Please provide one ranking per row: 1 = most valuable, 5 = least valuable *</Label>
         <div className="space-y-4 mt-2">
           {[
             "Peer connections and peer learning", "Advocacy for early stage investing",
@@ -2257,7 +2257,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label className="text-lg font-semibold text-gray-900">45. Would you like to present in Session 1: "Connection/Reconnection" on Tuesday February 16th to provide a brief (1-2 min update) on your activities/progress (please note you are not required to present in order to attend this session – presenting is optional!)? *</Label>
+        <Label >45. Would you like to present in Session 1: "Connection/Reconnection" on Tuesday February 16th to provide a brief (1-2 min update) on your activities/progress (please note you are not required to present in order to attend this session – presenting is optional!)? *</Label>
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <input
@@ -2307,7 +2307,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label className="text-lg font-semibold text-gray-900">46. In advance of Session 3: "Planning for 2021" on Tuesday February 23rd, please indicate which of the below initiatives you would be interested in, that you believe will add most value to your organization. Please provide one ranking per row: 1 = very interested, 2 = possibly interested, 3 = not interested *</Label>
+        <Label >46. In advance of Session 3: "Planning for 2021" on Tuesday February 23rd, please indicate which of the below initiatives you would be interested in, that you believe will add most value to your organization. Please provide one ranking per row: 1 = very interested, 2 = possibly interested, 3 = not interested *</Label>
         <div className="space-y-4 mt-2">
           {[
             "Warehousing/seed funding for fund managers to build track record",
@@ -2367,7 +2367,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label className="text-lg font-semibold text-gray-900">47. Would you be interested in participating in a peer mentoring program? *</Label>
+        <Label >47. Would you be interested in participating in a peer mentoring program? *</Label>
         <Select onValueChange={(value) => form.setValue("participate_mentoring_program", value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select option" />
@@ -2394,7 +2394,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label className="text-lg font-semibold text-gray-900">48. Would you like to present in Session 4: "Demystifying frontier finance" on Thursday February 25th, and if so, please indicate which sub-topic(s) you would be interested in presenting on (please note you are not required to present in order to attend this session – presenting is optional!)? *</Label>
+        <Label >48. Would you like to present in Session 4: "Demystifying frontier finance" on Thursday February 25th, and if so, please indicate which sub-topic(s) you would be interested in presenting on (please note you are not required to present in order to attend this session – presenting is optional!)? *</Label>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
             "Yes, open ended vehicles", "Yes, early stage debt vehicles", "Yes, early stage equity",
@@ -2443,7 +2443,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label className="text-lg font-semibold text-gray-900">49. Any other comments / feedback that you would like to share?</Label>
+        <Label >49. Any other comments / feedback that you would like to share?</Label>
         <Textarea
           id="additional_comments"
           {...form.register("additional_comments")}
@@ -2481,7 +2481,7 @@ const Survey2021: React.FC = () => {
 
   return (
     <SidebarLayout>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 pb-16">
         <div className={`max-w-6xl mx-auto ${!showIntro ? 'pr-72' : ''}`}>
         {/* Back Button (hidden on intro to reclaim space) */}
         {!showIntro && null}
@@ -2561,7 +2561,7 @@ const Survey2021: React.FC = () => {
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">
+              <h2 className="text-base font-semibold">
                 Section {currentSection}: {getSectionTitle(currentSection)}
               </h2>
             </div>
