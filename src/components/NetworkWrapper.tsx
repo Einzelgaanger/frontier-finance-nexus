@@ -17,19 +17,7 @@ const NetworkWrapper = () => {
     );
   }
 
-  // Use NetworkV2 for admin users, Network for others
-  if (userRole === 'admin') {
-    return (
-      <Suspense fallback={
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
-      }>
-        <NetworkV2 />
-      </Suspense>
-    );
-  }
-
+  // Use Network for all users - admin gets full survey access through SurveyResponseViewer
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">

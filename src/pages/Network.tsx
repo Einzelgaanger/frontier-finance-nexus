@@ -17,12 +17,8 @@ const Network = () => {
     );
   }
 
-  // Show admin network page for admins
-  if (userRole === 'admin') {
-    return <NetworkV2 />;
-  }
-
-  // Show member network page for members (same as admin for now)
+  // Show member network page for both admins and members
+  // Admin gets full survey access through SurveyResponseViewer
   return <MemberNetwork />;
 };
 

@@ -44,7 +44,8 @@ import {
   Play,
   Pause,
   RefreshCw,
-  ArrowUpRight
+  ArrowUpRight,
+  FileText
 } from 'lucide-react';
 
 interface FundManager {
@@ -893,7 +894,7 @@ const NetworkV2 = React.memo(() => {
                       </div>
                       
                       {/* Geographic Focus - Compact */}
-                      <div className="space-y-2">
+                      <div className="space-y-2 mb-4">
                         <div className="flex items-center justify-center space-x-2">
                           <div className="p-1.5 rounded-full bg-blue-500/10">
                             <Globe className="w-3 h-3 text-blue-500" />
@@ -924,6 +925,32 @@ const NetworkV2 = React.memo(() => {
                           ) : (
                             <p className="text-xs text-gray-400 italic">Not specified</p>
                           )}
+                        </div>
+                      </div>
+
+                      {/* Survey Year Buttons */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-center space-x-2">
+                          <div className="p-1.5 rounded-full bg-green-500/10">
+                            <FileText className="w-3 h-3 text-green-500" />
+                          </div>
+                          <span className="text-xs font-semibold text-gray-600">Survey Responses</span>
+                        </div>
+                        <div className="flex justify-center gap-1">
+                          {['2021', '2022', '2023', '2024'].map((year) => (
+                            <Button
+                              key={year}
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/survey-response/${manager.user_id}/${year}`);
+                              }}
+                              className="h-6 px-2 text-xs border-green-200 text-green-600 hover:bg-green-50 hover:border-green-400 transition-all duration-300"
+                            >
+                              {year}
+                            </Button>
+                          ))}
                         </div>
                       </div>
                       
