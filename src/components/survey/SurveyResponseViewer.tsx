@@ -9,22 +9,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, FileText, User, Calendar, Building2 } from 'lucide-react';
+import { ArrowLeft, FileText, User, Calendar } from 'lucide-react';
 
 interface SurveyResponse {
   id: string;
   user_id: string;
+  form_data: any;
+  completed_at: string;
   [key: string]: any;
-}
-
-interface SurveySection {
-  title: string;
-  questions: Array<{
-    key: string;
-    label: string;
-    type: 'text' | 'select' | 'multiselect' | 'number' | 'boolean' | 'textarea';
-    options?: string[];
-  }>;
 }
 
 const SurveyResponseViewer = () => {
@@ -35,161 +27,7 @@ const SurveyResponseViewer = () => {
   
   const [response, setResponse] = useState<SurveyResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('1');
-
-  // Define survey sections based on year
-  const getSurveySections = (year: string): SurveySection[] => {
-    switch (year) {
-      case '2021':
-        return [
-          {
-            title: 'Background Information',
-            questions: [
-              { key: 'organisation_name', label: 'Organization Name', type: 'text' },
-              { key: 'contact_name', label: 'Contact Name', type: 'text' },
-              { key: 'email_address', label: 'Email Address', type: 'text' },
-              { key: 'fund_name', label: 'Fund Name', type: 'text' },
-              { key: 'year_founded', label: 'Year Founded', type: 'number' },
-              { key: 'team_size', label: 'Team Size', type: 'number' },
-            ]
-          },
-          {
-            title: 'Investment Thesis & Capital Construct',
-            questions: [
-              { key: 'investment_thesis', label: 'Investment Thesis', type: 'textarea' },
-              { key: 'target_sectors', label: 'Target Sectors', type: 'multiselect' },
-              { key: 'investment_stage', label: 'Investment Stage', type: 'select', options: ['Pre-seed', 'Seed', 'Series A', 'Series B+'] },
-              { key: 'typical_check_size', label: 'Typical Check Size', type: 'text' },
-            ]
-          },
-          {
-            title: 'Portfolio Construction and Team',
-            questions: [
-              { key: 'portfolio_companies', label: 'Number of Portfolio Companies', type: 'number' },
-              { key: 'team_experience', label: 'Team Experience', type: 'textarea' },
-              { key: 'geographic_focus', label: 'Geographic Focus', type: 'multiselect' },
-            ]
-          },
-          {
-            title: 'Portfolio Development & Investment Return Monetization',
-            questions: [
-              { key: 'portfolio_value_creation', label: 'Portfolio Value Creation Strategy', type: 'textarea' },
-              { key: 'exit_strategy', label: 'Exit Strategy', type: 'textarea' },
-            ]
-          }
-        ];
-      case '2022':
-        return [
-          {
-            title: 'Contact Information',
-            questions: [
-              { key: 'email_address', label: 'Email Address', type: 'text' },
-              { key: 'organisation_name', label: 'Organization Name', type: 'text' },
-              { key: 'fund_name', label: 'Fund Name', type: 'text' },
-            ]
-          },
-          {
-            title: 'Organizational Background and Team',
-            questions: [
-              { key: 'legal_entity_achieved', label: 'Legal Entity Achieved', type: 'text' },
-              { key: 'geographic_markets', label: 'Geographic Markets', type: 'multiselect' },
-              { key: 'team_based', label: 'Team Based', type: 'multiselect' },
-              { key: 'fte_staff_current', label: 'Current FTE Staff', type: 'number' },
-            ]
-          },
-          {
-            title: "Vehicle's Legal Construct",
-            questions: [
-              { key: 'legal_domicile', label: 'Legal Domicile', type: 'multiselect' },
-              { key: 'currency_investments', label: 'Currency for Investments', type: 'text' },
-              { key: 'fund_type_status', label: 'Fund Type Status', type: 'text' },
-            ]
-          },
-          {
-            title: 'Investment Thesis',
-            questions: [
-              { key: 'investment_thesis', label: 'Investment Thesis', type: 'textarea' },
-              { key: 'target_sectors', label: 'Target Sectors', type: 'multiselect' },
-              { key: 'investment_stage', label: 'Investment Stage', type: 'select' },
-            ]
-          }
-        ];
-      case '2023':
-        return [
-          {
-            title: 'Introduction & Context',
-            questions: [
-              { key: 'email_address', label: 'Email Address', type: 'text' },
-              { key: 'organisation_name', label: 'Organization Name', type: 'text' },
-              { key: 'fund_name', label: 'Fund Name', type: 'text' },
-            ]
-          },
-          {
-            title: 'Organizational Background and Team',
-            questions: [
-              { key: 'legal_entity_achieved', label: 'Legal Entity Achieved', type: 'text' },
-              { key: 'geographic_markets', label: 'Geographic Markets', type: 'multiselect' },
-              { key: 'team_based', label: 'Team Based', type: 'multiselect' },
-              { key: 'fte_staff_current', label: 'Current FTE Staff', type: 'number' },
-            ]
-          },
-          {
-            title: 'Vehicle Construct',
-            questions: [
-              { key: 'legal_domicile', label: 'Legal Domicile', type: 'multiselect' },
-              { key: 'currency_investments', label: 'Currency for Investments', type: 'text' },
-              { key: 'fund_type_status', label: 'Fund Type Status', type: 'text' },
-            ]
-          },
-          {
-            title: 'Investment Thesis',
-            questions: [
-              { key: 'investment_thesis', label: 'Investment Thesis', type: 'textarea' },
-              { key: 'target_sectors', label: 'Target Sectors', type: 'multiselect' },
-              { key: 'investment_stage', label: 'Investment Stage', type: 'select' },
-            ]
-          }
-        ];
-      case '2024':
-        return [
-          {
-            title: 'Introduction & Context',
-            questions: [
-              { key: 'email_address', label: 'Email Address', type: 'text' },
-              { key: 'organisation_name', label: 'Organization Name', type: 'text' },
-              { key: 'fund_name', label: 'Fund Name', type: 'text' },
-            ]
-          },
-          {
-            title: 'Organizational Background and Team',
-            questions: [
-              { key: 'legal_entity_achieved', label: 'Legal Entity Achieved', type: 'text' },
-              { key: 'geographic_markets', label: 'Geographic Markets', type: 'multiselect' },
-              { key: 'team_based', label: 'Team Based', type: 'multiselect' },
-              { key: 'fte_staff_current', label: 'Current FTE Staff', type: 'number' },
-            ]
-          },
-          {
-            title: 'Vehicle Construct',
-            questions: [
-              { key: 'legal_domicile', label: 'Legal Domicile', type: 'multiselect' },
-              { key: 'currency_investments', label: 'Currency for Investments', type: 'text' },
-              { key: 'fund_type_status', label: 'Fund Type Status', type: 'text' },
-            ]
-          },
-          {
-            title: 'Investment Thesis',
-            questions: [
-              { key: 'investment_thesis', label: 'Investment Thesis', type: 'textarea' },
-              { key: 'target_sectors', label: 'Target Sectors', type: 'multiselect' },
-              { key: 'investment_stage', label: 'Investment Stage', type: 'select' },
-            ]
-          }
-        ];
-      default:
-        return [];
-    }
-  };
+  const [activeTab, setActiveTab] = useState('overview');
 
   const fetchSurveyResponse = async () => {
     try {
@@ -197,17 +35,12 @@ const SurveyResponseViewer = () => {
       
       const tableName = `survey_${year}_responses`;
       const { data, error } = await supabase
-        .from(tableName)
+        .from(tableName as any)
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
-        if (error.code === 'PGRST116' || error.status === 406) {
-          // No rows returned - survey not completed or permission denied
-          setResponse(null);
-          return;
-        }
         console.error('Error fetching survey response:', error);
         toast({
           title: "Error",
@@ -236,60 +69,142 @@ const SurveyResponseViewer = () => {
     }
   }, [userId, year]);
 
-  const renderQuestionValue = (question: any, value: any) => {
+  const renderValue = (key: string, value: any): React.ReactNode => {
     if (value === null || value === undefined || value === '') {
-      return <span className="text-gray-500 italic">No response provided</span>;
+      return <span className="text-gray-400 italic text-sm">No response</span>;
     }
 
-    switch (question.type) {
-      case 'multiselect':
-        if (Array.isArray(value)) {
-          return (
-            <div className="flex flex-wrap gap-1">
-              {value.map((item, index) => (
-                <Badge key={index} variant="secondary" className="text-xs">
-                  {item}
-                </Badge>
-              ))}
-            </div>
-          );
-        }
-        return <span>{String(value)}</span>;
-      case 'boolean':
-        return <span className={value ? 'text-green-600' : 'text-red-600'}>{value ? 'Yes' : 'No'}</span>;
-      case 'textarea':
-        return <div className="whitespace-pre-wrap">{String(value)}</div>;
-      default:
-        return <span>{String(value)}</span>;
+    // Handle arrays
+    if (Array.isArray(value)) {
+      if (value.length === 0) {
+        return <span className="text-gray-400 italic text-sm">No response</span>;
+      }
+      return (
+        <div className="flex flex-wrap gap-1.5">
+          {value.map((item, index) => (
+            <Badge key={index} variant="secondary" className="text-xs px-2 py-0.5">
+              {typeof item === 'object' ? JSON.stringify(item) : String(item)}
+            </Badge>
+          ))}
+        </div>
+      );
     }
-  };
 
-  const renderSection = (section: SurveySection, sectionIndex: number) => (
-    <TabsContent key={sectionIndex} value={String(sectionIndex + 1)} className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <FileText className="w-5 h-5" />
-            <span>{section.title}</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {section.questions.map((question, index) => (
-            <div key={index} className="border-b border-gray-100 pb-4 last:border-b-0">
-              <div className="flex flex-col space-y-2">
-                <label className="text-sm font-medium text-gray-700">
-                  {question.label}
-                </label>
-                <div className="text-sm text-gray-900">
-                  {renderQuestionValue(question, response?.[question.key])}
-                </div>
-              </div>
+    // Handle objects (like rankings, percentages)
+    if (typeof value === 'object') {
+      return (
+        <div className="space-y-1.5 text-sm">
+          {Object.entries(value).map(([k, v]) => (
+            <div key={k} className="flex justify-between items-center py-1 border-b border-gray-100 last:border-0">
+              <span className="text-gray-700 font-medium">{formatKey(k)}:</span>
+              <span className="text-gray-900">{String(v)}</span>
             </div>
           ))}
-        </CardContent>
-      </Card>
-    </TabsContent>
-  );
+        </div>
+      );
+    }
+
+    // Handle booleans
+    if (typeof value === 'boolean') {
+      return <Badge variant={value ? 'default' : 'secondary'}>{value ? 'Yes' : 'No'}</Badge>;
+    }
+
+    // Handle numbers
+    if (typeof value === 'number') {
+      return <span className="font-medium text-gray-900">{value.toLocaleString()}</span>;
+    }
+
+    // Handle long text
+    if (String(value).length > 200) {
+      return <div className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed">{String(value)}</div>;
+    }
+
+    return <span className="text-gray-900">{String(value)}</span>;
+  };
+
+  const formatKey = (key: string): string => {
+    // Convert snake_case to Title Case
+    return key
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+      .replace(/Ftes/g, 'FTEs')
+      .replace(/Gp/g, 'GP')
+      .replace(/Lp/g, 'LP')
+      .replace(/Irr/g, 'IRR')
+      .replace(/Sdg/g, 'SDG')
+      .replace(/Sgb/g, 'SGB');
+  };
+
+  const shouldShowField = (key: string, value: any): boolean => {
+    // Hide internal fields
+    if (['id', 'user_id', 'created_at', 'updated_at', 'submission_status'].includes(key)) {
+      return false;
+    }
+
+    // Show fields with non-empty values
+    if (value !== null && value !== undefined && value !== '') {
+      // For arrays, show if not empty
+      if (Array.isArray(value) && value.length === 0) return false;
+      // For objects, show if not empty
+      if (typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length === 0) return false;
+      return true;
+    }
+
+    return false;
+  };
+
+  const organizeFields = (formData: any) => {
+    if (!formData) return [];
+
+    const sections: { title: string; fields: Array<{ key: string; value: any }> }[] = [];
+
+    // Group fields by common prefixes and themes
+    const fieldGroups: { [key: string]: Array<{ key: string; value: any }> } = {
+      'Contact & Organization': [],
+      'Team & Background': [],
+      'Legal & Structure': [],
+      'Fundraising & Capital': [],
+      'Investment Strategy': [],
+      'Portfolio & Operations': [],
+      'Performance & Impact': [],
+      'Other Information': [],
+    };
+
+    Object.entries(formData).forEach(([key, value]) => {
+      if (!shouldShowField(key, value)) return;
+
+      const field = { key, value };
+
+      // Categorize fields
+      if (key.includes('email') || key.includes('name') || key.includes('organisation') || key.includes('firm') || key.includes('contact')) {
+        fieldGroups['Contact & Organization'].push(field);
+      } else if (key.includes('team') || key.includes('fte') || key.includes('principal') || key.includes('gender') || key.includes('experience') || key.includes('role')) {
+        fieldGroups['Team & Background'].push(field);
+      } else if (key.includes('legal') || key.includes('domicile') || key.includes('currency') || key.includes('fund_type') || key.includes('vehicle')) {
+        fieldGroups['Legal & Structure'].push(field);
+      } else if (key.includes('raised') || key.includes('target_fund') || key.includes('capital') || key.includes('fundraising') || key.includes('commitments') || key.includes('lp_')) {
+        fieldGroups['Fundraising & Capital'].push(field);
+      } else if (key.includes('investment') || key.includes('thesis') || key.includes('sector') || key.includes('stage') || key.includes('instrument') || key.includes('financing')) {
+        fieldGroups['Investment Strategy'].push(field);
+      } else if (key.includes('portfolio') || key.includes('pipeline') || key.includes('value_creation') || key.includes('sourcing') || key.includes('exit') || key.includes('monetization')) {
+        fieldGroups['Portfolio & Operations'].push(field);
+      } else if (key.includes('performance') || key.includes('impact') || key.includes('jobs') || key.includes('revenue') || key.includes('growth') || key.includes('exits_achieved')) {
+        fieldGroups['Performance & Impact'].push(field);
+      } else {
+        fieldGroups['Other Information'].push(field);
+      }
+    });
+
+    // Convert to sections array, excluding empty sections
+    Object.entries(fieldGroups).forEach(([title, fields]) => {
+      if (fields.length > 0) {
+        sections.push({ title, fields });
+      }
+    });
+
+    return sections;
+  };
 
   if (loading) {
     return (
@@ -304,7 +219,7 @@ const SurveyResponseViewer = () => {
     );
   }
 
-  if (!response) {
+  if (!response || !response.form_data) {
     return (
       <SidebarLayout>
         <div className="min-h-screen bg-gradient-to-br from-[#f5f5dc] to-[#f0f0e6]">
@@ -371,8 +286,7 @@ const SurveyResponseViewer = () => {
     );
   }
 
-  const sections = getSurveySections(year || '');
-  const visibleSections = userRole === 'admin' ? sections : sections.slice(0, 4);
+  const sections = organizeFields(response.form_data);
 
   return (
     <SidebarLayout>
@@ -396,7 +310,7 @@ const SurveyResponseViewer = () => {
                     {year} Survey Response
                   </h1>
                   <p className="text-lg text-gray-600">
-                    Viewing responses for user ID: {userId}
+                    Complete survey data for this fund manager
                   </p>
                 </div>
               </div>
@@ -405,25 +319,94 @@ const SurveyResponseViewer = () => {
                   <Calendar className="w-3 h-3" />
                   <span>{year}</span>
                 </Badge>
-                <Badge variant="outline" className="flex items-center space-x-1">
-                  <User className="w-3 h-3" />
-                  <span>{userRole === 'admin' ? 'All Sections' : 'First 4 Sections'}</span>
-                </Badge>
+                {response.completed_at && (
+                  <Badge variant="default" className="flex items-center space-x-1">
+                    Completed: {new Date(response.completed_at).toLocaleDateString()}
+                  </Badge>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Survey Response Tabs */}
+          {/* Survey Sections */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
-              {visibleSections.map((section, index) => (
-                <TabsTrigger key={index} value={String(index + 1)}>
-                  Section {index + 1}
+            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 mb-6">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              {sections.slice(0, 3).map((section, idx) => (
+                <TabsTrigger key={idx} value={`section-${idx}`}>
+                  {section.title.length > 20 ? section.title.substring(0, 17) + '...' : section.title}
                 </TabsTrigger>
               ))}
             </TabsList>
 
-            {visibleSections.map((section, index) => renderSection(section, index))}
+            {/* Overview Tab */}
+            <TabsContent value="overview">
+              <div className="grid gap-6">
+                {sections.map((section, sectionIdx) => (
+                  <Card key={sectionIdx} className="border-2">
+                    <CardHeader>
+                      <CardTitle className="flex items-center space-x-2 text-xl">
+                        <FileText className="w-5 h-5 text-blue-600" />
+                        <span>{section.title}</span>
+                        <Badge variant="secondary">{section.fields.length} fields</Badge>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {section.fields.slice(0, 6).map((field, fieldIdx) => (
+                          <div key={fieldIdx} className="border-b border-gray-100 pb-3">
+                            <div className="text-sm font-medium text-gray-600 mb-1">
+                              {formatKey(field.key)}
+                            </div>
+                            <div className="text-sm">
+                              {renderValue(field.key, field.value)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {section.fields.length > 6 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="mt-4"
+                          onClick={() => setActiveTab(`section-${sectionIdx}`)}
+                        >
+                          View all {section.fields.length} fields →
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+
+            {/* Individual Section Tabs */}
+            {sections.map((section, sectionIdx) => (
+              <TabsContent key={sectionIdx} value={`section-${sectionIdx}`}>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <FileText className="w-5 h-5" />
+                      <span>{section.title}</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {section.fields.map((field, fieldIdx) => (
+                      <div key={fieldIdx} className="border-b border-gray-100 pb-4 last:border-b-0">
+                        <div className="flex flex-col space-y-2">
+                          <label className="text-sm font-semibold text-gray-700">
+                            {formatKey(field.key)}
+                          </label>
+                          <div className="text-sm">
+                            {renderValue(field.key, field.value)}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            ))}
           </Tabs>
         </div>
       </div>
