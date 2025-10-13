@@ -28,58 +28,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('Fetching user role for:', userId);
       
-      // First try to get the role from user_roles table
+      // Use the safe SECURITY DEFINER function to get role (bypasses RLS)
       const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .maybeSingle();
-      
+        .rpc('get_user_role_safe', { user_uuid: userId });
+
       if (error) {
         console.error('Error fetching user role:', error);
-        // If there's an error, try to create a default role
-        const { data: userData, error: userError } = await supabase.auth.getUser();
-        const userEmail = userData?.user?.email || '';
-        
-        const { error: insertError } = await supabase
-          .from('user_roles')
-          .insert({ user_id: userId, role: 'viewer', email: userEmail });
-        
-        if (insertError) {
-          console.error('Error creating default role:', insertError);
-          // If we can't create a role, default to viewer
-          setUserRole('viewer');
-        } else {
-          setUserRole('viewer');
-        }
+        setUserRole('viewer');
         return;
       }
 
-      if (!data) {
-        console.log('No role found, creating default viewer role');
-        
-        // Get user email from auth.users
-        const { data: userData, error: userError } = await supabase.auth.getUser();
-        const userEmail = userData?.user?.email || '';
-        
-        const { error: insertError } = await supabase
-          .from('user_roles')
-          .insert({ 
-            user_id: userId, 
-            role: 'viewer',
-            email: userEmail
-          });
-        
-        if (insertError) {
-          console.error('Error creating default role:', insertError);
-          setUserRole('viewer');
-        } else {
-          setUserRole('viewer');
-        }
-      } else {
-        console.log('User role fetched:', data.role);
-        setUserRole(data.role);
-      }
+      const role = data || 'viewer';
+      console.log('User role fetched:', role);
+      setUserRole(role);
     } catch (error) {
       console.error('Error in fetchUserRole:', error);
       setUserRole('viewer');
@@ -291,7 +252,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const resetPassword = async (email: string) => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${window.location.origin}/auth`,
       });
       return { error };
     } catch (error) {

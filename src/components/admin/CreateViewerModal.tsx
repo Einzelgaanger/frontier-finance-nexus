@@ -327,29 +327,79 @@ const CreateViewerModal = ({ open, onClose, onSuccess }: CreateViewerModalProps)
 
       console.log('User created successfully:', userResult);
 
-      // Now create the survey data for the user
-      const { data: result, error: surveyError } = await supabase.rpc('create_viewer_with_survey', {
-        viewer_email: data.email,
-        viewer_password: data.password,
-        survey_data: surveyData,
-        survey_year: data.survey_year
-      });
+      // Now create the survey data for the user directly in the appropriate table
+      if (userResult.user_id) {
+        let surveyError = null;
+        
+        try {
+          switch (data.survey_year) {
+            case 2021:
+              const { error: error2021 } = await supabase
+                .from('survey_2021_responses')
+                .insert({
+                  user_id: userResult.user_id,
+                  email_address: data.email,
+                  form_data: surveyData,
+                  submission_status: 'submitted',
+                  completed_at: new Date().toISOString(),
+                });
+              surveyError = error2021;
+              break;
+            case 2022:
+              const { error: error2022 } = await supabase
+                .from('survey_2022_responses')
+                .insert({
+                  user_id: userResult.user_id,
+                  email: data.email,
+                  form_data: surveyData,
+                  submission_status: 'submitted',
+                  completed_at: new Date().toISOString(),
+                });
+              surveyError = error2022;
+              break;
+            case 2023:
+              const { error: error2023 } = await supabase
+                .from('survey_2023_responses')
+                .insert({
+                  user_id: userResult.user_id,
+                  email_address: data.email,
+                  form_data: surveyData,
+                  submission_status: 'submitted',
+                  completed_at: new Date().toISOString(),
+                });
+              surveyError = error2023;
+              break;
+            case 2024:
+              const { error: error2024 } = await supabase
+                .from('survey_2024_responses')
+                .insert({
+                  user_id: userResult.user_id,
+                  email_address: data.email,
+                  form_data: surveyData,
+                  submission_status: 'submitted',
+                  completed_at: new Date().toISOString(),
+                });
+              surveyError = error2024;
+              break;
+          }
 
-      if (surveyError) {
-        console.error('Error creating survey data:', surveyError);
-        toast({
-          title: "Error Creating Survey Data",
-          description: surveyError.message,
-          variant: "destructive"
-        });
-        return;
+          if (surveyError) {
+            console.error('Error creating survey data:', surveyError);
+            toast({
+              title: "Warning",
+              description: "User created but survey data could not be saved. User can complete survey after logging in.",
+            });
+          } else {
+            console.log('Survey data created successfully');
+          }
+        } catch (err) {
+          console.error('Error saving survey:', err);
+        }
       }
-
-      console.log('Survey data created successfully:', result);
 
       toast({
         title: "Viewer Created Successfully",
-        description: `Viewer account created for ${data.email} with complete survey data. They can now log in and access the platform.`,
+        description: `Viewer account created for ${data.email}. They can now log in and access the platform.`,
       });
 
       form.reset();

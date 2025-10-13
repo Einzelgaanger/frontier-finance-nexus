@@ -1589,6 +1589,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_backup: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          first_name: string | null
+          id: string | null
+          last_name: string | null
+          role: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          first_name?: string | null
+          id?: string | null
+          last_name?: string | null
+          role?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          first_name?: string | null
+          id?: string | null
+          last_name?: string | null
+          role?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           assigned_at: string | null
@@ -1624,76 +1651,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      admin_create_viewer: {
-        Args: {
-          p_email: string
-          p_password: string
-          p_survey_data: Json
-          p_survey_year: number
-        }
-        Returns: Json
-      }
-      create_admin_user: {
-        Args: {
-          p_email: string
-          p_first_name?: string
-          p_last_name?: string
-          p_password: string
-        }
-        Returns: Json
-      }
-      create_user_with_profile: {
-        Args: { org_name: string; user_email: string }
-        Returns: string
-      }
-      create_viewer_survey_data: {
-        Args: { p_survey_data: Json; p_survey_year: number; p_user_id: string }
-        Returns: string
-      }
-      create_viewer_with_survey: {
-        Args: {
-          survey_data: Json
-          survey_year: number
-          viewer_email: string
-          viewer_password: string
-        }
-        Returns: string
-      }
-      get_admin_stats: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          active_users_today: number
-          admins_count: number
-          members_count: number
-          new_registrations_today: number
-          surveys_completed: number
-          viewers_count: number
-        }[]
-      }
-      get_previous_survey_data: {
-        Args: { user_uuid: string }
-        Returns: Json
-      }
-      get_survey_stats: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          avg_completion_time: unknown
-          completed_surveys: number
-          surveys_this_month: number
-          total_surveys: number
-        }[]
-      }
-      get_user_role: {
+      get_or_create_user_role: {
         Args: { user_uuid: string }
         Returns: string
       }
       get_user_role_safe: {
         Args: { user_uuid: string }
         Returns: string
-      }
-      is_approved_member: {
-        Args: { user_uuid: string }
-        Returns: boolean
       }
     }
     Enums: {
