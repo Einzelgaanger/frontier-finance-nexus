@@ -300,7 +300,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
                   ) : location.pathname === '/dashboard' && userRole === 'member' ? (
                     <>
                       <h2 className="text-2xl font-bold text-white transition-colors">
-                        Good morning, {user?.email?.split('@')[0] || 'Member'}!
+                        Welcome back, {user?.email?.split('@')[0] || 'Member'}!
                       </h2>
                       <p className="text-sm text-white/70 transition-colors">
                         Welcome to the CFF Network member portal. Access your surveys, connect with peers, and explore insights.
