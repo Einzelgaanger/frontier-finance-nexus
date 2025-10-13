@@ -199,7 +199,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
           "fixed inset-y-0 left-0 z-50 transform transition-all duration-300 ease-in-out lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full",
           "w-24",
-          "bg-black border-r-2 border-beige shadow-2xl overflow-hidden rounded-r-2xl font-rubik"
+          "bg-black shadow-2xl overflow-hidden font-rubik"
         )}
       >
         <div className="flex flex-col h-screen overflow-hidden">
@@ -231,7 +231,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
                     <Icon className={cn("transition-colors w-4 h-4", colors.icon)} />
                   </div>
                   <div className="text-center">
-                    <p className={cn("font-medium text-xs transition-colors", colors.text)}>
+                    <p className={cn("font-normal text-xs transition-colors", colors.text)}>
                       {item.name}
                     </p>
                   </div>
@@ -251,7 +251,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
                 <LogOut className="text-[#f5f5dc] w-4 h-4" />
               </div>
               <div className="text-center">
-                <p className="font-medium text-xs text-[#f5f5dc]">
+                <p className="font-normal text-xs text-[#f5f5dc]">
                   Sign Out
                 </p>
               </div>
@@ -264,7 +264,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
       {/* Main Content */}
       <div className="flex flex-col min-w-0 bg-[#f5f5dc] ml-24">
         {/* Top Header */}
-        <header className="border-b-2 border-black px-6 py-4 transition-colors bg-[#f5f5dc] font-rubik sticky top-0 z-10">
+        <header className="border-b-2 border-black px-6 py-2 transition-colors bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 font-rubik sticky top-0 z-10">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button
@@ -275,31 +275,34 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
               >
                 <Menu className="w-5 h-5" />
               </Button>
+              
+              {/* CFF Logo */}
+              <div className="flex items-center">
+                <img 
+                  src="/CFF LOGO.png" 
+                  alt="CFF Logo" 
+                  className="h-12 w-auto object-contain mr-4"
+                />
+              </div>
+              
                 <div>
                   {location.pathname === '/dashboard' && userRole === 'admin' ? (
                     <>
-                      <h2 className="text-2xl font-bold text-black transition-colors">
+                      <h2 className="text-2xl font-bold text-white transition-colors">
                         Welcome back, Administrator
                       </h2>
-                      <p className="text-sm text-black/70 transition-colors">
+                      <p className="text-sm text-white/70 transition-colors">
                         Here's what's happening with your network today
                       </p>
                     </>
                   ) : location.pathname === '/dashboard' && userRole === 'viewer' ? (
-                    <>
-                      <h2 className="text-2xl font-bold text-black transition-colors">
-                        Welcome to CFF Network
-                      </h2>
-                      <p className="text-sm text-black/70 transition-colors">
-                        Your gateway to the world's leading emerging market fund managers
-                      </p>
-                    </>
+                    <></>
                   ) : location.pathname === '/dashboard' && userRole === 'member' ? (
                     <>
-                      <h2 className="text-2xl font-bold text-black transition-colors">
+                      <h2 className="text-2xl font-bold text-white transition-colors">
                         Good morning, {user?.email?.split('@')[0] || 'Member'}!
                       </h2>
-                      <p className="text-sm text-black/70 transition-colors">
+                      <p className="text-sm text-white/70 transition-colors">
                         Welcome to the CFF Network member portal. Access your surveys, connect with peers, and explore insights.
                       </p>
                     </>
@@ -309,25 +312,34 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
                         variant="outline"
                         size="sm"
                         onClick={() => navigate('/network')}
-                        className="flex items-center space-x-2"
+                        className="flex items-center space-x-2 border-white/30 text-white hover:bg-white/20 bg-white/5"
                       >
                         <ArrowLeft className="w-4 h-4" />
                         <span>Back to Network</span>
                       </Button>
-                      <div className="h-6 w-px bg-gray-300"></div>
-                      <h2 className="text-2xl font-bold text-black transition-colors">
+                      <div className="h-6 w-px bg-white/30"></div>
+                      <h2 className="text-2xl font-bold text-white transition-colors">
                         Fund Manager Details
                       </h2>
                     </div>
+                  ) : location.pathname === '/application' ? (
+                    <>
+                      <h2 className="text-2xl font-bold text-white transition-colors">
+                        Membership Application
+                      </h2>
+                      <p className="text-sm text-white/70 transition-colors">
+                        Join the CFF Network and connect with global fund managers
+                      </p>
+                    </>
                   ) : (
                     <>
-                      <h2 className="text-2xl font-bold text-black transition-colors">
+                      <h2 className="text-2xl font-bold text-white transition-colors">
                         {location.pathname.startsWith('/survey') && 'Surveys'}
                         {location.pathname === '/network' && 'Network Directory'}
                         {location.pathname === '/analytics' && 'Analytics Hub'}
                         {location.pathname.startsWith('/admin') && 'Admin Panel'}
                       </h2>
-                      <p className="text-sm text-black/70 transition-colors">
+                      <p className="text-sm text-white/70 transition-colors">
                         {location.pathname.startsWith('/survey') && 'Complete and view survey responses'}
                         {location.pathname === '/network' && 'Browse and connect with fund managers'}
                         {location.pathname === '/analytics' && 'Data insights and comprehensive reports'}
@@ -341,29 +353,27 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
             {/* Right side - User info for dashboard */}
             {location.pathname === '/dashboard' && (
               <div className="flex items-center space-x-4">
-                {/* User Info */}
-                <div className="flex items-center space-x-3 bg-gray-200 rounded-2xl px-4 py-2 border-2 border-gray-300">
-                  {/* Profile Picture */}
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                    {user?.email?.charAt(0).toUpperCase() || 'U'}
+                {/* Email and Role (2 rows) */}
+                <div className="text-right">
+                  <p className="text-sm font-medium text-white">
+                    {user?.email}
+                  </p>
+                  {/* Role Badge */}
+                  <div className="mt-1">
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                      userRole === 'admin' 
+                        ? 'bg-red-500/20 text-red-300 border border-red-400/30' 
+                        : userRole === 'member' 
+                        ? 'bg-green-500/20 text-green-300 border border-green-400/30' 
+                        : 'bg-blue-500/20 text-blue-300 border border-blue-400/30'
+                    }`}>
+                      {userRole?.charAt(0).toUpperCase() + userRole?.slice(1) || 'Viewer'}
+                    </span>
                   </div>
-                  <div className="text-left">
-                    <p className="text-sm font-medium text-black">
-                      {user?.email}
-                    </p>
-                    {/* Role Badge */}
-                    <div className="mt-1">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        userRole === 'admin' 
-                          ? 'bg-red-100 text-red-800' 
-                          : userRole === 'member' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-blue-100 text-blue-800'
-                      }`}>
-                        {userRole?.charAt(0).toUpperCase() + userRole?.slice(1) || 'Viewer'}
-                      </span>
-                    </div>
-                  </div>
+                </div>
+                {/* Profile Picture - furthest right */}
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                  {user?.email?.charAt(0).toUpperCase() || 'U'}
                 </div>
               </div>
             )}

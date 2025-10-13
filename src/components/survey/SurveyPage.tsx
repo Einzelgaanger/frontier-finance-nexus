@@ -62,83 +62,77 @@ const SurveyPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f5f5dc] to-[#f0f0e6]">
-      <div className="max-w-6xl mx-auto p-8">
-        {/* Enhanced Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div className="flex-1 pr-8">
-            <p className="text-lg text-gray-600 leading-relaxed">
-              Explore our comprehensive collection of MSME financing surveys spanning 2021-2024. 
-              Each survey provides unique insights into the evolving landscape of small and growing business financing.
-            </p>
-          </div>
-          <div className="flex items-center space-x-6 text-xs text-gray-500">
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span>4 Total Surveys</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-              <span>4 Years of Data</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span>{userRole === 'viewer' ? 'Viewer Access' : 'Member Access'}</span>
+      <div className="max-w-7xl mx-auto p-6">
+        {/* Compact Header */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-2xl font-bold text-gray-800">Survey Collection</h1>
+            <div className="flex items-center space-x-4 text-sm text-gray-600">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <span>4 Surveys</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>{userRole === 'viewer' ? 'Viewer Access' : 'Member Access'}</span>
+              </div>
             </div>
           </div>
+          <p className="text-gray-600 text-sm">
+            Comprehensive MSME financing surveys spanning 2021-2024, providing insights into small and growing business financing landscapes.
+          </p>
         </div>
 
-        {/* Survey Cards - Single Column Layout */}
-        <div className="space-y-4">
+        {/* Survey Cards - Grid Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
           {surveys.map((survey) => {
             const IconComponent = survey.icon;
             
             return (
               <div
                 key={survey.year}
-                className={`group relative w-full transition-all duration-300 hover:shadow-lg cursor-pointer rounded-lg border-2 ${survey.color}`}
+                className={`group relative transition-all duration-300 hover:shadow-lg cursor-pointer rounded-lg border-2 ${survey.color}`}
                 onClick={() => navigate(survey.path)}
               >
-                <div className="p-6">
-                  <div className="flex items-center space-x-4">
-                    {/* Left side - Icon and Year */}
-                    <div className="flex-shrink-0">
-                      <div className="w-12 h-12 rounded-lg bg-white/90 flex items-center justify-center shadow-sm">
-                        <IconComponent className="w-6 h-6 text-gray-700" />
+                <div className="p-4">
+                  {/* Header Row */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 rounded-lg bg-white/90 flex items-center justify-center shadow-sm">
+                        <IconComponent className="w-4 h-4 text-gray-700" />
                       </div>
-                    </div>
-
-                    {/* Center - Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <span className="text-3xl font-bold text-gray-800">
-                          {survey.year}
-                        </span>
-                        <div className="inline-flex items-center px-2 py-1 bg-white/70 rounded-full">
+                      <div>
+                        <span className="text-xl font-bold text-gray-800">{survey.year}</span>
+                        <div className="inline-flex items-center px-2 py-0.5 bg-white/70 rounded-full ml-2">
                           <span className="text-xs font-medium text-gray-700">{survey.focus}</span>
                         </div>
                       </div>
-                      <h3 className="text-lg font-bold text-gray-800 mb-2">
-                        {survey.title}
-                      </h3>
-                      <p className="text-gray-600 leading-relaxed mb-3 text-sm line-clamp-2">
-                        {survey.description}
-                      </p>
-                      <div className="flex items-center space-x-4 text-xs text-gray-500">
-                        <div className="flex items-center space-x-1">
-                          <FileText className="w-3 h-3" />
-                          <span>{survey.sections} sections</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <Clock className="w-3 h-3" />
-                          <span>{survey.estimatedTime}</span>
-                        </div>
-                      </div>
                     </div>
+                    <div className="w-6 h-6 rounded-full bg-white/70 flex items-center justify-center group-hover:bg-white group-hover:shadow-md transition-all duration-200">
+                      <span className="text-sm text-gray-600 group-hover:text-gray-800">→</span>
+                    </div>
+                  </div>
 
-                    {/* Right side - Arrow */}
-                    <div className="flex-shrink-0 flex items-center">
-                      <div className="w-10 h-10 rounded-full bg-white/70 flex items-center justify-center group-hover:bg-white group-hover:shadow-md transition-all duration-200">
-                        <span className="text-lg text-gray-600 group-hover:text-gray-800">→</span>
+                  {/* Title */}
+                  <h3 className="text-base font-semibold text-gray-800 mb-2 line-clamp-1">
+                    {survey.title}
+                  </h3>
+
+                  {/* Description */}
+                  <p className="text-gray-600 text-xs leading-relaxed mb-3 line-clamp-2">
+                    {survey.description}
+                  </p>
+
+                  {/* Footer Info */}
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-1">
+                        <FileText className="w-3 h-3" />
+                        <span>{survey.sections} sections</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Clock className="w-3 h-3" />
+                        <span>{survey.estimatedTime}</span>
                       </div>
                     </div>
                   </div>

@@ -605,14 +605,12 @@ export default function Survey2023() {
 
   const renderSection1 = () => (
     <div className="space-y-6">
-      <h3 className="text-xl font-semibold">Section 1: Introduction & Context</h3>
-      
       <FormField
         control={form.control}
         name="email_address"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>1. Email address *</FormLabel>
+            <FormLabel className="text-lg font-semibold text-gray-900">1. Email address *</FormLabel>
             <FormControl>
               <Input {...field} type="email" placeholder="Enter your email address" disabled={isReadOnly} />
             </FormControl>
@@ -626,7 +624,7 @@ export default function Survey2023() {
         name="organisation_name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>2. Name of organisation *</FormLabel>
+            <FormLabel className="text-lg font-semibold text-gray-900">2. Name of organisation *</FormLabel>
             <FormControl>
               <Input {...field} placeholder="Enter organisation name" disabled={isReadOnly} />
             </FormControl>
@@ -640,7 +638,7 @@ export default function Survey2023() {
         name="funds_raising_investing"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>3. How many funds are you currently raising and/or investing? *</FormLabel>
+            <FormLabel className="text-lg font-semibold text-gray-900">3. How many funds are you currently raising and/or investing? *</FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger disabled={isReadOnly}>
@@ -664,7 +662,7 @@ export default function Survey2023() {
         name="fund_name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>4. Name of Fund to which this survey applies (that is Fund 1) *</FormLabel>
+            <FormLabel className="text-lg font-semibold text-gray-900">4. Name of Fund to which this survey applies (that is Fund 1) *</FormLabel>
             <FormControl>
               <Input {...field} placeholder="Enter fund name" disabled={isReadOnly} />
             </FormControl>
@@ -678,17 +676,12 @@ export default function Survey2023() {
   function renderSection2() {
     return (
     <div className="space-y-6">
-        <div className="mb-6">
-          <h3 className="text-xl font-semibold mb-2">Section 2: Organizational Background and Team</h3>
-          <p className="text-sm text-gray-600 mb-4">Questions apply to Fund 1</p>
-        </div>
-      
       <FormField
         control={form.control}
         name="legal_entity_achieved"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>5. Timeline. When did your fund/investment vehicle achieve each of the following? (Please provide a date for each of three points in your fund's evolution)</FormLabel>
+            <FormLabel className="text-lg font-semibold text-gray-900">5. Timeline. When did your fund/investment vehicle achieve each of the following? (Please provide a date for each of three points in your fund's evolution)</FormLabel>
             <div className="space-y-4">
               <div>
                 <FormLabel className="text-sm font-medium">Legal Entity</FormLabel>
@@ -765,7 +758,7 @@ export default function Survey2023() {
         name="geographic_markets"
         render={() => (
           <FormItem>
-            <FormLabel>6. In what geographic markets do you invest? (select as many as applicable)</FormLabel>
+            <FormLabel className="text-lg font-semibold text-gray-900">6. In what geographic markets do you invest? (select as many as applicable)</FormLabel>
             <div className="grid grid-cols-2 gap-3">
               {['US', 'Europe', 'Africa: West Africa', 'Africa: East Africa', 'Africa: Central Africa', 'Africa: Southern Africa', 'Africa: North Africa', 'Middle East', 'Other (please specify)'].map((market) => (
                 <FormField
@@ -830,7 +823,7 @@ export default function Survey2023() {
         name="team_based"
         render={() => (
           <FormItem>
-            <FormLabel>7. Where is your Team based? (select as many as applicable)</FormLabel>
+            <FormLabel className="text-lg font-semibold text-gray-900">7. Where is your Team based? (select as many as applicable)</FormLabel>
             <div className="grid grid-cols-2 gap-3">
               {['US', 'Europe', 'Africa: West Africa', 'Africa: East Africa', 'Africa: Central Africa', 'Africa: Southern Africa', 'Africa: North Africa', 'Middle East', 'Other (please specify)'].map((location) => (
                 <FormField
@@ -888,7 +881,7 @@ export default function Survey2023() {
       )}
 
       <div className="space-y-4">
-        <FormLabel>8. Number of current and forecasted Full Time Equivalent staff members (FTEs) including principals</FormLabel>
+        <FormLabel className="text-lg font-semibold text-gray-900">8. Number of current and forecasted Full Time Equivalent staff members (FTEs) including principals</FormLabel>
       <div className="grid grid-cols-3 gap-4">
         <FormField
           control={form.control}
@@ -1209,11 +1202,6 @@ export default function Survey2023() {
   function renderSection3() {
     return (
     <div className="space-y-6">
-      <div className="mb-6">
-        <h3 className="text-xl font-semibold mb-2">Section 3: Vehicle Construct</h3>
-        <p className="text-sm text-gray-600 mb-4">Questions apply to Fund 1</p>
-      </div>
-      
       <FormField
         control={form.control}
         name="legal_domicile"
@@ -2020,11 +2008,6 @@ export default function Survey2023() {
   function renderSection4() {
     return (
     <div className="space-y-6">
-      <div className="mb-6">
-        <h3 className="text-xl font-semibold mb-2">Section 4: Investment Thesis</h3>
-        <p className="text-sm text-gray-600 mb-4">Questions apply to Fund 1</p>
-      </div>
-
       <div className="space-y-4">
         <FormLabel>28. Stage of the businesses that you finance / invest in. (Please provide responses summing up to 100%)</FormLabel>
         
@@ -2566,11 +2549,6 @@ export default function Survey2023() {
   function renderSection5() {
     return (
     <div className="space-y-6">
-      <div className="mb-6">
-        <h3 className="text-xl font-semibold mb-2">Section 5: Pipeline Sourcing and Portfolio Construction</h3>
-        <p className="text-sm text-gray-600 mb-4">Questions apply to Fund 1</p>
-      </div>
-
       <div className="space-y-4">
         <FormLabel>35. How do you source your pipeline? (Please provide responses summing up to 100%)</FormLabel>
         
@@ -2787,11 +2765,6 @@ export default function Survey2023() {
   function renderSection6() {
     return (
     <div className="space-y-6">
-      <div className="mb-6">
-        <h3 className="text-xl font-semibold mb-2">Section 6: Portfolio Value Creation and Exits</h3>
-        <p className="text-sm text-gray-600 mb-4">Questions apply to Fund 1</p>
-      </div>
-
       <div className="space-y-4">
         <FormLabel>38. In the first 12 months after closing on an investment, what are the key areas that you prioritize with regards to your portfolio enterprises? (Please provide one ranking per row: 1 = lowest need, 5 = highest need)</FormLabel>
         
@@ -3186,11 +3159,6 @@ export default function Survey2023() {
   function renderSection7() {
     return (
     <div className="space-y-6">
-      <div className="mb-6">
-        <h3 className="text-xl font-semibold mb-2">Section 7: Performance to Date and Current Outlook</h3>
-        <p className="text-sm text-gray-600 mb-4">Questions apply to Fund 1</p>
-      </div>
-
       <div className="space-y-4">
         <FormLabel>43. List the number of investments made to date by your current vehicle.</FormLabel>
       
@@ -3922,8 +3890,6 @@ export default function Survey2023() {
   function renderSection8() {
     return (
     <div className="space-y-6">
-      <h3 className="text-xl font-semibold">Section 8: Future Research</h3>
-      
       <FormField
         control={form.control}
         name="future_research_data"
@@ -4095,11 +4061,11 @@ Which of the following would you be prepared to make available? [note: we are cu
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold">
-                  {getSectionTitle(currentSection)}
+                  Section {currentSection}: {getSectionTitle(currentSection)}
                   {isReadOnly && <span className="ml-2 text-sm text-gray-500">(Read-Only View)</span>}
                 </h2>
               </div>
-              <Progress value={(currentSection / totalSections) * 100} className="w-full" />
+              <Progress value={(currentSection / totalSections) * 100} className="w-full [&>div]:bg-red-500" />
               <div className="space-y-6">
                 {renderCurrentSection()}
               </div>
@@ -4144,7 +4110,11 @@ Which of the following would you be prepared to make available? [note: we are cu
                       Next
                     </Button>
                   ) : (
-                    <Button type="submit" disabled={loading}>
+                    <Button 
+                      type="submit" 
+                      disabled={loading}
+                      className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105"
+                    >
                       {loading ? 'Submitting...' : 'Submit Survey'}
                     </Button>
                   )}

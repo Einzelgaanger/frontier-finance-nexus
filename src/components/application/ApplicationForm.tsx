@@ -305,10 +305,10 @@ const ApplicationForm = () => {
   // Show loading state while checking application status
   if (checkingApplication) {
     return (
-      <div className="max-w-2xl mx-auto p-6 bg-[#f5f5dc] rounded-lg border-2 border-black">
+      <div className="max-w-2xl mx-auto p-6">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
-          <p className="text-black/70">Checking application status...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Checking application status...</p>
         </div>
       </div>
     );
@@ -317,13 +317,13 @@ const ApplicationForm = () => {
   // Show pending application status
   if (existingApplication && existingApplication.status === 'pending') {
     return (
-      <div className="max-w-2xl mx-auto p-6 bg-[#f5f5dc] rounded-lg border-2 border-black">
+      <div className="max-w-2xl mx-auto p-6">
         <div className="text-center">
           <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
             <Clock className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-black mb-2">Application Pending</h2>
-          <p className="text-black/70 mb-4">
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Application Pending</h2>
+          <p className="text-gray-600 mb-4">
             Your membership application is currently under review. Our team will get back to you within 5-7 business days.
           </p>
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
@@ -334,7 +334,7 @@ const ApplicationForm = () => {
               Status: Pending Review
             </p>
           </div>
-          <p className="text-sm text-black/60">
+          <p className="text-sm text-gray-500">
             You cannot submit another application while this one is pending.
           </p>
         </div>
@@ -345,14 +345,14 @@ const ApplicationForm = () => {
   // Show approved application status
   if (existingApplication && existingApplication.status === 'approved') {
     return (
-      <div className="max-w-2xl mx-auto p-6 bg-[#f5f5dc] rounded-lg border-2 border-black">
+      <div className="max-w-2xl mx-auto p-6">
         <div className="text-center">
           <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-black mb-2">Application Approved!</h2>
-          <p className="text-black/70 mb-4">
-            Congratulations! Your membership application has been approved. You are now a member of the ESCP Network.
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Application Approved!</h2>
+          <p className="text-gray-600 mb-4">
+            Congratulations! Your membership application has been approved. You are now a member of the CFF Network.
           </p>
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
             <p className="text-sm text-green-800">
@@ -362,7 +362,7 @@ const ApplicationForm = () => {
               Status: Approved
             </p>
           </div>
-          <p className="text-sm text-black/60">
+          <p className="text-sm text-gray-500">
             You now have full access to the network features.
           </p>
         </div>
@@ -373,13 +373,13 @@ const ApplicationForm = () => {
   // Show rejected application status - allow resubmission
   if (existingApplication && existingApplication.status === 'rejected') {
     return (
-      <div className="max-w-2xl mx-auto p-6 bg-[#f5f5dc] rounded-lg border-2 border-black">
+      <div className="max-w-2xl mx-auto p-6">
         <div className="text-center">
           <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-black mb-2">Application Not Approved</h2>
-          <p className="text-black/70 mb-4">
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Application Not Approved</h2>
+          <p className="text-gray-600 mb-4">
             Unfortunately, your previous application was not approved. You may submit a new application.
           </p>
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
@@ -392,7 +392,7 @@ const ApplicationForm = () => {
           </div>
           <Button 
             onClick={() => setExistingApplication(null)}
-            className="bg-black text-[#f5f5dc] hover:bg-black/80"
+            className="bg-gray-800 text-white hover:bg-gray-700"
           >
             Submit New Application
           </Button>
@@ -403,18 +403,18 @@ const ApplicationForm = () => {
 
   if (showSuccessMessage) {
     return (
-      <div className="max-w-2xl mx-auto p-6 bg-[#f5f5dc] rounded-lg border-2 border-black">
+      <div className="max-w-2xl mx-auto p-6">
         <div className="text-center">
           <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-black mb-2">Application Submitted!</h2>
-          <p className="text-black/70 mb-6">
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Application Submitted!</h2>
+          <p className="text-gray-600 mb-6">
             Thank you for submitting your membership application. Our team will review your application and get back to you within 5-7 business days.
           </p>
           <Button 
             onClick={() => setShowSuccessMessage(false)}
-            className="bg-black text-[#f5f5dc] hover:bg-black/80"
+            className="bg-gray-800 text-white hover:bg-gray-700"
           >
             Submit Another Application
           </Button>
@@ -424,149 +424,157 @@ const ApplicationForm = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-[#f5f5dc] rounded-lg border-2 border-black">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-black mb-2">Membership Application</h1>
-        <p className="text-black/70">
-          Join the ESCP Network as a member and connect with global fund managers.
-        </p>
-      </div>
-
-      {/* Progress Bar */}
-      <div className="mb-8">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-sm font-medium text-black">Progress</span>
-          <span className="text-sm text-black/70">{currentSection} of {totalSections} sections</span>
-        </div>
-        <Progress value={progress} className="h-2" />
-      </div>
-
-      {/* Section Navigation */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-xl font-semibold text-black">{sections[currentSection - 1].title}</h2>
-          <p className="text-sm text-black/70">{sections[currentSection - 1].description}</p>
-        </div>
-        <div className="flex space-x-2">
-          {currentSection > 1 && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={prevSection}
-              className="border-black text-black hover:bg-black/10"
-            >
-              Previous
-            </Button>
-          )}
-          {currentSection < totalSections ? (
-            <Button
-              type="button"
-              onClick={nextSection}
-              className="bg-black text-[#f5f5dc] hover:bg-black/80"
-            >
-              Next
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              onClick={handleSubmit}
-              disabled={loading}
-              className="bg-green-600 text-white hover:bg-green-700"
-            >
-              {loading ? 'Submitting...' : 'Submit Application'}
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Section 1: Background Information */}
-      {currentSection === 1 && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="applicant_name" className="text-black font-medium">Full Name *</Label>
-              <Input
-                id="applicant_name"
-                value={formData.applicant_name}
-                onChange={(e) => handleInputChange('applicant_name', e.target.value)}
-                className="border-black focus:ring-black"
-                placeholder="Enter your full name"
-              />
+    <div className="w-full min-h-screen bg-gradient-to-br from-[#f5f5dc] to-[#f0f0e6]">
+      {/* Main Content */}
+      <div className="px-8 py-4">
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${
+                currentSection === 1 ? 'bg-blue-500' : 
+                currentSection === 2 ? 'bg-green-500' : 
+                currentSection === 3 ? 'bg-purple-500' : 'bg-orange-500'
+              }`}>
+                <span className="text-white font-bold">{currentSection}</span>
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-gray-800">{sections[currentSection - 1].title}</h2>
+                <p className="text-gray-600 text-sm">{sections[currentSection - 1].description}</p>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="email" className="text-black font-medium">Email *</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                className="border-black focus:ring-black"
-                placeholder="Enter your email"
-              />
+            <div className="flex items-center space-x-3">
+              {currentSection > 1 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={prevSection}
+                  className="px-4 border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  Previous
+                </Button>
+              )}
+              {currentSection < totalSections ? (
+                <Button
+                  type="button"
+                  onClick={nextSection}
+                  className={`px-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 ${
+                    currentSection === 1 ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700' :
+                    currentSection === 2 ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700' :
+                    'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700'
+                  }`}
+                >
+                  Next
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  className="px-6 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-orange-500/25 transition-all duration-300 transform hover:-translate-y-1 hover:scale-105"
+                >
+                  {loading ? 'Submitting...' : 'Submit Application'}
+                </Button>
+              )}
             </div>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="vehicle_name" className="text-black font-medium">Vehicle/Fund Name *</Label>
-              <Input
-                id="vehicle_name"
-                value={formData.vehicle_name}
-                onChange={(e) => handleInputChange('vehicle_name', e.target.value)}
-                className="border-black focus:ring-black"
-                placeholder="Enter your fund/vehicle name"
-              />
-            </div>
-            <div>
-              <Label htmlFor="organization_website" className="text-black font-medium">Organization Website</Label>
-              <Input
-                id="organization_website"
-                value={formData.organization_website}
-                onChange={(e) => handleInputChange('organization_website', e.target.value)}
-                className="border-black focus:ring-black"
-                placeholder="https://your-website.com"
-              />
-            </div>
-          </div>
-
-          <div>
-            <Label className="text-black font-medium">Domicile Countries *</Label>
-            <CountrySelector
-              value={formData.domicile_countries || []}
-              onChange={(countries) => handleInputChange('domicile_countries', countries)}
-              label=""
-            />
-          </div>
         </div>
-      )}
 
-      {/* Section 2: Team Information */}
-      {currentSection === 2 && (
-        <div className="space-y-6">
-          <div>
-            <Label htmlFor="role_job_title" className="text-black font-medium">Your Role/Job Title *</Label>
-            <Input
-              id="role_job_title"
-              value={formData.role_job_title}
-              onChange={(e) => handleInputChange('role_job_title', e.target.value)}
-              className="border-black focus:ring-black"
-              placeholder="e.g., Managing Partner, Investment Director"
-            />
-          </div>
+        {/* Section 1: Background Information */}
+        {currentSection === 1 && (
+          <div className="bg-white/60 rounded-xl border-2 border-blue-200 p-5 shadow-lg">
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="applicant_name" className="text-gray-700 font-medium text-sm">Full Name *</Label>
+                    <Input
+                      id="applicant_name"
+                      value={formData.applicant_name}
+                      onChange={(e) => handleInputChange('applicant_name', e.target.value)}
+                      className="mt-2 border-blue-200 focus:border-blue-500 focus:ring-blue-500/20"
+                      placeholder="Enter your full name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="email" className="text-gray-700 font-medium text-sm">Email Address *</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      className="mt-2 border-blue-200 focus:border-blue-500 focus:ring-blue-500/20"
+                      placeholder="Enter your email"
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="vehicle_name" className="text-gray-700 font-medium text-sm">Vehicle/Fund Name *</Label>
+                    <Input
+                      id="vehicle_name"
+                      value={formData.vehicle_name}
+                      onChange={(e) => handleInputChange('vehicle_name', e.target.value)}
+                      className="mt-2 border-blue-200 focus:border-blue-500 focus:ring-blue-500/20"
+                      placeholder="Enter your fund/vehicle name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="organization_website" className="text-gray-700 font-medium text-sm">Organization Website</Label>
+                    <Input
+                      id="organization_website"
+                      value={formData.organization_website}
+                      onChange={(e) => handleInputChange('organization_website', e.target.value)}
+                      className="mt-2 border-blue-200 focus:border-blue-500 focus:ring-blue-500/20"
+                      placeholder="https://your-website.com"
+                    />
+                  </div>
+                </div>
+              </div>
 
-          <div>
-            <Label htmlFor="team_overview" className="text-black font-medium">Team Overview *</Label>
-            <Textarea
-              id="team_overview"
-              value={formData.team_overview}
-              onChange={(e) => handleInputChange('team_overview', e.target.value)}
-              className="border-black focus:ring-black"
-              placeholder="Describe your team structure, experience, and background"
-              rows={4}
-            />
+              <div className="border-t border-blue-200 pt-4">
+                <Label className="text-gray-700 font-medium text-sm">Domicile Countries *</Label>
+                <div className="mt-2">
+                  <CountrySelector
+                    value={formData.domicile_countries || []}
+                    onChange={(countries) => handleInputChange('domicile_countries', countries)}
+                    label=""
+                  />
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Section 2: Team Information */}
+        {currentSection === 2 && (
+          <div className="bg-white/60 rounded-xl border-2 border-green-200 p-5 shadow-lg">
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="role_job_title" className="text-gray-700 font-medium">Your Role/Job Title *</Label>
+                <Input
+                  id="role_job_title"
+                  value={formData.role_job_title}
+                  onChange={(e) => handleInputChange('role_job_title', e.target.value)}
+                  className="mt-2 border-green-200 focus:border-green-500 focus:ring-green-500/20"
+                  placeholder="e.g., Managing Partner, Investment Director"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="team_overview" className="text-gray-700 font-medium">Team Overview *</Label>
+                <Textarea
+                  id="team_overview"
+                  value={formData.team_overview}
+                  onChange={(e) => handleInputChange('team_overview', e.target.value)}
+                  className="mt-2 border-green-200 focus:border-green-500 focus:ring-green-500/20"
+                  placeholder="Describe your team structure, experience, and background"
+                  rows={4}
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
       {/* Section 3: Vehicle Information */}
       {currentSection === 3 && (
@@ -747,8 +755,10 @@ const ApplicationForm = () => {
               ))}
             </div>
           </div>
-        </div>
-      )}
+          </div>
+          )}
+
+      </div>
     </div>
   );
 };

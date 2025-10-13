@@ -538,7 +538,7 @@ export default function Survey2024() {
 				name="email_address"
 				render={({ field }) => (
 					<FormItem>
-						<FormLabel>1. Email address (note: all responses are anonymized. We have learned through the years that many respondents' answers trigger interesting follow-on discussions, which we use to improve the survey and CFF's overall understanding of the small business finance marketplace) *</FormLabel>
+						<FormLabel className="text-lg font-semibold text-gray-900">1. Email address (note: all responses are anonymized. We have learned through the years that many respondents' answers trigger interesting follow-on discussions, which we use to improve the survey and CFF's overall understanding of the small business finance marketplace) *</FormLabel>
 						<FormControl>
 							<Input {...field} type="email" placeholder="Enter your email address" />
 						</FormControl>
@@ -552,7 +552,7 @@ export default function Survey2024() {
 				name="investment_networks"
 				render={() => (
 					<FormItem>
-						<FormLabel>2. Please check all investment networks or associations that you are a part of. If they are not listed, please include them in the textbox. *</FormLabel>
+						<FormLabel className="text-lg font-semibold text-gray-900">2. Please check all investment networks or associations that you are a part of. If they are not listed, please include them in the textbox. *</FormLabel>
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
 							{[
 								'CFF', 'ABAN', 'AVCA', 'AWI', 'Capria Network', 'WAI'
@@ -626,7 +626,7 @@ export default function Survey2024() {
 				name="organisation_name"
 				render={({ field }) => (
 					<FormItem>
-						<FormLabel>3. Name of your organization *</FormLabel>
+						<FormLabel className="text-lg font-semibold text-gray-900">3. Name of your organization *</FormLabel>
 						<FormControl>
 							<Input {...field} placeholder="Enter organisation name" />
 						</FormControl>
@@ -640,7 +640,7 @@ export default function Survey2024() {
 				name="funds_raising_investing"
 				render={({ field }) => (
 					<FormItem>
-						<FormLabel>4. How many funds are you currently raising and/or investing? *</FormLabel>
+						<FormLabel className="text-lg font-semibold text-gray-900">4. How many funds are you currently raising and/or investing? *</FormLabel>
 						<Select onValueChange={field.onChange} value={field.value}>
 							<FormControl>
 								<SelectTrigger>
@@ -664,7 +664,7 @@ export default function Survey2024() {
 				name="fund_name"
 				render={({ field }) => (
 					<FormItem>
-						<FormLabel>5. Name of Fund to which this survey applies (that is Fund 1) *</FormLabel>
+						<FormLabel className="text-lg font-semibold text-gray-900">5. Name of Fund to which this survey applies (that is Fund 1) *</FormLabel>
 						<FormControl>
 							<Input {...field} placeholder="Enter fund name" />
 						</FormControl>
@@ -683,7 +683,7 @@ export default function Survey2024() {
 				name="legal_entity_achieved"
 				render={({ field }) => (
 					<FormItem>
-						<FormLabel>6. Timeline. When did your fund/investment vehicle achieve each of the following? (Please provide a date for each of three points in your fund's evolution)</FormLabel>
+						<FormLabel className="text-lg font-semibold text-gray-900">6. Timeline. When did your fund/investment vehicle achieve each of the following? (Please provide a date for each of three points in your fund's evolution)</FormLabel>
 						<div className="space-y-4">
 							<div>
 								<FormLabel className="text-sm font-medium">Legal Entity</FormLabel>
@@ -713,7 +713,7 @@ export default function Survey2024() {
 				name="first_close_achieved"
 				render={({ field }) => (
 					<FormItem>
-						<FormLabel>First Close (or equivalent)</FormLabel>
+						<FormLabel className="text-sm font-medium text-gray-700">First Close (or equivalent)</FormLabel>
 						<Select onValueChange={field.onChange} value={field.value}>
 							<FormControl>
 								<SelectTrigger>
@@ -738,7 +738,7 @@ export default function Survey2024() {
 				name="first_investment_achieved"
 				render={({ field }) => (
 					<FormItem>
-						<FormLabel>First Investment</FormLabel>
+						<FormLabel className="text-sm font-medium text-gray-700">First Investment</FormLabel>
 						<Select onValueChange={field.onChange} value={field.value}>
 							<FormControl>
 								<SelectTrigger>
@@ -763,7 +763,7 @@ export default function Survey2024() {
 				name="geographic_markets"
 				render={() => (
 					<FormItem>
-						<FormLabel>7. In what geographic markets do you invest? (Please select as many as apply) *</FormLabel>
+						<FormLabel className="text-lg font-semibold text-gray-900">7. In what geographic markets do you invest? (Please select as many as apply) *</FormLabel>
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
 							{[
 								'US', 'Europe', 'Africa: West Africa', 'Africa: East Africa', 
@@ -816,7 +816,7 @@ export default function Survey2024() {
 				name="team_based"
 				render={() => (
 					<FormItem>
-						<FormLabel>8. Where is your Team based? (Please select as many as apply) *</FormLabel>
+						<FormLabel className="text-lg font-semibold text-gray-900">8. Where is your Team based? (Please select as many as apply) *</FormLabel>
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
 							{[
 								'US', 'Europe', 'Africa: West Africa', 'Africa: East Africa', 
@@ -869,7 +869,7 @@ export default function Survey2024() {
 				name="fte_staff_2023_actual"
 				render={({ field }) => (
 					<FormItem>
-						<FormLabel>9. Number of Full Time Equivalent staff members (FTEs) including principals</FormLabel>
+						<FormLabel className="text-lg font-semibold text-gray-900">9. Number of Full Time Equivalent staff members (FTEs) including principals</FormLabel>
 						<div className="space-y-4">
 							<div>
 								<FormLabel className="text-sm font-medium">December 2023 (actual)</FormLabel>
@@ -893,7 +893,7 @@ export default function Survey2024() {
 				name="fte_staff_current"
 				render={({ field }) => (
 					<FormItem>
-						<FormLabel>Current (actual)</FormLabel>
+						<FormLabel className="text-sm font-medium text-gray-700">Current (actual)</FormLabel>
 						<FormControl>
 							<Input 
 								{...field} 
@@ -912,7 +912,7 @@ export default function Survey2024() {
 				name="fte_staff_2025_forecast"
 				render={({ field }) => (
 					<FormItem>
-						<FormLabel>December 2025 (forecast)</FormLabel>
+						<FormLabel className="text-sm font-medium text-gray-700">December 2025 (forecast)</FormLabel>
 						<FormControl>
 							<Input 
 								{...field} 
@@ -931,7 +931,7 @@ export default function Survey2024() {
 				name="investment_approval"
 				render={() => (
 					<FormItem>
-						<FormLabel>10. Select all that are included in your Fund's Final Investment Approval *</FormLabel>
+						<FormLabel className="text-lg font-semibold text-gray-900">10. Select all that are included in your Fund's Final Investment Approval *</FormLabel>
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
 							{[
                         'GPs', 'Internal Investment Team', 'External Investment Committee/Board', 'Other'
@@ -983,7 +983,7 @@ export default function Survey2024() {
 				name="principals_total"
 				render={({ field }) => (
 					<FormItem>
-						<FormLabel>11. Number of carried-interest/equity-interest principals currently in your Fund management team</FormLabel>
+						<FormLabel className="text-lg font-semibold text-gray-900">11. Number of carried-interest/equity-interest principals currently in your Fund management team</FormLabel>
 						<div className="space-y-4">
 							<div>
 								<FormLabel className="text-sm font-medium">Total</FormLabel>
@@ -1007,7 +1007,7 @@ export default function Survey2024() {
 				name="principals_women"
 				render={({ field }) => (
 					<FormItem>
-						<FormLabel>Women</FormLabel>
+						<FormLabel className="text-sm font-medium text-gray-700">Women</FormLabel>
 						<FormControl>
 							<Input 
 								{...field} 
@@ -1026,7 +1026,7 @@ export default function Survey2024() {
 				name="gender_inclusion"
 				render={() => (
 					<FormItem>
-						<FormLabel>12. Gender Inclusion. Do any of the following apply to your fund? (Please select as many as apply) *</FormLabel>
+						<FormLabel className="text-lg font-semibold text-gray-900">12. Gender Inclusion. Do any of the following apply to your fund? (Please select as many as apply) *</FormLabel>
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
 							{[
 								'Women ownership/participation interest in the fund is ≥ 50%',
@@ -4221,7 +4221,7 @@ const renderSection7 = () => (
 									Section {currentSection}: {getSectionTitle(currentSection)}
 								</h2>
 							</div>
-								<Progress value={(currentSection / totalSections) * 100} className="w-full" />
+								<Progress value={(currentSection / totalSections) * 100} className="w-full [&>div]:bg-red-500" />
 							<div className="space-y-6">
 								{currentSection === 1 && renderSection1()}
 								{currentSection === 2 && renderSection2()}
@@ -4260,7 +4260,11 @@ const renderSection7 = () => (
 										Next
 									</Button>
 								) : (
-									<Button type="submit" disabled={loading}>
+									<Button 
+										type="submit" 
+										disabled={loading}
+										className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105"
+									>
 										{loading ? 'Submitting...' : 'Submit Survey'}
 									</Button>
 								)}

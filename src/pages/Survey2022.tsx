@@ -389,7 +389,7 @@ const Survey2022 = () => {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>1. Name *</FormLabel>
+                <FormLabel className="text-lg font-semibold text-gray-900">1. Name *</FormLabel>
                 <FormControl>
                   <Input placeholder="Your full name" {...field} />
                 </FormControl>
@@ -403,7 +403,7 @@ const Survey2022 = () => {
             name="role_title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>2. Role or title *</FormLabel>
+                <FormLabel className="text-lg font-semibold text-gray-900">2. Role or title *</FormLabel>
                 <FormControl>
                   <Input placeholder="Your role or title" {...field} />
                 </FormControl>
@@ -417,7 +417,7 @@ const Survey2022 = () => {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>3. Email address *</FormLabel>
+                <FormLabel className="text-lg font-semibold text-gray-900">3. Email address *</FormLabel>
                 <FormControl>
                   <Input type="email" placeholder="your.email@example.com" {...field} />
                 </FormControl>
@@ -431,7 +431,7 @@ const Survey2022 = () => {
             name="organisation"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>4. Name of organisation *</FormLabel>
+                <FormLabel className="text-lg font-semibold text-gray-900">4. Name of organisation *</FormLabel>
                 <FormControl>
                   <Input placeholder="Your organisation name" {...field} />
                 </FormControl>
@@ -447,7 +447,7 @@ const Survey2022 = () => {
     <div className="space-y-6">
       <div className="space-y-6">
           <div>
-            <FormLabel>5. Timeline. When did your current fund/investment vehicle achieve each of the following?</FormLabel>
+            <FormLabel className="text-lg font-semibold text-gray-900">5. Timeline. When did your current fund/investment vehicle achieve each of the following?</FormLabel>
             <p className="text-sm text-gray-600 mb-4">
               (Please provide a date for each of three points in your fund's evolution)
             </p>
@@ -525,7 +525,7 @@ const Survey2022 = () => {
           </div>
 
           <div>
-            <FormLabel>6. In what geographic markets do you operate?</FormLabel>
+            <FormLabel className="text-lg font-semibold text-gray-900">6. In what geographic markets do you operate?</FormLabel>
             <p className="text-sm text-gray-600 mb-4">
               (select as many as applicable)
             </p>
@@ -606,7 +606,7 @@ const Survey2022 = () => {
           </div>
 
           <div>
-            <FormLabel>7. Where is your Team based?</FormLabel>
+            <FormLabel className="text-lg font-semibold text-gray-900">7. Where is your Team based?</FormLabel>
             <p className="text-sm text-gray-600 mb-4">
               (select as many as applicable)
             </p>
@@ -687,7 +687,7 @@ const Survey2022 = () => {
           </div>
 
           <div>
-            <FormLabel>8. Number of current and forecasted Full Time Equivalent staff members (FTEs) including principals</FormLabel>
+            <FormLabel className="text-lg font-semibold text-gray-900">8. Number of current and forecasted Full Time Equivalent staff members (FTEs) including principals</FormLabel>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
@@ -4101,10 +4101,10 @@ const Survey2022 = () => {
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold">
-                  {getSectionTitle(currentSection)}
+                  Section {currentSection}: {getSectionTitle(currentSection)}
                 </h2>
               </div>
-              <Progress value={progress} className="w-full" />
+              <Progress value={progress} className="w-full [&>div]:bg-red-500" />
               <div className="space-y-6">
                 {renderCurrentSection()}
               </div>
@@ -4134,7 +4134,7 @@ const Survey2022 = () => {
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="bg-green-600 hover:bg-green-700"
+                    className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105"
                   >
                     <Send className="w-4 h-4 mr-2" />
                     {loading ? 'Submitting...' : 'Submit Survey'}
