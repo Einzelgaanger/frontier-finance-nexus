@@ -382,7 +382,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
                 </div>
               </div>
               {/* Profile Picture - furthest right */}
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-semibold text-sm">
                 {user?.email?.charAt(0).toUpperCase() || 'U'}
               </div>
             </div>

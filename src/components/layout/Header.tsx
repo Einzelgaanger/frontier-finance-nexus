@@ -259,7 +259,7 @@ const Header = ({ showNav = true }: HeaderProps) => {
                     </div>
                   </div>
                   {/* Profile Picture - furthest right */}
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-semibold text-sm">
                     {user?.email?.charAt(0).toUpperCase() || 'U'}
                   </div>
                 </div>
@@ -290,7 +290,7 @@ const Header = ({ showNav = true }: HeaderProps) => {
                           <span className="text-lg font-bold text-gray-900">Menu</span>
                           {/* Mobile User Info */}
                           <div className="flex items-center space-x-2">
-                            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-xs">
+                            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-semibold text-xs">
                               {user?.email?.charAt(0).toUpperCase() || 'U'}
                             </div>
                             <div className="text-right">
