@@ -17,7 +17,8 @@ import {
   FileText,
   Calendar,
   ArrowLeft,
-  Send
+  Send,
+  User
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -116,6 +117,15 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
       badge: null,
       color: "black"
     },
+    { 
+      name: "My Profile", 
+      href: "/profile", 
+      icon: User, 
+      roles: ["admin", "member", "viewer"],
+      description: "Manage your company information and profile",
+      badge: null,
+      color: "indigo"
+    },
   ];
 
 
@@ -138,6 +148,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
 
   const isActive = (href: string) => {
     if (href === "/dashboard" && location.pathname === "/dashboard") return true;
+    if (href === "/profile" && location.pathname === "/profile") return true;
     if (href === "/survey" && location.pathname.startsWith("/survey")) return true;
     if (href === "/network" && location.pathname === "/network") return true;
     if (href === "/analytics" && location.pathname === "/analytics") return true;
@@ -303,7 +314,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
                         Welcome back, {user?.email?.split('@')[0] || 'Member'}!
                       </h2>
                       <p className="text-sm text-white/70 transition-colors">
-                        Welcome to the CFF Network member portal. Access your surveys, connect with peers, and explore insights.
+                        Your gateway to global fund management excellence.
                       </p>
                     </>
                   ) : location.pathname.startsWith('/network/fund-manager/') ? (
@@ -350,33 +361,31 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
                 </div>
             </div>
             
-            {/* Right side - User info for dashboard */}
-            {location.pathname === '/dashboard' && (
-              <div className="flex items-center space-x-4">
-                {/* Email and Role (2 rows) */}
-                <div className="text-right">
-                  <p className="text-sm font-medium text-white">
-                    {user?.email}
-                  </p>
-                  {/* Role Badge */}
-                  <div className="mt-1">
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      userRole === 'admin' 
-                        ? 'bg-red-500/20 text-red-300 border border-red-400/30' 
-                        : userRole === 'member' 
-                        ? 'bg-green-500/20 text-green-300 border border-green-400/30' 
-                        : 'bg-blue-500/20 text-blue-300 border border-blue-400/30'
-                    }`}>
-                      {userRole?.charAt(0).toUpperCase() + userRole?.slice(1) || 'Viewer'}
-                    </span>
-                  </div>
-                </div>
-                {/* Profile Picture - furthest right */}
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                  {user?.email?.charAt(0).toUpperCase() || 'U'}
+            {/* Right side - User info for all pages */}
+            <div className="flex items-center space-x-4">
+              {/* Email and Role (2 rows) */}
+              <div className="text-right">
+                <p className="text-sm font-medium text-white">
+                  {user?.email}
+                </p>
+                {/* Role Badge */}
+                <div className="mt-1">
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                    userRole === 'admin' 
+                      ? 'bg-red-500/20 text-red-300 border border-red-400/30' 
+                      : userRole === 'member' 
+                      ? 'bg-green-500/20 text-green-300 border border-green-400/30' 
+                      : 'bg-blue-500/20 text-blue-300 border border-blue-400/30'
+                  }`}>
+                    {userRole?.charAt(0).toUpperCase() + userRole?.slice(1) || 'Viewer'}
+                  </span>
                 </div>
               </div>
-            )}
+              {/* Profile Picture - furthest right */}
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                {user?.email?.charAt(0).toUpperCase() || 'U'}
+              </div>
+            </div>
             
           </div>
         </header>

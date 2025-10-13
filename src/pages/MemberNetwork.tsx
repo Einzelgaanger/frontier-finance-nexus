@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Search,
   Filter,
@@ -42,8 +42,18 @@ import {
   Flame,
   Play,
   Pause,
+  Mail,
+  User,
+  Shield,
+  Crown,
+  Award,
+  Briefcase,
+  Phone,
+  MessageSquare,
   RefreshCw,
-  ArrowUpRight
+  Calendar,
+  ArrowUpRight,
+  FileText
 } from 'lucide-react';
 
 interface FundManager {
@@ -96,14 +106,14 @@ interface FundManager {
 }
 
 const MemberNetwork = React.memo(() => {
-  const { userRole } = useAuth();
+  const { user, userRole } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   
   const [fundManagers, setFundManagers] = useState<FundManager[]>([]);
   const [filteredManagers, setFilteredManagers] = useState<FundManager[]>([]);
   const [loading, setLoading] = useState(true);
-  const [initialLoad, setInitialLoad] = useState(true);
+  const initialLoadRef = useRef(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRegion, setFilterRegion] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -121,22 +131,22 @@ const MemberNetwork = React.memo(() => {
   const [recentlyViewed, setRecentlyViewed] = useState<FundManager[]>([]);
   const [isAutoRefresh, setIsAutoRefresh] = useState(false);
 
-  // Fetch all fund managers
+  // Fetch all users (members and viewers) with their roles and survey data
   const fetchFundManagers = useCallback(async () => {
     try {
-      if (initialLoad) {
+      if (initialLoadRef.current) {
         setLoading(true);
       }
-      console.log('Fetching member network data...');
+      console.log('Fetching all users in the system...');
 
-      // Fetch from survey tables using correct table names
-      const [survey2021Result, survey2022Result, survey2023Result, survey2024Result, userRolesResult, profilesResult] = await Promise.all([
+      // Fetch all users with their roles and profiles from network_users and user_profiles
+      const [networkUsersResult, userProfilesResult, survey2021Result, survey2022Result, survey2023Result, survey2024Result] = await Promise.all([
+        supabase.from('network_users').select('id, user_id, email, first_name, last_name, role, created_at'),
+        supabase.from('user_profiles').select('user_id, company_name, email, website, description, profile_photo_url'),
         supabase.from('survey_2021_responses').select('user_id, form_data, submission_status, completed_at'),
         supabase.from('survey_2022_responses').select('user_id, form_data, submission_status, completed_at'),
         supabase.from('survey_2023_responses').select('user_id, form_data, submission_status, completed_at'),
-        supabase.from('survey_2024_responses').select('user_id, form_data, submission_status, completed_at'),
-        supabase.from('user_roles').select('user_id, role, assigned_at'),
-        supabase.from('profiles').select('id, first_name, last_name, email, created_at')
+        supabase.from('survey_2024_responses').select('user_id, form_data, submission_status, completed_at')
       ]);
 
       // Handle errors gracefully
@@ -152,108 +162,111 @@ const MemberNetwork = React.memo(() => {
       if (survey2024Result.error) {
         console.warn('Could not fetch 2024 survey data:', survey2024Result.error);
       }
-      if (userRolesResult.error) {
-        console.warn('Could not fetch user roles:', userRolesResult.error);
+      if (networkUsersResult.error) {
+        console.warn('Could not fetch network users data:', networkUsersResult.error);
       }
-      if (profilesResult.error) {
-        console.warn('Could not fetch profiles data:', profilesResult.error);
-      }
-
-      // Check if we have any data to work with
-      const hasAnySurveyData = (survey2021Result.data && survey2021Result.data.length > 0) ||
-                              (survey2022Result.data && survey2022Result.data.length > 0) ||
-                              (survey2023Result.data && survey2023Result.data.length > 0) ||
-                              (survey2024Result.data && survey2024Result.data.length > 0);
-
-      if (!hasAnySurveyData) {
-        console.log('No survey data found, using fallback data');
+      if (userProfilesResult.error) {
+        console.warn('Could not fetch user profiles data:', userProfilesResult.error);
       }
 
-      console.log('Survey 2021 result (survey_responses_2021):', survey2021Result.data);
-      console.log('Survey 2022 result (survey_2022_responses):', survey2022Result.data);
-      console.log('Survey 2023 result (survey_2023_responses):', survey2023Result.data);
-      console.log('Survey 2024 result (survey_2024_responses):', survey2024Result.data);
-      console.log('User roles result:', userRolesResult.data);
-      console.log('Profiles result:', profilesResult.data);
-
-      // Get all survey data
+      // Get all users and their data from network_users and user_profiles
+      const allUsers = networkUsersResult.data || [];
+      const allUserProfiles = userProfilesResult.data || [];
       const survey2021Users = survey2021Result.data || [];
       const survey2022Users = survey2022Result.data || [];
       const survey2023Users = survey2023Result.data || [];
       const survey2024Users = survey2024Result.data || [];
-      const allSurveyUserIds = [...new Set([
-        ...survey2021Users.map(s => s.user_id),
-        ...survey2022Users.map(s => s.user_id),
-        ...survey2023Users.map(s => s.user_id),
-        ...survey2024Users.map(s => s.user_id)
-      ])];
+
+      console.log('All users in system (from network_users):', allUsers);
+      console.log('Network users result:', networkUsersResult);
+      console.log('Sample network user:', allUsers[0]);
+      console.log('All user profiles:', allUserProfiles);
+      console.log('User profiles count:', allUserProfiles.length);
+      console.log('Survey data available:', {
+        2021: survey2021Users.length,
+        2022: survey2022Users.length,
+        2023: survey2023Users.length,
+        2024: survey2024Users.length
+      });
 
       // Create maps for efficient lookups
-      const profilesMap = new Map();
+      const userProfilesMap = new Map();
       const userRolesMap = new Map();
+      const surveyDataMap = new Map();
       
-      if (profilesResult.data) {
-        profilesResult.data.forEach(profile => {
-          profilesMap.set(profile.id, profile);
-        });
-      }
+      // Map user profiles
+      allUserProfiles.forEach(profile => {
+        userProfilesMap.set(profile.user_id, profile);
+      });
       
-      if (userRolesResult.data) {
-        userRolesResult.data.forEach(userRole => {
-          userRolesMap.set(userRole.user_id, userRole.role);
-        });
-      }
+      // Map user roles
+      allUsers.forEach(userRole => {
+        userRolesMap.set(userRole.user_id, userRole.role);
+      });
 
-      // Process survey data to create fund manager profiles
-      let processedManagers = [];
-      
-      if (hasAnySurveyData && survey2021Users && survey2021Users.length > 0) {
-        processedManagers = survey2021Users.map(survey => {
-          const profile = profilesMap.get(survey.user_id);
-          const userRole = userRolesMap.get(survey.user_id);
-          const hasSurvey = allSurveyUserIds.includes(survey.user_id);
-          
-          // Extract data from JSONB form_data
-          const formData = survey.form_data || {};
-          const firmName = formData.firm_name || formData.organisation_name || 'Unnamed Fund';
-          const participantName = formData.participant_name || formData.name || 'Unknown Participant';
-          const geographicFocus = formData.geographic_focus || formData.geographic_markets || ['Global'];
-          const investmentVehicleType = formData.investment_vehicle_type || 'Investment Fund';
-          const fundStage = formData.fund_stage || 'Active';
-          const currentFtes = formData.current_ftes || 5;
-          const roleTitle = formData.role_title || 'Fund Manager';
-          
-          return {
-            id: survey.user_id,
-            user_id: survey.user_id,
-            fund_name: firmName,
-            firm_name: firmName,
-            participant_name: participantName,
-            email_address: profile?.email || 'No email provided',
-            has_survey: hasSurvey,
-            profile: {
-              first_name: profile?.first_name || participantName?.split(' ')[0] || 'Unknown',
-              last_name: profile?.last_name || participantName?.split(' ').slice(1).join(' ') || 'User',
-              email: profile?.email || 'No email provided'
-            },
-            // Use survey data - convert string to array if needed
-            geographic_focus: Array.isArray(geographicFocus) 
-              ? geographicFocus 
-              : geographicFocus 
-                ? [geographicFocus] 
-                : ['Global'],
-            vehicle_type: Array.isArray(investmentVehicleType) 
-              ? investmentVehicleType[0] 
-              : investmentVehicleType || 'Investment Fund',
-            fund_stage: fundStage || 'Active',
-            team_size: currentFtes ? parseInt(currentFtes) : 5,
-            year_founded: 2020, // Default year since it's not in survey data
-            role_title: roleTitle || 'Fund Manager',
-            created_at: new Date().toISOString(),
-            role_badge: userRole || 'viewer'
-          };
-        });
-      } else {
+      // Map survey data by user
+      [...survey2021Users, ...survey2022Users, ...survey2023Users, ...survey2024Users].forEach(survey => {
+        if (!surveyDataMap.has(survey.user_id)) {
+          surveyDataMap.set(survey.user_id, []);
+        }
+        surveyDataMap.get(survey.user_id).push(survey);
+      });
+
+      // Process all users to create network profiles
+      let processedManagers = allUsers.map(networkUser => {
+        const userProfile = userProfilesMap.get(networkUser.user_id);
+        const userSurveys = surveyDataMap.get(networkUser.user_id) || [];
+        
+        // Use profile data for company information with better fallbacks
+        const companyName = userProfile?.company_name || 
+                           (networkUser.first_name && networkUser.last_name ? 
+                            `${networkUser.first_name} ${networkUser.last_name}` : 
+                            networkUser.email?.split('@')[0] || 'CFF Network User');
+        const email = userProfile?.email || networkUser.email || 'No email provided';
+        const website = userProfile?.website || '';
+        const description = userProfile?.description || '';
+        const profilePhoto = userProfile?.profile_photo_url || '';
+        
+        // Debug logging for first few users
+        if (allUsers.indexOf(networkUser) < 3) {
+          console.log('Processing user:', {
+            networkUser,
+            userProfile,
+            companyName,
+            email
+          });
+        }
+        
+        return {
+          id: networkUser.user_id || networkUser.id,
+          user_id: networkUser.user_id || networkUser.id,
+          fund_name: companyName,
+          firm_name: companyName,
+          participant_name: networkUser.first_name + ' ' + networkUser.last_name || 'Network User',
+          email_address: email,
+          website: website,
+          description: description,
+          profile_photo_url: profilePhoto,
+          has_survey: userSurveys.length > 0,
+          surveys_completed: userSurveys.length,
+          survey_data: userSurveys, // Store all survey data for viewing
+          profile: {
+            first_name: networkUser.first_name || 'Unknown',
+            last_name: networkUser.last_name || 'User',
+            email: email
+          },
+          geographic_focus: ['Global'], // Simplified
+          vehicle_type: 'Network Participant', // Simplified
+          fund_stage: 'Active', // Simplified
+          team_size: 1, // Simplified
+          year_founded: 2020, // Simplified
+          role_title: 'Network Member', // Simplified
+          created_at: networkUser.created_at || new Date().toISOString(),
+          role_badge: networkUser.role || 'viewer'
+        };
+      });
+
+      if (processedManagers.length === 0) {
         // Fallback: create realistic sample data with different user roles
         console.log('No users found in system, creating realistic sample data with all user types');
         processedManagers = [
@@ -426,7 +439,7 @@ const MemberNetwork = React.memo(() => {
       setFundManagers(processedManagers);
       setFilteredManagers(processedManagers);
       setLastUpdated(new Date());
-      setInitialLoad(false);
+      initialLoadRef.current = false;
     } catch (error) {
       console.error('Error fetching fund managers:', error);
       toast({
@@ -437,11 +450,11 @@ const MemberNetwork = React.memo(() => {
     } finally {
       setLoading(false);
     }
-  }, [toast, initialLoad]);
+  }, [user]); // Only depend on user, not empty array
 
   useEffect(() => {
     fetchFundManagers();
-  }, [fetchFundManagers]);
+  }, []); // Only run once on mount
 
   // Filter and search logic
   useEffect(() => {
@@ -454,7 +467,9 @@ const MemberNetwork = React.memo(() => {
         manager.firm_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         manager.participant_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         manager.role_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        manager.email_address?.toLowerCase().includes(searchTerm.toLowerCase())
+        manager.email_address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        manager.website?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        manager.description?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -603,7 +618,7 @@ const MemberNetwork = React.memo(() => {
       }, 30000); // Refresh every 30 seconds
       return () => clearInterval(interval);
     }
-  }, [isAutoRefresh, fetchFundManagers]);
+  }, [isAutoRefresh, fetchFundManagers]); // Include fetchFundManagers dependency
 
   // Favorite management
   const toggleFavorite = (managerId: string) => {
@@ -963,7 +978,7 @@ const MemberNetwork = React.memo(() => {
         )}
 
          {/* Enhanced Members Display */}
-         {loading && initialLoad ? (
+         {loading && initialLoadRef.current ? (
            <div className="space-y-6">
              {/* Loading skeleton for stats cards */}
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1077,96 +1092,97 @@ const MemberNetwork = React.memo(() => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 relative z-0">
               {paginatedManagers.map((manager, index) => {
                 return (
-                  <Card 
+                  <div 
                     key={manager.id}
-                    className="group hover:shadow-2xl transition-all duration-500 border-0 shadow-lg bg-gradient-to-br from-gray-50 via-white to-gray-100 hover:scale-[1.02] cursor-pointer overflow-hidden relative z-10"
+                    className="group hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] cursor-pointer overflow-hidden relative z-10 rounded-2xl h-80 w-full"
                     onClick={() => {
                       navigate(`/network/fund-manager/${manager.id}`, {
                         state: { fundManager: manager }
                       });
                     }}
                   >
-                    {/* Decorative background elements */}
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full -translate-y-16 translate-x-16 group-hover:scale-110 transition-transform duration-500"></div>
-                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-500/3 rounded-full translate-y-12 -translate-x-12 group-hover:scale-110 transition-transform duration-500"></div>
-                    
-                    <CardContent className="p-6 relative z-10">
-                      {/* Profile Picture - Larger */}
-                      <div className="flex justify-center mb-4">
-                        <div className="relative">
-                          <Avatar className="w-28 h-28 border-4 border-white shadow-xl ring-4 ring-blue-500/20">
-                            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-3xl">
-                              {manager.profile?.first_name?.[0] || manager.participant_name?.[0] || 'U'}
-                            </AvatarFallback>
-                          </Avatar>
-                          {/* Subtle glow effect */}
-                          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 opacity-20 blur-lg group-hover:opacity-30 transition-opacity duration-300"></div>
+                    {/* Profile Picture as the entire card background */}
+                    <div className="absolute inset-0">
+                      <Avatar className="w-full h-full rounded-2xl">
+                        <AvatarImage src={manager.profile_photo_url} className="object-cover rounded-2xl" />
+                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-6xl rounded-2xl w-full h-full flex items-center justify-center">
+                          {manager.profile?.first_name?.[0] || manager.participant_name?.[0] || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      {/* Dark overlay for text readability */}
+                      <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-all duration-300 rounded-2xl"></div>
+                    </div>
+
+                    {/* Overlay Content - Bottom Left with Icons */}
+                    <div className="relative z-10 h-full flex flex-col justify-end">
+                      <div className="bg-black/60 backdrop-blur-sm rounded-b-2xl p-4 m-2">
+                        
+                        {/* Company Name with Icon */}
+                        <div className="flex items-center mb-2">
+                          <Building2 className="w-3 h-3 text-white mr-2 flex-shrink-0" />
+                          <h3 className="font-semibold text-white text-sm leading-tight drop-shadow-lg">
+                            {manager.firm_name || manager.fund_name || 'CFF Network User'}
+                          </h3>
                         </div>
-                      </div>
-                      
-                      {/* Firm Name - Compact */}
-                      <div className="text-center mb-4">
-                        <h3 className="font-bold text-gray-900 text-lg leading-tight group-hover:text-gray-800 transition-colors duration-300">
-                          {manager.firm_name || manager.fund_name || 'Unnamed Firm'}
-                        </h3>
-                        {/* User Role Badge */}
-                        <div className="mt-2">
-                          <Badge 
-                            variant="outline" 
-                            className={`text-xs font-semibold ${
-                              manager.user_role === 'admin' 
-                                ? 'bg-red-50 text-red-700 border-red-200' 
-                                : manager.user_role === 'member' 
-                                ? 'bg-blue-50 text-blue-700 border-blue-200' 
-                                : 'bg-gray-50 text-gray-700 border-gray-200'
-                            }`}
-                          >
-                            {manager.user_role === 'admin' ? 'Admin' : 
-                             manager.user_role === 'member' ? 'Member' : 
-                             manager.user_role === 'viewer' ? 'Viewer' : 'User'}
-                          </Badge>
+
+                        {/* Email with Icon */}
+                        <div className="flex items-center mb-1">
+                          <Mail className="w-3 h-3 text-white/80 mr-2 flex-shrink-0" />
+                          <p className="text-xs text-white/90 drop-shadow-md break-all">
+                            {manager.email_address}
+                          </p>
                         </div>
-                      </div>
-                      
-                      {/* Geographic Focus - Compact */}
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-center space-x-2">
-                          <div className="p-1.5 rounded-full bg-blue-500/10">
-                            <Globe className="w-3 h-3 text-blue-500" />
-                          </div>
-                          <span className="text-xs font-semibold text-gray-600">Geographic Focus</span>
-                        </div>
-                        <div className="text-center">
-                          {manager.geographic_focus && manager.geographic_focus.length > 0 ? (
-                            <div className="flex flex-wrap justify-center gap-1">
-                              {manager.geographic_focus.slice(0, 2).map((region, idx) => (
-                                <Badge 
-                                  key={idx} 
-                                  variant="secondary" 
-                                  className="text-xs bg-blue-50 text-blue-700 border-0"
-                                >
-                                  {region}
-                                </Badge>
-                              ))}
-                              {manager.geographic_focus.length > 2 && (
-                                <Badge 
-                                  variant="outline" 
-                                  className="text-xs bg-white/60 border-blue-200 text-blue-600"
-                                >
-                                  +{manager.geographic_focus.length - 2}
-                                </Badge>
-                              )}
-                            </div>
+
+                        {/* Website with Icon - Always show */}
+                        <div className="flex items-center mb-1">
+                          <Globe className="w-3 h-3 text-blue-200 mr-2 flex-shrink-0" />
+                          {manager.website ? (
+                            <a 
+                              href={manager.website.startsWith('http') ? manager.website : `https://${manager.website}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-200 hover:text-blue-100 hover:underline break-all drop-shadow-md cursor-pointer transition-all duration-200 hover:scale-105"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {manager.website}
+                            </a>
                           ) : (
-                            <p className="text-xs text-gray-400 italic">Not specified</p>
+                            <span className="text-xs text-white/60 drop-shadow-md">No website provided</span>
                           )}
                         </div>
+
+                        {/* Description with Icon and More functionality - Always show */}
+                        <div className="flex items-start">
+                          <MessageSquare className="w-3 h-3 text-white/80 mr-2 flex-shrink-0 mt-0.5" />
+                          <div className="flex-1">
+                            {manager.description ? (
+                              <>
+                                <p className="text-xs text-white/80 leading-relaxed drop-shadow-md line-clamp-2">
+                                  {manager.description}
+                                </p>
+                                {manager.description.length > 100 && (
+                                  <button 
+                                    className="text-xs text-blue-200 hover:text-blue-100 hover:underline mt-1"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      // You can add a modal or expand functionality here
+                                      alert(manager.description);
+                                    }}
+                                  >
+                                    More...
+                                  </button>
+                                )}
+                              </>
+                            ) : (
+                              <p className="text-xs text-white/60 leading-relaxed drop-shadow-md">
+                                No description provided
+                              </p>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      
-                      {/* Subtle hover indicator */}
-                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-300 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 );
               })}
             </div>

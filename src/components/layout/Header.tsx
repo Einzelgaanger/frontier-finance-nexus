@@ -237,6 +237,33 @@ const Header = ({ showNav = true }: HeaderProps) => {
                   </div>
                 </div>
                 
+                {/* User Info Section */}
+                <div className="flex items-center space-x-4">
+                  {/* Email and Role (2 rows) */}
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-gray-700">
+                      {user?.email}
+                    </p>
+                    {/* Role Badge */}
+                    <div className="mt-1">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        userRole === 'admin' 
+                          ? 'bg-red-100 text-red-700 border border-red-200' 
+                          : userRole === 'member' 
+                          ? 'bg-green-100 text-green-700 border border-green-200' 
+                          : 'bg-blue-100 text-blue-700 border border-blue-200'
+                      }`}>
+                        {userRole === 'admin' ? 'Administrator' : 
+                         userRole === 'member' ? 'Member' : 'Visitor'}
+                      </span>
+                    </div>
+                  </div>
+                  {/* Profile Picture - furthest right */}
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                    {user?.email?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                </div>
+
                 {/* Sign Out Button */}
                 <Button
                   onClick={handleSignOut}
@@ -259,7 +286,30 @@ const Header = ({ showNav = true }: HeaderProps) => {
                     <div className="flex flex-col h-full">
                       {/* Mobile Header */}
                       <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
-                        <span className="text-lg font-bold text-gray-900">Menu</span>
+                        <div className="flex items-center space-x-3">
+                          <span className="text-lg font-bold text-gray-900">Menu</span>
+                          {/* Mobile User Info */}
+                          <div className="flex items-center space-x-2">
+                            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-xs">
+                              {user?.email?.charAt(0).toUpperCase() || 'U'}
+                            </div>
+                            <div className="text-right">
+                              <p className="text-xs font-medium text-gray-700 truncate max-w-20">
+                                {user?.email?.split('@')[0]}
+                              </p>
+                              <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium ${
+                                userRole === 'admin' 
+                                  ? 'bg-red-100 text-red-700' 
+                                  : userRole === 'member' 
+                                  ? 'bg-green-100 text-green-700' 
+                                  : 'bg-blue-100 text-blue-700'
+                              }`}>
+                                {userRole === 'admin' ? 'Admin' : 
+                                 userRole === 'member' ? 'Member' : 'Visitor'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                       
                       {/* Mobile Navigation */}

@@ -18,13 +18,15 @@ import Survey2021 from "./pages/Survey2021";
 import Survey2022 from "./pages/Survey2022";
 import Survey2023 from "./pages/Survey2023";
 import Survey2024 from "./pages/Survey2024";
-import Profile from "./pages/Profile";
+import MyProfile from "./pages/MyProfile";
 import ViewerSettings from "./pages/ViewerSettings";
 import Application from "./pages/Application";
 import ResetPassword from "./pages/ResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import AdminWrapper from "./components/AdminWrapper";
 import AnalyticsWrapper from "./components/AnalyticsWrapper";
+import UserOnboarding from "./components/onboarding/UserOnboarding";
+import SurveyResponseViewer from "./components/survey/SurveyResponseViewer";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -59,6 +61,11 @@ const App = () => {
                 <FundManagerDetail />
               </ProtectedRoute>
             } />
+            <Route path="/survey-response/:userId/:year" element={
+              <ProtectedRoute>
+                <SurveyResponseViewer />
+              </ProtectedRoute>
+            } />
             <Route path="/survey" element={
               <ProtectedRoute>
                 <Survey />
@@ -85,8 +92,13 @@ const App = () => {
               </ProtectedRoute>
             } />
             <Route path="/profile" element={
-              <ProtectedRoute requiredRole="member">
-                <Profile />
+              <ProtectedRoute>
+                <MyProfile />
+              </ProtectedRoute>
+            } />
+            <Route path="/onboarding" element={
+              <ProtectedRoute>
+                <UserOnboarding />
               </ProtectedRoute>
             } />
             <Route path="/viewer-settings" element={

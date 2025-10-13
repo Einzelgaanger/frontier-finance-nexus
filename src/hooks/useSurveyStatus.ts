@@ -101,17 +101,21 @@ class SurveyStatusManager {
           }
         })(),
         
-        // Regular survey (fallback)
+        // Check all survey tables
         (async () => {
           try {
-            return await supabase
-              .from('survey_responses')
-              .select('id, completed_at, *')
-              .eq('user_id', userId)
-              .not('completed_at', 'is', null)
-              .maybeSingle();
+            const [survey2021, survey2022, survey2023, survey2024] = await Promise.all([
+              supabase.from('survey_2021_responses').select('id, completed_at, *').eq('user_id', userId).not('completed_at', 'is', null).maybeSingle(),
+              supabase.from('survey_2022_responses').select('id, completed_at, *').eq('user_id', userId).not('completed_at', 'is', null).maybeSingle(),
+              supabase.from('survey_2023_responses').select('id, completed_at, *').eq('user_id', userId).not('completed_at', 'is', null).maybeSingle(),
+              supabase.from('survey_2024_responses').select('id, completed_at, *').eq('user_id', userId).not('completed_at', 'is', null).maybeSingle()
+            ]);
+            
+            // Return the first completed survey found
+            const completedSurvey = survey2021.data || survey2022.data || survey2023.data || survey2024.data;
+            return { data: completedSurvey, error: null };
           } catch (error) {
-            console.warn('Regular survey table not accessible:', error);
+            console.warn('Survey tables not accessible:', error);
             return { data: null, error: null };
           }
         })()

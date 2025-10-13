@@ -139,160 +139,19 @@ const FundManagerDetail = () => {
   
   const [fundManager, setFundManager] = useState<FundManager | null>(null);
   const [loading, setLoading] = useState(true);
-  const [surveyLoading, setSurveyLoading] = useState(false);
-  const [surveyData, setSurveyData] = useState<{
-    survey2021?: Record<string, unknown>;
-    survey2022?: Record<string, unknown>;
-    survey2023?: Record<string, unknown>;
-    survey2024?: Record<string, unknown>;
-  }>({});
-  const [selectedYear, setSelectedYear] = useState<'2021' | '2022' | '2023' | '2024'>('2021');
-  const [selectedSection, setSelectedSection] = useState<number>(1);
+  const [surveyStatus, setSurveyStatus] = useState<{[key: string]: boolean}>({});
 
-  // Survey sections configuration
-  const surveySections = {
-    2021: [
-      { id: 1, title: "Introduction & Context", questions: 14 },
-      { id: 2, title: "Investment Focus", questions: 8 },
-      { id: 3, title: "Vehicle Construct", questions: 18 },
-      { id: 4, title: "Investment Process", questions: 12 },
-      { id: 5, title: "Portfolio Management", questions: 10 },
-      { id: 6, title: "Risk Management", questions: 8 },
-      { id: 7, title: "ESG & Impact", questions: 6 },
-      { id: 8, title: "Technology & Innovation", questions: 4 },
-      { id: 9, title: "Market Outlook", questions: 6 },
-      { id: 10, title: "Collaboration & Network", questions: 4 }
-    ],
-    2022: [
-      { id: 1, title: "Introduction & Context", questions: 14 },
-      { id: 2, title: "Investment Focus", questions: 8 },
-      { id: 3, title: "Vehicle Construct", questions: 18 },
-      { id: 4, title: "Investment Process", questions: 12 },
-      { id: 5, title: "Portfolio Management", questions: 10 },
-      { id: 6, title: "Risk Management", questions: 8 },
-      { id: 7, title: "ESG & Impact", questions: 6 },
-      { id: 8, title: "Technology & Innovation", questions: 4 },
-      { id: 9, title: "Market Outlook", questions: 6 },
-      { id: 10, title: "Collaboration & Network", questions: 4 }
-    ],
-    2023: [
-      { id: 1, title: "Introduction & Context", questions: 14 },
-      { id: 2, title: "Investment Focus", questions: 8 },
-      { id: 3, title: "Vehicle Construct", questions: 18 },
-      { id: 4, title: "Investment Process", questions: 12 },
-      { id: 5, title: "Portfolio Management", questions: 10 },
-      { id: 6, title: "Risk Management", questions: 8 },
-      { id: 7, title: "ESG & Impact", questions: 6 },
-      { id: 8, title: "Technology & Innovation", questions: 4 },
-      { id: 9, title: "Market Outlook", questions: 6 },
-      { id: 10, title: "Collaboration & Network", questions: 4 }
-    ],
-    2024: [
-      { id: 1, title: "Introduction & Context", questions: 14 },
-      { id: 2, title: "Investment Focus", questions: 8 },
-      { id: 3, title: "Vehicle Construct", questions: 18 },
-      { id: 4, title: "Investment Process", questions: 12 },
-      { id: 5, title: "Portfolio Management", questions: 10 },
-      { id: 6, title: "Risk Management", questions: 8 },
-      { id: 7, title: "ESG & Impact", questions: 6 },
-      { id: 8, title: "Technology & Innovation", questions: 4 },
-      { id: 9, title: "Market Outlook", questions: 6 },
-      { id: 10, title: "Collaboration & Network", questions: 4 }
-    ]
-  };
-
-  // Fetch survey data for the fund manager
-  const fetchSurveyData = async (userId: string) => {
-    try {
-      setSurveyLoading(true);
-      console.log('Fetching survey data for user:', userId);
-
-      const surveyPromises = [
-        // 2021 Survey
-        (async () => {
-          try {
-            const { data, error } = await supabase
-              .from('survey_2021_responses')
-              .select('*')
-              .eq('user_id', userId)
-              .maybeSingle();
-            return { year: '2021', data, error };
-          } catch (error) {
-            return { year: '2021', data: null, error };
-          }
-        })(),
-        // 2023 Survey
-        (async () => {
-          try {
-            const { data, error } = await supabase
-              .from('survey_2023_responses')
-              .select('*')
-              .eq('user_id', userId)
-              .maybeSingle();
-            return { year: '2023', data, error };
-          } catch (error) {
-            return { year: '2023', data: null, error };
-          }
-        })(),
-        // 2024 Survey
-        (async () => {
-          try {
-            const { data, error } = await supabase
-              .from('survey_2024_responses')
-              .select('*')
-              .eq('user_id', userId)
-              .maybeSingle();
-            return { year: '2024', data, error };
-          } catch (error) {
-            return { year: '2024', data: null, error };
-          }
-        })(),
-        // General Survey
-        (async () => {
-          try {
-            const { data, error } = await supabase
-              .from('survey_responses')
-              .select('*')
-              .eq('user_id', userId)
-              .maybeSingle();
-            return { year: 'general', data, error };
-          } catch (error) {
-            return { year: 'general', data: null, error };
-          }
-        })()
-      ];
-
-      const results = await Promise.allSettled(surveyPromises);
-      
-      const surveyData: Record<string, Record<string, unknown>> = {};
-      results.forEach((result, index) => {
-        if (result.status === 'fulfilled') {
-          const { year, data, error } = result.value;
-          if (data && !error) {
-            surveyData[`survey${year}`] = data;
-          }
-        }
-      });
-
-      setSurveyData(surveyData);
-      console.log('Survey data fetched:', surveyData);
-    } catch (error) {
-      console.error('Error fetching survey data:', error);
-    } finally {
-      setSurveyLoading(false);
-    }
-  };
 
   const fetchFundManagerData = useCallback(async () => {
     try {
       setLoading(true);
       console.log('Fetching fund manager data for user:', id);
 
-      // Fetch profile data
+      // Fetch from user_profiles table (same as network page)
       const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
+        .from('user_profiles')
         .select('*')
-        .eq('id', id)
+        .eq('user_id', id)
         .single();
 
       if (profileError) {
@@ -307,43 +166,73 @@ const FundManagerDetail = () => {
 
       // Process the data
       const processedProfile: FundManagerProfile = {
-        id: profileData.id,
-        user_id: profileData.id,
-        fund_name: (profileData as Record<string, unknown>).fund_name as string || 'Unnamed Fund',
-        firm_name: (profileData as Record<string, unknown>).firm_name as string,
-        participant_name: (profileData as Record<string, unknown>).participant_name as string,
-        role_title: (profileData as Record<string, unknown>).role_title as string,
+        id: profileData.user_id,
+        user_id: profileData.user_id,
+        fund_name: profileData.company_name || 'Unnamed Fund',
+        firm_name: profileData.company_name,
+        participant_name: profileData.company_name,
+        role_title: 'Fund Manager',
         email_address: profileData.email,
-        phone: (profileData as Record<string, unknown>).phone as string,
-        website: (profileData as Record<string, unknown>).website as string,
-        linkedin: (profileData as Record<string, unknown>).linkedin as string,
-        first_name: profileData.first_name || '',
-        last_name: profileData.last_name || '',
+        phone: profileData.phone || '',
+        website: profileData.website || '',
+        linkedin: '',
+        first_name: profileData.company_name?.split(' ')[0] || '',
+        last_name: profileData.company_name?.split(' ').slice(1).join(' ') || '',
         email: profileData.email || '',
-        profile_picture_url: profileData.profile_picture_url
+        profile_picture_url: profileData.profile_photo_url || '',
+        description: profileData.description || ''
       };
 
-      setFundManager(processedProfile as FundManager);
+        setFundManager(processedProfile as FundManager);
+      } catch (error) {
+        console.error('Error fetching fund manager data:', error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch fund manager data",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    }, [id, toast]);
+
+    const checkSurveyStatus = async () => {
+      const years = ['2021', '2022', '2023', '2024'];
+      const status: {[key: string]: boolean} = {};
       
-      // Fetch survey data
-      await fetchSurveyData(id);
-    } catch (error) {
-      console.error('Error fetching fund manager data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch fund manager data",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [id, toast]);
+      for (const year of years) {
+        try {
+          const { data, error } = await supabase
+            .from(`survey_${year}_responses`)
+            .select('id')
+            .eq('user_id', id)
+            .single();
+          
+          // Check if it's a "not found" error (PGRST116) or permission error (406)
+          if (error && (error.code === 'PGRST116' || error.code === 'PGRST301' || error.status === 406)) {
+            status[year] = false;
+          } else {
+            status[year] = !error && data;
+          }
+        } catch (error) {
+          status[year] = false;
+        }
+      }
+      
+      setSurveyStatus(status);
+    };
 
   useEffect(() => {
     if (id && (userRole === 'viewer' || userRole === 'member' || userRole === 'admin')) {
       fetchFundManagerData();
     }
   }, [id, userRole, fetchFundManagerData]);
+
+  useEffect(() => {
+    if (id) {
+      checkSurveyStatus();
+    }
+  }, [id]);
 
   if (loading) {
     return (
@@ -376,224 +265,140 @@ const FundManagerDetail = () => {
     );
   }
 
-  // Get available years from survey data
-  const availableYears = Object.keys(surveyData).filter(year => surveyData[year as keyof typeof surveyData]).map(year => year.replace('survey', '')).sort();
-
-  // Get current survey data
-  const currentSurveyData = surveyData[`survey${selectedYear}` as keyof typeof surveyData];
-  const currentSections = surveySections[selectedYear as '2021' | '2022' | '2023' | '2024'] || [];
-
-  // Function to render survey section content
-  const renderSurveySection = (sectionId: number) => {
-    if (!currentSurveyData) return null;
-
-    const section = currentSections.find(s => s.id === sectionId);
-    if (!section) return null;
-
-    return (
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900">{section.title}</h3>
-        <p className="text-sm text-gray-600">
-          This section contains {section.questions} questions about {section.title.toLowerCase()}.
-        </p>
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <p className="text-sm text-gray-700">
-            Survey data for {selectedYear} - {section.title} section is available.
-          </p>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <SidebarLayout>
-      <div className="p-6 bg-[#f5f5dc] min-h-screen">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-4">
-              <Avatar className="h-16 w-16">
-                <AvatarFallback className="text-lg">
-                  {fundManager.participant_name?.charAt(0) || fundManager.first_name?.charAt(0) || 'F'}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <h1 className="text-3xl font-bold text-black">
-                  {fundManager.participant_name || `${fundManager.first_name} ${fundManager.last_name}`}
-                </h1>
-                <p className="text-lg text-gray-600">{fundManager.role_title}</p>
-                <p className="text-sm text-gray-500">{fundManager.firm_name}</p>
-              </div>
-            </div>
-            <div className="flex space-x-2">
-              <Button variant="outline" size="sm">
-                <Mail className="w-4 h-4 mr-2" />
-                Contact
-              </Button>
-              <Button variant="outline" size="sm">
-                <ExternalLink className="w-4 h-4 mr-2" />
-                View Profile
-              </Button>
-            </div>
-          </div>
-        </div>
+       <div className="min-h-screen bg-gradient-to-br from-[#f5f5dc] to-[#f0f0e6]">
 
-        {/* Survey Navigation */}
-        {availableYears.length > 0 && (
-          <div className="mb-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold text-black">Survey Responses</CardTitle>
-                <CardDescription>
-                  View survey responses by year and section
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {/* Year Selection */}
-                <div className="mb-6">
-                  <h3 className="text-sm font-medium text-gray-700 mb-3">Select Year</h3>
-                  <div className="flex space-x-2">
-                    {availableYears.map((year) => (
-                      <Button
-                        key={year}
-                        variant={selectedYear === year ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setSelectedYear(year as '2021' | '2022' | '2023' | '2024')}
-                      >
-                        {year}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
+         {/* Main Content - Proper spacing below header */}
+         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-12">
 
-                {/* Section Selection */}
-                {currentSections.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="text-sm font-medium text-gray-700 mb-3">Select Section</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
-                      {currentSections.map((section) => (
-                        <Button
-                          key={section.id}
-                          variant={selectedSection === section.id ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setSelectedSection(section.id)}
-                          className="text-xs"
-                        >
-                          {section.title}
-                        </Button>
-                      ))}
+            {/* Company Information Section */}
+            <div className="mb-8">
+              <div className="group relative overflow-hidden rounded-lg bg-[#f5f5dc] border-2 border-blue-200 hover:border-blue-400 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg">
+                <div className="relative flex">
+                  {/* Left side - Content */}
+                  <div className="flex-1 p-6">
+                    <div className="flex items-center space-x-3 mb-6">
+                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+                        <Building2 className="w-4 h-4 text-white" />
+                      </div>
+                      <h2 className="text-lg font-bold text-gray-800">Company Information</h2>
                     </div>
-                  </div>
-                )}
 
-                {/* Section Content */}
-                {currentSurveyData && (
-                  <div className="mt-6">
-                    {renderSurveySection(selectedSection)}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        )}
+                   <div className="space-y-4">
+                     {/* Company Name */}
+                     <div className="flex items-center space-x-3">
+                       <Building2 className="w-5 h-5 text-blue-600" />
+                       <div>
+                         <p className="text-sm font-medium text-gray-700">Company Name</p>
+                         <p className="text-sm text-gray-900 font-semibold">{fundManager.firm_name || 'Not specified'}</p>
+                       </div>
+                     </div>
 
-        {/* Fund Manager Details */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Basic Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-black">Basic Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <Building2 className="w-5 h-5 text-gray-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Firm</p>
-                  <p className="text-sm text-gray-900">{fundManager.firm_name || 'Not specified'}</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Mail className="w-5 h-5 text-gray-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Email</p>
-                  <p className="text-sm text-gray-900">{fundManager.email_address || 'Not specified'}</p>
-                </div>
-              </div>
-              {fundManager.phone && (
-                <div className="flex items-center space-x-3">
-                  <Phone className="w-5 h-5 text-gray-500" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Phone</p>
-                    <p className="text-sm text-gray-900">{fundManager.phone}</p>
-                  </div>
-                </div>
-              )}
-              {fundManager.website && (
-                <div className="flex items-center space-x-3">
-                  <Globe className="w-5 h-5 text-gray-500" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Website</p>
-                    <a 
-                      href={fundManager.website} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-sm text-blue-600 hover:underline"
-                    >
-                      {fundManager.website}
-                    </a>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                     {/* Email */}
+                     <div className="flex items-center space-x-3">
+                       <Mail className="w-5 h-5 text-blue-600" />
+                       <div>
+                         <p className="text-sm font-medium text-gray-700">Email</p>
+                         <p className="text-sm text-gray-900">{fundManager.email_address || 'Not specified'}</p>
+                       </div>
+                     </div>
 
-          {/* Investment Focus */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-black">Investment Focus</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {fundManager.geographic_focus && fundManager.geographic_focus.length > 0 && (
-                <div className="flex items-start space-x-3">
-                  <MapPin className="w-5 h-5 text-gray-500 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Geographic Focus</p>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {fundManager.geographic_focus.map((region, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
-                          {region}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-              {fundManager.target_sectors && fundManager.target_sectors.length > 0 && (
-                <div className="flex items-start space-x-3">
-                  <Target className="w-5 h-5 text-gray-500 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Target Sectors</p>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {fundManager.target_sectors.map((sector, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {sector}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-              {fundManager.fund_stage && (
-                <div className="flex items-center space-x-3">
-                  <TrendingUp className="w-5 h-5 text-gray-500" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Fund Stage</p>
-                    <p className="text-sm text-gray-900">{fundManager.fund_stage}</p>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                     {/* Website */}
+                     <div className="flex items-center space-x-3">
+                       <Globe className="w-5 h-5 text-blue-600" />
+                       <div>
+                         <p className="text-sm font-medium text-gray-700">Website</p>
+                         {fundManager.website ? (
+                           <a 
+                             href={fundManager.website.startsWith('http') ? fundManager.website : `https://${fundManager.website}`}
+                             target="_blank" 
+                             rel="noopener noreferrer"
+                             className="text-sm text-blue-600 hover:underline break-all"
+                           >
+                             {fundManager.website}
+                           </a>
+                         ) : (
+                           <p className="text-sm text-gray-500">No website provided</p>
+                         )}
+                       </div>
+                     </div>
+
+                     {/* Description */}
+                     <div className="flex items-start space-x-3">
+                       <FileText className="w-5 h-5 text-blue-600 mt-0.5" />
+                       <div>
+                         <p className="text-sm font-medium text-gray-700">Description</p>
+                         <p className="text-sm text-gray-900">{fundManager.description || 'No description provided'}</p>
+                       </div>
+                     </div>
+
+                     {/* Survey Year Navigation */}
+                     <div className="mt-6 pt-4 border-t border-blue-200">
+                       <div className="flex items-center space-x-3 mb-4">
+                         <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-sm">
+                           <BarChart3 className="w-3 h-3 text-white" />
+                         </div>
+                         <h3 className="text-base font-bold text-gray-800">Survey Responses</h3>
+                       </div>
+                       
+                        <p className="text-xs text-gray-600 mb-4">
+                          Click on a year to view their survey responses. 
+                          <span className="text-green-600">✓</span> = Completed, 
+                          <span className="text-gray-400">○</span> = Not completed
+                        </p>
+                        
+                        {/* Year Selection Buttons */}
+                        <div className="flex gap-2">
+                          {['2021', '2022', '2023', '2024'].map((year) => {
+                            const isCompleted = surveyStatus[year];
+                            return (
+                              <Button
+                                key={year}
+                                variant="outline"
+                                size="sm"
+                                onClick={isCompleted ? () => navigate(`/survey-response/${id}/${year}`) : undefined}
+                                disabled={!isCompleted}
+                                className={`h-8 px-3 border transition-all duration-300 ${
+                                  isCompleted
+                                    ? 'border-green-200 text-green-600 hover:bg-green-50 hover:border-green-400 cursor-pointer'
+                                    : 'border-gray-200 text-gray-400 cursor-not-allowed opacity-50'
+                                }`}
+                              >
+                                <div className="text-center">
+                                  <div className="text-xs font-bold">{year}</div>
+                                  <div className="text-xs opacity-75">
+                                    {isCompleted ? '✓' : '○'}
+                                  </div>
+                                </div>
+                              </Button>
+                            );
+                          })}
+                        </div>
+                     </div>
+                   </div>
+                 </div>
+
+                 {/* Right side - Large Profile Picture inside card */}
+                 <div className="w-96 h-96 border-4 border-white shadow-lg rounded-2xl overflow-hidden m-6">
+                   {fundManager.profile_picture_url ? (
+                     <img 
+                       src={fundManager.profile_picture_url} 
+                       alt="Profile" 
+                       className="w-full h-full object-cover"
+                     />
+                   ) : (
+                     <div className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                       <span className="text-8xl font-bold text-white">
+                         {fundManager.participant_name?.charAt(0) || fundManager.first_name?.charAt(0) || 'F'}
+                       </span>
+                     </div>
+                   )}
+                 </div>
+               </div>
+             </div>
+           </div>
         </div>
       </div>
     </SidebarLayout>
