@@ -60,7 +60,7 @@ const MyProfile = () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('user_profiles')
+        .from('user_profiles' as any)
         .select('*')
         .eq('user_id', user.id)
         .single();
@@ -92,18 +92,19 @@ const MyProfile = () => {
       }
 
       if (data) {
-        setProfile(data);
+        const profileData = data as unknown as UserProfile;
+        setProfile(profileData);
         setFormData({
-          company_name: data.company_name || '',
-          email: data.email || '',
-          website: data.website || '',
-          description: data.description || '',
-          profile_photo_url: data.profile_photo_url || ''
+          company_name: profileData.company_name || '',
+          email: profileData.email || '',
+          website: profileData.website || '',
+          description: profileData.description || '',
+          profile_photo_url: profileData.profile_photo_url || ''
         });
       } else {
         // Create default profile - handle case where user might not exist in auth.users
         const { data: newProfile, error: createError } = await supabase
-          .from('user_profiles')
+          .from('user_profiles' as any)
           .insert({
             user_id: user.id,
             company_name: user.email?.split('@')[0] || 'CFF Network User',
@@ -127,7 +128,7 @@ const MyProfile = () => {
           if (backupUser) {
             // Create profile using backup data
             const { data: newProfileFromBackup, error: createError2 } = await supabase
-              .from('user_profiles')
+              .from('user_profiles' as any)
               .insert({
                 user_id: user.id,
                 company_name: backupUser.first_name && backupUser.last_name 
@@ -143,25 +144,27 @@ const MyProfile = () => {
 
             if (createError2) throw createError2;
             
-            setProfile(newProfileFromBackup);
+            const backupProfileData = newProfileFromBackup as unknown as UserProfile;
+            setProfile(backupProfileData);
             setFormData({
-              company_name: newProfileFromBackup.company_name || '',
-              email: newProfileFromBackup.email || '',
-              website: newProfileFromBackup.website || '',
-              description: newProfileFromBackup.description || '',
-              profile_photo_url: newProfileFromBackup.profile_photo_url || ''
+              company_name: backupProfileData.company_name || '',
+              email: backupProfileData.email || '',
+              website: backupProfileData.website || '',
+              description: backupProfileData.description || '',
+              profile_photo_url: backupProfileData.profile_photo_url || ''
             });
           } else {
             throw createError;
           }
         } else {
-          setProfile(newProfile);
+          const newProfileData = newProfile as unknown as UserProfile;
+          setProfile(newProfileData);
           setFormData({
-            company_name: newProfile.company_name || '',
-            email: newProfile.email || '',
-            website: newProfile.website || '',
-            description: newProfile.description || '',
-            profile_photo_url: newProfile.profile_photo_url || ''
+            company_name: newProfileData.company_name || '',
+            email: newProfileData.email || '',
+            website: newProfileData.website || '',
+            description: newProfileData.description || '',
+            profile_photo_url: newProfileData.profile_photo_url || ''
           });
         }
       }
@@ -193,7 +196,7 @@ const MyProfile = () => {
       }
 
       const { error } = await supabase
-        .from('user_profiles')
+        .from('user_profiles' as any)
         .update({
           company_name: formData.company_name,
           email: formData.email,

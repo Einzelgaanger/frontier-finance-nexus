@@ -22,7 +22,7 @@ const OnboardingCheck: React.FC<OnboardingCheckProps> = ({ children }) => {
       try {
         // Check if user has a profile in user_profiles table
         const { data: profile, error } = await supabase
-          .from('user_profiles')
+          .from('user_profiles' as any)
           .select('company_name')
           .eq('user_id', user.id)
           .single();
@@ -33,7 +33,7 @@ const OnboardingCheck: React.FC<OnboardingCheckProps> = ({ children }) => {
           return;
         }
 
-        if (profile && (!profile.company_name || profile.company_name.trim() === '')) {
+        if (profile && (!(profile as any).company_name || (profile as any).company_name.trim() === '')) {
           // Profile exists but is incomplete, redirect to onboarding
           navigate('/onboarding');
           return;

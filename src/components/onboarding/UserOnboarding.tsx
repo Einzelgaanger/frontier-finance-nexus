@@ -85,9 +85,9 @@ const UserOnboarding = () => {
     try {
       setLoading(true);
 
-      const { error } = await supabase
-        .from('user_profiles')
-        .upsert({
+    const { error } = await supabase
+      .from('user_profiles' as any)
+      .upsert({
           user_id: user.id,
           email: user.email,
           company_name: formData.company_name,
