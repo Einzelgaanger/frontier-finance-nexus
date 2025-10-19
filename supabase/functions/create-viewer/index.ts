@@ -100,70 +100,68 @@ serve(async (req) => {
       )
     }
 
-                   // Manually create profile and role since trigger may not work with service role
-         console.log('Creating profile and role manually for user:', newUser.user.id);
-         
-         const emailName = email.split('@')[0];
-         const firstName = survey_data?.first_name || emailName || 'Viewer';
-         const lastName = survey_data?.last_name || 'User';
-         
-         // Create profile
-         const { error: profileError } = await serviceRoleClient
-           .from('profiles')
-           .insert({
-             id: newUser.user.id,
-             email: email,
-             first_name: firstName,
-             last_name: lastName
-           });
-           
-         if (profileError) {
-           console.error('Profile creation error:', profileError);
-         } else {
-           console.log('Profile created successfully for user:', newUser.user.id);
-         }
-         
-         // Create role
-         const { error: roleError } = await serviceRoleClient
-           .from('user_roles')
-           .insert({
-             user_id: newUser.user.id,
-             role: 'viewer'
-           });
-           
-         if (roleError) {
-           console.error('Role creation error:', roleError);
-         } else {
-           console.log('Role created successfully for user:', newUser.user.id);
-         }
-    }
+// Manually create profile and role since trigger may not work with service role
+console.log('Creating profile and role manually for user:', newUser.user.id);
 
-    // Create survey data using the database function
-    if (survey_data && newUser.user) {
-      const { error: surveyError } = await serviceRoleClient.rpc('create_viewer_survey_data', {
-        p_user_id: newUser.user.id,
-        p_survey_data: survey_data,
-        p_survey_year: survey_year || new Date().getFullYear()
-      })
+const emailName = email.split('@')[0];
+const firstName = survey_data?.first_name || emailName || 'Viewer';
+const lastName = survey_data?.last_name || 'User';
 
-      if (surveyError) {
-        console.error('Survey creation error:', surveyError)
-        // Don't fail the entire request if survey creation fails
-        // The user was created successfully
-      }
-    }
+// Create profile
+const { error: profileError } = await serviceRoleClient
+  .from('profiles')
+  .insert({
+    id: newUser.user.id,
+    email: email,
+    first_name: firstName,
+    last_name: lastName
+  });
+  
+if (profileError) {
+  console.error('Profile creation error:', profileError);
+} else {
+  console.log('Profile created successfully for user:', newUser.user.id);
+}
 
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        user: newUser.user,
-        message: 'Viewer created successfully' 
-      }),
-      { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    )
+// Create role
+const { error: roleInsertError } = await serviceRoleClient
+  .from('user_roles')
+  .insert({
+    user_id: newUser.user.id,
+    role: 'viewer'
+  });
+  
+if (roleInsertError) {
+  console.error('Role creation error:', roleInsertError);
+} else {
+  console.log('Role created successfully for user:', newUser.user.id);
+}
+
+// Create survey data using the database function (best-effort)
+if (survey_data && newUser.user) {
+  const { error: surveyError } = await serviceRoleClient.rpc('create_viewer_survey_data', {
+    p_user_id: newUser.user.id,
+    p_survey_data: survey_data,
+    p_survey_year: survey_year || new Date().getFullYear()
+  });
+
+  if (surveyError) {
+    console.error('Survey creation error:', surveyError);
+    // Don't fail the entire request if survey creation fails
+  }
+}
+
+return new Response(
+  JSON.stringify({ 
+    success: true, 
+    user: newUser.user,
+    message: 'Viewer created successfully' 
+  }),
+  { 
+    status: 200, 
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+  }
+)
 
   } catch (error) {
     console.error('Error:', error)

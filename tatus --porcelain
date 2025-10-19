@@ -1,0 +1,6 @@
+warning: in the working copy of 'src/components/dashboard/AdminDashboardV2.tsx', LF will be replaced by CRLF the next time Git touches it
+src/pages/AdminV2.tsx
+src/pages/FundManagerDetail.tsx
+src/pages/Network.tsx
+src/pages/NetworkV2.tsx
+src/pages/Survey2024.tsx

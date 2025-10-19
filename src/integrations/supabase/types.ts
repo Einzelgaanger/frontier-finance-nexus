@@ -44,6 +44,87 @@ export type Database = {
         }
         Relationships: []
       }
+      applications: {
+        Row: {
+          amount_raised_to_date: string
+          applicant_name: string
+          created_at: string | null
+          domicile_countries: string[] | null
+          email: string
+          expectations_from_network: string
+          how_heard_about_network: string
+          id: string
+          investment_thesis: string
+          number_of_investments: string
+          organization_website: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          role_job_title: string
+          status: string
+          supporting_document_links: string[] | null
+          supporting_documents: string[] | null
+          team_overview: string
+          topics_of_interest: string[] | null
+          typical_check_size: string
+          updated_at: string | null
+          user_id: string
+          vehicle_name: string
+        }
+        Insert: {
+          amount_raised_to_date: string
+          applicant_name: string
+          created_at?: string | null
+          domicile_countries?: string[] | null
+          email: string
+          expectations_from_network: string
+          how_heard_about_network: string
+          id?: string
+          investment_thesis: string
+          number_of_investments: string
+          organization_website?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          role_job_title: string
+          status?: string
+          supporting_document_links?: string[] | null
+          supporting_documents?: string[] | null
+          team_overview: string
+          topics_of_interest?: string[] | null
+          typical_check_size: string
+          updated_at?: string | null
+          user_id: string
+          vehicle_name: string
+        }
+        Update: {
+          amount_raised_to_date?: string
+          applicant_name?: string
+          created_at?: string | null
+          domicile_countries?: string[] | null
+          email?: string
+          expectations_from_network?: string
+          how_heard_about_network?: string
+          id?: string
+          investment_thesis?: string
+          number_of_investments?: string
+          organization_website?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          role_job_title?: string
+          status?: string
+          supporting_document_links?: string[] | null
+          supporting_documents?: string[] | null
+          team_overview?: string
+          topics_of_interest?: string[] | null
+          typical_check_size?: string
+          updated_at?: string | null
+          user_id?: string
+          vehicle_name?: string
+        }
+        Relationships: []
+      }
       data_field_visibility: {
         Row: {
           field_name: string
@@ -342,7 +423,8 @@ export type Database = {
           first_name: string | null
           id: string
           last_name: string | null
-          profile_picture_url: string | null
+          organization_name: string | null
+          role_title: string | null
           updated_at: string | null
         }
         Insert: {
@@ -351,7 +433,8 @@ export type Database = {
           first_name?: string | null
           id: string
           last_name?: string | null
-          profile_picture_url?: string | null
+          organization_name?: string | null
+          role_title?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -360,935 +443,1206 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
-          profile_picture_url?: string | null
+          organization_name?: string | null
+          role_title?: string | null
           updated_at?: string | null
         }
         Relationships: []
       }
-      survey_responses: {
+      survey_2021_business_model_targeted: {
         Row: {
-          capital_in_market: number | null
-          capital_raised: number | null
-          capital_raised_description: string
-          completed_at: string | null
+          business_model_targeted: string
           created_at: string | null
-          current_status: string | null
-          current_status_other: string | null
-          email: string
-          equity_investments_exited: number | null
-          equity_investments_made: number | null
-          expectations: string
-          first_close_date_from: number | null
-          first_close_date_to: number | null
-          first_close_month_from: number | null
-          first_close_month_to: number | null
-          fund_stage: string[] | null
-          how_heard_about_network: string
-          how_heard_about_network_other: string | null
           id: string
-          information_sharing_topics: string[] | null
-          investment_instruments_data: Json | null
-          investment_instruments_priority: Json | null
-          legal_domicile: string[] | null
-          legal_domicile_other: string | null
-          legal_entity_date_from: number | null
-          legal_entity_date_to: number | null
-          legal_entity_month_from: number | null
-          legal_entity_month_to: number | null
-          location: string
-          markets_operated: Json | null
-          markets_operated_other: string | null
-          name: string
-          portfolio_count: number
-          role_badge: string | null
-          role_job_title: string
-          sectors_allocation: Json | null
-          self_liquidating_exited: number | null
-          self_liquidating_made: number | null
-          supporting_document_url: string | null
-          supporting_document_urls: string[] | null
-          target_capital: number | null
-          target_return_max: number | null
-          target_return_min: number | null
-          team_description: string | null
-          team_members: Json | null
-          team_size_description: string
-          team_size_max: number | null
-          team_size_min: number | null
-          thesis: string
-          ticket_description: string | null
-          ticket_size: string
-          ticket_size_max: number | null
-          ticket_size_min: number | null
-          updated_at: string | null
-          user_id: string
-          vehicle_name: string
-          vehicle_type: string | null
-          vehicle_type_other: string | null
-          vehicle_website: string | null
-          vehicle_websites: string[] | null
-          year: number
+          response_id: string
         }
         Insert: {
-          capital_in_market?: number | null
-          capital_raised?: number | null
-          capital_raised_description?: string
-          completed_at?: string | null
+          business_model_targeted: string
           created_at?: string | null
-          current_status?: string | null
-          current_status_other?: string | null
-          email?: string
-          equity_investments_exited?: number | null
-          equity_investments_made?: number | null
-          expectations?: string
-          first_close_date_from?: number | null
-          first_close_date_to?: number | null
-          first_close_month_from?: number | null
-          first_close_month_to?: number | null
-          fund_stage?: string[] | null
-          how_heard_about_network?: string
-          how_heard_about_network_other?: string | null
           id?: string
-          information_sharing_topics?: string[] | null
-          investment_instruments_data?: Json | null
-          investment_instruments_priority?: Json | null
-          legal_domicile?: string[] | null
-          legal_domicile_other?: string | null
-          legal_entity_date_from?: number | null
-          legal_entity_date_to?: number | null
-          legal_entity_month_from?: number | null
-          legal_entity_month_to?: number | null
-          location?: string
-          markets_operated?: Json | null
-          markets_operated_other?: string | null
-          name?: string
-          portfolio_count?: number
-          role_badge?: string | null
-          role_job_title?: string
-          sectors_allocation?: Json | null
-          self_liquidating_exited?: number | null
-          self_liquidating_made?: number | null
-          supporting_document_url?: string | null
-          supporting_document_urls?: string[] | null
-          target_capital?: number | null
-          target_return_max?: number | null
-          target_return_min?: number | null
-          team_description?: string | null
-          team_members?: Json | null
-          team_size_description?: string
-          team_size_max?: number | null
-          team_size_min?: number | null
-          thesis?: string
-          ticket_description?: string | null
-          ticket_size?: string
-          ticket_size_max?: number | null
-          ticket_size_min?: number | null
-          updated_at?: string | null
-          user_id: string
-          vehicle_name?: string
-          vehicle_type?: string | null
-          vehicle_type_other?: string | null
-          vehicle_website?: string | null
-          vehicle_websites?: string[] | null
-          year: number
+          response_id: string
         }
         Update: {
-          capital_in_market?: number | null
-          capital_raised?: number | null
-          capital_raised_description?: string
-          completed_at?: string | null
+          business_model_targeted?: string
           created_at?: string | null
-          current_status?: string | null
-          current_status_other?: string | null
-          email?: string
-          equity_investments_exited?: number | null
-          equity_investments_made?: number | null
-          expectations?: string
-          first_close_date_from?: number | null
-          first_close_date_to?: number | null
-          first_close_month_from?: number | null
-          first_close_month_to?: number | null
-          fund_stage?: string[] | null
-          how_heard_about_network?: string
-          how_heard_about_network_other?: string | null
           id?: string
-          information_sharing_topics?: string[] | null
-          investment_instruments_data?: Json | null
-          investment_instruments_priority?: Json | null
-          legal_domicile?: string[] | null
-          legal_domicile_other?: string | null
-          legal_entity_date_from?: number | null
-          legal_entity_date_to?: number | null
-          legal_entity_month_from?: number | null
-          legal_entity_month_to?: number | null
-          location?: string
-          markets_operated?: Json | null
-          markets_operated_other?: string | null
-          name?: string
-          portfolio_count?: number
-          role_badge?: string | null
-          role_job_title?: string
-          sectors_allocation?: Json | null
-          self_liquidating_exited?: number | null
-          self_liquidating_made?: number | null
-          supporting_document_url?: string | null
-          supporting_document_urls?: string[] | null
-          target_capital?: number | null
-          target_return_max?: number | null
-          target_return_min?: number | null
-          team_description?: string | null
-          team_members?: Json | null
-          team_size_description?: string
-          team_size_max?: number | null
-          team_size_min?: number | null
-          thesis?: string
-          ticket_description?: string | null
-          ticket_size?: string
-          ticket_size_max?: number | null
-          ticket_size_min?: number | null
-          updated_at?: string | null
-          user_id?: string
-          vehicle_name?: string
-          vehicle_type?: string | null
-          vehicle_type_other?: string | null
-          vehicle_website?: string | null
-          vehicle_websites?: string[] | null
-          year?: number
+          response_id?: string
         }
         Relationships: []
       }
-      survey_responses_2021: {
+      survey_2021_business_stage_targeted: {
         Row: {
-          additional_comments: string | null
-          business_model_targeted: string[]
-          business_stage_targeted: string[]
-          carried_interest_principals: string
-          communication_platform: string
-          completed_at: string | null
-          convening_initiatives_ranking: Json
-          covid_government_support: string[]
-          covid_impact_aggregate: string
-          covid_impact_portfolio: Json
+          business_stage_targeted: string
           created_at: string | null
-          current_ftes: string
-          current_fund_size: string
-          exits_achieved: string
-          explicit_lens_focus: string[]
-          financing_needs: string[]
-          firm_name: string
-          first_close_date: string
-          first_investment_date: string
-          fund_capabilities_ranking: Json
-          fund_stage: string
-          fund_vehicle_considerations: string[]
-          gender_considerations_investment: string[]
-          gender_considerations_requirement: string[]
-          gender_fund_vehicle: string[]
-          geographic_focus: string[]
           id: string
-          impact_vs_financial_orientation: string
-          investment_forms: string[]
-          investment_monetization: string[]
-          investment_size_total_raise: string
-          investment_size_your_amount: string
-          investment_timeframe: string
-          investment_vehicle_type: string[]
-          investments_december_2020: string
-          investments_march_2020: string
-          legal_entity_date: string
-          network_value_areas: Json
-          network_value_rating: string
-          new_webinar_suggestions: string | null
-          new_working_group_suggestions: string | null
-          optional_supplement: string | null
-          participant_name: string
-          participate_mentoring_program: string | null
-          portfolio_needs_ranking: Json
-          present_connection_session: boolean
-          present_demystifying_session: string[]
-          raising_capital_2021: string[]
-          report_sustainable_development_goals: boolean
-          role_title: string
-          target_capital_sources: string[]
-          target_fund_size: string
-          target_irr_achieved: string
-          target_irr_targeted: string
-          target_sectors: string[]
-          team_based: string[]
-          top_sdg_1: string | null
-          top_sdg_2: string | null
-          top_sdg_3: string | null
-          updated_at: string | null
-          user_id: string | null
-          webinar_content_ranking: Json
-          working_groups_ranking: Json
+          response_id: string
         }
         Insert: {
-          additional_comments?: string | null
-          business_model_targeted: string[]
-          business_stage_targeted: string[]
-          carried_interest_principals: string
-          communication_platform: string
-          completed_at?: string | null
-          convening_initiatives_ranking: Json
-          covid_government_support: string[]
-          covid_impact_aggregate: string
-          covid_impact_portfolio: Json
+          business_stage_targeted: string
           created_at?: string | null
-          current_ftes: string
-          current_fund_size: string
-          exits_achieved: string
-          explicit_lens_focus: string[]
-          financing_needs: string[]
-          firm_name: string
-          first_close_date: string
-          first_investment_date: string
-          fund_capabilities_ranking: Json
-          fund_stage: string
-          fund_vehicle_considerations: string[]
-          gender_considerations_investment: string[]
-          gender_considerations_requirement: string[]
-          gender_fund_vehicle: string[]
-          geographic_focus: string[]
           id?: string
-          impact_vs_financial_orientation: string
-          investment_forms: string[]
-          investment_monetization: string[]
-          investment_size_total_raise: string
-          investment_size_your_amount: string
-          investment_timeframe: string
-          investment_vehicle_type: string[]
-          investments_december_2020: string
-          investments_march_2020: string
-          legal_entity_date: string
-          network_value_areas: Json
-          network_value_rating: string
-          new_webinar_suggestions?: string | null
-          new_working_group_suggestions?: string | null
-          optional_supplement?: string | null
-          participant_name: string
-          participate_mentoring_program?: string | null
-          portfolio_needs_ranking: Json
-          present_connection_session: boolean
-          present_demystifying_session: string[]
-          raising_capital_2021: string[]
-          report_sustainable_development_goals: boolean
-          role_title: string
-          target_capital_sources: string[]
-          target_fund_size: string
-          target_irr_achieved: string
-          target_irr_targeted: string
-          target_sectors: string[]
-          team_based: string[]
-          top_sdg_1?: string | null
-          top_sdg_2?: string | null
-          top_sdg_3?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-          webinar_content_ranking: Json
-          working_groups_ranking: Json
+          response_id: string
         }
         Update: {
-          additional_comments?: string | null
-          business_model_targeted?: string[]
-          business_stage_targeted?: string[]
-          carried_interest_principals?: string
-          communication_platform?: string
-          completed_at?: string | null
-          convening_initiatives_ranking?: Json
-          covid_government_support?: string[]
-          covid_impact_aggregate?: string
-          covid_impact_portfolio?: Json
+          business_stage_targeted?: string
           created_at?: string | null
-          current_ftes?: string
-          current_fund_size?: string
-          exits_achieved?: string
-          explicit_lens_focus?: string[]
-          financing_needs?: string[]
-          firm_name?: string
-          first_close_date?: string
-          first_investment_date?: string
-          fund_capabilities_ranking?: Json
-          fund_stage?: string
-          fund_vehicle_considerations?: string[]
-          gender_considerations_investment?: string[]
-          gender_considerations_requirement?: string[]
-          gender_fund_vehicle?: string[]
-          geographic_focus?: string[]
           id?: string
-          impact_vs_financial_orientation?: string
-          investment_forms?: string[]
-          investment_monetization?: string[]
-          investment_size_total_raise?: string
-          investment_size_your_amount?: string
-          investment_timeframe?: string
-          investment_vehicle_type?: string[]
-          investments_december_2020?: string
-          investments_march_2020?: string
-          legal_entity_date?: string
-          network_value_areas?: Json
-          network_value_rating?: string
-          new_webinar_suggestions?: string | null
-          new_working_group_suggestions?: string | null
-          optional_supplement?: string | null
-          participant_name?: string
-          participate_mentoring_program?: string | null
-          portfolio_needs_ranking?: Json
-          present_connection_session?: boolean
-          present_demystifying_session?: string[]
-          raising_capital_2021?: string[]
-          report_sustainable_development_goals?: boolean
-          role_title?: string
-          target_capital_sources?: string[]
-          target_fund_size?: string
-          target_irr_achieved?: string
-          target_irr_targeted?: string
-          target_sectors?: string[]
-          team_based?: string[]
-          top_sdg_1?: string | null
-          top_sdg_2?: string | null
-          top_sdg_3?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-          webinar_content_ranking?: Json
-          working_groups_ranking?: Json
+          response_id?: string
         }
         Relationships: []
       }
-      survey_responses_2023: {
+      survey_2021_covid_government_support: {
         Row: {
-          additional_comments: string | null
-          briefing_acknowledged: boolean
-          business_model_targeted: string[]
-          business_model_targeted_other: string | null
-          capital_construct: string
-          capital_construct_other: string | null
-          completed_at: string | null
-          convening_initiatives_other: string | null
-          convening_initiatives_ranking: Json
-          covid_adaptations: string[]
-          covid_adaptations_other: string | null
-          covid_impact_portfolio: string
-          covid_impact_portfolio_other: string | null
-          covid_impact_vehicle: string
-          covid_impact_vehicle_other: string | null
-          created_at: string
-          deal_flow_sources: string[]
-          deal_flow_sources_other: string | null
-          exit_strategies: string[]
-          exit_strategies_other: string | null
-          firm_name: string
-          fund_stage: string
-          fund_stage_other: string | null
-          geographic_focus: string[]
-          geographic_focus_other: string | null
+          covid_government_support: string
+          created_at: string | null
           id: string
-          investment_committee: string
-          investment_committee_other: string | null
-          investment_criteria: string[]
-          investment_criteria_other: string | null
-          investment_process: string
-          investment_process_other: string | null
-          investment_thesis: string
-          investment_thesis_other: string | null
-          investment_vehicle_type: string[]
-          investment_vehicle_type_other: string | null
-          network_engagement_level: string
-          network_engagement_level_other: string | null
-          network_value_areas: Json
-          participate_mentoring_program: string
-          participate_mentoring_program_other: string | null
-          portfolio_development_stage: string
-          portfolio_development_stage_other: string | null
-          portfolio_size: string
-          portfolio_size_other: string | null
-          present_connection_session: boolean | null
-          present_demystifying_session: string[]
-          present_demystifying_session_other: string | null
-          return_expectations: string
-          return_expectations_other: string | null
-          role_title: string
-          target_sectors: string[]
-          target_sectors_other: string | null
-          team_based: string[]
-          team_based_other: string | null
-          team_expertise: string[]
-          team_expertise_other: string | null
-          team_structure: string
-          team_structure_other: string | null
-          updated_at: string
-          user_id: string
-          value_add_services: string[]
-          value_add_services_other: string | null
+          response_id: string
         }
         Insert: {
-          additional_comments?: string | null
-          briefing_acknowledged?: boolean
-          business_model_targeted: string[]
-          business_model_targeted_other?: string | null
-          capital_construct: string
-          capital_construct_other?: string | null
-          completed_at?: string | null
-          convening_initiatives_other?: string | null
-          convening_initiatives_ranking: Json
-          covid_adaptations: string[]
-          covid_adaptations_other?: string | null
-          covid_impact_portfolio: string
-          covid_impact_portfolio_other?: string | null
-          covid_impact_vehicle: string
-          covid_impact_vehicle_other?: string | null
-          created_at?: string
-          deal_flow_sources: string[]
-          deal_flow_sources_other?: string | null
-          exit_strategies: string[]
-          exit_strategies_other?: string | null
-          firm_name: string
-          fund_stage: string
-          fund_stage_other?: string | null
-          geographic_focus: string[]
-          geographic_focus_other?: string | null
+          covid_government_support: string
+          created_at?: string | null
           id?: string
-          investment_committee: string
-          investment_committee_other?: string | null
-          investment_criteria: string[]
-          investment_criteria_other?: string | null
-          investment_process: string
-          investment_process_other?: string | null
-          investment_thesis: string
-          investment_thesis_other?: string | null
-          investment_vehicle_type: string[]
-          investment_vehicle_type_other?: string | null
-          network_engagement_level: string
-          network_engagement_level_other?: string | null
-          network_value_areas: Json
-          participate_mentoring_program: string
-          participate_mentoring_program_other?: string | null
-          portfolio_development_stage: string
-          portfolio_development_stage_other?: string | null
-          portfolio_size: string
-          portfolio_size_other?: string | null
-          present_connection_session?: boolean | null
-          present_demystifying_session: string[]
-          present_demystifying_session_other?: string | null
-          return_expectations: string
-          return_expectations_other?: string | null
-          role_title: string
-          target_sectors: string[]
-          target_sectors_other?: string | null
-          team_based: string[]
-          team_based_other?: string | null
-          team_expertise: string[]
-          team_expertise_other?: string | null
-          team_structure: string
-          team_structure_other?: string | null
-          updated_at?: string
-          user_id: string
-          value_add_services: string[]
-          value_add_services_other?: string | null
+          response_id: string
         }
         Update: {
-          additional_comments?: string | null
-          briefing_acknowledged?: boolean
-          business_model_targeted?: string[]
-          business_model_targeted_other?: string | null
-          capital_construct?: string
-          capital_construct_other?: string | null
-          completed_at?: string | null
-          convening_initiatives_other?: string | null
-          convening_initiatives_ranking?: Json
-          covid_adaptations?: string[]
-          covid_adaptations_other?: string | null
-          covid_impact_portfolio?: string
-          covid_impact_portfolio_other?: string | null
-          covid_impact_vehicle?: string
-          covid_impact_vehicle_other?: string | null
-          created_at?: string
-          deal_flow_sources?: string[]
-          deal_flow_sources_other?: string | null
-          exit_strategies?: string[]
-          exit_strategies_other?: string | null
-          firm_name?: string
-          fund_stage?: string
-          fund_stage_other?: string | null
-          geographic_focus?: string[]
-          geographic_focus_other?: string | null
+          covid_government_support?: string
+          created_at?: string | null
           id?: string
-          investment_committee?: string
-          investment_committee_other?: string | null
-          investment_criteria?: string[]
-          investment_criteria_other?: string | null
-          investment_process?: string
-          investment_process_other?: string | null
-          investment_thesis?: string
-          investment_thesis_other?: string | null
-          investment_vehicle_type?: string[]
-          investment_vehicle_type_other?: string | null
-          network_engagement_level?: string
-          network_engagement_level_other?: string | null
-          network_value_areas?: Json
-          participate_mentoring_program?: string
-          participate_mentoring_program_other?: string | null
-          portfolio_development_stage?: string
-          portfolio_development_stage_other?: string | null
-          portfolio_size?: string
-          portfolio_size_other?: string | null
-          present_connection_session?: boolean | null
-          present_demystifying_session?: string[]
-          present_demystifying_session_other?: string | null
-          return_expectations?: string
-          return_expectations_other?: string | null
-          role_title?: string
-          target_sectors?: string[]
-          target_sectors_other?: string | null
-          team_based?: string[]
-          team_based_other?: string | null
-          team_expertise?: string[]
-          team_expertise_other?: string | null
-          team_structure?: string
-          team_structure_other?: string | null
-          updated_at?: string
-          user_id?: string
-          value_add_services?: string[]
-          value_add_services_other?: string | null
+          response_id?: string
         }
         Relationships: []
       }
-      survey_responses_2024: {
+      survey_2021_explicit_lens_focus: {
         Row: {
-          additional_sdgs: string | null
-          amount_invested_2022: number | null
-          amount_invested_current: number | null
-          business_development_approach: string[] | null
-          business_development_approach_other: string | null
-          business_stages: Json | null
-          completed_at: string | null
-          concessionary_capital: string[] | null
-          concessionary_capital_other: string | null
           created_at: string | null
-          currency_hedging_details: string | null
-          currency_hedging_strategy: string | null
-          currency_investments: string | null
-          currency_lp_commitments: string | null
-          data_sharing_other: string | null
-          data_sharing_willingness: string[] | null
-          debt_investments_made: number | null
-          debt_repayments_achieved: number | null
-          debt_repayments_anticipated: number | null
-          direct_jobs_anticipated: number | null
-          direct_jobs_current: number | null
-          domicile_reason: string[] | null
-          domicile_reason_other: string | null
+          explicit_lens_focus: string
+          id: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          explicit_lens_focus: string
+          id?: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          explicit_lens_focus?: string
+          id?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2021_financing_needs: {
+        Row: {
+          created_at: string | null
+          financing_needs: string
+          id: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          financing_needs: string
+          id?: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          financing_needs?: string
+          id?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2021_fund_vehicle_considerations: {
+        Row: {
+          created_at: string | null
+          fund_vehicle_considerations: string
+          id: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          fund_vehicle_considerations: string
+          id?: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          fund_vehicle_considerations?: string
+          id?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2021_gender_considerations_investment: {
+        Row: {
+          created_at: string | null
+          gender_considerations_investment: string
+          id: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          gender_considerations_investment: string
+          id?: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          gender_considerations_investment?: string
+          id?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2021_gender_considerations_requirement: {
+        Row: {
+          created_at: string | null
+          gender_considerations_requirement: string
+          id: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          gender_considerations_requirement: string
+          id?: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          gender_considerations_requirement?: string
+          id?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2021_gender_fund_vehicle: {
+        Row: {
+          created_at: string | null
+          gender_fund_vehicle: string
+          id: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          gender_fund_vehicle: string
+          id?: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          gender_fund_vehicle?: string
+          id?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2021_geographic_focus: {
+        Row: {
+          created_at: string | null
+          geographic_focus: string
+          id: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          geographic_focus: string
+          id?: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          geographic_focus?: string
+          id?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2021_investment_forms: {
+        Row: {
+          created_at: string | null
+          id: string
+          investment_forms: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          investment_forms: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          investment_forms?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2021_investment_monetization: {
+        Row: {
+          created_at: string | null
+          id: string
+          investment_monetization: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          investment_monetization: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          investment_monetization?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2021_investment_vehicle_type: {
+        Row: {
+          created_at: string | null
+          id: string
+          investment_vehicle_type: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          investment_vehicle_type: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          investment_vehicle_type?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2021_present_demystifying_session: {
+        Row: {
+          created_at: string | null
+          id: string
+          present_demystifying_session: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          present_demystifying_session: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          present_demystifying_session?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2021_raising_capital_2021: {
+        Row: {
+          created_at: string | null
+          id: string
+          raising_capital_2021: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          raising_capital_2021: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          raising_capital_2021?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2021_responses: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
           email_address: string
-          employment_impact_other: string | null
-          equity_exits_achieved: number | null
-          equity_exits_anticipated: number | null
-          equity_investments_made: number | null
-          existing_lp_sources: Json | null
-          financial_instruments_ranking: Json | null
-          financing_needs: Json | null
-          first_close_achieved: string | null
-          first_investment_achieved: string | null
-          follow_on_permitted: string | null
-          fte_staff_2023_actual: number | null
-          fte_staff_2025_forecast: number | null
-          fte_staff_current: number | null
-          fund_name: string
-          fund_priorities_next_12m: Json | null
-          fund_type_status: string | null
-          fund_type_status_other: string | null
-          fundraising_barriers: Json | null
-          funds_raising_investing: string
-          gender_inclusion: string[] | null
-          gender_inclusion_other: string | null
-          gender_lens_investing: Json | null
-          geographic_markets: string[] | null
-          geographic_markets_other: string | null
-          gp_financial_commitment: string[] | null
-          gp_financial_commitment_other: string | null
-          gp_management_fee: string | null
-          gp_management_fee_other: string | null
-          hard_commitments_2022: number | null
-          hard_commitments_current: number | null
-          hurdle_rate_currency: string | null
-          hurdle_rate_percentage: number | null
+          firm_name: string | null
+          form_data: Json | null
+          fund_stage: string | null
           id: string
-          indirect_jobs_anticipated: number | null
-          indirect_jobs_current: number | null
-          investment_approval: string[] | null
-          investment_approval_other: string | null
-          investment_considerations: Json | null
-          investment_monetisation_forms: string[] | null
-          investment_monetisation_other: string | null
-          investment_networks: string[] | null
-          investment_networks_other: string | null
-          legal_domicile: string[] | null
-          legal_domicile_other: string | null
-          legal_entity_achieved: string | null
-          organisation_name: string
-          other_investments_supplement: string | null
-          pipeline_sources_quality: Json | null
-          portfolio_cashflow_growth_12m: number | null
-          portfolio_cashflow_growth_next_12m: number | null
-          portfolio_performance_other: string | null
-          portfolio_revenue_growth_12m: number | null
-          portfolio_revenue_growth_next_12m: number | null
-          post_investment_priorities: Json | null
-          principals_total: number | null
-          principals_women: number | null
-          receive_results: boolean | null
-          regulatory_impact: Json | null
-          revenue_growth_mix: Json | null
-          sector_target_allocation: Json | null
-          sgb_financing_trends: Json | null
-          survey_sender: string | null
-          target_fund_size_2022: number | null
-          target_fund_size_current: number | null
-          target_lp_sources: Json | null
-          target_number_investments: number | null
-          target_return_above_govt_debt: number | null
-          team_based: string[] | null
-          team_based_other: string | null
-          team_experience_exits: Json | null
-          team_experience_investments: Json | null
-          technical_assistance_funding: Json | null
-          top_sdgs: string[] | null
-          typical_investment_size: string | null
-          typical_investment_timeframe: string | null
-          unique_offerings: Json | null
+          participant_name: string | null
+          role_title: string | null
+          submission_status: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
-          additional_sdgs?: string | null
-          amount_invested_2022?: number | null
-          amount_invested_current?: number | null
-          business_development_approach?: string[] | null
-          business_development_approach_other?: string | null
-          business_stages?: Json | null
           completed_at?: string | null
-          concessionary_capital?: string[] | null
-          concessionary_capital_other?: string | null
           created_at?: string | null
-          currency_hedging_details?: string | null
-          currency_hedging_strategy?: string | null
-          currency_investments?: string | null
-          currency_lp_commitments?: string | null
-          data_sharing_other?: string | null
-          data_sharing_willingness?: string[] | null
-          debt_investments_made?: number | null
-          debt_repayments_achieved?: number | null
-          debt_repayments_anticipated?: number | null
-          direct_jobs_anticipated?: number | null
-          direct_jobs_current?: number | null
-          domicile_reason?: string[] | null
-          domicile_reason_other?: string | null
           email_address: string
-          employment_impact_other?: string | null
-          equity_exits_achieved?: number | null
-          equity_exits_anticipated?: number | null
-          equity_investments_made?: number | null
-          existing_lp_sources?: Json | null
-          financial_instruments_ranking?: Json | null
-          financing_needs?: Json | null
-          first_close_achieved?: string | null
-          first_investment_achieved?: string | null
-          follow_on_permitted?: string | null
-          fte_staff_2023_actual?: number | null
-          fte_staff_2025_forecast?: number | null
-          fte_staff_current?: number | null
-          fund_name: string
-          fund_priorities_next_12m?: Json | null
-          fund_type_status?: string | null
-          fund_type_status_other?: string | null
-          fundraising_barriers?: Json | null
-          funds_raising_investing: string
-          gender_inclusion?: string[] | null
-          gender_inclusion_other?: string | null
-          gender_lens_investing?: Json | null
-          geographic_markets?: string[] | null
-          geographic_markets_other?: string | null
-          gp_financial_commitment?: string[] | null
-          gp_financial_commitment_other?: string | null
-          gp_management_fee?: string | null
-          gp_management_fee_other?: string | null
-          hard_commitments_2022?: number | null
-          hard_commitments_current?: number | null
-          hurdle_rate_currency?: string | null
-          hurdle_rate_percentage?: number | null
+          firm_name?: string | null
+          form_data?: Json | null
+          fund_stage?: string | null
           id?: string
-          indirect_jobs_anticipated?: number | null
-          indirect_jobs_current?: number | null
-          investment_approval?: string[] | null
-          investment_approval_other?: string | null
-          investment_considerations?: Json | null
-          investment_monetisation_forms?: string[] | null
-          investment_monetisation_other?: string | null
-          investment_networks?: string[] | null
-          investment_networks_other?: string | null
-          legal_domicile?: string[] | null
-          legal_domicile_other?: string | null
-          legal_entity_achieved?: string | null
-          organisation_name: string
-          other_investments_supplement?: string | null
-          pipeline_sources_quality?: Json | null
-          portfolio_cashflow_growth_12m?: number | null
-          portfolio_cashflow_growth_next_12m?: number | null
-          portfolio_performance_other?: string | null
-          portfolio_revenue_growth_12m?: number | null
-          portfolio_revenue_growth_next_12m?: number | null
-          post_investment_priorities?: Json | null
-          principals_total?: number | null
-          principals_women?: number | null
-          receive_results?: boolean | null
-          regulatory_impact?: Json | null
-          revenue_growth_mix?: Json | null
-          sector_target_allocation?: Json | null
-          sgb_financing_trends?: Json | null
-          survey_sender?: string | null
-          target_fund_size_2022?: number | null
-          target_fund_size_current?: number | null
-          target_lp_sources?: Json | null
-          target_number_investments?: number | null
-          target_return_above_govt_debt?: number | null
-          team_based?: string[] | null
-          team_based_other?: string | null
-          team_experience_exits?: Json | null
-          team_experience_investments?: Json | null
-          technical_assistance_funding?: Json | null
-          top_sdgs?: string[] | null
-          typical_investment_size?: string | null
-          typical_investment_timeframe?: string | null
-          unique_offerings?: Json | null
+          participant_name?: string | null
+          role_title?: string | null
+          submission_status?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
-          additional_sdgs?: string | null
-          amount_invested_2022?: number | null
-          amount_invested_current?: number | null
-          business_development_approach?: string[] | null
-          business_development_approach_other?: string | null
-          business_stages?: Json | null
           completed_at?: string | null
-          concessionary_capital?: string[] | null
-          concessionary_capital_other?: string | null
           created_at?: string | null
-          currency_hedging_details?: string | null
-          currency_hedging_strategy?: string | null
-          currency_investments?: string | null
-          currency_lp_commitments?: string | null
-          data_sharing_other?: string | null
-          data_sharing_willingness?: string[] | null
-          debt_investments_made?: number | null
-          debt_repayments_achieved?: number | null
-          debt_repayments_anticipated?: number | null
-          direct_jobs_anticipated?: number | null
-          direct_jobs_current?: number | null
-          domicile_reason?: string[] | null
-          domicile_reason_other?: string | null
           email_address?: string
-          employment_impact_other?: string | null
-          equity_exits_achieved?: number | null
-          equity_exits_anticipated?: number | null
-          equity_investments_made?: number | null
-          existing_lp_sources?: Json | null
-          financial_instruments_ranking?: Json | null
-          financing_needs?: Json | null
-          first_close_achieved?: string | null
-          first_investment_achieved?: string | null
-          follow_on_permitted?: string | null
-          fte_staff_2023_actual?: number | null
-          fte_staff_2025_forecast?: number | null
-          fte_staff_current?: number | null
-          fund_name?: string
-          fund_priorities_next_12m?: Json | null
-          fund_type_status?: string | null
-          fund_type_status_other?: string | null
-          fundraising_barriers?: Json | null
-          funds_raising_investing?: string
-          gender_inclusion?: string[] | null
-          gender_inclusion_other?: string | null
-          gender_lens_investing?: Json | null
-          geographic_markets?: string[] | null
-          geographic_markets_other?: string | null
-          gp_financial_commitment?: string[] | null
-          gp_financial_commitment_other?: string | null
-          gp_management_fee?: string | null
-          gp_management_fee_other?: string | null
-          hard_commitments_2022?: number | null
-          hard_commitments_current?: number | null
-          hurdle_rate_currency?: string | null
-          hurdle_rate_percentage?: number | null
+          firm_name?: string | null
+          form_data?: Json | null
+          fund_stage?: string | null
           id?: string
-          indirect_jobs_anticipated?: number | null
-          indirect_jobs_current?: number | null
-          investment_approval?: string[] | null
-          investment_approval_other?: string | null
-          investment_considerations?: Json | null
-          investment_monetisation_forms?: string[] | null
-          investment_monetisation_other?: string | null
-          investment_networks?: string[] | null
-          investment_networks_other?: string | null
-          legal_domicile?: string[] | null
-          legal_domicile_other?: string | null
-          legal_entity_achieved?: string | null
-          organisation_name?: string
-          other_investments_supplement?: string | null
-          pipeline_sources_quality?: Json | null
-          portfolio_cashflow_growth_12m?: number | null
-          portfolio_cashflow_growth_next_12m?: number | null
-          portfolio_performance_other?: string | null
-          portfolio_revenue_growth_12m?: number | null
-          portfolio_revenue_growth_next_12m?: number | null
-          post_investment_priorities?: Json | null
-          principals_total?: number | null
-          principals_women?: number | null
-          receive_results?: boolean | null
-          regulatory_impact?: Json | null
-          revenue_growth_mix?: Json | null
-          sector_target_allocation?: Json | null
-          sgb_financing_trends?: Json | null
-          survey_sender?: string | null
-          target_fund_size_2022?: number | null
-          target_fund_size_current?: number | null
-          target_lp_sources?: Json | null
-          target_number_investments?: number | null
-          target_return_above_govt_debt?: number | null
-          team_based?: string[] | null
-          team_based_other?: string | null
-          team_experience_exits?: Json | null
-          team_experience_investments?: Json | null
-          technical_assistance_funding?: Json | null
-          top_sdgs?: string[] | null
-          typical_investment_size?: string | null
-          typical_investment_timeframe?: string | null
-          unique_offerings?: Json | null
+          participant_name?: string | null
+          role_title?: string | null
+          submission_status?: string | null
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      survey_2021_target_capital_sources: {
+        Row: {
+          created_at: string | null
+          id: string
+          response_id: string
+          target_capital_sources: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          response_id: string
+          target_capital_sources: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          response_id?: string
+          target_capital_sources?: string
+        }
+        Relationships: []
+      }
+      survey_2021_target_sectors: {
+        Row: {
+          created_at: string | null
+          id: string
+          response_id: string
+          target_sectors: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          response_id: string
+          target_sectors: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          response_id?: string
+          target_sectors?: string
+        }
+        Relationships: []
+      }
+      survey_2021_team_based: {
+        Row: {
+          created_at: string | null
+          id: string
+          response_id: string
+          team_based: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          response_id: string
+          team_based: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          response_id?: string
+          team_based?: string
+        }
+        Relationships: []
+      }
+      survey_2022_concessionary_capital: {
+        Row: {
+          concessionary_capital: string
+          created_at: string | null
+          id: string
+          response_id: string
+        }
+        Insert: {
+          concessionary_capital: string
+          created_at?: string | null
+          id?: string
+          response_id: string
+        }
+        Update: {
+          concessionary_capital?: string
+          created_at?: string | null
+          id?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2022_enterprise_types: {
+        Row: {
+          created_at: string | null
+          enterprise_types: string
+          id: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          enterprise_types: string
+          id?: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          enterprise_types?: string
+          id?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2022_gender_orientation: {
+        Row: {
+          created_at: string | null
+          gender_orientation: string
+          id: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          gender_orientation: string
+          id?: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          gender_orientation?: string
+          id?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2022_geographic_markets: {
+        Row: {
+          created_at: string | null
+          geographic_markets: string
+          id: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          geographic_markets: string
+          id?: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          geographic_markets?: string
+          id?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2022_investment_monetization_exit_forms: {
+        Row: {
+          created_at: string | null
+          id: string
+          investment_monetization_exit_forms: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          investment_monetization_exit_forms: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          investment_monetization_exit_forms?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2022_responses: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          email: string
+          form_data: Json | null
+          id: string
+          legal_entity_date: string | null
+          name: string | null
+          organisation: string | null
+          role_title: string | null
+          submission_status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          email: string
+          form_data?: Json | null
+          id?: string
+          legal_entity_date?: string | null
+          name?: string | null
+          organisation?: string | null
+          role_title?: string | null
+          submission_status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          email?: string
+          form_data?: Json | null
+          id?: string
+          legal_entity_date?: string | null
+          name?: string | null
+          organisation?: string | null
+          role_title?: string | null
+          submission_status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      survey_2022_team_based: {
+        Row: {
+          created_at: string | null
+          id: string
+          response_id: string
+          team_based: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          response_id: string
+          team_based: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          response_id?: string
+          team_based?: string
+        }
+        Relationships: []
+      }
+      survey_2023_business_development_approach: {
+        Row: {
+          business_development_approach: string
+          created_at: string | null
+          id: string
+          response_id: string
+        }
+        Insert: {
+          business_development_approach: string
+          created_at?: string | null
+          id?: string
+          response_id: string
+        }
+        Update: {
+          business_development_approach?: string
+          created_at?: string | null
+          id?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2023_concessionary_capital: {
+        Row: {
+          concessionary_capital: string
+          created_at: string | null
+          id: string
+          response_id: string
+        }
+        Insert: {
+          concessionary_capital: string
+          created_at?: string | null
+          id?: string
+          response_id: string
+        }
+        Update: {
+          concessionary_capital?: string
+          created_at?: string | null
+          id?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2023_exit_form: {
+        Row: {
+          created_at: string | null
+          exit_form: string
+          id: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          exit_form: string
+          id?: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          exit_form?: string
+          id?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2023_future_research_data: {
+        Row: {
+          created_at: string | null
+          future_research_data: string
+          id: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          future_research_data: string
+          id?: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          future_research_data?: string
+          id?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2023_gender_inclusion: {
+        Row: {
+          created_at: string | null
+          gender_inclusion: string
+          id: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          gender_inclusion: string
+          id?: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          gender_inclusion?: string
+          id?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2023_geographic_markets: {
+        Row: {
+          created_at: string | null
+          geographic_markets: string
+          id: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          geographic_markets: string
+          id?: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          geographic_markets?: string
+          id?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2023_gp_financial_commitment: {
+        Row: {
+          created_at: string | null
+          gp_financial_commitment: string
+          id: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          gp_financial_commitment: string
+          id?: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          gp_financial_commitment?: string
+          id?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2023_legal_domicile: {
+        Row: {
+          created_at: string | null
+          id: string
+          legal_domicile: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          legal_domicile: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          legal_domicile?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2023_responses: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          email_address: string
+          form_data: Json | null
+          fund_name: string | null
+          funds_raising_investing: string | null
+          id: string
+          organisation_name: string | null
+          submission_status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          email_address: string
+          form_data?: Json | null
+          fund_name?: string | null
+          funds_raising_investing?: string | null
+          id?: string
+          organisation_name?: string | null
+          submission_status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          email_address?: string
+          form_data?: Json | null
+          fund_name?: string | null
+          funds_raising_investing?: string | null
+          id?: string
+          organisation_name?: string | null
+          submission_status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      survey_2023_sustainable_development_goals: {
+        Row: {
+          created_at: string | null
+          id: string
+          response_id: string
+          sustainable_development_goals: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          response_id: string
+          sustainable_development_goals: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          response_id?: string
+          sustainable_development_goals?: string
+        }
+        Relationships: []
+      }
+      survey_2023_team_based: {
+        Row: {
+          created_at: string | null
+          id: string
+          response_id: string
+          team_based: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          response_id: string
+          team_based: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          response_id?: string
+          team_based?: string
+        }
+        Relationships: []
+      }
+      survey_2024_business_development_approach: {
+        Row: {
+          business_development_approach: string
+          created_at: string | null
+          id: string
+          response_id: string
+        }
+        Insert: {
+          business_development_approach: string
+          created_at?: string | null
+          id?: string
+          response_id: string
+        }
+        Update: {
+          business_development_approach?: string
+          created_at?: string | null
+          id?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2024_concessionary_capital: {
+        Row: {
+          concessionary_capital: string
+          created_at: string | null
+          id: string
+          response_id: string
+        }
+        Insert: {
+          concessionary_capital: string
+          created_at?: string | null
+          id?: string
+          response_id: string
+        }
+        Update: {
+          concessionary_capital?: string
+          created_at?: string | null
+          id?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2024_data_sharing_willingness: {
+        Row: {
+          created_at: string | null
+          data_sharing_willingness: string
+          id: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          data_sharing_willingness: string
+          id?: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          data_sharing_willingness?: string
+          id?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2024_domicile_reason: {
+        Row: {
+          created_at: string | null
+          domicile_reason: string
+          id: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          domicile_reason: string
+          id?: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          domicile_reason?: string
+          id?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2024_gender_inclusion: {
+        Row: {
+          created_at: string | null
+          gender_inclusion: string
+          id: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          gender_inclusion: string
+          id?: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          gender_inclusion?: string
+          id?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2024_geographic_markets: {
+        Row: {
+          created_at: string | null
+          geographic_markets: string
+          id: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          geographic_markets: string
+          id?: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          geographic_markets?: string
+          id?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2024_gp_financial_commitment: {
+        Row: {
+          created_at: string | null
+          gp_financial_commitment: string
+          id: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          gp_financial_commitment: string
+          id?: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          gp_financial_commitment?: string
+          id?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2024_investment_approval: {
+        Row: {
+          created_at: string | null
+          id: string
+          investment_approval: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          investment_approval: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          investment_approval?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2024_investment_monetisation_forms: {
+        Row: {
+          created_at: string | null
+          id: string
+          investment_monetisation_forms: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          investment_monetisation_forms: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          investment_monetisation_forms?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2024_investment_networks: {
+        Row: {
+          created_at: string | null
+          id: string
+          investment_networks: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          investment_networks: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          investment_networks?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2024_legal_domicile: {
+        Row: {
+          created_at: string | null
+          id: string
+          legal_domicile: string
+          response_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          legal_domicile: string
+          response_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          legal_domicile?: string
+          response_id?: string
+        }
+        Relationships: []
+      }
+      survey_2024_responses: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          email_address: string
+          form_data: Json | null
+          fund_name: string | null
+          funds_raising_investing: string | null
+          id: string
+          organisation_name: string | null
+          submission_status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          email_address: string
+          form_data?: Json | null
+          fund_name?: string | null
+          funds_raising_investing?: string | null
+          id?: string
+          organisation_name?: string | null
+          submission_status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          email_address?: string
+          form_data?: Json | null
+          fund_name?: string | null
+          funds_raising_investing?: string | null
+          id?: string
+          organisation_name?: string | null
+          submission_status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      survey_2024_team_based: {
+        Row: {
+          created_at: string | null
+          id: string
+          response_id: string
+          team_based: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          response_id: string
+          team_based: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          response_id?: string
+          team_based?: string
+        }
+        Relationships: []
+      }
+      user_backup: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          first_name: string | null
+          id: string | null
+          last_name: string | null
+          role: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          first_name?: string | null
+          id?: string | null
+          last_name?: string | null
+          role?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          first_name?: string | null
+          id?: string | null
+          last_name?: string | null
+          role?: string | null
         }
         Relationships: []
       }
       user_roles: {
         Row: {
           assigned_at: string | null
-          assigned_by: string | null
+          created_at: string | null
+          email: string
           id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
+          role: string
+          updated_at: string | null
+          user_id: string | null
         }
         Insert: {
           assigned_at?: string | null
-          assigned_by?: string | null
+          created_at?: string | null
+          email: string
           id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id: string
+          role?: string
+          updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
           assigned_at?: string | null
-          assigned_by?: string | null
+          created_at?: string | null
+          email?: string
           id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
+          role?: string
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1297,72 +1651,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      admin_create_viewer: {
-        Args: {
-          p_email: string
-          p_password: string
-          p_survey_data: Json
-          p_survey_year: number
-        }
-        Returns: Json
-      }
-      create_user_as_admin: {
-        Args: {
-          p_email: string
-          p_first_name?: string
-          p_last_name?: string
-          p_password: string
-          p_role?: string
-        }
-        Returns: Json
-      }
-      create_user_by_admin: {
-        Args: {
-          p_email: string
-          p_first_name?: string
-          p_last_name?: string
-          p_password: string
-        }
-        Returns: Json
-      }
-      create_viewer_survey_data: {
-        Args: { p_survey_data: Json; p_survey_year: number; p_user_id: string }
-        Returns: string
-      }
-      create_viewer_with_survey: {
-        Args: {
-          survey_data: Json
-          survey_year: number
-          viewer_email: string
-          viewer_password: string
-        }
-        Returns: string
-      }
-      get_admin_stats: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          active_users_today: number
-          admins_count: number
-          members_count: number
-          new_registrations_today: number
-          surveys_completed: number
-          viewers_count: number
-        }[]
-      }
-      get_previous_survey_data: {
+      get_or_create_user_role: {
         Args: { user_uuid: string }
-        Returns: Json
+        Returns: string
       }
-      get_survey_stats: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          avg_completion_time: unknown
-          completed_surveys: number
-          surveys_this_month: number
-          total_surveys: number
-        }[]
-      }
-      get_user_role: {
+      get_user_role_safe: {
         Args: { user_uuid: string }
         Returns: string
       }

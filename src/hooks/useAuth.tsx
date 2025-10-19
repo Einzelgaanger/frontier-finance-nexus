@@ -11,7 +11,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: unknown }>;
   signUp: (email: string, password: string, metadata?: Record<string, unknown>) => Promise<{ error: unknown }>;
   signOut: () => Promise<void>;
-  signInWithGoogle: () => Promise<{ error: unknown }>;
+  signInWithMagicLink: (email: string) => Promise<{ error: unknown }>;
   resetPassword: (email: string) => Promise<{ error: unknown }>;
   refreshUserRole: () => Promise<void>;
 }
@@ -28,46 +28,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('Fetching user role for:', userId);
       
-      // First try to get the role from user_roles table
+      // Use the safe SECURITY DEFINER function to get role (bypasses RLS)
       const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .maybeSingle();
-      
+        .rpc('get_user_role_safe', { user_uuid: userId });
+
       if (error) {
         console.error('Error fetching user role:', error);
-        // If there's an error, try to create a default role
-        const { error: insertError } = await supabase
-          .from('user_roles')
-          .insert({ user_id: userId, role: 'viewer' });
-        
-        if (insertError) {
-          console.error('Error creating default role:', insertError);
-          // If we can't create a role, default to viewer
-          setUserRole('viewer');
-        } else {
-          setUserRole('viewer');
-        }
+        setUserRole('viewer');
         return;
       }
 
-      if (!data) {
-        console.log('No role found, creating default viewer role');
-        const { error: insertError } = await supabase
-          .from('user_roles')
-          .insert({ user_id: userId, role: 'viewer' });
-        
-        if (insertError) {
-          console.error('Error creating default role:', insertError);
-          setUserRole('viewer');
-        } else {
-          setUserRole('viewer');
-        }
-      } else {
-        console.log('User role fetched:', data.role);
-        setUserRole(data.role);
-      }
+      const role = data || 'viewer';
+      console.log('User role fetched:', role);
+      setUserRole(role);
     } catch (error) {
       console.error('Error in fetchUserRole:', error);
       setUserRole('viewer');
@@ -145,7 +118,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Handle redirect after successful authentication
           if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && 
               window.location.pathname === '/auth') {
-            window.location.href = '/dashboard';
+            // Redirect members to network, others to dashboard
+            const redirectPath = userRole === 'member' ? '/network' : '/dashboard';
+            window.location.href = redirectPath;
           }
         } else {
           setUserRole(null);
@@ -211,10 +186,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      console.log('Attempting sign in for:', email);
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
+      
+      if (error) {
+        console.error('Supabase auth error:', error);
+        // Handle specific error types
+        if (error.message.includes('500')) {
+          console.error('Server error (500) - This might be a Supabase service issue');
+        }
+      } else {
+        console.log('Sign in successful:', data);
+      }
+      
       return { error };
     } catch (error) {
       console.error('Sign in error:', error);
@@ -247,25 +234,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signInWithGoogle = async () => {
+  const signInWithMagicLink = async (email: string) => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
         options: {
-          redirectTo: `${window.location.origin}/dashboard`
+          emailRedirectTo: `${window.location.origin}/dashboard`
         }
       });
       return { error };
     } catch (error) {
-      console.error('Google sign in error:', error);
+      console.error('Magic link sign in error:', error);
       return { error };
     }
   };
-
+  
   const resetPassword = async (email: string) => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${window.location.origin}/auth`,
       });
       return { error };
     } catch (error) {
@@ -283,7 +270,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signIn,
       signUp,
       signOut,
-      signInWithGoogle,
+      signInWithMagicLink,
       resetPassword,
       refreshUserRole,
     }}>

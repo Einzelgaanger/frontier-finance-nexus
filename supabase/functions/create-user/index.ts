@@ -119,15 +119,15 @@ serve(async (req) => {
     }
 
     // Assign the role to the user
-    const { error: roleError } = await serviceRoleClient
+    const { error: roleAssignError } = await serviceRoleClient
       .from('user_roles')
       .insert({
         user_id: userData.user.id,
         role: role
       })
 
-    if (roleError) {
-      console.error('Error assigning role:', roleError)
+    if (roleAssignError) {
+      console.error('Error assigning role:', roleAssignError)
       // Don't fail the request if role assignment fails, just log it
     }
 

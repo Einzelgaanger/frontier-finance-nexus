@@ -150,14 +150,18 @@ const ResetPassword = () => {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
+      <div className="min-h-screen bg-cover bg-center bg-fixed flex items-center justify-center p-4 font-rubik" style={{ backgroundImage: 'url(/auth.jpg)' }}>
+        <Card className="w-full max-w-md border border-blue-600/40 bg-blue-700/30 backdrop-blur-md relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide">
           <CardHeader className="text-center pb-6">
-            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-              <CheckCircle className="w-8 h-8 text-green-600" />
+            <div className="flex justify-center mb-4">
+              <img 
+                src="/CFF LOGO.png" 
+                alt="CFF Logo" 
+                className="h-16 w-auto object-contain"
+              />
             </div>
-            <CardTitle className="text-2xl font-bold text-gray-900">Password Updated!</CardTitle>
-            <CardDescription className="text-gray-600">
+            <CardTitle className="text-2xl font-bold text-white">Password Updated!</CardTitle>
+            <CardDescription className="text-white/90">
               Your password has been successfully updated. Redirecting you to sign in...
             </CardDescription>
           </CardHeader>
@@ -175,14 +179,18 @@ const ResetPassword = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
+    <div className="min-h-screen bg-cover bg-center bg-fixed flex items-center justify-center p-4 font-rubik" style={{ backgroundImage: 'url(/auth.jpg)' }}>
+      <Card className="w-full max-w-md border border-blue-600/40 bg-blue-700/30 backdrop-blur-md relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide">
         <CardHeader className="text-center pb-6">
-          <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-            <Lock className="w-8 h-8 text-blue-600" />
+          <div className="flex justify-center mb-4">
+            <img 
+              src="/CFF LOGO.png" 
+              alt="CFF Logo" 
+              className="h-16 w-auto object-contain"
+            />
           </div>
-          <CardTitle className="text-2xl font-bold text-gray-900">Reset Your Password</CardTitle>
-          <CardDescription className="text-gray-600">
+          <CardTitle className="text-2xl font-bold text-white">Reset Your Password</CardTitle>
+          <CardDescription className="text-white/90">
             Enter your new password below
           </CardDescription>
         </CardHeader>

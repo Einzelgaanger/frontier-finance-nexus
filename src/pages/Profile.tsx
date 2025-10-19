@@ -33,7 +33,6 @@ const Profile = () => {
     first_name: '',
     last_name: '',
     email: '',
-    phone: '',
     profile_picture_url: ''
   });
 
@@ -60,8 +59,7 @@ const Profile = () => {
           first_name: data.first_name || '',
           last_name: data.last_name || '',
           email: data.email || user.email || '',
-          phone: data.phone || '',
-          profile_picture_url: data.profile_picture_url || ''
+          profile_picture_url: ''
         });
       } else {
         // Create profile if it doesn't exist
@@ -69,7 +67,6 @@ const Profile = () => {
           first_name: '',
           last_name: '',
           email: user.email || '',
-          phone: '',
           profile_picture_url: ''
         });
       }
@@ -96,7 +93,6 @@ const Profile = () => {
           first_name: profile.first_name,
           last_name: profile.last_name,
           email: profile.email,
-          phone: profile.phone,
           profile_picture_url: profile.profile_picture_url,
           updated_at: new Date().toISOString()
         });
@@ -309,15 +305,15 @@ const Profile = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
-                    Phone Number
+                  <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                    Email Address
                   </Label>
                   <Input
-                    id="phone"
-                    type="tel"
-                    value={profile.phone}
-                    onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                    placeholder="Enter your phone number"
+                    id="email"
+                    type="email"
+                    value={profile.email}
+                    onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                    placeholder="Enter your email address"
                     className="border-gray-300"
                   />
                 </div>

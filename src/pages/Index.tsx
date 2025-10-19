@@ -11,6 +11,15 @@ const Index = () => {
       <section className="relative min-h-screen bg-cover bg-center bg-no-repeat" style={{ backgroundImage: 'url(/CFF.jpg)' }}>
         <div className="absolute inset-0 bg-black/40"></div>
         
+        {/* Top Left Logo */}
+        <div className="absolute top-6 left-6 z-20">
+          <img 
+            src="/CFF LOGO.png" 
+            alt="CFF Logo" 
+            className="h-16 w-auto object-contain"
+          />
+        </div>
+        
         {/* Hero Content - Centered in the full screen */}
         <div className="relative z-10 flex items-center justify-center min-h-screen">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -179,9 +188,8 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Company Info */}
             <div className="col-span-1 lg:col-span-2">
-              <div className="flex items-center space-x-3 mb-4">
-                <img src="/logo.jpg" alt="CFF Logo" className="w-10 h-10 rounded-lg shadow-lg" />
-                <span className="text-xl font-bold text-white">Collaborative for Frontier Finance</span>
+              <div className="flex justify-start mb-4">
+                <img src="/CFF LOGO.png" alt="CFF Logo" className="h-16 w-auto object-contain" />
               </div>
               <p className="text-gray-300 mb-4 text-base leading-relaxed">
                 Connecting emerging market fund managers through comprehensive data collection and analytics.

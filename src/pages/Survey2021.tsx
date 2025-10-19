@@ -1,12 +1,15 @@
+// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useSurveyPersistence } from '@/hooks/useSurveyPersistence';
+import { useSurveyStatus } from '@/hooks/useSurveyStatus';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,10 +18,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, ArrowRight, Save, Send } from 'lucide-react';
+import SidebarLayout from '@/components/layout/SidebarLayout';
+import ReadOnlySurvey2021 from '@/components/survey/ReadOnlySurvey2021';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
 // Schema for 2021 survey
 const survey2021Schema = z.object({
   // Section 1: Background Information
+  email_address: z.string().email("Valid email is required"),
   firm_name: z.string().min(1, "Firm name is required"),
   participant_name: z.string().min(1, "Participant name is required"),
   role_title: z.string().min(1, "Role/title is required"),
@@ -53,16 +60,19 @@ const survey2021Schema = z.object({
   target_irr_achieved: z.string().min(1, "Achieved IRR is required"),
   target_irr_targeted: z.string().min(1, "Targeted IRR is required"),
   impact_vs_financial_orientation: z.string().min(1, "Impact vs financial orientation is required"),
+  impact_vs_financial_orientation_other: z.string().optional(),
   explicit_lens_focus: z.array(z.string()).min(1, "Please select at least one lens focus"),
   explicit_lens_focus_other: z.string().optional(),
   report_sustainable_development_goals: z.boolean(),
   top_sdg_1: z.string().optional(),
   top_sdg_2: z.string().optional(),
   top_sdg_3: z.string().optional(),
+  top_sdgs: z.record(z.string(), z.string()).optional(),
   gender_considerations_investment: z.array(z.string()).min(1, "Please select at least one gender consideration"),
   gender_considerations_investment_other: z.string().optional(),
   gender_considerations_requirement: z.array(z.string()).min(1, "Please select at least one gender requirement"),
   gender_considerations_requirement_other: z.string().optional(),
+  gender_considerations_other_enabled: z.boolean().optional(),
   gender_fund_vehicle: z.array(z.string()).min(1, "Please select at least one gender fund vehicle"),
   gender_fund_vehicle_other: z.string().optional(),
   
@@ -79,11 +89,14 @@ const survey2021Schema = z.object({
   // Section 4: Portfolio Development & Investment Return Monetization
   portfolio_needs_ranking: z.record(z.string(), z.string()),
   portfolio_needs_other: z.string().optional(),
+  portfolio_needs_other_enabled: z.boolean().optional(),
   investment_monetization: z.array(z.string()).min(1, "Please select at least one monetization method"),
   investment_monetization_other: z.string().optional(),
   exits_achieved: z.string().min(1, "Number of exits is required"),
+  exits_achieved_other: z.string().optional(),
   fund_capabilities_ranking: z.record(z.string(), z.string()),
   fund_capabilities_other: z.string().optional(),
+  fund_capabilities_other_enabled: z.boolean().optional(),
   
   // Section 5: Impact of COVID-19 on Vehicle and Portfolio
   covid_impact_aggregate: z.string().min(1, "COVID-19 impact is required"),
@@ -102,27 +115,35 @@ const survey2021Schema = z.object({
   webinar_content_ranking: z.record(z.string(), z.string()),
   new_webinar_suggestions: z.string().optional(),
   communication_platform: z.string().min(1, "Communication platform is required"),
+  communication_platform_other: z.string().optional(),
   network_value_areas: z.record(z.string(), z.string()),
-  present_connection_session: z.boolean(),
+  present_connection_session: z.string().min(1, "Please select an option"),
+  present_connection_session_other: z.string().optional(),
   convening_initiatives_ranking: z.record(z.string(), z.string()),
   convening_initiatives_other: z.string().optional(),
+  convening_initiatives_other_enabled: z.boolean().optional(),
   
   // Section 7: 2021 Convening Objectives & Goals
   participate_mentoring_program: z.string().optional(),
+  participate_mentoring_program_other: z.string().optional(),
   present_demystifying_session: z.array(z.string()).min(1, "Please select at least one session topic"),
   present_demystifying_session_other: z.string().optional(),
+  present_demystifying_session_other_enabled: z.boolean().optional(),
   additional_comments: z.string().optional(),
 });
 
 type Survey2021FormData = z.infer<typeof survey2021Schema>;
 
 const Survey2021: React.FC = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { isSurveyCompleted } = useSurveyStatus();
   const [currentSection, setCurrentSection] = useState(1);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  
+  const [showIntro, setShowIntro] = useState(true);
+
   // Initialize persistence hook
   const {
     saveCurrentSection,
@@ -133,13 +154,14 @@ const Survey2021: React.FC = () => {
     getSavedFormData,
     saveFormData,
   } = useSurveyPersistence({ surveyKey: 'survey2021' });
-  
+
   const totalSections = 7;
   const progress = (currentSection / totalSections) * 100;
 
   const form = useForm<Survey2021FormData>({
     resolver: zodResolver(survey2021Schema),
     defaultValues: {
+      email_address: '',
       firm_name: '',
       participant_name: '',
       role_title: '',
@@ -172,16 +194,19 @@ const Survey2021: React.FC = () => {
       target_irr_achieved: '',
       target_irr_targeted: '',
       impact_vs_financial_orientation: '',
+      impact_vs_financial_orientation_other: '',
       explicit_lens_focus: [],
       explicit_lens_focus_other: '',
       report_sustainable_development_goals: false,
       top_sdg_1: '',
       top_sdg_2: '',
       top_sdg_3: '',
+      top_sdgs: {},
       gender_considerations_investment: [],
       gender_considerations_investment_other: '',
       gender_considerations_requirement: [],
       gender_considerations_requirement_other: '',
+      gender_considerations_other_enabled: false,
       gender_fund_vehicle: [],
       gender_fund_vehicle_other: '',
       investment_size_your_amount: '',
@@ -194,11 +219,14 @@ const Survey2021: React.FC = () => {
       current_ftes: '',
       portfolio_needs_ranking: {},
       portfolio_needs_other: '',
+      portfolio_needs_other_enabled: false,
       investment_monetization: [],
       investment_monetization_other: '',
       exits_achieved: '',
+      exits_achieved_other: '',
       fund_capabilities_ranking: {},
       fund_capabilities_other: '',
+      fund_capabilities_other_enabled: false,
       covid_impact_aggregate: '',
       covid_impact_portfolio: {},
       covid_government_support: [],
@@ -213,13 +241,18 @@ const Survey2021: React.FC = () => {
       webinar_content_ranking: {},
       new_webinar_suggestions: '',
       communication_platform: '',
+      communication_platform_other: '',
       network_value_areas: {},
-      present_connection_session: false,
+      present_connection_session: '',
+      present_connection_session_other: '',
       convening_initiatives_ranking: {},
       convening_initiatives_other: '',
+      convening_initiatives_other_enabled: false,
       participate_mentoring_program: '',
+      participate_mentoring_program_other: '',
       present_demystifying_session: [],
       present_demystifying_session_other: '',
+      present_demystifying_session_other_enabled: false,
       additional_comments: '',
     },
   });
@@ -262,15 +295,22 @@ const Survey2021: React.FC = () => {
     saveScrollPosition();
   }, [currentSection]);
 
+  // Check if survey is completed and show read-only version
+  const surveyCompleted = isSurveyCompleted('2021');
+  
+  if (surveyCompleted) {
+    return <ReadOnlySurvey2021 />;
+  }
+
   const handleNext = () => {
     if (currentSection < totalSections) {
       const nextSection = currentSection + 1;
       setCurrentSection(nextSection);
       saveCurrentSection(nextSection);
       
-      // Save scroll position before moving to next section
+      // Scroll to top of page for better UX
       setTimeout(() => {
-        saveScrollPosition();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }, 100);
     }
   };
@@ -298,12 +338,17 @@ const Survey2021: React.FC = () => {
       // Save to localStorage as backup
       saveFormData(formData);
       
-      // @ts-expect-error - Supabase table type mismatch
       const { error } = await supabase
-        .from('survey_responses_2021')
+        .from('survey_2021_responses')
         .upsert({
           user_id: user.id,
-          ...formData,
+          email_address: formData.email_address,
+          firm_name: formData.firm_name,
+          participant_name: formData.participant_name,
+          role_title: formData.role_title,
+          fund_stage: formData.fund_stage,
+          form_data: formData,
+          submission_status: 'draft',
           updated_at: new Date().toISOString(),
         });
 
@@ -332,13 +377,19 @@ const Survey2021: React.FC = () => {
     setLoading(true);
     try {
       const { error } = await supabase
-        .from('survey_responses_2021')
+        .from('survey_2021_responses')
         .upsert({
           user_id: user.id,
-          ...data,
+          email_address: data.email_address,
+          firm_name: data.firm_name,
+          participant_name: data.participant_name,
+          role_title: data.role_title,
+          fund_stage: data.fund_stage,
+          form_data: data,
+          submission_status: 'completed',
           completed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        } as unknown as Record<string, unknown>);
+        });
 
       if (error) throw error;
       
@@ -379,43 +430,102 @@ const Survey2021: React.FC = () => {
     }
   };
 
+  const renderSectionSidebar = () => (
+    <div className="w-64 bg-white border-l border-gray-200 p-4 fixed right-0 top-20 h-[calc(100vh-5rem)] overflow-hidden flex flex-col">
+      <h3 className="text-sm font-semibold text-gray-900 mb-4">Survey Sections</h3>
+      <div className="space-y-2 overflow-y-auto flex-1">
+        {Array.from({ length: totalSections }, (_, idx) => idx + 1).map((sectionNumber) => {
+          const isActive = currentSection === sectionNumber;
+          return (
+            <button
+              key={sectionNumber}
+              type="button"
+              onClick={() => {
+                setCurrentSection(sectionNumber);
+                setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 0);
+              }}
+              className={[
+                'w-full text-left px-3 py-2 rounded-md border transition-colors',
+                isActive
+                  ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                  : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+              ].join(' ')}
+              aria-current={isActive ? 'page' : undefined}
+            >
+              <div className="flex items-start gap-2">
+                <span className="font-semibold text-xs mt-0.5">{sectionNumber}.</span>
+                <span className="text-xs leading-tight">{getSectionTitle(sectionNumber)}</span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => navigate('/survey')}
+        className="mt-4 w-full"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back to Surveys
+      </Button>
+    </div>
+  );
+
   const renderSection1 = () => (
     <div className="space-y-6">
-      <div>
-        <Label htmlFor="firm_name">Name of firm *</Label>
-        <Input
-          id="firm_name"
-          {...form.register("firm_name")}
-          placeholder="Enter your firm name"
-        />
-        {form.formState.errors.firm_name && (
-          <p className="text-red-500 text-sm mt-1">{form.formState.errors.firm_name.message}</p>
+      <FormField
+        control={form.control}
+        name="email_address"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Email address *</FormLabel>
+            <FormControl>
+              <Input {...field} type="email" placeholder="your.email@example.com" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
         )}
-      </div>
-
-      <div>
-        <Label htmlFor="participant_name">Name of participant *</Label>
-        <Input
-          id="participant_name"
-          {...form.register("participant_name")}
-          placeholder="Enter participant name"
-        />
-        {form.formState.errors.participant_name && (
-          <p className="text-red-500 text-sm mt-1">{form.formState.errors.participant_name.message}</p>
+      />
+      <FormField
+        control={form.control}
+        name="firm_name"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Name of firm *</FormLabel>
+            <FormControl>
+              <Input {...field} placeholder="Enter your firm name" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
         )}
-      </div>
-
-      <div>
-        <Label htmlFor="role_title">Role / title of participant *</Label>
-        <Input
-          id="role_title"
-          {...form.register("role_title")}
-          placeholder="Enter your role/title"
-        />
-        {form.formState.errors.role_title && (
-          <p className="text-red-500 text-sm mt-1">{form.formState.errors.role_title.message}</p>
+      />
+      <FormField
+        control={form.control}
+        name="participant_name"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Name of participant *</FormLabel>
+            <FormControl>
+              <Input {...field} placeholder="Enter participant name" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
         )}
-      </div>
+      />
+      <FormField
+        control={form.control}
+        name="role_title"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Role / title of participant *</FormLabel>
+            <FormControl>
+              <Input {...field} placeholder="Enter your role/title" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
       <div>
         <Label>Where is your team based? *</Label>
@@ -423,7 +533,7 @@ const Survey2021: React.FC = () => {
           {[
             "US/Europe", "Asia - South Asia", "Asia - Central Asia", "Asia - South East Asia",
             "Africa - West Africa", "Africa - East Africa", "Africa - Central Africa", 
-            "Africa - Southern Africa", "Africa - North Africa", "Latin America", "Middle East"
+            "Africa - Southern Africa", "Africa - North Africa", "Latin America", "Middle East", "Other"
           ].map((location) => (
             <div key={location} className="flex items-center space-x-2">
               <Checkbox
@@ -438,19 +548,21 @@ const Survey2021: React.FC = () => {
                   }
                 }}
               />
-              <Label htmlFor={`team_based_${location}`} className="text-sm">{location}</Label>
+              <Label htmlFor={`team_based_${location}`} className="text-sm font-normal text-gray-800">{location}</Label>
             </div>
           ))}
         </div>
-        <div className="mt-3">
-          <Label htmlFor="team_based_other">Other:</Label>
-          <Input
-            id="team_based_other"
-            {...form.register("team_based_other")}
-            placeholder="Please specify other location"
-            className="mt-1"
-          />
-        </div>
+        {form.watch("team_based").includes("Other") && (
+          <div className="mt-3">
+            <Label htmlFor="team_based_other" className="text-sm font-medium text-gray-700">Please specify other location:</Label>
+            <Input
+              id="team_based_other"
+              {...form.register("team_based_other")}
+              placeholder="Please specify other location"
+              className="mt-1"
+            />
+          </div>
+        )}
         {form.formState.errors.team_based && (
           <p className="text-red-500 text-sm mt-1">{form.formState.errors.team_based.message}</p>
         )}
@@ -462,7 +574,7 @@ const Survey2021: React.FC = () => {
           {[
             "US/Europe", "Asia - South Asia", "Asia - Central Asia", "Asia - South East Asia",
             "Africa - West Africa", "Africa - East Africa", "Africa - Central Africa", 
-            "Africa - Southern Africa", "Africa - North Africa", "Latin America", "Middle East"
+            "Africa - Southern Africa", "Africa - North Africa", "Latin America", "Middle East", "Other"
           ].map((region) => (
             <div key={region} className="flex items-center space-x-2">
               <Checkbox
@@ -477,26 +589,28 @@ const Survey2021: React.FC = () => {
                   }
                 }}
               />
-              <Label htmlFor={`geographic_focus_${region}`} className="text-sm">{region}</Label>
+              <Label htmlFor={`geographic_focus_${region}`} className="text-sm font-normal text-gray-800">{region}</Label>
             </div>
           ))}
         </div>
-        <div className="mt-3">
-          <Label htmlFor="geographic_focus_other">Other:</Label>
-          <Input
-            id="geographic_focus_other"
-            {...form.register("geographic_focus_other")}
-            placeholder="Please specify other geographic focus"
-            className="mt-1"
-          />
-        </div>
+        {form.watch("geographic_focus").includes("Other") && (
+          <div className="mt-3">
+            <Label htmlFor="geographic_focus_other" className="text-sm font-medium text-gray-700">Please specify other geographic focus:</Label>
+            <Input
+              id="geographic_focus_other"
+              {...form.register("geographic_focus_other")}
+              placeholder="Please specify other geographic focus"
+              className="mt-1"
+            />
+          </div>
+        )}
         {form.formState.errors.geographic_focus && (
           <p className="text-red-500 text-sm mt-1">{form.formState.errors.geographic_focus.message}</p>
         )}
       </div>
 
       <div>
-        <Label htmlFor="fund_stage">What is the stage of your current fund/vehicle's operations? *</Label>
+        <Label htmlFor="fund_stage" >What is the stage of your current fund/vehicle's operations? *</Label>
         <Select onValueChange={(value) => {
           form.setValue("fund_stage", value);
           // Clear the "Other" field if not selecting "Other"
@@ -522,7 +636,7 @@ const Survey2021: React.FC = () => {
         {/* Only show "Other" input when "Other" is selected */}
         {form.watch("fund_stage") === "Other" && (
           <div className="mt-3">
-            <Label htmlFor="fund_stage_other">Please specify other fund stage:</Label>
+            <Label htmlFor="fund_stage_other" className="text-sm font-medium text-gray-700">Please specify other fund stage:</Label>
             <Input
               id="fund_stage_other"
               {...form.register("fund_stage_other")}
@@ -543,12 +657,12 @@ const Survey2021: React.FC = () => {
       {/* Question 7: Timeline */}
       <div className="space-y-4">
         <div>
-          <Label className="text-base font-medium">7. When did your current fund/investment vehicle achieve each of the following?</Label>
+          <Label >7. When did your current fund/investment vehicle achieve each of the following?</Label>
         </div>
         
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <Label htmlFor="legal_entity_date">Legal entity *</Label>
+            <Label htmlFor="legal_entity_date" className="text-sm font-medium text-gray-700">Legal entity *</Label>
             <Select onValueChange={(value) => form.setValue("legal_entity_date", value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select date" />
@@ -573,7 +687,7 @@ const Survey2021: React.FC = () => {
           </div>
 
           <div>
-            <Label htmlFor="first_close_date">1st close (or equivalent) *</Label>
+            <Label htmlFor="first_close_date" className="text-sm font-medium text-gray-700">1st close (or equivalent) *</Label>
             <Select onValueChange={(value) => form.setValue("first_close_date", value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select date" />
@@ -598,7 +712,7 @@ const Survey2021: React.FC = () => {
           </div>
 
           <div>
-            <Label htmlFor="first_investment_date">First investment *</Label>
+            <Label htmlFor="first_investment_date" className="text-sm font-medium text-gray-700">First investment *</Label>
             <Select onValueChange={(value) => form.setValue("first_investment_date", value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select date" />
@@ -627,7 +741,7 @@ const Survey2021: React.FC = () => {
       {/* Question 8: Number of investments */}
       <div className="space-y-4">
         <div>
-          <Label className="text-base font-medium">8. Please specify the number of investments made to date by your current vehicle</Label>
+          <Label >8. Please specify the number of investments made to date by your current vehicle</Label>
         </div>
         
         <div className="grid grid-cols-2 gap-6">
@@ -684,7 +798,7 @@ const Survey2021: React.FC = () => {
       {/* Question 10: Type of investment vehicle */}
       <div className="space-y-4">
         <div>
-          <Label className="text-base font-medium">10. Type of investment vehicle *</Label>
+          <Label >10. Type of investment vehicle *</Label>
         </div>
         
         <div className="grid grid-cols-2 gap-3 mt-2">
@@ -706,7 +820,7 @@ const Survey2021: React.FC = () => {
                   }
                 }}
               />
-              <Label htmlFor={`vehicle_type_${type}`} className="text-sm">{type}</Label>
+              <Label htmlFor={`vehicle_type_${type}`} className="text-sm font-normal text-gray-800">{type}</Label>
             </div>
           ))}
         </div>
@@ -728,7 +842,7 @@ const Survey2021: React.FC = () => {
       {/* Question 11: Fund size */}
       <div className="space-y-4">
         <div>
-          <Label className="text-base font-medium">11. What is the current (hard commitments raised) and target size of your fund / investment vehicle?</Label>
+          <Label >11. What is the current (hard commitments raised) and target size of your fund / investment vehicle?</Label>
         </div>
         
         <div className="grid grid-cols-2 gap-6">
@@ -770,7 +884,7 @@ const Survey2021: React.FC = () => {
       {/* Question 12: Investment timeframe */}
       <div className="space-y-4">
         <div>
-          <Label className="text-base font-medium">12. Typical investment timeframe *</Label>
+          <Label >12. Typical investment timeframe *</Label>
         </div>
         
         <Select onValueChange={(value) => {
@@ -793,11 +907,11 @@ const Survey2021: React.FC = () => {
         </Select>
         {form.watch("investment_timeframe") === "Other" && (
           <div className="mt-3">
-            <Label htmlFor="investment_timeframe_other">Other:</Label>
+            <Label htmlFor="investment_timeframe_other">Please specify other timeframe:</Label>
             <Input
               id="investment_timeframe_other"
               {...form.register("investment_timeframe_other")}
-              placeholder="Please specify other timeframe"
+              placeholder="Enter your custom timeframe"
               className="mt-1"
             />
           </div>
@@ -807,7 +921,7 @@ const Survey2021: React.FC = () => {
       {/* Question 13: Type of business model targeted */}
       <div className="space-y-4">
         <div>
-          <Label className="text-base font-medium">13. Type of business model targeted *</Label>
+          <Label >13. Type of business model targeted *</Label>
         </div>
         
         <div className="grid grid-cols-2 gap-3 mt-2">
@@ -832,7 +946,7 @@ const Survey2021: React.FC = () => {
                   }
                 }}
               />
-              <Label htmlFor={`business_model_${model}`} className="text-sm">{model}</Label>
+              <Label htmlFor={`business_model_${model}`} className="text-sm font-normal text-gray-800">{model}</Label>
             </div>
           ))}
         </div>
@@ -854,7 +968,7 @@ const Survey2021: React.FC = () => {
       {/* Question 14: Stage of business model targeted */}
       <div className="space-y-4">
         <div>
-          <Label className="text-base font-medium">14. Stage of business model targeted *</Label>
+          <Label >14. Stage of business model targeted *</Label>
         </div>
         
         <div className="grid grid-cols-2 gap-3 mt-2">
@@ -877,7 +991,7 @@ const Survey2021: React.FC = () => {
                   }
                 }}
               />
-              <Label htmlFor={`business_stage_${stage}`} className="text-sm">{stage}</Label>
+              <Label htmlFor={`business_stage_${stage}`} className="text-sm font-normal text-gray-800">{stage}</Label>
             </div>
           ))}
         </div>
@@ -899,7 +1013,7 @@ const Survey2021: React.FC = () => {
       {/* Question 15: Key financing needs of portfolio enterprises */}
       <div className="space-y-4">
         <div>
-          <Label className="text-base font-medium">15. Key financing needs of portfolio enterprises (at time of initial investment/funding) *</Label>
+          <Label >15. Key financing needs of portfolio enterprises (at time of initial investment/funding) *</Label>
         </div>
         
         <div className="grid grid-cols-2 gap-3 mt-2">
@@ -924,7 +1038,7 @@ const Survey2021: React.FC = () => {
                   }
                 }}
               />
-              <Label htmlFor={`financing_need_${need}`} className="text-sm">{need}</Label>
+              <Label htmlFor={`financing_need_${need}`} className="text-sm font-normal text-gray-800">{need}</Label>
             </div>
           ))}
         </div>
@@ -946,7 +1060,7 @@ const Survey2021: React.FC = () => {
       {/* Question 16: Target sources of capital for your fund */}
       <div className="space-y-4">
         <div>
-          <Label className="text-base font-medium">16. Target sources of capital for your fund *</Label>
+          <Label >16. Target sources of capital for your fund *</Label>
         </div>
         
         <div className="grid grid-cols-2 gap-3 mt-2">
@@ -969,7 +1083,7 @@ const Survey2021: React.FC = () => {
                   }
                 }}
               />
-              <Label htmlFor={`capital_source_${source}`} className="text-sm">{source}</Label>
+              <Label htmlFor={`capital_source_${source}`} className="text-sm font-normal text-gray-800">{source}</Label>
             </div>
           ))}
         </div>
@@ -991,7 +1105,7 @@ const Survey2021: React.FC = () => {
       {/* Question 17: Target IRR */}
       <div className="space-y-4">
         <div>
-          <Label className="text-base font-medium">17. What is your target Internal Rate of Return (IRR) for investors (in USD equivalent)?</Label>
+          <Label >17. What is your target Internal Rate of Return (IRR) for investors (in USD equivalent)?</Label>
         </div>
         
         <div className="grid grid-cols-2 gap-6">
@@ -1031,10 +1145,15 @@ const Survey2021: React.FC = () => {
       {/* Question 18: Impact vs financial return orientation */}
       <div className="space-y-4">
         <div>
-          <Label className="text-base font-medium">18. How would you frame the impact vs financial return orientation of your capital vehicle? *</Label>
+          <Label >18. How would you frame the impact vs financial return orientation of your capital vehicle? *</Label>
         </div>
         
-        <Select onValueChange={(value) => form.setValue("impact_vs_financial_orientation", value)}>
+        <Select onValueChange={(value) => {
+          form.setValue("impact_vs_financial_orientation", value);
+          if (value !== "Other") {
+            form.setValue("impact_vs_financial_orientation_other", "");
+          }
+        }}>
           <SelectTrigger>
             <SelectValue placeholder="Select orientation" />
           </SelectTrigger>
@@ -1044,14 +1163,26 @@ const Survey2021: React.FC = () => {
             <SelectItem value="Balanced impact/financial return">Balanced impact/financial return</SelectItem>
             <SelectItem value="Impact investing (positive screening)">Impact investing (positive screening)</SelectItem>
             <SelectItem value="Impact first investing (impact outcomes intentionally)">Impact first investing (impact outcomes intentionally)</SelectItem>
+            <SelectItem value="Other">Other</SelectItem>
           </SelectContent>
         </Select>
+        {form.watch("impact_vs_financial_orientation") === "Other" && (
+          <div className="mt-3">
+            <Label htmlFor="impact_vs_financial_orientation_other">Please specify other orientation:</Label>
+            <Input
+              id="impact_vs_financial_orientation_other"
+              {...form.register("impact_vs_financial_orientation_other")}
+              placeholder="Enter your custom description"
+              className="mt-1"
+            />
+          </div>
+        )}
       </div>
 
       {/* Question 19: Explicit lens/focus */}
       <div className="space-y-4">
         <div>
-          <Label className="text-base font-medium">19. Does your fund/vehicle have an explicit lens/focus? *</Label>
+          <Label >19. Does your fund/vehicle have an explicit lens/focus? *</Label>
         </div>
         
         <div className="grid grid-cols-2 gap-3 mt-2">
@@ -1071,7 +1202,7 @@ const Survey2021: React.FC = () => {
                   }
                 }}
               />
-              <Label htmlFor={`lens_${lens}`} className="text-sm">{lens}</Label>
+              <Label htmlFor={`lens_${lens}`} className="text-sm font-normal text-gray-800">{lens}</Label>
             </div>
           ))}
         </div>
@@ -1093,7 +1224,7 @@ const Survey2021: React.FC = () => {
       {/* Question 20: Report Sustainable Development Goals */}
       <div className="space-y-4">
         <div>
-          <Label className="text-base font-medium">20. Does your fund/investment vehicle specifically report any Sustainable Development Goals? *</Label>
+          <Label >20. Does your fund/investment vehicle specifically report any Sustainable Development Goals? *</Label>
         </div>
         
         <div className="flex items-center space-x-4">
@@ -1122,174 +1253,175 @@ const Survey2021: React.FC = () => {
         </div>
       </div>
 
-      {/* Question 21: Top 3 Sustainable Development Goals */}
+      {/* Question 21: SDGs categorization by rank */}
       {form.watch("report_sustainable_development_goals") && (
         <div className="space-y-4">
           <div>
-            <Label className="text-base font-medium">21. If yes, please list the top 3 Sustainable Development Goals (or as many as apply):</Label>
+            <Label >21. If yes, select SDGs and assign rank for each (First, Second, Third, or Other):</Label>
           </div>
-          
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="top_sdg_1">First</Label>
-              <Select onValueChange={(value) => form.setValue("top_sdg_1", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select SDG" />
-                </SelectTrigger>
-                <SelectContent>
-                  {[
-                    "No Poverty", "Zero Hunger", "Good Health and Well-Being", "Quality Education",
-                    "Gender Equality", "Clean Water and Sanitation", "Affordable and Clean Energy",
-                    "Decent Work and Economic Growth", "Industry Innovation and Infrastructure",
-                    "Reduced Inequalities", "Sustainable Cities and Communities", "Responsible Consumption and Production",
-                    "Climate Action", "Life Below Water", "Life on Land", "Peace, Justice, and Strong Institutions",
-                    "Partnerships for the Goals"
-                  ].map((sdg) => (
-                    <SelectItem key={sdg} value={sdg}>{sdg}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="top_sdg_2">Second</Label>
-              <Select onValueChange={(value) => form.setValue("top_sdg_2", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select SDG" />
-                </SelectTrigger>
-                <SelectContent>
-                  {[
-                    "No Poverty", "Zero Hunger", "Good Health and Well-Being", "Quality Education",
-                    "Gender Equality", "Clean Water and Sanitation", "Affordable and Clean Energy",
-                    "Decent Work and Economic Growth", "Industry Innovation and Infrastructure",
-                    "Reduced Inequalities", "Sustainable Cities and Communities", "Responsible Consumption and Production",
-                    "Climate Action", "Life Below Water", "Life on Land", "Peace, Justice, and Strong Institutions",
-                    "Partnerships for the Goals"
-                  ].map((sdg) => (
-                    <SelectItem key={sdg} value={sdg}>{sdg}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="top_sdg_3">Third</Label>
-              <Select onValueChange={(value) => form.setValue("top_sdg_3", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select SDG" />
-                </SelectTrigger>
-                <SelectContent>
-                  {[
-                    "No Poverty", "Zero Hunger", "Good Health and Well-Being", "Quality Education",
-                    "Gender Equality", "Clean Water and Sanitation", "Affordable and Clean Energy",
-                    "Decent Work and Economic Growth", "Industry Innovation and Infrastructure",
-                    "Reduced Inequalities", "Sustainable Cities and Communities", "Responsible Consumption and Production",
-                    "Climate Action", "Life Below Water", "Life on Land", "Peace, Justice, and Strong Institutions",
-                    "Partnerships for the Goals"
-                  ].map((sdg) => (
-                    <SelectItem key={sdg} value={sdg}>{sdg}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[
+              "No Poverty", "Zero Hunger", "Good Health and Well-Being", "Quality Education",
+              "Gender Equality", "Clean Water and Sanitation", "Affordable and Clean Energy",
+              "Decent Work and Economic Growth", "Industry Innovation and Infrastructure",
+              "Reduced Inequalities", "Sustainable Cities and Communities", "Responsible Consumption and Production",
+              "Climate Action", "Life Below Water", "Life on Land", "Peace, Justice, and Strong Institutions",
+              "Partnerships for the Goals"
+            ].map((sdg) => (
+              <div key={sdg} className="p-3 border rounded-md bg-white">
+                <div className="text-sm font-medium text-gray-800 mb-2">{sdg}</div>
+                <Select
+                  value={form.watch("top_sdgs")?.[sdg] ?? undefined}
+                  onValueChange={(rank) => {
+                    const current = form.getValues("top_sdgs") || {};
+                    const updated = { ...current } as Record<string, string>;
+                    if (rank === 'None') {
+                      delete updated[sdg];
+                    } else {
+                      updated[sdg] = rank;
+                    }
+                    form.setValue("top_sdgs", updated, { shouldDirty: true, shouldTouch: true });
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="No selection" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="None">None</SelectItem>
+                    <SelectItem value="First">First</SelectItem>
+                    <SelectItem value="Second">Second</SelectItem>
+                    <SelectItem value="Third">Third</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Question 22: Gender considerations when making investment/financing considerations */}
+      {/* Question 22: Gender considerations - categorize each as Investment Consideration, Investment Requirement, or None */}
       <div className="space-y-4">
         <div>
-          <Label className="text-base font-medium">22. Do any of the following gender considerations apply when making investment/financing considerations?</Label>
+          <Label >22. Do any of the following gender considerations apply when making investment/financing considerations?</Label>
         </div>
-        
-        <div className="grid grid-cols-2 gap-3 mt-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
           {[
             "Majority women ownership (>50%)", "Greater than 33% of women in senior management",
             "Women represent at least 33% - 50% of direct workforce", "Women represent at least 33% - 50% of indirect workforce (e.g. supply chain/distribution channel, or both)",
             "Have policies in place that promote gender equality (e.g. equal compensation)", "Women are target beneficiaries of the product/service",
             "Enterprise reports on specific gender related indicators to investors", "Board member female representation (>33%)",
             "Female CEO", "Other"
-          ].map((consideration) => (
-            <div key={consideration} className="flex items-center space-x-2">
-              <Checkbox
-                id={`gender_consideration_${consideration}`}
-                checked={form.watch("gender_considerations_investment").includes(consideration)}
-                onCheckedChange={(checked) => {
-                  const current = form.watch("gender_considerations_investment");
-                  if (checked) {
-                    form.setValue("gender_considerations_investment", [...current, consideration]);
-                  } else {
-                    form.setValue("gender_considerations_investment", current.filter(item => item !== consideration));
-                  }
-                }}
-              />
-              <Label htmlFor={`gender_consideration_${consideration}`} className="text-sm">{consideration}</Label>
-            </div>
-          ))}
+          ].map((item) => {
+            const investment = form.watch("gender_considerations_investment");
+            const requirement = form.watch("gender_considerations_requirement");
+            const currentValue = requirement.includes(item) ? 'Requirement' : investment.includes(item) ? 'Consideration' : 'None';
+            return (
+              <div key={item} className="p-2 border rounded-md bg-white">
+                {item !== 'Other' ? (
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm pr-3 flex-1">{item}</Label>
+                    <Select
+                      value={currentValue}
+                      onValueChange={(val) => {
+                        const inv = [...form.getValues("gender_considerations_investment")];
+                        const req = [...form.getValues("gender_considerations_requirement")];
+                        const removeFrom = (arr: string[]) => arr.filter(v => v !== item);
+                        let nextInv = removeFrom(inv);
+                        let nextReq = removeFrom(req);
+                        if (val === 'Consideration') nextInv = [...nextInv, item];
+                        if (val === 'Requirement') nextReq = [...nextReq, item];
+                        if (val === 'None') {
+                          // nothing extra
+                        }
+                        form.setValue("gender_considerations_investment", nextInv, { shouldDirty: true });
+                        form.setValue("gender_considerations_requirement", nextReq, { shouldDirty: true });
+                      }}
+                    >
+                      <SelectTrigger className="w-52">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="None">None</SelectItem>
+                        <SelectItem value="Consideration">Investment Consideration</SelectItem>
+                        <SelectItem value="Requirement">Investment Requirement</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="gender_other_checkbox"
+                        checked={!!form.watch("gender_considerations_other_enabled")}
+                        onCheckedChange={(checked) => {
+                          const isChecked = Boolean(checked);
+                          form.setValue("gender_considerations_other_enabled", isChecked, { shouldDirty: true });
+                          if (!isChecked) {
+                            // Clear text and remove from arrays when disabled
+                            form.setValue("gender_considerations_investment_other", "");
+                            form.setValue("gender_considerations_requirement_other", "");
+                            const inv = form.getValues("gender_considerations_investment").filter((v: string) => v !== 'Other');
+                            const req = form.getValues("gender_considerations_requirement").filter((v: string) => v !== 'Other');
+                            form.setValue("gender_considerations_investment", inv, { shouldDirty: true });
+                            form.setValue("gender_considerations_requirement", req, { shouldDirty: true });
+                          }
+                        }}
+                      />
+                      <Label htmlFor="gender_other_checkbox" className="text-sm font-normal text-gray-800">Other</Label>
+                    </div>
+                    {form.watch("gender_considerations_other_enabled") && (
+                      <div className="mt-3 space-y-3">
+                        <div>
+                          <Label htmlFor="gender_considerations_other_text">Please describe:</Label>
+                          <Input
+                            id="gender_considerations_other_text"
+                            {...form.register("gender_considerations_investment_other")}
+                            placeholder="Describe the other consideration"
+                            className="mt-1"
+                          />
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <Label className="text-sm font-normal text-gray-800">Classify as:</Label>
+                          <Select
+                            value={currentValue === 'None' ? undefined : currentValue}
+                            onValueChange={(val) => {
+                              const inv = [...form.getValues("gender_considerations_investment")].filter(v => v !== 'Other');
+                              const req = [...form.getValues("gender_considerations_requirement")].filter(v => v !== 'Other');
+                              if (val === 'Consideration') {
+                                form.setValue("gender_considerations_investment", [...inv, 'Other'], { shouldDirty: true });
+                                form.setValue("gender_considerations_requirement", req, { shouldDirty: true });
+                              } else if (val === 'Requirement') {
+                                form.setValue("gender_considerations_requirement", [...req, 'Other'], { shouldDirty: true });
+                                form.setValue("gender_considerations_investment", inv, { shouldDirty: true });
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="w-64">
+                              <SelectValue placeholder="Select classification" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Consideration">Investment Consideration</SelectItem>
+                              <SelectItem value="Requirement">Investment Requirement</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
         
-        {/* Only show "Other" input when "Other" is selected */}
-        {form.watch("gender_considerations_investment").includes("Other") && (
-          <div className="mt-3">
-            <Label htmlFor="gender_considerations_investment_other">Other:</Label>
-            <Input
-              id="gender_considerations_investment_other"
-              {...form.register("gender_considerations_investment_other")}
-              placeholder="Please specify other gender consideration"
-              className="mt-1"
-            />
-          </div>
-        )}
       </div>
 
-      {/* Question 24: Gender considerations as investment requirement */}
+      {/* Question 23: Do any of the following apply to your fund/vehicle? */}
       <div className="space-y-4">
         <div>
-          <Label className="text-base font-medium">24. Do any of the following gender considerations apply when making investment/financing considerations?</Label>
-        </div>
-        
-        <div className="grid grid-cols-2 gap-3 mt-2">
-          {[
-            "Majority women ownership (>50%)", "Greater than 33% of women in senior management",
-            "Women represent at least 33% - 50% of direct workforce", "Women represent at least 33% - 50% of indirect workforce (e.g. supply chain/distribution channel, or both)",
-            "Have policies in place that promote gender equality (e.g. equal compensation)", "Women are target beneficiaries of the product/service",
-            "Enterprise reports on specific gender related indicators to investors", "Board member female representation (>33%)",
-            "Female CEO", "Other"
-          ].map((requirement) => (
-            <div key={requirement} className="flex items-center space-x-2">
-              <Checkbox
-                id={`gender_requirement_${requirement}`}
-                checked={form.watch("gender_considerations_requirement").includes(requirement)}
-                onCheckedChange={(checked) => {
-                  const current = form.watch("gender_considerations_requirement");
-                  if (checked) {
-                    form.setValue("gender_considerations_requirement", [...current, requirement]);
-                  } else {
-                    form.setValue("gender_considerations_requirement", current.filter(item => item !== requirement));
-                  }
-                }}
-              />
-              <Label htmlFor={`gender_requirement_${requirement}`} className="text-sm">{requirement}</Label>
-            </div>
-          ))}
-        </div>
-        
-        {/* Only show "Other" input when "Other" is selected */}
-        {form.watch("gender_considerations_requirement").includes("Other") && (
-          <div className="mt-3">
-            <Label htmlFor="gender_considerations_requirement_other">Other:</Label>
-            <Input
-              id="gender_considerations_requirement_other"
-              {...form.register("gender_considerations_requirement_other")}
-              placeholder="Please specify other gender requirement"
-              className="mt-1"
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Question 25: Gender considerations for your fund/vehicle */}
-      <div className="space-y-4">
-        <div>
-          <Label className="text-base font-medium">25. Do any of the following gender considerations apply when making investment/financing considerations?</Label>
+          <Label >23. Do any of the following apply to your fund/vehicle? *</Label>
+          <div className="text-sm text-gray-600">Check all that apply.</div>
         </div>
         
         <div className="grid grid-cols-2 gap-3 mt-2">
@@ -1311,19 +1443,17 @@ const Survey2021: React.FC = () => {
                   }
                 }}
               />
-              <Label htmlFor={`gender_vehicle_${vehicle}`} className="text-sm">{vehicle}</Label>
+              <Label htmlFor={`gender_vehicle_${vehicle}`} className="text-sm font-normal text-gray-800">{vehicle}</Label>
             </div>
           ))}
         </div>
-        
-        {/* Only show "Other" input when "Other" is selected */}
         {form.watch("gender_fund_vehicle").includes("Other") && (
           <div className="mt-3">
             <Label htmlFor="gender_fund_vehicle_other">Other:</Label>
             <Input
               id="gender_fund_vehicle_other"
               {...form.register("gender_fund_vehicle_other")}
-              placeholder="Please specify other gender consideration"
+              placeholder="Please specify other if applicable"
               className="mt-1"
             />
           </div>
@@ -1334,47 +1464,59 @@ const Survey2021: React.FC = () => {
 
   const renderSection3 = () => (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-6">
+      <div className="space-y-3">
         <div>
-          <Label htmlFor="investment_size_your_amount">Your investment amount at time of initial investment *</Label>
-          <Select onValueChange={(value) => form.setValue("investment_size_your_amount", value)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select amount" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="< $100,000">&lt; $100,000</SelectItem>
-              <SelectItem value="$100,000 - $199,000">$100,000 - $199,000</SelectItem>
-              <SelectItem value="$200,000 - $499,000">$200,000 - $499,000</SelectItem>
-              <SelectItem value="$500,000 - $999,000">$500,000 - $999,000</SelectItem>
-              <SelectItem value="$1,000,000 - $1,999,000">$1,000,000 - $1,999,000</SelectItem>
-              <SelectItem value="≥ $2,000,000">≥ $2,000,000</SelectItem>
-            </SelectContent>
-          </Select>
+          <Label >25. What is the typical size of investment in your portfolio companies at the time of initial investment (in USD)?</Label>
         </div>
-        <div>
-          <Label htmlFor="investment_size_total_raise">Total raise by portfolio company *</Label>
-          <Select onValueChange={(value) => form.setValue("investment_size_total_raise", value)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select amount" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="< $100,000">&lt; $100,000</SelectItem>
-              <SelectItem value="$100,000 - $199,000">$100,000 - $199,000</SelectItem>
-              <SelectItem value="$200,000 - $499,000">$200,000 - $499,000</SelectItem>
-              <SelectItem value="$500,000 - $999,000">$500,000 - $999,000</SelectItem>
-              <SelectItem value="$1,000,000 - $1,999,000">$1,000,000 - $1,999,000</SelectItem>
-              <SelectItem value="≥ $2,000,000">≥ $2,000,000</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="grid grid-cols-2 gap-6">
+          <div>
+            <Label htmlFor="investment_size_your_amount">Your investment amount at time of initial investment *</Label>
+            <Select onValueChange={(value) => form.setValue("investment_size_your_amount", value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select amount" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="< $100,000">&lt; $100,000</SelectItem>
+                <SelectItem value="$100,000 - $199,000">$100,000 - $199,000</SelectItem>
+                <SelectItem value="$200,000 - $499,000">$200,000 - $499,000</SelectItem>
+                <SelectItem value="$500,000 - $999,000">$500,000 - $999,000</SelectItem>
+                <SelectItem value="$1,000,000 - $1,999,000">$1,000,000 - $1,999,000</SelectItem>
+                <SelectItem value="≥ $2,000,000">≥ $2,000,000</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="investment_size_total_raise">Total raise by portfolio company *</Label>
+            <Select onValueChange={(value) => form.setValue("investment_size_total_raise", value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select amount" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="< $100,000">&lt; $100,000</SelectItem>
+                <SelectItem value="$100,000 - $199,000">$100,000 - $199,000</SelectItem>
+                <SelectItem value="$200,000 - $499,000">$200,000 - $499,000</SelectItem>
+                <SelectItem value="$500,000 - $999,000">$500,000 - $999,000</SelectItem>
+                <SelectItem value="$1,000,000 - $1,999,000">$1,000,000 - $1,999,000</SelectItem>
+                <SelectItem value="≥ $2,000,000">≥ $2,000,000</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
-
+        
       <div>
-        <Label>Forms of investment you typically make *</Label>
+        <Label >26. What forms of investment do you typically make? *</Label>
+        <div className="text-sm text-gray-600">Check all that apply.</div>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
-            "Common equity", "Preferred equity", "Convertible notes", "Senior debt",
-            "Mezzanine debt", "Shared revenue/earnings instruments", "SAFEs"
+            "Common equity",
+            "Preferred equity (e.g. certain rights above those available to common equity holders)",
+            "Convertible notes",
+            "Senior debt",
+            "Mezzanine debt",
+            "Shared revenue/earnings instruments",
+            "SAFEs",
+            "Other"
           ].map((investmentForm) => (
             <div key={investmentForm} className="flex items-center space-x-2">
               <Checkbox
@@ -1387,31 +1529,46 @@ const Survey2021: React.FC = () => {
                   } else {
                     form.setValue("investment_forms", current.filter(item => item !== investmentForm));
                   }
+                  // Clear other input when unchecking Other
+                  if (investmentForm === 'Other' && !checked) {
+                    form.setValue('investment_forms_other', '');
+                  }
                 }}
               />
-              <Label htmlFor={`investment_form_${investmentForm}`} className="text-sm">{investmentForm}</Label>
+              <Label htmlFor={`investment_form_${investmentForm}`} className="text-sm font-normal text-gray-800">{investmentForm}</Label>
             </div>
           ))}
         </div>
-        <div className="mt-3">
-          <Label htmlFor="investment_forms_other">Other:</Label>
-          <Input
-            id="investment_forms_other"
-            {...form.register("investment_forms_other")}
-            placeholder="Please specify other investment form"
-            className="mt-1"
-          />
-        </div>
+        {form.watch("investment_forms").includes("Other") && (
+          <div className="mt-3">
+            <Label htmlFor="investment_forms_other">Other:</Label>
+            <Input
+              id="investment_forms_other"
+              {...form.register("investment_forms_other")}
+              placeholder="Please specify other investment form"
+              className="mt-1"
+            />
+          </div>
+        )}
       </div>
 
       <div>
-        <Label>Target investment sectors/focus areas *</Label>
+        <Label >26. What are your target investment sectors/focus areas? *</Label>
+        <div className="text-sm text-gray-600">Check all that apply.</div>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
-            "Sector agnostic", "Agriculture / Food supply chain", "Distribution / Logistics",
-            "Education", "Energy / Renewables / Green Mobility", "Financial Inclusion / Insurance / Fintech",
-            "Fast Moving Consumer Goods (FMCG)", "Healthcare", "Manufacturing",
-            "Technology / ICT / Telecommunications", "Water and Sanitation"
+            "Sector agnostic",
+            "Agriculture / Food supply chain",
+            "Distribution / Logistics",
+            "Education",
+            "Energy / Renewables / Green Mobility",
+            "Financial Inclusion / Insurance / Fintech",
+            "Fast Moving Consumer Goods (FMCG)",
+            "Healthcare",
+            "Manufacturing",
+            "Technology / ICT / Telecommunications",
+            "Water and Sanitation",
+            "Other"
           ].map((sector) => (
             <div key={sector} className="flex items-center space-x-2">
               <Checkbox
@@ -1424,21 +1581,26 @@ const Survey2021: React.FC = () => {
                   } else {
                     form.setValue("target_sectors", current.filter(item => item !== sector));
                   }
+                  if (sector === 'Other' && !checked) {
+                    form.setValue('target_sectors_other', '');
+                  }
                 }}
               />
-              <Label htmlFor={`target_sector_${sector}`} className="text-sm">{sector}</Label>
+              <Label htmlFor={`target_sector_${sector}`} className="text-sm font-normal text-gray-800">{sector}</Label>
             </div>
           ))}
         </div>
-        <div className="mt-3">
-          <Label htmlFor="target_sectors_other">Other:</Label>
-          <Input
-            id="target_sectors_other"
-            {...form.register("target_sectors_other")}
-            placeholder="Please specify other target sector"
-            className="mt-1"
-          />
-        </div>
+        {form.watch("target_sectors").includes("Other") && (
+          <div className="mt-3">
+            <Label htmlFor="target_sectors_other">Other:</Label>
+            <Input
+              id="target_sectors_other"
+              {...form.register("target_sectors_other")}
+              placeholder="Please specify other target sector"
+              className="mt-1"
+            />
+          </div>
+        )}
       </div>
 
       <div>
@@ -1477,7 +1639,7 @@ const Survey2021: React.FC = () => {
   const renderSection4 = () => (
     <div className="space-y-6">
       <div>
-        <Label>Portfolio enterprise needs during first 3 years - Please rank from 1 (highest need) to 5 (lowest need) *</Label>
+        <Label >29. During the first 3 years of an investment, what are the key needs of portfolio enterprises? Please provide one ranking per row: 1 = highest need, 5 = lowest need *</Label>
         <div className="space-y-4 mt-2">
           {[
             "Finance, budgeting, accounting, cash and tax management",
@@ -1490,39 +1652,85 @@ const Survey2021: React.FC = () => {
             "Operations/ production / facilities and infrastructure",
             "Management training"
           ].map((need) => (
-            <div key={need} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-              <Label className="text-sm font-medium">{need}</Label>
-              <Select onValueChange={(value) => {
-                const current = form.watch("portfolio_needs_ranking") || {};
-                form.setValue("portfolio_needs_ranking", { ...current, [need]: value });
-              }}>
-                <SelectTrigger className="w-20">
-                  <SelectValue placeholder="-" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1</SelectItem>
-                  <SelectItem value="2">2</SelectItem>
-                  <SelectItem value="3">3</SelectItem>
-                  <SelectItem value="4">4</SelectItem>
-                  <SelectItem value="5">5</SelectItem>
-                </SelectContent>
-              </Select>
+            <div key={need} className="p-3 border border-gray-200 rounded-lg">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium pr-3">{need}</Label>
+                <Select onValueChange={(value) => {
+                  const current = form.watch("portfolio_needs_ranking") || {};
+                  form.setValue("portfolio_needs_ranking", { ...current, [need]: value });
+                }}>
+                  <SelectTrigger className="w-20">
+                    <SelectValue placeholder="-" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1</SelectItem>
+                    <SelectItem value="2">2</SelectItem>
+                    <SelectItem value="3">3</SelectItem>
+                    <SelectItem value="4">4</SelectItem>
+                    <SelectItem value="5">5</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           ))}
-        </div>
-        <div className="mt-3">
-          <Label htmlFor="portfolio_needs_other">Other:</Label>
-          <Input
-            id="portfolio_needs_other"
-            {...form.register("portfolio_needs_other")}
-            placeholder="Please specify other portfolio need"
-            className="mt-1"
-          />
+          {/* Other: checkbox reveals description + rank */}
+          <div className="p-3 border border-gray-200 rounded-lg">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="portfolio_needs_other_checkbox"
+                checked={!!form.watch('portfolio_needs_other_enabled')}
+                onCheckedChange={(checked) => {
+                  const isChecked = Boolean(checked);
+                  form.setValue('portfolio_needs_other_enabled', isChecked, { shouldDirty: true });
+                  if (!isChecked) {
+                    // Clear text and ranking when disabled
+                    form.setValue('portfolio_needs_other', '');
+                    const current = { ...(form.watch('portfolio_needs_ranking') || {}) };
+                    delete (current as any)['Other'];
+                    form.setValue('portfolio_needs_ranking', current, { shouldDirty: true });
+                  }
+                }}
+              />
+              <Label htmlFor="portfolio_needs_other_checkbox" className="text-sm font-normal text-gray-800">Other</Label>
+            </div>
+            {form.watch('portfolio_needs_other_enabled') && (
+              <div className="mt-3 space-y-3">
+                <div>
+                  <Label htmlFor="portfolio_needs_other">Please describe:</Label>
+                  <Input
+                    id="portfolio_needs_other"
+                    {...form.register("portfolio_needs_other")}
+                    placeholder="Describe the other portfolio need"
+                    className="mt-1"
+                  />
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Label className="text-sm font-normal text-gray-800">Rank:</Label>
+                  <Select onValueChange={(value) => {
+                    const current = form.watch('portfolio_needs_ranking') || {};
+                    form.setValue('portfolio_needs_ranking', { ...current, ['Other']: value });
+                  }}>
+                    <SelectTrigger className="w-20">
+                      <SelectValue placeholder="-" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1</SelectItem>
+                      <SelectItem value="2">2</SelectItem>
+                      <SelectItem value="3">3</SelectItem>
+                      <SelectItem value="4">4</SelectItem>
+                      <SelectItem value="5">5</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       <div>
-        <Label>Typical form of investment monetization/exit *</Label>
+        <Label >31. What is the typical form of investment monetization/exit? *</Label>
+        <div className="text-sm text-gray-600">Check all that apply.</div>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
             "Interest income/shared revenues and principal repayment",
@@ -1530,7 +1738,8 @@ const Survey2021: React.FC = () => {
             "Dividends",
             "Strategic sale/merger of company",
             "Management buyout",
-            "Financial investor take-out"
+            "Financial investor take-out",
+            "Other"
           ].map((exit) => (
             <div key={exit} className="flex items-center space-x-2">
               <Checkbox
@@ -1543,26 +1752,36 @@ const Survey2021: React.FC = () => {
                   } else {
                     form.setValue("investment_monetization", current.filter(item => item !== exit));
                   }
+                  if (exit === 'Other' && !checked) {
+                    form.setValue('investment_monetization_other', '');
+                  }
                 }}
               />
-              <Label htmlFor={`exit_${exit}`} className="text-sm">{exit}</Label>
+              <Label htmlFor={`exit_${exit}`} className="text-sm font-normal text-gray-800">{exit}</Label>
             </div>
           ))}
         </div>
-        <div className="mt-3">
-          <Label htmlFor="investment_monetization_other">Other:</Label>
-          <Input
-            id="investment_monetization_other"
-            {...form.register("investment_monetization_other")}
-            placeholder="Please specify other monetization method"
-            className="mt-1"
-          />
-        </div>
+        {form.watch("investment_monetization").includes("Other") && (
+          <div className="mt-3">
+            <Label htmlFor="investment_monetization_other">Other:</Label>
+            <Input
+              id="investment_monetization_other"
+              {...form.register("investment_monetization_other")}
+              placeholder="Please specify other monetization method"
+              className="mt-1"
+            />
+          </div>
+        )}
       </div>
 
       <div>
-        <Label htmlFor="exits_achieved">How many exits has your vehicle achieved to date? *</Label>
-        <Select onValueChange={(value) => form.setValue("exits_achieved", value)}>
+        <Label htmlFor="exits_achieved" >32. How many exits has your vehicle achieved to date (ie exits/monetizations for equity investments and full repayments for debt investments)? *</Label>
+        <Select onValueChange={(value) => {
+          form.setValue("exits_achieved", value);
+          if (value !== 'Other') {
+            form.setValue('exits_achieved_other', '');
+          }
+        }}>
           <SelectTrigger>
             <SelectValue placeholder="Select count" />
           </SelectTrigger>
@@ -1573,12 +1792,24 @@ const Survey2021: React.FC = () => {
             <SelectItem value="10-14">10-14</SelectItem>
             <SelectItem value="15-24">15-24</SelectItem>
             <SelectItem value="25+">25+</SelectItem>
+            <SelectItem value="Other">Other</SelectItem>
           </SelectContent>
         </Select>
+        {form.watch('exits_achieved') === 'Other' && (
+          <div className="mt-3">
+            <Label htmlFor="exits_achieved_other">Please specify:</Label>
+            <Input
+              id="exits_achieved_other"
+              {...form.register("exits_achieved_other")}
+              placeholder="Enter a custom number or description"
+              className="mt-1"
+            />
+          </div>
+        )}
       </div>
 
       <div>
-        <Label>Fund capabilities and resources - Please rank from 1 (highest need) to 5 (lowest need) *</Label>
+        <Label >33. Fund capabilities and resources – what are the areas of desired investment/support for your fund? Please provide one ranking per row: 1 = highest need, 5 = lowest need *</Label>
         <div className="space-y-4 mt-2">
           {[
             "Fundraising with access to global LPs",
@@ -1615,15 +1846,57 @@ const Survey2021: React.FC = () => {
               </Select>
             </div>
           ))}
-        </div>
-        <div className="mt-3">
-          <Label htmlFor="fund_capabilities_other">Other:</Label>
-          <Input
-            id="fund_capabilities_other"
-            {...form.register("fund_capabilities_other")}
-            placeholder="Please specify other fund capability"
-            className="mt-1"
-          />
+          {/* Other as checkbox + describe + rank */}
+          <div className="p-3 border border-gray-200 rounded-lg">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="fund_capabilities_other_checkbox"
+                checked={!!form.watch('fund_capabilities_other_enabled')}
+                onCheckedChange={(checked) => {
+                  const isChecked = Boolean(checked);
+                  form.setValue('fund_capabilities_other_enabled', isChecked, { shouldDirty: true });
+                  if (!isChecked) {
+                    form.setValue('fund_capabilities_other', '');
+                    const current = { ...(form.watch('fund_capabilities_ranking') || {}) };
+                    delete (current as any)['Other'];
+                    form.setValue('fund_capabilities_ranking', current, { shouldDirty: true });
+                  }
+                }}
+              />
+              <Label htmlFor="fund_capabilities_other_checkbox" className="text-sm font-normal text-gray-800">Other</Label>
+            </div>
+            {form.watch('fund_capabilities_other_enabled') && (
+              <div className="mt-3 space-y-3">
+                <div>
+                  <Label htmlFor="fund_capabilities_other">Please describe:</Label>
+                  <Input
+                    id="fund_capabilities_other"
+                    {...form.register("fund_capabilities_other")}
+                    placeholder="Describe the other fund capability"
+                    className="mt-1"
+                  />
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Label className="text-sm font-normal text-gray-800">Rank:</Label>
+                  <Select onValueChange={(value) => {
+                    const current = form.watch('fund_capabilities_ranking') || {};
+                    form.setValue('fund_capabilities_ranking', { ...current, ['Other']: value });
+                  }}>
+                    <SelectTrigger className="w-20">
+                      <SelectValue placeholder="-" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1</SelectItem>
+                      <SelectItem value="2">2</SelectItem>
+                      <SelectItem value="3">3</SelectItem>
+                      <SelectItem value="4">4</SelectItem>
+                      <SelectItem value="5">5</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -1632,7 +1905,7 @@ const Survey2021: React.FC = () => {
   const renderSection5 = () => (
     <div className="space-y-6">
       <div>
-        <Label htmlFor="covid_impact_aggregate">At an aggregate level, please indicate the impact of COVID-19 on your investment vehicle and operations *</Label>
+        <Label htmlFor="covid_impact_aggregate" >33. At an aggregate level, please indicate the impact of COVID-19 on your investment vehicle and operations. *</Label>
         <Select onValueChange={(value) => form.setValue("covid_impact_aggregate", value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select impact level" />
@@ -1648,7 +1921,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label>What impact has COVID-19 had on the following aspects of your portfolio companies? *</Label>
+        <Label >34. What impact has COVID-19 had on the following aspects of your portfolio companies? *</Label>
         <div className="space-y-4 mt-2">
           {[
             "Staff attendance", "Customer demand", "Ability to pay staff salaries",
@@ -1658,87 +1931,41 @@ const Survey2021: React.FC = () => {
           ].map((aspect) => (
             <div key={aspect} className="border border-gray-200 rounded-lg p-4">
               <Label className="text-sm font-medium mb-3 block">{aspect}</Label>
-              <div className="grid grid-cols-4 gap-2 text-xs">
-                <div className="text-center">
-                  <Label>To date - no impact</Label>
-                  <input
-                    type="radio"
-                    name={`covid_${aspect}`}
-                    value="no_impact"
-                    title="No impact"
-                    onChange={(e) => {
-                      const current = form.watch("covid_impact_portfolio") || {};
-                      const aspectData = current[aspect] || {};
-                      form.setValue("covid_impact_portfolio", {
-                        ...current,
-                        [aspect]: { ...aspectData, to_date: e.target.value }
-                      });
-                    }}
-                  />
-                </div>
-                <div className="text-center">
-                  <Label>To date - slight impact</Label>
-                  <input
-                    type="radio"
-                    name={`covid_${aspect}`}
-                    value="slight_impact"
-                    title="Slight impact"
-                    onChange={(e) => {
-                      const current = form.watch("covid_impact_portfolio") || {};
-                      const aspectData = current[aspect] || {};
-                      form.setValue("covid_impact_portfolio", {
-                        ...current,
-                        [aspect]: { ...aspectData, to_date: e.target.value }
-                      });
-                    }}
-                  />
-                </div>
-                <div className="text-center">
-                  <Label>To date - high impact</Label>
-                  <input
-                    type="radio"
-                    name={`covid_${aspect}`}
-                    value="high_impact"
-                    title="High impact"
-                    onChange={(e) => {
-                      const current = form.watch("covid_impact_portfolio") || {};
-                      const aspectData = current[aspect] || {};
-                      form.setValue("covid_impact_portfolio", {
-                        ...current,
-                        [aspect]: { ...aspectData, to_date: e.target.value }
-                      });
-                    }}
-                  />
-                </div>
-                <div className="text-center">
-                  <Label>Anticipate future impact</Label>
-                  <input
-                    type="radio"
-                    name={`covid_${aspect}`}
-                    value="future_impact"
-                    title="Future impact"
-                    onChange={(e) => {
-                      const current = form.watch("covid_impact_portfolio") || {};
-                      const aspectData = current[aspect] || {};
-                      form.setValue("covid_impact_portfolio", {
-                        ...current,
-                        [aspect]: { ...aspectData, anticipate: e.target.value }
-                      });
-                    }}
-                  />
-                </div>
-              </div>
+              <Select
+                value={(form.watch('covid_impact_portfolio') || {})?.[aspect]?.status}
+                onValueChange={(value) => {
+                  const current = form.watch('covid_impact_portfolio') || {};
+                  form.setValue('covid_impact_portfolio', {
+                    ...current,
+                    [aspect]: { status: value }
+                  });
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select impact" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="to_date_no_impact">To date - no impact</SelectItem>
+                  <SelectItem value="to_date_slight_impact">To date - slight impact</SelectItem>
+                  <SelectItem value="to_date_high_impact">To date - high impact</SelectItem>
+                  <SelectItem value="anticipate_no_future_impact">Anticipate no future impact</SelectItem>
+                  <SelectItem value="anticipate_future_impact">Anticipate future impact</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           ))}
         </div>
       </div>
 
       <div>
-        <Label>Have you received any financial or non-financial support from any government programs or grant funding related to COVID-19? *</Label>
+        <Label >35. Have you received any financial or non-financial support from any government programs or grant funding related to COVID-19? *</Label>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
-            "Yes, government support (financial)", "Yes, grant funding (financial)",
-            "Yes, non-financial assistance", "No"
+            "Yes, government support (financial)",
+            "Yes, grant funding (financial)",
+            "Yes, non-financial assistance",
+            "No",
+            "Other"
           ].map((support) => (
             <div key={support} className="flex items-center space-x-2">
               <Checkbox
@@ -1751,31 +1978,36 @@ const Survey2021: React.FC = () => {
                   } else {
                     form.setValue("covid_government_support", current.filter(item => item !== support));
                   }
+                  if (support === 'Other' && !checked) {
+                    form.setValue('covid_government_support_other', '');
+                  }
                 }}
               />
-              <Label htmlFor={`covid_support_${support}`} className="text-sm">{support}</Label>
+              <Label htmlFor={`covid_support_${support}`} className="text-sm font-normal text-gray-800">{support}</Label>
             </div>
           ))}
         </div>
-        <div className="mt-3">
-          <Label htmlFor="covid_government_support_other">Other:</Label>
-          <Input
-            id="covid_government_support_other"
-            {...form.register("covid_government_support_other")}
-            placeholder="Please specify other COVID-19 support"
-            className="mt-1"
-          />
-        </div>
+        {form.watch("covid_government_support").includes("Other") && (
+          <div className="mt-3">
+            <Label htmlFor="covid_government_support_other">Other:</Label>
+            <Input
+              id="covid_government_support_other"
+              {...form.register("covid_government_support_other")}
+              placeholder="Please specify other COVID-19 support"
+              className="mt-1"
+            />
+          </div>
+        )}
       </div>
 
       <div>
-        <Label>Do you anticipate raising new LP/investor funds in 2021? If yes, for what purpose? *</Label>
+        <Label >36. Do you anticipate raising new LP/investor funds in 2021? If yes, for what purpose? *</Label>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
             "N/A - have no plans to raise capital in 2021", "Stabilize operations of existing portfolio companies",
             "Growth capital for existing portfolio to increase market share", "Growth capital for existing portfolio to enter new markets/expand business line(s)",
             "New pipeline investments through existing vehicle", "New pipeline investments through new vehicle",
-            "Technical assistance to support portfolio enterprises"
+            "Technical assistance to support portfolio enterprises", "Other"
           ].map((purpose) => (
             <div key={purpose} className="flex items-center space-x-2">
               <Checkbox
@@ -1788,35 +2020,43 @@ const Survey2021: React.FC = () => {
                   } else {
                     form.setValue("raising_capital_2021", current.filter(item => item !== purpose));
                   }
+                  if (purpose === 'Other' && !checked) {
+                    form.setValue('raising_capital_2021_other', '');
+                  }
                 }}
               />
-              <Label htmlFor={`raising_capital_${purpose}`} className="text-sm">{purpose}</Label>
+              <Label htmlFor={`raising_capital_${purpose}`} className="text-sm font-normal text-gray-800">{purpose}</Label>
             </div>
           ))}
         </div>
-        <div className="mt-3">
-          <Label htmlFor="raising_capital_2021_other">Other:</Label>
-          <Input
-            id="raising_capital_2021_other"
-            {...form.register("raising_capital_2021_other")}
-            placeholder="Please specify other capital raising purpose"
-            className="mt-1"
-          />
-        </div>
+        {form.watch("raising_capital_2021").includes("Other") && (
+          <div className="mt-3">
+            <Label htmlFor="raising_capital_2021_other">Other:</Label>
+            <Input
+              id="raising_capital_2021_other"
+              {...form.register("raising_capital_2021_other")}
+              placeholder="Please specify other capital raising purpose"
+              className="mt-1"
+            />
+          </div>
+        )}
       </div>
 
       <div>
-        <Label>Regarding your current fund/investment vehicle, which of the following is under consideration? *</Label>
+        <Label >37. Regarding your current fund/investment vehicle, which of the following is under consideration? *</Label>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
-            "No change planned", "Seek increased access to new LP funds locally",
-            "Seek increased access to new LP funds internationally", "Increase application of alternative debt instruments",
-            "Increase use of technology in order to lower fund operational costs", "Increase use of data and technology to facilitate investment decisions",
+            "No change planned",
+            "Seek increased access to new LP funds locally",
+            "Seek increased access to new LP funds internationally",
+            "Increase application of alternative debt instruments (e.g. mezzanine debt, convertible debt, or shared revenue instruments)",
+            "Increase use of technology in order to lower fund operational costs",
+            "Increase use of data and technology to facilitate investment decisions",
             "Build new partnerships for joint co-investment opportunities, expand pipeline opportunities"
           ].map((consideration) => (
             <div key={consideration} className="flex items-center space-x-2">
               <Checkbox
-                id={`consideration_${consideration}`}
+                id={`vehicle_consideration_${consideration}`}
                 checked={form.watch("fund_vehicle_considerations").includes(consideration)}
                 onCheckedChange={(checked) => {
                   const current = form.watch("fund_vehicle_considerations");
@@ -1827,18 +2067,9 @@ const Survey2021: React.FC = () => {
                   }
                 }}
               />
-              <Label htmlFor={`consideration_${consideration}`} className="text-sm">{consideration}</Label>
+              <Label htmlFor={`vehicle_consideration_${consideration}`} className="text-sm font-normal text-gray-800">{consideration}</Label>
             </div>
           ))}
-        </div>
-        <div className="mt-3">
-          <Label htmlFor="fund_vehicle_considerations_other">Other:</Label>
-          <Input
-            id="fund_vehicle_considerations_other"
-            {...form.register("fund_vehicle_considerations_other")}
-            placeholder="Please specify other consideration"
-            className="mt-1"
-          />
         </div>
       </div>
     </div>
@@ -1847,35 +2078,38 @@ const Survey2021: React.FC = () => {
   const renderSection6 = () => (
     <div className="space-y-6">
       <div>
-        <Label htmlFor="network_value_rating">Overall, how valuable have you found your participation in the ESCP network? *</Label>
-        <Select onValueChange={(value) => form.setValue("network_value_rating", value)}>
+        <Label >38. Overall, how valuable have you found your participation in the ESCP network? *</Label>
+        <Select onValueChange={(value) => form.setValue('network_value_rating', value)}>
           <SelectTrigger>
-            <SelectValue placeholder="Select rating" />
+            <SelectValue placeholder="Select rating (1 = Most valuable, 5 = Least valuable)" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Most valuable">Most valuable</SelectItem>
+            <SelectItem value="1">1 (Most valuable)</SelectItem>
             <SelectItem value="2">2</SelectItem>
             <SelectItem value="3">3</SelectItem>
             <SelectItem value="4">4</SelectItem>
-            <SelectItem value="Least valuable">Least valuable</SelectItem>
+            <SelectItem value="5">5 (Least valuable)</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       <div>
-        <Label>Working groups - Please rank from 1 (most valuable) to 5 (least valuable) *</Label>
+        <Label >39. Please indicate which working groups you have found the most valuable. Please provide one ranking per row (or for each group you have engaged with): 1 = most valuable, 5 = least valuable, N/A = not engaged *</Label>
         <div className="space-y-4 mt-2">
           {[
-            "Fund Economics", "LP Profiles", "Market Data", "Purpose Definition",
-            "Access to Capital (DfID proposal)"
-          ].map((group) => (
+            'Fund Economics',
+            'LP Profiles',
+            'Market Data',
+            'Purpose Definition',
+            'Access to Capital (DfID proposal)'
+          ].map(group => (
             <div key={group} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
               <Label className="text-sm font-medium">{group}</Label>
               <Select onValueChange={(value) => {
-                const current = form.watch("working_groups_ranking") || {};
-                form.setValue("working_groups_ranking", { ...current, [group]: value });
+                const current = form.watch('working_groups_ranking') || {};
+                form.setValue('working_groups_ranking', { ...current, [group]: value });
               }}>
-                <SelectTrigger className="w-20">
+                <SelectTrigger className="w-24">
                   <SelectValue placeholder="-" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1884,7 +2118,7 @@ const Survey2021: React.FC = () => {
                   <SelectItem value="3">3</SelectItem>
                   <SelectItem value="4">4</SelectItem>
                   <SelectItem value="5">5</SelectItem>
-                  <SelectItem value="N/A">N/A</SelectItem>
+                  <SelectItem value="NA">N/A</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1893,32 +2127,40 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label htmlFor="new_working_group_suggestions">Do you have suggestions of new working group topics/formats you would like to see?</Label>
-        <Textarea
-          id="new_working_group_suggestions"
-          {...form.register("new_working_group_suggestions")}
-          placeholder="Enter your suggestions..."
-        />
+        <Label >40. Do you have suggestions of new working group topics/formats you would like to see? *</Label>
+        <div className="mt-2">
+          <textarea
+            id="new_working_group_suggestions"
+            {...form.register('new_working_group_suggestions')}
+            placeholder="Share suggested topics or formats..."
+            className="w-full min-h-[120px] rounded-md border border-gray-300 p-3 outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
       </div>
 
       <div>
-        <Label>Webinar content - Please rank from 1 (most valuable) to 5 (least valuable) *</Label>
+        <Label >41. Please indicate which webinar content you have found the most valuable. Please provide one ranking per row (or for each webinar you attended/watched): 1 = most valuable, 5 = least valuable, N/A = not attended *</Label>
         <div className="space-y-4 mt-2">
           {[
-            "Gender lens investing (facilitated by Suzanne Biegel)", "COVID-19 Response (peer discussion)",
-            "Fundraising (presentations from I&P, Capria & DGGF)", "Portfolio Support (presentations from 10-Xe and AMI)",
-            "SGB COVID-19 Capital Bridge Facility (presentation from CFF)", "Fundraising 2.0 (peer discussion)",
-            "Human Capital (peer discussion)", "Co-investing workshop with ADAP (peer discussion)",
-            "Fundraising 3.0 – local capital (peer discussion)", "Ag/food tech: Investing across emerging and mature markets (collaboration with GITA)",
-            "Mentoring Pilot Kick-off"
-          ].map((webinar) => (
+            'Gender lens investing (facilitated by Suzanne Biegel)',
+            'COVID-19 Response (peer discussion)',
+            'Fundraising (presentations from I&P, Capria & DGGF)',
+            'Portfolio Support (presentations from 10-Xe and AMI)',
+            'SGB COVID-19 Capital Bridge Facility (presentation from CFF)',
+            'Fundraising 2.0 (peer discussion)',
+            'Human Capital (peer discussion)',
+            'Co-investing workshop with ADAP (peer discussion)',
+            'Fundraising 3.0 – local capital (peer discussion)',
+            'Ag/food tech: Investing across emerging and mature markets (collaboration with GITA)',
+            'Mentoring Pilot Kick-off'
+          ].map(webinar => (
             <div key={webinar} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
               <Label className="text-sm font-medium">{webinar}</Label>
               <Select onValueChange={(value) => {
-                const current = form.watch("webinar_content_ranking") || {};
-                form.setValue("webinar_content_ranking", { ...current, [webinar]: value });
+                const current = form.watch('webinar_content_ranking') || {};
+                form.setValue('webinar_content_ranking', { ...current, [webinar]: value });
               }}>
-                <SelectTrigger className="w-20">
+                <SelectTrigger className="w-24">
                   <SelectValue placeholder="-" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1927,7 +2169,7 @@ const Survey2021: React.FC = () => {
                   <SelectItem value="3">3</SelectItem>
                   <SelectItem value="4">4</SelectItem>
                   <SelectItem value="5">5</SelectItem>
-                  <SelectItem value="N/A">N/A</SelectItem>
+                  <SelectItem value="NA">N/A</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1936,31 +2178,56 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label htmlFor="new_webinar_suggestions">Do you have suggestions of new webinar topics/formats you would like to see?</Label>
-        <Textarea
-          id="new_webinar_suggestions"
-          {...form.register("new_webinar_suggestions")}
-          placeholder="Enter your suggestions..."
-        />
+        <Label >42. Do you have suggestions of new webinar topics/formats you would like to see? *</Label>
+        <div className="mt-2">
+          <textarea
+            id="new_webinar_suggestions"
+            {...form.register('new_webinar_suggestions')}
+            placeholder="Share suggested webinar topics or formats..."
+            className="w-full min-h-[120px] rounded-md border border-gray-300 p-3 outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
       </div>
 
       <div>
-        <Label htmlFor="communication_platform">Do you prefer Slack or WhatsApp as a communication platform for the network? *</Label>
-        <Select onValueChange={(value) => form.setValue("communication_platform", value)}>
+        <Label >43. Do you prefer Slack or WhatsApp as a communication platform for the network? *</Label>
+        <Select onValueChange={(value) => {
+          form.setValue('communication_platform', value);
+          if (value !== 'Other') {
+            form.setValue('communication_platform_other', '');
+          }
+        }}>
           <SelectTrigger>
-            <SelectValue placeholder="Select platform" />
+            <SelectValue placeholder="Select preferred platform" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="Slack only">Slack only</SelectItem>
             <SelectItem value="WhatsApp only">WhatsApp only</SelectItem>
-            <SelectItem value="Both Slack (eg for working groups etc) and WhatsApp (eg for more time sensitive communications)">Both Slack (eg for working groups etc) and WhatsApp (eg for more time sensitive communications)</SelectItem>
+            <SelectItem value="Both Slack and WhatsApp">Both Slack (eg for working groups etc) and WhatsApp (eg for more time sensitive communications)</SelectItem>
             <SelectItem value="Neither">Neither</SelectItem>
+            <SelectItem value="Other">Other</SelectItem>
           </SelectContent>
         </Select>
+        {form.watch('communication_platform') === 'Other' && (
+          <div className="mt-3">
+            <Label htmlFor="communication_platform_other">Please specify:</Label>
+            <Input
+              id="communication_platform_other"
+              {...form.register('communication_platform_other')}
+              placeholder="Specify preferred platform"
+              className="mt-1"
+            />
+          </div>
+        )}
       </div>
 
+    </div>
+  );
+
+  const renderSection7 = () => (
+    <div className="space-y-6">
       <div>
-        <Label>Network value areas - Please rank from 1 (most valuable) to 5 (least valuable) *</Label>
+        <Label >44. What are the main areas of value that you have received from the network to date? Please provide one ranking per row: 1 = most valuable, 5 = least valuable *</Label>
         <div className="space-y-4 mt-2">
           {[
             "Peer connections and peer learning", "Advocacy for early stage investing",
@@ -1990,7 +2257,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label>Would you like to present in Session 1: "Connection/Reconnection" on Tuesday February 16th? *</Label>
+        <Label >45. Would you like to present in Session 1: "Connection/Reconnection" on Tuesday February 16th to provide a brief (1-2 min update) on your activities/progress (please note you are not required to present in order to attend this session – presenting is optional!)? *</Label>
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <input
@@ -1998,8 +2265,8 @@ const Survey2021: React.FC = () => {
               id="present_yes"
               name="present_connection"
               title="Yes"
-              checked={form.watch("present_connection_session") === true}
-              onChange={() => form.setValue("present_connection_session", true)}
+              checked={form.watch("present_connection_session") === "Yes"}
+              onChange={() => form.setValue("present_connection_session", "Yes")}
             />
             <Label htmlFor="present_yes">Yes</Label>
           </div>
@@ -2009,16 +2276,38 @@ const Survey2021: React.FC = () => {
               id="present_no"
               name="present_connection"
               title="No"
-              checked={form.watch("present_connection_session") === false}
-              onChange={() => form.setValue("present_connection_session", false)}
+              checked={form.watch("present_connection_session") === "No"}
+              onChange={() => form.setValue("present_connection_session", "No")}
             />
             <Label htmlFor="present_no">No</Label>
           </div>
+          <div className="flex items-center space-x-2">
+            <input
+              type="radio"
+              id="present_other"
+              name="present_connection"
+              title="Other"
+              checked={form.watch("present_connection_session") === "Other"}
+              onChange={() => form.setValue("present_connection_session", "Other")}
+            />
+            <Label htmlFor="present_other">Other</Label>
+          </div>
         </div>
+        {form.watch("present_connection_session") === "Other" && (
+          <div className="mt-3">
+            <Label htmlFor="present_connection_session_other">Please specify:</Label>
+            <Input
+              id="present_connection_session_other"
+              {...form.register("present_connection_session_other")}
+              placeholder="Please describe your preference"
+              className="mt-1"
+            />
+          </div>
+        )}
       </div>
 
       <div>
-        <Label>Convening initiatives - Please rank from 1 (very interested) to 3 (not interested) *</Label>
+        <Label >46. In advance of Session 3: "Planning for 2021" on Tuesday February 23rd, please indicate which of the below initiatives you would be interested in, that you believe will add most value to your organization. Please provide one ranking per row: 1 = very interested, 2 = possibly interested, 3 = not interested *</Label>
         <div className="space-y-4 mt-2">
           {[
             "Warehousing/seed funding for fund managers to build track record",
@@ -2053,22 +2342,32 @@ const Survey2021: React.FC = () => {
           ))}
         </div>
         <div className="mt-3">
-          <Label htmlFor="convening_initiatives_other">Other:</Label>
-          <Input
-            id="convening_initiatives_other"
-            {...form.register("convening_initiatives_other")}
-            placeholder="Please specify other initiative"
-            className="mt-1"
-          />
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="convening_initiatives_other_enabled"
+              checked={form.watch("convening_initiatives_other_enabled")}
+              onCheckedChange={(checked) => {
+                form.setValue("convening_initiatives_other_enabled", checked);
+                if (!checked) {
+                  form.setValue("convening_initiatives_other", "");
+                }
+              }}
+            />
+            <Label htmlFor="convening_initiatives_other_enabled">Other:</Label>
+          </div>
+          {form.watch("convening_initiatives_other_enabled") && (
+            <Input
+              id="convening_initiatives_other"
+              {...form.register("convening_initiatives_other")}
+              placeholder="Please specify other initiative"
+              className="mt-1"
+            />
+          )}
         </div>
       </div>
-    </div>
-  );
 
-  const renderSection7 = () => (
-    <div className="space-y-6">
       <div>
-        <Label htmlFor="participate_mentoring_program">Would you be interested in participating in a peer mentoring program? *</Label>
+        <Label >47. Would you be interested in participating in a peer mentoring program? *</Label>
         <Select onValueChange={(value) => form.setValue("participate_mentoring_program", value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select option" />
@@ -2078,12 +2377,24 @@ const Survey2021: React.FC = () => {
             <SelectItem value="Yes, as a mentee">Yes, as a mentee</SelectItem>
             <SelectItem value="No">No</SelectItem>
             <SelectItem value="Not sure">Not sure</SelectItem>
+            <SelectItem value="Other">Other</SelectItem>
           </SelectContent>
         </Select>
+        {form.watch("participate_mentoring_program") === "Other" && (
+          <div className="mt-3">
+            <Label htmlFor="participate_mentoring_program_other">Please specify:</Label>
+            <Input
+              id="participate_mentoring_program_other"
+              {...form.register("participate_mentoring_program_other")}
+              placeholder="Please describe your preference"
+              className="mt-1"
+            />
+          </div>
+        )}
       </div>
 
       <div>
-        <Label>Would you like to present in Session 4: "Demystifying frontier finance" on Thursday February 25th? *</Label>
+        <Label >48. Would you like to present in Session 4: "Demystifying frontier finance" on Thursday February 25th, and if so, please indicate which sub-topic(s) you would be interested in presenting on (please note you are not required to present in order to attend this session – presenting is optional!)? *</Label>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
             "Yes, open ended vehicles", "Yes, early stage debt vehicles", "Yes, early stage equity",
@@ -2102,23 +2413,37 @@ const Survey2021: React.FC = () => {
                   }
                 }}
               />
-              <Label htmlFor={`demystifying_${topic}`} className="text-sm">{topic}</Label>
+              <Label htmlFor={`demystifying_${topic}`} className="text-sm font-normal text-gray-800">{topic}</Label>
             </div>
           ))}
         </div>
         <div className="mt-3">
-          <Label htmlFor="present_demystifying_session_other">Other:</Label>
-          <Input
-            id="present_demystifying_session_other"
-            {...form.register("present_demystifying_session_other")}
-            placeholder="Please specify other session topic"
-            className="mt-1"
-          />
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="present_demystifying_session_other_enabled"
+              checked={form.watch("present_demystifying_session_other_enabled")}
+              onCheckedChange={(checked) => {
+                form.setValue("present_demystifying_session_other_enabled", checked);
+                if (!checked) {
+                  form.setValue("present_demystifying_session_other", "");
+                }
+              }}
+            />
+            <Label htmlFor="present_demystifying_session_other_enabled">Other:</Label>
+          </div>
+          {form.watch("present_demystifying_session_other_enabled") && (
+            <Input
+              id="present_demystifying_session_other"
+              {...form.register("present_demystifying_session_other")}
+              placeholder="Please specify other session topic"
+              className="mt-1"
+            />
+          )}
         </div>
       </div>
 
       <div>
-        <Label htmlFor="additional_comments">Any other comments / feedback that you would like to share?</Label>
+        <Label >49. Any other comments / feedback that you would like to share?</Label>
         <Textarea
           id="additional_comments"
           {...form.register("additional_comments")}
@@ -2155,125 +2480,147 @@ const Survey2021: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">2021 ESCP Survey</h1>
-            <p className="text-gray-600 mt-1">Early Stage Capital Providers (ESCP) 2021 Convening Survey</p>
-          </div>
-        </div>
-        
-        {/* Introduction */}
-        <div className="bg-blue-50 p-6 rounded-lg border border-blue-200 mb-6">
-          <h2 className="text-xl font-semibold text-blue-900 mb-4">Introduction and Context</h2>
-          <div className="text-blue-800 space-y-3 text-sm leading-relaxed">
-            <p>Micro, Small, and Medium-Sized Enterprises (MSMEs), often called "small and growing businesses" (SGBs), are vital for job creation and economic growth in Africa and the Middle East. They employ up to 70% of the workforce and generate at least 40% of GDP across economies within these regions. Yet, these businesses frequently face a financing gap: they are too large for microfinance but too small for traditional bank loans and private equity, earning them the nickname "missing middle."</p>
-            <p>The Collaborative for Frontier Finance has launched a survey to examine the SGB financing landscape in these regions. We aim to explore the role of Local Capital Providers (LCPs)—local fund managers who use innovative approaches to invest in SGBs. This survey seeks respondents that manage regulated and unregulated firms that prioritize financing or investing in small and growing businesses, including but not limited to venture capital firms, PE, small business growth funds, leasing, fintech, and factoring. Geographic focus is pan-Africa, North Africa and Middle East.</p>
-            <p>This survey will provide insights into the business models of LCPs, the current market conditions, and future trends, while also comparing these findings to our 2023 survey. The survey is comprised of seven sections:</p>
-            <ol className="list-decimal list-inside ml-4 space-y-1">
-              <li>Organizational Background and Team</li>
-              <li>Vehicle Construct</li>
-              <li>Investment Thesis</li>
-              <li>Pipeline Sourcing and Portfolio Construction</li>
-              <li>Portfolio Value Creation and Exits</li>
-              <li>Performance-to-Date and Current Environment/Outlook</li>
-              <li>Future Research</li>
-            </ol>
-            <p>We appreciate your candor and accuracy. We estimate the survey will take approximately 20 minutes to complete.</p>
-            <p><em>Note that given the innovative nature of this sector, we refer to the terms "fund" and "investment vehicle" interchangeably.</em></p>
-            <p>Thank you in advance for your participation and sharing your valuable insights.</p>
-            <p className="font-semibold">The Collaborative for Frontier Finance team.</p>
-          </div>
-        </div>
-        
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">2021 ESCP Survey</h1>
-            <p className="text-gray-600 mt-1">Early Stage Capital Providers (ESCP) 2021 Convening Survey</p>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={saveDraft}
-              disabled={saving}
-            >
-              <Save className="w-4 h-4 mr-2" />
-              {saving ? 'Saving...' : 'Save Draft'}
-            </Button>
-          </div>
-        </div>
-        
-        <div className="bg-white p-4 rounded-lg border border-gray-200 mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">
-              Progress: {currentSection} of {totalSections} sections
-            </span>
-            <span className="text-sm text-gray-500">
-              {Math.round(progress)}% Complete
-            </span>
-          </div>
-          <Progress value={progress} className="w-full" />
-          <div className="mt-3">
-            <h3 className="text-lg font-semibold text-gray-900">
-              {getSectionTitle(currentSection)}
-            </h3>
-            <p className="text-sm text-gray-600 mt-1">
-              {currentSection === 1 && "Provide your firm and participant information"}
-              {currentSection === 2 && "Share details about your investment thesis and capital structure"}
-              {currentSection === 3 && "Describe your portfolio construction and team structure"}
-              {currentSection === 4 && "Detail your portfolio development and monetization strategies"}
-              {currentSection === 5 && "Assess the impact of COVID-19 on your operations"}
-              {currentSection === 6 && "Provide feedback on ESCP Network membership"}
-              {currentSection === 7 && "Set objectives and goals for the 2021 convening"}
-            </p>
-          </div>
-        </div>
-      </div>
+    <SidebarLayout>
+      <div className="min-h-screen bg-gray-50 pb-16">
+        <div className={`max-w-6xl mx-auto ${!showIntro ? 'pr-72' : ''}`}>
+        {/* Back Button (hidden on intro to reclaim space) */}
+        {!showIntro && null}
+        {/* Header */}
+        <div>
 
-      {/* Survey Form */}
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <Card className="shadow-sm border-gray-200">
-          <CardContent className="p-6">
-            {renderCurrentSection()}
-          </CardContent>
-        </Card>
+          {/* Mini Intro Page */}
+          {showIntro && (
+            <Card className="overflow-hidden shadow-sm border-gray-200 mb-6">
+              <div className="bg-gradient-to-r from-blue-50 via-sky-50 to-indigo-50 border-b border-blue-200 p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <h1 className="text-xl font-bold text-blue-900">2021 ESCP Survey</h1>
+                    <p className="text-sm text-blue-700">Early Stage Capital Providers (ESCP) 2021 Convening Survey</p>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <div className="flex items-center flex-wrap gap-2 text-[10px] justify-end">
+                      <span className="px-2 py-0.5 rounded-full bg-white/80 text-blue-700 border border-blue-200">7 sections</span>
+                      <span className="px-2 py-0.5 rounded-full bg-white/80 text-blue-700 border border-blue-200">12–15 min</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" onClick={() => navigate('/survey')}>
+                        Back to Surveys
+                      </Button>
+                      <Button size="sm" onClick={() => { setShowIntro(false); setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 0); }}>
+                        Start Survey
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <CardContent className="p-5">
+                <div className="space-y-3 text-blue-900">
+                  <div>
+                    <h2 className="text-base font-semibold text-blue-900">Early Stage Capital Providers (ESCP) — 2021 Convening Survey</h2>
+                    <p className="text-sm text-blue-800">
+                      The Early Stage Capital Providers (ESCP) 2021 Convening Survey has been developed in advance of our planned virtual convening in February 2021 to better understand:
+                    </p>
+                  </div>
+                  <ul className="list-disc list-inside space-y-1 text-sm text-blue-800">
+                      <li>Who is attending and what are the various investment and operational models?</li>
+                      <li>What are the key challenges faced by network members and the needs for success?</li>
+                      <li>What progress have ESCP network members made in the last 12 months?</li>
+                      <li>What impact has COVID-19 had on members and their portfolio companies?</li>
+                      <li>How valuable has the ESCP Network been to members to date?</li>
+                      <li>How to organize and prioritize the upcoming 2021 convening?</li>
+                    </ul>
+                  <div className="space-y-2">
+                    <p className="font-medium text-blue-900 text-sm">The survey is comprised of 7 sections:</p>
+                    <ol className="list-decimal list-inside space-y-1 text-sm text-blue-800">
+                      <li>Section 1: Background Information</li>
+                      <li>Section 2: Investment Thesis & Capital Construct</li>
+                      <li>Section 3: Portfolio Construction and Team</li>
+                      <li>Section 4: Portfolio Development & Investment Return Monetization</li>
+                      <li>Section 5: Impact of COVID-19 on Vehicle and Portfolio</li>
+                      <li>Section 6: Feedback on ESCP Network Membership to date</li>
+                      <li>Section 7: 2021 Convening Objectives & Goals</li>
+                    </ol>
+                  </div>
+                  <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-xs text-blue-900">
+                    <p className="mb-1">Note: while we are asking to provide name of firm, that is for CFF internal purposes only.</p>
+                    <p>All data will be aggregated and anonymized.</p>
+                  </div>
+                  <p className="text-sm text-blue-800">Thank you in advance for your time in completing this survey!</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-        {/* Navigation Buttons */}
-        <div className="flex items-center justify-between">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handlePrevious}
-            disabled={currentSection === 1}
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Previous
-          </Button>
+        </div>
 
-          {currentSection < totalSections ? (
+        {/* Section Tabs - removed, now using sidebar */}
+
+        {/* Survey Form */}
+        {!showIntro && (
+        <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-semibold">
+                Section {currentSection}: {getSectionTitle(currentSection)}
+              </h2>
+            </div>
+            <Progress value={progress} className="w-full [&>div]:bg-red-500" />
+            <div className="space-y-6">
+              {renderCurrentSection()}
+            </div>
+          </div>
+
+          {/* Navigation Buttons */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <Button
               type="button"
-              onClick={handleNext}
+              variant="outline"
+              onClick={handlePrevious}
+              disabled={currentSection === 1}
             >
-              Next
-              <ArrowRight className="w-4 h-4 ml-2" />
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Previous
             </Button>
-          ) : (
-            <Button
-              type="submit"
-              disabled={loading}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              <Send className="w-4 h-4 mr-2" />
-              {loading ? 'Submitting...' : 'Submit Survey'}
-            </Button>
-          )}
+
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 sm:justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={saveDraft}
+                disabled={saving}
+              >
+                {saving ? 'Saving...' : 'Save Draft'}
+              </Button>
+              {currentSection < totalSections ? (
+                <Button
+                  type="button"
+                  onClick={handleNext}
+                >
+                  Next
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              ) : (
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105"
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  {loading ? 'Submitting...' : 'Submit Survey'}
+                </Button>
+              )}
+            </div>
+          </div>
+        </form>
+        </Form>
+        )}
         </div>
-      </form>
-    </div>
+        
+        {/* Right Sidebar with Section Navigation */}
+        {!showIntro && renderSectionSidebar()}
+      </div>
+    </SidebarLayout>
   );
 };
 

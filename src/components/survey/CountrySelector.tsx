@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -50,6 +50,7 @@ export const CountrySelector = ({ value, onChange, placeholder = "Search countri
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredCountries, setFilteredCountries] = useState<string[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (searchTerm.trim() === '') {
@@ -62,9 +63,28 @@ export const CountrySelector = ({ value, onChange, placeholder = "Search countri
     }
   }, [searchTerm]);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
+
   const handleAddCountry = (country: string) => {
-    if (!value.includes(country)) {
-      onChange([...value, country]);
+    console.log('Adding country:', country);
+    const currentValue = value || [];
+    if (!currentValue.includes(country)) {
+      onChange([...currentValue, country]);
     }
     setSearchTerm('');
     setFilteredCountries([]);
@@ -72,7 +92,8 @@ export const CountrySelector = ({ value, onChange, placeholder = "Search countri
   };
 
   const handleRemoveCountry = (country: string) => {
-    onChange(value.filter(c => c !== country));
+    const currentValue = value || [];
+    onChange(currentValue.filter(c => c !== country));
   };
 
   return (
@@ -80,9 +101,9 @@ export const CountrySelector = ({ value, onChange, placeholder = "Search countri
       <label className="text-sm font-medium text-gray-700">{label}</label>
       
       {/* Selected countries */}
-      {value.length > 0 && (
+      {value && value.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {value.map((country) => (
+          {(value || []).map((country) => (
             <Badge
               key={country}
               variant="secondary"
@@ -104,7 +125,7 @@ export const CountrySelector = ({ value, onChange, placeholder = "Search countri
       )}
 
       {/* Search input */}
-      <div className="relative">
+      <div className="relative" ref={dropdownRef}>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
@@ -122,13 +143,21 @@ export const CountrySelector = ({ value, onChange, placeholder = "Search countri
 
         {/* Dropdown */}
         {isOpen && filteredCountries.length > 0 && (
-          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
             {filteredCountries.map((country) => (
               <button
                 key={country}
                 type="button"
-                className="w-full px-4 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
-                onClick={() => handleAddCountry(country)}
+                className="w-full px-4 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleAddCountry(country);
+                }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
               >
                 {country}
               </button>

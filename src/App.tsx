@@ -11,19 +11,22 @@ import { useLoadingStore } from "@/store/loading-store";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
-import Network from "./pages/Network";
+import NetworkWrapper from "./components/NetworkWrapper";
 import FundManagerDetail from "./pages/FundManagerDetail";
 import Survey from "./pages/Survey";
 import Survey2021 from "./pages/Survey2021";
 import Survey2022 from "./pages/Survey2022";
 import Survey2023 from "./pages/Survey2023";
 import Survey2024 from "./pages/Survey2024";
-import Profile from "./pages/Profile";
+import MyProfile from "./pages/MyProfile";
 import ViewerSettings from "./pages/ViewerSettings";
+import Application from "./pages/Application";
 import ResetPassword from "./pages/ResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
-import Admin from "./pages/Admin";
-import Analytics from "./pages/Analytics";
+import AdminWrapper from "./components/AdminWrapper";
+import AnalyticsWrapper from "./components/AnalyticsWrapper";
+import UserOnboarding from "./components/onboarding/UserOnboarding";
+import SurveyResponseViewer from "./components/survey/SurveyResponseViewer";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,7 +42,8 @@ const App = () => {
         <Sonner />
         <AuthProvider>
         <BrowserRouter>
-          <Routes>
+          <div className="font-rubik">
+            <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={
@@ -48,13 +52,18 @@ const App = () => {
               </ProtectedRoute>
             } />
             <Route path="/network" element={
-              <ProtectedRoute requiredRole="viewer">
-                <Network />
+              <ProtectedRoute>
+                <NetworkWrapper />
               </ProtectedRoute>
             } />
-            <Route path="/network/fund-manager/:userId" element={
-              <ProtectedRoute requiredRole="viewer">
+            <Route path="/network/fund-manager/:id" element={
+              <ProtectedRoute>
                 <FundManagerDetail />
+              </ProtectedRoute>
+            } />
+            <Route path="/survey-response/:userId/:year" element={
+              <ProtectedRoute>
+                <SurveyResponseViewer />
               </ProtectedRoute>
             } />
             <Route path="/survey" element={
@@ -83,8 +92,13 @@ const App = () => {
               </ProtectedRoute>
             } />
             <Route path="/profile" element={
-              <ProtectedRoute requiredRole="member">
-                <Profile />
+              <ProtectedRoute>
+                <MyProfile />
+              </ProtectedRoute>
+            } />
+            <Route path="/onboarding" element={
+              <ProtectedRoute>
+                <UserOnboarding />
               </ProtectedRoute>
             } />
             <Route path="/viewer-settings" element={
@@ -92,20 +106,26 @@ const App = () => {
                 <ViewerSettings />
               </ProtectedRoute>
             } />
+            <Route path="/application" element={
+              <ProtectedRoute requiredRole="viewer">
+                <Application />
+              </ProtectedRoute>
+            } />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/admin" element={
               <ProtectedRoute requiredRole="admin">
-                <Admin />
+                <AdminWrapper />
               </ProtectedRoute>
             } />
             <Route path="/analytics" element={
               <ProtectedRoute requiredRole="admin">
-                <Analytics />
+                <AnalyticsWrapper />
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </div>
         </BrowserRouter>
         </AuthProvider>
       </TooltipProvider>
