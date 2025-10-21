@@ -498,14 +498,37 @@ export default function Survey2023() {
   };
 
   const renderSectionSidebar = () => (
-    <div className="w-64 bg-white border-l border-gray-200 p-4 fixed right-0 top-20 h-[calc(100vh-5rem)] overflow-hidden flex flex-col">
-      <h3 className="text-sm font-semibold text-gray-900 mb-4">
-        Survey Sections
-        {isReadOnly && <span className="text-xs text-gray-500 block">(Read-Only)</span>}
-      </h3>
-      <div className="space-y-2 overflow-y-auto flex-1">
+    <div 
+      className="w-72 bg-white border-l border-gray-200 p-6 fixed right-0 top-20 h-[calc(100vh-5rem)] overflow-hidden flex flex-col shadow-lg"
+      style={{
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
+      }}
+    >
+      <div className="mb-6">
+        <h3 className="text-lg font-bold text-gray-900 mb-2">Survey Progress</h3>
+        <div className="bg-gray-100 rounded-full h-2 mb-4">
+          <div 
+            className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-300"
+            style={{ width: `${(currentSection / totalSections) * 100}%` }}
+          ></div>
+        </div>
+        <p className="text-sm text-gray-600">
+          Section {currentSection} of {totalSections}
+        </p>
+      </div>
+      
+      <div 
+        className="space-y-3 overflow-y-auto flex-1 hide-scrollbar"
+        style={{
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+        }}
+      >
+        <h4 className="text-sm font-semibold text-gray-700 mb-3">Sections</h4>
         {Array.from({ length: totalSections }, (_, idx) => idx + 1).map((sectionNumber) => {
           const isActive = currentSection === sectionNumber;
+          const isCompleted = sectionNumber < currentSection;
           return (
             <button
               key={sectionNumber}
@@ -518,18 +541,36 @@ export default function Survey2023() {
               }}
               disabled={isReadOnly}
               className={[
-                'w-full text-left px-3 py-2 rounded-md border transition-colors',
+                'w-full text-left px-4 py-3 rounded-lg border transition-all duration-200 group',
                 isActive
-                  ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white border-blue-600 shadow-lg transform scale-105'
+                  : isCompleted
+                  ? 'bg-green-50 text-green-800 border-green-200 hover:bg-green-100'
                   : isReadOnly 
                     ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                    : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                    : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
               ].join(' ')}
               aria-current={isActive ? 'page' : undefined}
             >
-              <div className="flex items-start gap-2">
-                <span className="font-semibold text-xs mt-0.5">{sectionNumber}.</span>
-                <span className="text-xs leading-tight">{getSectionTitle(sectionNumber)}</span>
+              <div className="flex items-start gap-3">
+                <div className={[
+                  'flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold',
+                  isActive
+                    ? 'bg-white text-blue-600'
+                    : isCompleted
+                    ? 'bg-green-500 text-white'
+                    : 'bg-gray-200 text-gray-600'
+                ].join(' ')}>
+                  {isCompleted ? '✓' : sectionNumber}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium leading-tight">
+                    {getSectionTitle(sectionNumber)}
+                  </div>
+                  {isCompleted && (
+                    <div className="text-xs text-green-600 mt-1">Completed</div>
+                  )}
+                </div>
               </div>
             </button>
           );
@@ -676,6 +717,13 @@ export default function Survey2023() {
   function renderSection2() {
     return (
     <div className="space-y-6">
+      {/* Section 2 Header */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <p className="text-sm text-blue-700">
+          Questions apply to Fund 1
+        </p>
+      </div>
+      
       <FormField
         control={form.control}
         name="legal_entity_achieved"
@@ -1026,7 +1074,7 @@ export default function Survey2023() {
       <div className="space-y-4">
         <FormLabel>11. What is the prior work experience within the GP leadership team / fund principals, as it relates to fund management? (Please provide a response for each row as to your GP management team / fund principals' experience)</FormLabel>
         
-        <div className="space-y-4">
+        <div className="space-y-1">
           {[
             'New to investment and fund management',
             'Investment/ financial experience in adjacent finance field (e.g. banking, asset management, financial advisory)',
@@ -1034,100 +1082,106 @@ export default function Survey2023() {
             'Direct investment experience. However, lacks well-documented data regarding prior investment performance, track record and exits.',
             'Direct investment experience in senior fund management position. Has well-documented data regarding prior investment performance, track record and exits.'
           ].map((experience) => (
-            <div key={experience} className="border rounded-lg p-4">
-              <FormLabel className="text-sm font-normal mb-3 block">{experience}</FormLabel>
-              <FormField
-                control={form.control}
-                name={`team_experience_investments.${experience}`}
-                render={({ field }) => (
-                  <FormItem>
-                    <Select onValueChange={field.onChange} value={field.value}>
+            <div key={experience} className="flex items-center justify-between space-x-4 py-1 border-b border-gray-100">
+              <div className="flex-1">
+                <FormLabel className="text-sm font-normal text-gray-900 leading-tight">{experience}</FormLabel>
+              </div>
+              <div className="flex-shrink-0">
+                <FormField
+                  control={form.control}
+                  name={`team_experience_investments.${experience}`}
+                  render={({ field }) => (
+                    <FormItem>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select applicable category" />
-                        </SelectTrigger>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger className="w-48">
+                            <SelectValue placeholder="Select applicable category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Not Applicable">Not Applicable</SelectItem>
+                            <SelectItem value="Applies to 1 Principal">Applies to 1 Principal</SelectItem>
+                            <SelectItem value="Applies to 2 or more principals">Applies to 2 or more principals</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Not Applicable">Not Applicable</SelectItem>
-                        <SelectItem value="Applies to 1 Principal">Applies to 1 Principal</SelectItem>
-                        <SelectItem value="Applies to 2 or more principals">Applies to 2 or more principals</SelectItem>
-                      </SelectContent>
-                    </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
           ))}
         </div>
 
-        <div className="border rounded-lg p-4">
-          <FormField
-            control={form.control}
-            name="other_experience_selected"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <FormLabel className="text-sm font-normal">
-                  Other (please specify)
-                </FormLabel>
-              </FormItem>
-            )}
-          />
-        </div>
-
-        {form.watch('other_experience_selected') && (
-          <div className="border rounded-lg p-4 space-y-4">
-            <FormLabel className="text-sm font-normal">Other experience details:</FormLabel>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="team_experience_other"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm font-normal">Description of other experience</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Describe the other experience type" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+        <div className="flex items-center justify-between space-x-4 py-1 border-b border-gray-100">
+          <div className="flex-1">
+            <FormField
+              control={form.control}
+              name="other_experience_selected"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormLabel className="text-sm font-normal text-gray-900 leading-tight">
+                    Other (please specify)
+                  </FormLabel>
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="flex-shrink-0">
+            {form.watch('other_experience_selected') && (
               <FormField
                 control={form.control}
                 name={`team_experience_investments.Other Experience`}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-normal">Category for other experience</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
+                    <FormControl>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger className="w-48">
                           <SelectValue placeholder="Select applicable category" />
                         </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Not Applicable">Not Applicable</SelectItem>
-                        <SelectItem value="Applies to 1 Principal">Applies to 1 Principal</SelectItem>
-                        <SelectItem value="Applies to 2 or more principals">Applies to 2 or more principals</SelectItem>
-                      </SelectContent>
-                    </Select>
+                        <SelectContent>
+                          <SelectItem value="Not Applicable">Not Applicable</SelectItem>
+                          <SelectItem value="Applies to 1 Principal">Applies to 1 Principal</SelectItem>
+                          <SelectItem value="Applies to 2 or more principals">Applies to 2 or more principals</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </div>
+            )}
+          </div>
+        </div>
+
+        {form.watch('other_experience_selected') && (
+          <div className="space-y-2">
+            <FormField
+              control={form.control}
+              name="team_experience_other"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm font-normal">Description of other experience</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Describe the other experience type" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
         )}
 
         <div className="space-y-4">
           <FormLabel>12. Team Experience: Please specify cumulative number of investment/financing transactions completed by your principal(s) prior to this current fund/vehicle? (Please provide answer for both columns)</FormLabel>
           
-          <div className="space-y-3">
+          <div className="space-y-1">
             {[
               '0',
               '1 - 4',
@@ -1136,30 +1190,23 @@ export default function Survey2023() {
               '15 - 24',
               '≥ 25'
             ].map((range) => (
-              <div key={range} className="border rounded-lg p-4">
-                <FormLabel className="text-sm font-normal mb-3 block">{range}</FormLabel>
-                <div className="grid grid-cols-2 gap-4">
+              <div key={range} className="flex items-center justify-between py-1 border-b border-gray-100">
+                <FormLabel className="text-sm font-normal w-32">{range}</FormLabel>
+                <div className="flex gap-4">
                   <FormField
                     control={form.control}
                     name={`team_experience_investments.${range}`}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm font-normal">Investments</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select number" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="0">0</SelectItem>
-                            <SelectItem value="1-4">1 - 4</SelectItem>
-                            <SelectItem value="5-9">5 - 9</SelectItem>
-                            <SelectItem value="10-14">10 - 14</SelectItem>
-                            <SelectItem value="15-24">15 - 24</SelectItem>
-                            <SelectItem value="25+">≥ 25</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="number"
+                            placeholder="Investments"
+                            className="w-32"
+                            onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -1169,22 +1216,15 @@ export default function Survey2023() {
                     name={`team_experience_exits.${range}`}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm font-normal">Exits / Monetizations</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select number" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="0">0</SelectItem>
-                            <SelectItem value="1-4">1 - 4</SelectItem>
-                            <SelectItem value="5-9">5 - 9</SelectItem>
-                            <SelectItem value="10-14">10 - 14</SelectItem>
-                            <SelectItem value="15-24">15 - 24</SelectItem>
-                            <SelectItem value="25+">≥ 25</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="number"
+                            placeholder="Exits"
+                            className="w-32"
+                            onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -1267,55 +1307,55 @@ export default function Survey2023() {
       <div className="space-y-4">
         <FormLabel>14. Currency Management. What currency do you make investments? What currency is your fund LP vehicle? (Please answer for both as appropriate)</FormLabel>
         
-        <div className="space-y-3">
-          <div className="border rounded-lg p-4">
-            <FormLabel className="text-sm font-normal mb-3 block">Currency for Investments</FormLabel>
-        <FormField
-          control={form.control}
-          name="currency_investments"
-          render={({ field }) => (
-            <FormItem>
+        <div className="space-y-1">
+          <div className="flex items-center justify-between py-1 border-b border-gray-100">
+            <FormLabel className="text-sm font-normal w-48">Currency for Investments</FormLabel>
+            <FormField
+              control={form.control}
+              name="currency_investments"
+              render={({ field }) => (
+                <FormItem>
                   <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
+                    <FormControl>
+                      <SelectTrigger className="w-48">
                         <SelectValue placeholder="Select currency type" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
                       <SelectItem value="Local Currency">Local Currency</SelectItem>
                       <SelectItem value="Foreign Currency">Foreign Currency</SelectItem>
                       <SelectItem value="Multiple Currencies">Multiple Currencies</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
 
-          <div className="border rounded-lg p-4">
-            <FormLabel className="text-sm font-normal mb-3 block">Currency for LP Commitments</FormLabel>
-        <FormField
-          control={form.control}
-          name="currency_lp_commitments"
-          render={({ field }) => (
-            <FormItem>
+          <div className="flex items-center justify-between py-1 border-b border-gray-100">
+            <FormLabel className="text-sm font-normal w-48">Currency for LP Commitments</FormLabel>
+            <FormField
+              control={form.control}
+              name="currency_lp_commitments"
+              render={({ field }) => (
+                <FormItem>
                   <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
+                    <FormControl>
+                      <SelectTrigger className="w-48">
                         <SelectValue placeholder="Select currency type" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
                       <SelectItem value="Local Currency">Local Currency</SelectItem>
                       <SelectItem value="Foreign Currency">Foreign Currency</SelectItem>
                       <SelectItem value="Multiple Currencies">Multiple Currencies</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
         </div>
       </div>
@@ -1368,63 +1408,72 @@ export default function Survey2023() {
       <div className="space-y-4">
         <FormLabel>16. What are the current hard commitments raised, current amount invested/outstanding portfolio and target size of your fund vehicle? (USD Equivalent) (Please provide one answer for each row)</FormLabel>
 
-      <div className="grid grid-cols-3 gap-4">
-        <FormField
-          control={form.control}
-          name="current_funds_raised"
-          render={({ field }) => (
-            <FormItem>
-                <FormLabel className="text-sm font-normal">Current Funds Raised</FormLabel>
-              <FormControl>
-                <Input 
-                  type="number" 
-                  {...field} 
-                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                  placeholder="0" 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      <div className="space-y-1">
+        <div className="flex items-center justify-between py-1 border-b border-gray-100">
+          <FormLabel className="text-sm font-normal w-64">Current Funds Raised</FormLabel>
+          <FormField
+            control={form.control}
+            name="current_funds_raised"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    {...field} 
+                    className="w-32"
+                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                    placeholder="0" 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
-        <FormField
-          control={form.control}
-          name="current_amount_invested"
-          render={({ field }) => (
-            <FormItem>
-                <FormLabel className="text-sm font-normal">Current amount invested by fund</FormLabel>
-              <FormControl>
-                <Input 
-                  type="number" 
-                  {...field} 
-                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                  placeholder="0" 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="flex items-center justify-between py-1 border-b border-gray-100">
+          <FormLabel className="text-sm font-normal w-64">Current amount invested by fund</FormLabel>
+          <FormField
+            control={form.control}
+            name="current_amount_invested"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    {...field} 
+                    className="w-32"
+                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                    placeholder="0" 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
-        <FormField
-          control={form.control}
-          name="target_fund_size"
-          render={({ field }) => (
-            <FormItem>
-                <FormLabel className="text-sm font-normal">Target fund size</FormLabel>
-              <FormControl>
-                <Input 
-                  type="number" 
-                  {...field} 
-                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                  placeholder="0" 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="flex items-center justify-between py-1 border-b border-gray-100">
+          <FormLabel className="text-sm font-normal w-64">Target fund size</FormLabel>
+          <FormField
+            control={form.control}
+            name="target_fund_size"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    {...field} 
+                    className="w-32"
+                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                    placeholder="0" 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
         </div>
       </div>
 
@@ -1450,30 +1499,35 @@ export default function Survey2023() {
       <div className="space-y-4">
         <FormLabel>18. Does your LP agreement/governance permit "follow-on" investments?</FormLabel>
         
-        <div className="border rounded-lg p-4">
-          <FormLabel className="text-sm font-normal mb-3 block">Follow-on investment</FormLabel>
-      <FormField
-        control={form.control}
-        name="follow_on_investment_permitted"
-        render={({ field }) => (
-          <FormItem>
-                <Select onValueChange={field.onChange} value={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                      <SelectValue placeholder="Select percentage range" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                    <SelectItem value="Not Permitted">Not Permitted</SelectItem>
-                      <SelectItem value="< 25% of Fund">&lt; 25% of Fund</SelectItem>
-                    <SelectItem value="26% - 50% of Fund">26% - 50% of Fund</SelectItem>
-                    <SelectItem value="> 50% of Fund">&gt; 50% of Fund</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+        <div className="flex items-center gap-6">
+          <FormLabel className="text-sm font-normal">Follow-on investment</FormLabel>
+          <FormField
+            control={form.control}
+            name="follow_on_investment_permitted"
+            render={({ field }) => (
+              <FormItem>
+                <RadioGroup onValueChange={field.onChange} value={field.value} className="flex gap-6">
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="Not Permitted" id="not-permitted" />
+                    <label htmlFor="not-permitted" className="text-sm font-normal">Not Permitted</label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="< 25% of Fund" id="less-25" />
+                    <label htmlFor="less-25" className="text-sm font-normal">&lt; 25% of Fund</label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="26% - 50% of Fund" id="26-50" />
+                    <label htmlFor="26-50" className="text-sm font-normal">26% - 50% of Fund</label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="> 50% of Fund" id="more-50" />
+                    <label htmlFor="more-50" className="text-sm font-normal">&gt; 50% of Fund</label>
+                  </div>
+                </RadioGroup>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
       </div>
 
@@ -1556,7 +1610,7 @@ export default function Survey2023() {
             'Donors / Bilateral Agencies / Foundations',
             'Corporates'
           ].map((lpCategory) => (
-            <div key={lpCategory} className="flex items-center justify-between border rounded p-2">
+            <div key={lpCategory} className="flex items-center justify-between py-1 border-b border-gray-100">
               <FormLabel className="text-sm font-normal flex-1 mr-4">{lpCategory}</FormLabel>
               <div className="flex items-center space-x-1 w-20">
       <FormField
@@ -1592,14 +1646,19 @@ export default function Survey2023() {
         <div className="mt-3 p-3 bg-gray-50 rounded">
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium">Total:</span>
-            <span className="text-sm font-medium">
+            <span className={`text-sm font-medium ${
+              Math.abs(Object.values(form.watch('lp_capital_sources_existing') || {})
+                .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) - 100) < 0.1 
+                ? 'text-green-600' 
+                : 'text-red-600'
+            }`}>
               {Object.values(form.watch('lp_capital_sources_existing') || {})
                 .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0).toFixed(1)}%
             </span>
           </div>
-          {Object.values(form.watch('lp_capital_sources_existing') || {})
-            .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) !== 100 && (
-            <p className="text-xs text-red-600 mt-1">Please ensure percentages sum to 100%</p>
+          {Math.abs(Object.values(form.watch('lp_capital_sources_existing') || {})
+            .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) - 100) >= 0.1 && (
+            <p className="text-xs text-red-600 mt-1">Please ensure percentages sum to exactly 100%</p>
           )}
         </div>
       </div>
@@ -1620,7 +1679,7 @@ export default function Survey2023() {
             'Corporates',
             'Donors / Bilateral Agencies / Foundations'
           ].map((lpCategory) => (
-            <div key={lpCategory} className="flex items-center justify-between border rounded p-2">
+            <div key={lpCategory} className="flex items-center justify-between py-1 border-b border-gray-100">
               <FormLabel className="text-sm font-normal flex-1 mr-4">{lpCategory}</FormLabel>
               <div className="flex items-center space-x-1 w-20">
       <FormField
@@ -1656,14 +1715,19 @@ export default function Survey2023() {
         <div className="mt-3 p-3 bg-gray-50 rounded">
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium">Total:</span>
-            <span className="text-sm font-medium">
+            <span className={`text-sm font-medium ${
+              Math.abs(Object.values(form.watch('lp_capital_sources_target') || {})
+                .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) - 100) < 0.1 
+                ? 'text-green-600' 
+                : 'text-red-600'
+            }`}>
               {Object.values(form.watch('lp_capital_sources_target') || {})
                 .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0).toFixed(1)}%
             </span>
           </div>
-          {Object.values(form.watch('lp_capital_sources_target') || {})
-            .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) !== 100 && (
-            <p className="text-xs text-red-600 mt-1">Please ensure percentages sum to 100%</p>
+          {Math.abs(Object.values(form.watch('lp_capital_sources_target') || {})
+            .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) - 100) >= 0.1 && (
+            <p className="text-xs text-red-600 mt-1">Please ensure percentages sum to exactly 100%</p>
           )}
         </div>
       </div>
@@ -1852,7 +1916,7 @@ export default function Survey2023() {
             'Using local government domestic bond issuance',
             'Using local government Eurobond issuance'
           ].map((method) => (
-            <div key={method} className="flex items-center justify-between border rounded p-2">
+            <div key={method} className="flex items-center justify-between py-1 border-b border-gray-100">
               <FormLabel className="text-sm font-normal flex-1 mr-4">{method}</FormLabel>
               <div className="flex items-center space-x-1 w-20">
                 <FormField
@@ -1906,7 +1970,7 @@ export default function Survey2023() {
             const isOther = constraint === 'Other (please specify constraint and 1 - 5 ranking)';
             
             return (
-              <div key={constraint} className="flex items-center justify-between border rounded p-2">
+              <div key={constraint} className="flex items-center justify-between py-1 border-b border-gray-100">
                 <FormLabel className="text-sm font-normal flex-1 mr-4">{constraint}</FormLabel>
                 <div className="flex items-center space-x-1 w-32">
                   {isOther ? (
@@ -1937,11 +2001,11 @@ export default function Survey2023() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                              <SelectItem value="1">1</SelectItem>
+                              <SelectItem value="1">1 - Least Constraining</SelectItem>
                               <SelectItem value="2">2</SelectItem>
                               <SelectItem value="3">3</SelectItem>
                               <SelectItem value="4">4</SelectItem>
-                              <SelectItem value="5">5</SelectItem>
+                              <SelectItem value="5">5 - Most Constraining</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -2013,66 +2077,60 @@ export default function Survey2023() {
         
         <div className="space-y-4">
           {[
-            'Start-up (prerevenue, concept and business plan development)',
-            'Early stage (early revenue, product/service development, funds needed to expand business model)',
-            'Growth (established business in need of funds for expansion, assets, working capital etc)'
+            { key: 'Start-up', label: 'Start-up (prerevenue, concept and business plan development)' },
+            { key: 'Early stage', label: 'Early stage (early revenue, product/service development, funds needed to expand business model)' },
+            { key: 'Growth', label: 'Growth (established business in need of funds for expansion, assets, working capital etc)' }
           ].map((stage) => (
-            <div key={stage} className="flex items-center justify-between border rounded p-2">
-              <FormLabel className="text-sm font-normal flex-1 mr-4">{stage}</FormLabel>
-              <div className="flex items-center space-x-1 w-20">
-      <FormField
-        control={form.control}
-                  name={`business_stages.${stage}`}
-        render={({ field }) => (
-          <FormItem>
+            <div key={stage.key} className="flex items-center justify-between space-x-4 py-1 border-b border-gray-100">
+              <div className="flex-1">
+                <FormLabel className="text-sm font-normal text-gray-900 leading-tight">{stage.label}</FormLabel>
+              </div>
+              <div className="flex-shrink-0">
+                <FormField
+                  control={form.control}
+                  name="business_stages"
+                  render={() => (
+                    <FormItem>
                       <FormControl>
                         <Input
-                          {...field}
                           type="number"
-                          min="0"
-                          max="100"
-                          step="0.1"
-                          placeholder="0"
-                          className="text-right h-8 w-16"
+                          placeholder="%"
+                          className="w-20"
                           onChange={(e) => {
-                            const value = e.target.value;
-                            field.onChange(value === '' ? '' : parseFloat(value));
+                            const value = e.target.value ? parseInt(e.target.value) : undefined;
+                            const current = form.getValues('business_stages') || {};
+                            form.setValue('business_stages', { ...current, [stage.key]: value ?? 0 });
                           }}
                         />
                       </FormControl>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
-                <span className="text-sm text-gray-500">%</span>
               </div>
             </div>
           ))}
-        </div>
-        
-        <div className="mt-3 p-3 bg-gray-50 rounded">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">Total:</span>
-            <span className={`text-sm font-medium ${Object.values(form.watch('business_stages') || {})
-              .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) > 100 ? 'text-red-600' : 
-              Object.values(form.watch('business_stages') || {})
-                .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) === 100 ? 'text-green-600' : 'text-gray-900'}`}>
-              {Object.values(form.watch('business_stages') || {})
-                .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0).toFixed(1)}%
-            </span>
+          
+          {/* Total validation display */}
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Total: {(() => {
+                const businessStages = form.watch('business_stages') || {};
+                const total = Object.values(businessStages).reduce((sum: number, value: any) => sum + (typeof value === 'number' ? value : 0), 0);
+                return `${total}%`;
+              })()}</span>
+              {(() => {
+                const businessStages = form.watch('business_stages') || {};
+                const total = Object.values(businessStages).reduce((sum: number, value: any) => sum + (typeof value === 'number' ? value : 0), 0);
+                return total !== 100 ? (
+                  <span className="text-sm text-red-600 font-medium">
+                    {total < 100 ? `Need ${100 - total}% more` : `${total - 100}% over 100%`}
+                  </span>
+                ) : (
+                  <span className="text-sm text-green-600 font-medium">✓ Perfect!</span>
+                );
+              })()}
+            </div>
           </div>
-          {Object.values(form.watch('business_stages') || {})
-            .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) > 100 && (
-            <p className="text-xs text-red-600 mt-1">Total exceeds 100%. Please reduce some percentages.</p>
-          )}
-          {Object.values(form.watch('business_stages') || {})
-            .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) < 100 && (
-            <p className="text-xs text-orange-600 mt-1">Total is less than 100%. Please ensure percentages sum to 100%.</p>
-          )}
-          {Object.values(form.watch('business_stages') || {})
-            .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) === 100 && (
-            <p className="text-xs text-green-600 mt-1">✓ Perfect! Total equals 100%.</p>
-          )}
         </div>
       </div>
 
@@ -2081,67 +2139,61 @@ export default function Survey2023() {
         
         <div className="space-y-4">
           {[
-            'Livelihood Sustaining Enterprises <5% USD growth equivalent pa',
-            'Growth Enterprises 5-10% USD growth equivalent pa',
-            'Dynamic Enterprises 11-20% USD growth equivalent pa',
-            'High-Growth Ventures >20% USD growth equivalent pa'
-          ].map((growth) => (
-            <div key={growth} className="flex items-center justify-between border rounded p-2">
-              <FormLabel className="text-sm font-normal flex-1 mr-4">{growth}</FormLabel>
-              <div className="flex items-center space-x-1 w-20">
+            { key: 'Livelihood Sustaining (<5%)', label: 'Livelihood Sustaining Enterprises <5% USD growth equivalent pa' },
+            { key: 'Growth (5-10%)', label: 'Growth Enterprises 5-10% USD growth equivalent pa' },
+            { key: 'Dynamic (11-20%)', label: 'Dynamic Enterprises 11-20% USD growth equivalent pa' },
+            { key: 'High-Growth (>20%)', label: 'High-Growth Ventures >20% USD growth equivalent pa' }
+          ].map(({ key, label }) => (
+            <div key={key} className="flex items-center justify-between space-x-4 py-1 border-b border-gray-100">
+              <div className="flex-1">
+                <FormLabel className="text-sm font-normal text-gray-900 leading-tight">{label}</FormLabel>
+              </div>
+              <div className="flex-shrink-0">
                 <FormField
                   control={form.control}
-                  name={`growth_expectations.${growth}`}
-                  render={({ field }) => (
+                  name="growth_expectations"
+                  render={() => (
                     <FormItem>
                       <FormControl>
                         <Input
-                          {...field}
                           type="number"
-                          min="0"
-                          max="100"
-                          step="0.1"
-                          placeholder="0"
-                          className="text-right h-8 w-16"
+                          placeholder="%"
+                          className="w-20"
                           onChange={(e) => {
-                            const value = e.target.value;
-                            field.onChange(value === '' ? '' : parseFloat(value));
+                            const value = e.target.value ? parseInt(e.target.value) : undefined;
+                            const current = form.getValues('growth_expectations') || {};
+                            form.setValue('growth_expectations', { ...current, [key]: value ?? 0 });
                           }}
                         />
                       </FormControl>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
-                <span className="text-sm text-gray-500">%</span>
               </div>
             </div>
           ))}
-        </div>
-        
-        <div className="mt-3 p-3 bg-gray-50 rounded">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">Total:</span>
-            <span className={`text-sm font-medium ${Object.values(form.watch('growth_expectations') || {})
-              .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) > 100 ? 'text-red-600' : 
-              Object.values(form.watch('growth_expectations') || {})
-                .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) === 100 ? 'text-green-600' : 'text-gray-900'}`}>
-              {Object.values(form.watch('growth_expectations') || {})
-                .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0).toFixed(1)}%
-            </span>
+          
+          {/* Total validation display */}
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Total: {(() => {
+                const growthExpectations = form.watch('growth_expectations') || {};
+                const total = Object.values(growthExpectations).reduce((sum: number, value: any) => sum + (typeof value === 'number' ? value : 0), 0);
+                return `${total}%`;
+              })()}</span>
+              {(() => {
+                const growthExpectations = form.watch('growth_expectations') || {};
+                const total = Object.values(growthExpectations).reduce((sum: number, value: any) => sum + (typeof value === 'number' ? value : 0), 0);
+                return total !== 100 ? (
+                  <span className="text-sm text-red-600 font-medium">
+                    {total < 100 ? `Need ${100 - total}% more` : `${total - 100}% over 100%`}
+                  </span>
+                ) : (
+                  <span className="text-sm text-green-600 font-medium">✓ Perfect!</span>
+                );
+              })()}
+            </div>
           </div>
-          {Object.values(form.watch('growth_expectations') || {})
-            .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) > 100 && (
-            <p className="text-xs text-red-600 mt-1">Total exceeds 100%. Please reduce some percentages.</p>
-          )}
-          {Object.values(form.watch('growth_expectations') || {})
-            .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) < 100 && (
-            <p className="text-xs text-orange-600 mt-1">Total is less than 100%. Please ensure percentages sum to 100%.</p>
-          )}
-          {Object.values(form.watch('growth_expectations') || {})
-            .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) === 100 && (
-            <p className="text-xs text-green-600 mt-1">✓ Perfect! Total equals 100%.</p>
-          )}
         </div>
       </div>
 
@@ -2150,68 +2202,62 @@ export default function Survey2023() {
         
         <div className="space-y-4">
           {[
-            'Venture launch (e.g. invest in initial staff, product/ services development and market acceptance)',
-            'Inventory and working capital requirements',
-            'Small-ticket tangible assets (e.g. computers, routers, mobile and connectivity systems, office equipment)',
-            'Major capital investments (facilities, production equipment, fleet/ logistics, etc.)',
-            'Enterprise growth capital (e.g. intangible investments such as staff build-out, expanded sales & marketing capabilities, new markets, operational and support systems, etc.)'
-          ].map((need) => (
-            <div key={need} className="flex items-center justify-between border rounded p-2">
-              <FormLabel className="text-sm font-normal flex-1 mr-4">{need}</FormLabel>
-              <div className="flex items-center space-x-1 w-20">
+            { key: 'Venture launch', label: 'Venture launch (e.g. invest in initial staff, product/ services development and market acceptance)' },
+            { key: 'Inventory and working capital', label: 'Inventory and working capital requirements' },
+            { key: 'Small-ticket tangible assets', label: 'Small-ticket tangible assets (e.g. computers, routers, mobile and connectivity systems, office equipment)' },
+            { key: 'Major capital investments', label: 'Major capital investments (facilities, production equipment, fleet/ logistics, etc.)' },
+            { key: 'Enterprise growth capital', label: 'Enterprise growth capital (e.g. intangible investments such as staff build-out, expanded sales & marketing capabilities, new markets, operational and support systems, etc.)' }
+          ].map(({ key, label }) => (
+            <div key={key} className="flex items-center justify-between space-x-4 py-1 border-b border-gray-100">
+              <div className="flex-1">
+                <FormLabel className="text-sm font-normal text-gray-900 leading-tight">{label}</FormLabel>
+              </div>
+              <div className="flex-shrink-0">
                 <FormField
                   control={form.control}
-                  name={`financing_needs.${need}`}
-                  render={({ field }) => (
+                  name="financing_needs"
+                  render={() => (
                     <FormItem>
                       <FormControl>
                         <Input
-                          {...field}
                           type="number"
-                          min="0"
-                          max="100"
-                          step="0.1"
-                          placeholder="0"
-                          className="text-right h-8 w-16"
+                          placeholder="%"
+                          className="w-20"
                           onChange={(e) => {
-                            const value = e.target.value;
-                            field.onChange(value === '' ? '' : parseFloat(value));
+                            const value = e.target.value ? parseInt(e.target.value) : undefined;
+                            const current = form.getValues('financing_needs') || {};
+                            form.setValue('financing_needs', { ...current, [key]: value ?? 0 });
                           }}
                         />
                       </FormControl>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
-                <span className="text-sm text-gray-500">%</span>
               </div>
             </div>
           ))}
-        </div>
-        
-        <div className="mt-3 p-3 bg-gray-50 rounded">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">Total:</span>
-            <span className={`text-sm font-medium ${Object.values(form.watch('financing_needs') || {})
-              .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) > 100 ? 'text-red-600' : 
-              Object.values(form.watch('financing_needs') || {})
-                .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) === 100 ? 'text-green-600' : 'text-gray-900'}`}>
-              {Object.values(form.watch('financing_needs') || {})
-                .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0).toFixed(1)}%
-            </span>
+          
+          {/* Total validation display */}
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Total: {(() => {
+                const financingNeeds = form.watch('financing_needs') || {};
+                const total = Object.values(financingNeeds).reduce((sum: number, value: any) => sum + (typeof value === 'number' ? value : 0), 0);
+                return `${total}%`;
+              })()}</span>
+              {(() => {
+                const financingNeeds = form.watch('financing_needs') || {};
+                const total = Object.values(financingNeeds).reduce((sum: number, value: any) => sum + (typeof value === 'number' ? value : 0), 0);
+                return total !== 100 ? (
+                  <span className="text-sm text-red-600 font-medium">
+                    {total < 100 ? `Need ${100 - total}% more` : `${total - 100}% over 100%`}
+                  </span>
+                ) : (
+                  <span className="text-sm text-green-600 font-medium">✓ Perfect!</span>
+                );
+              })()}
+            </div>
           </div>
-          {Object.values(form.watch('financing_needs') || {})
-            .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) > 100 && (
-            <p className="text-xs text-red-600 mt-1">Total exceeds 100%. Please reduce some percentages.</p>
-          )}
-          {Object.values(form.watch('financing_needs') || {})
-            .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) < 100 && (
-            <p className="text-xs text-orange-600 mt-1">Total is less than 100%. Please ensure percentages sum to 100%.</p>
-          )}
-          {Object.values(form.watch('financing_needs') || {})
-            .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) === 100 && (
-            <p className="text-xs text-green-600 mt-1">✓ Perfect! Total equals 100%.</p>
-          )}
         </div>
       </div>
 
@@ -2219,72 +2265,140 @@ export default function Survey2023() {
         <FormLabel>31. Target Investment Activities by Sector. Provide sector mix according to target outlined in investment thesis. (Please provide a response for each row, allocating as close to 100% as possible)</FormLabel>
         
         <div className="space-y-4">
+          {/* Header */}
+          <div className="grid grid-cols-2 gap-4 py-2 border-b-2 border-gray-300">
+            <div className="font-medium text-sm text-gray-900">Sector Focus</div>
+            <div className="font-medium text-sm text-gray-900">Fund Target Percentage Allocation to this Sector</div>
+          </div>
+          
+          {/* Rows */}
           {[
-            '#1 Sector Focus',
-            '#2 Sector Focus',
-            '#3 Sector Focus',
-            '#4 Sector Focus',
-            '#5 Sector Focus'
-          ].map((sectorRank) => (
-            <div key={sectorRank} className="flex items-center justify-between border rounded p-2">
-              <FormLabel className="text-sm font-normal flex-1 mr-4">{sectorRank}</FormLabel>
-              <div className="flex items-center space-x-1 w-20">
-                <FormField
-                  control={form.control}
-                  name={`sector_focus.${sectorRank}`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="0.1"
-                          placeholder="0"
-                          className="text-right h-8 w-16"
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            field.onChange(value === '' ? '' : parseFloat(value));
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <span className="text-sm text-gray-500">%</span>
+            { key: 'Sector 1', label: '#1 Sector Focus' },
+            { key: 'Sector 2', label: '#2 Sector Focus' },
+            { key: 'Sector 3', label: '#3 Sector Focus' },
+            { key: 'Sector 4', label: '#4 Sector Focus' },
+            { key: 'Sector 5', label: '#5 Sector Focus' },
+            { key: 'Other', label: 'Other (please specify sector and ranking)', isOther: true }
+          ].map(({ key, label, isOther }) => (
+            <div key={key} className="grid grid-cols-2 gap-4 py-1 border-b border-gray-100">
+              <div className="flex items-center">
+                <FormLabel className="text-sm font-normal text-gray-900">{label}</FormLabel>
+              </div>
+              <div className="flex items-center justify-end">
+                {isOther ? (
+                  <FormField
+                    control={form.control}
+                    name="other_sector_selected"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal">Enable Other</FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <FormField
+                      control={form.control}
+                      name="sector_focus"
+                      render={() => (
+                        <FormItem>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              placeholder="%"
+                              className="w-20"
+                              onChange={(e) => {
+                                const value = e.target.value ? parseInt(e.target.value) : undefined;
+                                const current = form.getValues('sector_focus') || {};
+                                form.setValue('sector_focus', { ...current, [key]: value ?? 0 });
+                              }}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <span className="text-sm text-gray-500">%</span>
+                  </div>
+                )}
               </div>
             </div>
           ))}
         </div>
         
-        <div className="mt-3 p-3 bg-gray-50 rounded">
+        {/* Total validation display */}
+        <div className="mt-4 p-3 bg-gray-50 rounded-lg">
           <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">Total:</span>
-            <span className={`text-sm font-medium ${Object.values(form.watch('sector_focus') || {})
-              .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) > 100 ? 'text-red-600' : 
-              Object.values(form.watch('sector_focus') || {})
-                .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) >= 95 && Object.values(form.watch('sector_focus') || {})
-                .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) <= 100 ? 'text-green-600' : 'text-orange-600'}`}>
-              {Object.values(form.watch('sector_focus') || {})
-                .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0).toFixed(1)}%
-            </span>
+            <span className="text-sm font-medium">Total: {(() => {
+              const sectorFocus = form.watch('sector_focus') || {};
+              const otherPercentage = form.watch('sector_focus_other_percentage') || 0;
+              const total = Object.values(sectorFocus).reduce((sum: number, value: any) => sum + (typeof value === 'number' ? value : 0), 0) + (typeof otherPercentage === 'number' ? otherPercentage : 0);
+              return `${total}%`;
+            })()}</span>
+            {(() => {
+              const sectorFocus = form.watch('sector_focus') || {};
+              const otherPercentage = form.watch('sector_focus_other_percentage') || 0;
+              const total = Object.values(sectorFocus).reduce((sum: number, value: any) => sum + (typeof value === 'number' ? value : 0), 0) + (typeof otherPercentage === 'number' ? otherPercentage : 0);
+              return total !== 100 ? (
+                <span className="text-sm text-red-600 font-medium">
+                  {total < 100 ? `Need ${100 - total}% more` : `${total - 100}% over 100%`}
+                </span>
+              ) : (
+                <span className="text-sm text-green-600 font-medium">✓ Perfect!</span>
+              );
+            })()}
           </div>
-          {Object.values(form.watch('sector_focus') || {})
-            .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) > 100 && (
-            <p className="text-xs text-red-600 mt-1">Total exceeds 100%. Please reduce some percentages.</p>
-          )}
-          {Object.values(form.watch('sector_focus') || {})
-            .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) >= 95 && Object.values(form.watch('sector_focus') || {})
-            .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) <= 100 && (
-            <p className="text-xs text-green-600 mt-1">✓ Good! Total is close to 100%.</p>
-          )}
-          {Object.values(form.watch('sector_focus') || {})
-            .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) < 95 && (
-            <p className="text-xs text-orange-600 mt-1">Total is less than 95%. Please aim for closer to 100%.</p>
-          )}
         </div>
+
+        {form.watch('other_sector_selected') && (
+          <div className="mt-4 border rounded p-4 space-y-4">
+            <FormLabel className="text-sm font-normal">Other sector details:</FormLabel>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="sector_focus_other_description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-normal">Sector description</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Describe the other sector" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="sector_focus_other_percentage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-normal">Percentage allocation</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        placeholder="0"
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === '' ? '' : parseFloat(value));
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="space-y-4">
@@ -2292,90 +2406,135 @@ export default function Survey2023() {
         
         <div className="space-y-4">
           {[
-            'Senior debt: Secured',
-            'Senior debt: Unsecured',
-            'Mezzanine/ subordinated debt',
-            'Convertible notes',
-            'SAFEs',
-            'Shared revenue/ earnings instruments',
-            'Preferred Equity',
-            'Common equity',
-            'Other'
-          ].map((instrument) => (
-            <div key={instrument} className="flex items-center justify-between border rounded p-2">
-              <FormLabel className="text-sm font-normal flex-1 mr-4">{instrument}</FormLabel>
-              <div className="flex items-center space-x-1 w-20">
-                <FormField
-                  control={form.control}
-                  name={`financial_instruments.${instrument}`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="0.1"
-                          placeholder="0"
-                          className="text-right h-8 w-16"
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            field.onChange(value === '' ? '' : parseFloat(value));
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+            { key: 'Senior debt: Secured', label: 'Senior debt: Secured' },
+            { key: 'Senior debt: Unsecured', label: 'Senior debt: Unsecured' },
+            { key: 'Mezzanine/ subordinated debt', label: 'Mezzanine/ subordinated debt' },
+            { key: 'Convertible notes', label: 'Convertible notes' },
+            { key: 'SAFEs', label: 'SAFEs' },
+            { key: 'Shared revenue/ earnings instruments', label: 'Shared revenue/ earnings instruments' },
+            { key: 'Preferred Equity', label: 'Preferred Equity' },
+            { key: 'Common equity', label: 'Common equity' },
+            { key: 'Other', label: 'Other' }
+          ].map(({ key, label }) => {
+            const isOther = key === 'Other';
+            
+            return (
+              <div key={key} className="flex items-center justify-between space-x-4 py-1 border-b border-gray-100">
+                <div className="flex-1">
+                  <FormLabel className="text-sm font-normal text-gray-900 leading-tight">{label}</FormLabel>
+                </div>
+                <div className="flex-shrink-0">
+                  {isOther ? (
+                    <FormField
+                      control={form.control}
+                      name="other_financial_instrument_selected"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center space-x-2">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <FormLabel className="text-sm font-normal">Enable Other</FormLabel>
+                        </FormItem>
+                      )}
+                    />
+                  ) : (
+                    <FormField
+                      control={form.control}
+                      name="financial_instruments"
+                      render={() => (
+                        <FormItem>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              placeholder="%"
+                              className="w-20"
+                              onChange={(e) => {
+                                const value = e.target.value ? parseInt(e.target.value) : undefined;
+                                const current = form.getValues('financial_instruments') || {};
+                                form.setValue('financial_instruments', { ...current, [key]: value ?? 0 });
+                              }}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
                   )}
-                />
-                <span className="text-sm text-gray-500">%</span>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
-        {form.watch('financial_instruments')?.Other && (
-          <div className="mt-4">
-            <FormField
-              control={form.control}
-              name="financial_instruments_other"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm font-normal">Please specify other financial instrument</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Describe other financial instrument" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        {form.watch('other_financial_instrument_selected') && (
+          <div className="mt-4 border rounded p-4 space-y-4">
+            <FormLabel className="text-sm font-normal">Other financial instrument details:</FormLabel>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="financial_instruments_other_description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-normal">Please specify other financial instrument</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Describe other financial instrument" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="financial_instruments_other_percentage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-normal">Percentage allocation</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        placeholder="0"
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === '' ? '' : parseFloat(value));
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
         )}
         
-        <div className="mt-3 p-3 bg-gray-50 rounded">
+        {/* Total validation display */}
+        <div className="mt-4 p-3 bg-gray-50 rounded-lg">
           <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">Total:</span>
-            <span className={`text-sm font-medium ${Object.values(form.watch('financial_instruments') || {})
-              .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) > 100 ? 'text-red-600' : 
-              Object.values(form.watch('financial_instruments') || {})
-                .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) === 100 ? 'text-green-600' : 'text-gray-900'}`}>
-              {Object.values(form.watch('financial_instruments') || {})
-                .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0).toFixed(1)}%
-            </span>
+            <span className="text-sm font-medium">Total: {(() => {
+              const financialInstruments = form.watch('financial_instruments') || {};
+              const otherPercentage = form.watch('financial_instruments_other_percentage') || 0;
+              const total = Object.values(financialInstruments).reduce((sum: number, value: any) => sum + (typeof value === 'number' ? value : 0), 0) + (typeof otherPercentage === 'number' ? otherPercentage : 0);
+              return `${total}%`;
+            })()}</span>
+            {(() => {
+              const financialInstruments = form.watch('financial_instruments') || {};
+              const otherPercentage = form.watch('financial_instruments_other_percentage') || 0;
+              const total = Object.values(financialInstruments).reduce((sum: number, value: any) => sum + (typeof value === 'number' ? value : 0), 0) + (typeof otherPercentage === 'number' ? otherPercentage : 0);
+              return total !== 100 ? (
+                <span className="text-sm text-red-600 font-medium">
+                  {total < 100 ? `Need ${100 - total}% more` : `${total - 100}% over 100%`}
+                </span>
+              ) : (
+                <span className="text-sm text-green-600 font-medium">✓ Perfect!</span>
+              );
+            })()}
           </div>
-          {Object.values(form.watch('financial_instruments') || {})
-            .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) > 100 && (
-            <p className="text-xs text-red-600 mt-1">Total exceeds 100%. Please reduce some percentages.</p>
-          )}
-          {Object.values(form.watch('financial_instruments') || {})
-            .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) < 100 && (
-            <p className="text-xs text-orange-600 mt-1">Total is less than 100%. Please ensure percentages sum to 100%.</p>
-          )}
-          {Object.values(form.watch('financial_instruments') || {})
-            .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) === 100 && (
-            <p className="text-xs text-green-600 mt-1">✓ Perfect! Total equals 100%.</p>
-          )}
         </div>
       </div>
 
@@ -2388,7 +2547,7 @@ export default function Survey2023() {
             'Second', 
             'Third'
           ].map((rank) => (
-            <div key={rank} className="flex items-center justify-between border rounded p-2">
+            <div key={rank} className="flex items-center justify-between space-x-4 py-1 border-b border-gray-100">
               <FormLabel className="text-sm font-normal flex-1 mr-4">{rank}</FormLabel>
               <div className="flex items-center space-x-1 w-48">
                 <FormField
@@ -2452,7 +2611,7 @@ export default function Survey2023() {
             const isOther = criteria === 'Other (please specify)';
             
             return (
-              <div key={criteria} className="flex items-center justify-between border rounded p-2">
+              <div key={criteria} className="flex items-center justify-between space-x-4 py-1 border-b border-gray-100">
                 <FormLabel className="text-sm font-normal flex-1 mr-4">{criteria}</FormLabel>
                 <div className="flex items-center space-x-1 w-48">
                   {isOther ? (
@@ -2554,85 +2713,130 @@ export default function Survey2023() {
         
         <div className="space-y-4">
           {[
-            'Referral based',
-            'Our own accelerator / development program',
-            '3rd Party accelerator / development program',
-            'Other'
-          ].map((source) => (
-            <div key={source} className="flex items-center justify-between border rounded p-2">
-              <FormLabel className="text-sm font-normal flex-1 mr-4">{source}</FormLabel>
-              <div className="flex items-center space-x-1 w-20">
-      <FormField
-        control={form.control}
-                  name={`pipeline_sourcing.${source}`}
-        render={({ field }) => (
-          <FormItem>
-            <FormControl>
-              <Input 
-                {...field} 
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="0.1"
-                placeholder="0" 
-                          className="text-right h-8 w-16"
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            field.onChange(value === '' ? '' : parseFloat(value));
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+            { key: 'Referral based', label: 'Referral based' },
+            { key: 'Our own accelerator', label: 'Our own accelerator / development program' },
+            { key: '3rd Party accelerator', label: '3rd Party accelerator / development program' },
+            { key: 'Other', label: 'Other' }
+          ].map(({ key, label }) => {
+            const isOther = key === 'Other';
+            
+            return (
+              <div key={key} className="flex items-center justify-between space-x-4 py-1 border-b border-gray-100">
+                <div className="flex-1">
+                  <FormLabel className="text-sm font-normal text-gray-900 leading-tight">{label}</FormLabel>
+                </div>
+                <div className="flex-shrink-0">
+                  {isOther ? (
+                    <FormField
+                      control={form.control}
+                      name="other_pipeline_sourcing_selected"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center space-x-2">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <FormLabel className="text-sm font-normal">Enable Other</FormLabel>
+                        </FormItem>
+                      )}
+                    />
+                  ) : (
+                    <FormField
+                      control={form.control}
+                      name="pipeline_sourcing"
+                      render={() => (
+                        <FormItem>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              placeholder="%"
+                              className="w-20"
+                              onChange={(e) => {
+                                const value = e.target.value ? parseInt(e.target.value) : undefined;
+                                const current = form.getValues('pipeline_sourcing') || {};
+                                form.setValue('pipeline_sourcing', { ...current, [key]: value ?? 0 });
+                              }}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
                   )}
-                />
-                <span className="text-sm text-gray-500">%</span>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
-        {form.watch('pipeline_sourcing')?.Other && (
-          <div className="mt-4">
-            <FormField
-              control={form.control}
-              name="pipeline_sourcing_other"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm font-normal">Please specify other pipeline sourcing method</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Describe other pipeline sourcing method" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        {form.watch('other_pipeline_sourcing_selected') && (
+          <div className="mt-4 border rounded p-4 space-y-4">
+            <FormLabel className="text-sm font-normal">Other pipeline sourcing details:</FormLabel>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="pipeline_sourcing_other_description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-normal">Please specify other pipeline sourcing method</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Describe other pipeline sourcing method" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="pipeline_sourcing_other_percentage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-normal">Percentage allocation</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        placeholder="0"
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === '' ? '' : parseFloat(value));
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
         )}
-        
-        <div className="mt-3 p-3 bg-gray-50 rounded">
+
+        {/* Total validation display */}
+        <div className="mt-4 p-3 bg-gray-50 rounded-lg">
           <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">Total:</span>
-            <span className={`text-sm font-medium ${Object.values(form.watch('pipeline_sourcing') || {})
-              .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) > 100 ? 'text-red-600' : 
-              Object.values(form.watch('pipeline_sourcing') || {})
-                .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) === 100 ? 'text-green-600' : 'text-gray-900'}`}>
-              {Object.values(form.watch('pipeline_sourcing') || {})
-                .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0).toFixed(1)}%
-            </span>
+            <span className="text-sm font-medium">Total: {(() => {
+              const pipelineSourcing = form.watch('pipeline_sourcing') || {};
+              const otherPercentage = form.watch('pipeline_sourcing_other_percentage') || 0;
+              const total = Object.values(pipelineSourcing).reduce((sum: number, value: any) => sum + (typeof value === 'number' ? value : 0), 0) + (typeof otherPercentage === 'number' ? otherPercentage : 0);
+              return `${total}%`;
+            })()}</span>
+            {(() => {
+              const pipelineSourcing = form.watch('pipeline_sourcing') || {};
+              const otherPercentage = form.watch('pipeline_sourcing_other_percentage') || 0;
+              const total = Object.values(pipelineSourcing).reduce((sum: number, value: any) => sum + (typeof value === 'number' ? value : 0), 0) + (typeof otherPercentage === 'number' ? otherPercentage : 0);
+              return total !== 100 ? (
+                <span className="text-sm text-red-600 font-medium">
+                  {total < 100 ? `Need ${100 - total}% more` : `${total - 100}% over 100%`}
+                </span>
+              ) : (
+                <span className="text-sm text-green-600 font-medium">✓ Perfect!</span>
+              );
+            })()}
           </div>
-          {Object.values(form.watch('pipeline_sourcing') || {})
-            .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) > 100 && (
-            <p className="text-xs text-red-600 mt-1">Total exceeds 100%. Please reduce some percentages.</p>
-          )}
-          {Object.values(form.watch('pipeline_sourcing') || {})
-            .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) < 100 && (
-            <p className="text-xs text-orange-600 mt-1">Total is less than 100%. Please ensure percentages sum to 100%.</p>
-          )}
-          {Object.values(form.watch('pipeline_sourcing') || {})
-            .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) === 100 && (
-            <p className="text-xs text-green-600 mt-1">✓ Perfect! Total equals 100%.</p>
-          )}
         </div>
       </div>
 
@@ -2799,11 +3003,11 @@ export default function Survey2023() {
                             <SelectValue placeholder="Rank" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="1">1</SelectItem>
+                            <SelectItem value="1">1 (Lowest need)</SelectItem>
                             <SelectItem value="2">2</SelectItem>
                             <SelectItem value="3">3</SelectItem>
                             <SelectItem value="4">4</SelectItem>
-                            <SelectItem value="5">5</SelectItem>
+                            <SelectItem value="5">5 (Highest need)</SelectItem>
                           </SelectContent>
                         </Select>
                       </FormControl>
@@ -2852,11 +3056,11 @@ export default function Survey2023() {
                           <SelectValue placeholder="Rank" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="1">1</SelectItem>
+                          <SelectItem value="1">1 (Lowest need)</SelectItem>
                           <SelectItem value="2">2</SelectItem>
                           <SelectItem value="3">3</SelectItem>
                           <SelectItem value="4">4</SelectItem>
-                          <SelectItem value="5">5</SelectItem>
+                          <SelectItem value="5">5 (Highest need)</SelectItem>
                         </SelectContent>
                       </Select>
                     </FormControl>
@@ -2892,86 +3096,130 @@ export default function Survey2023() {
         
         <div className="space-y-4">
           {[
-            'Donor',
-            'Management fees',
-            'Portfolio company',
-            'Other',
-            'N/A'
-          ].map((source) => (
-            <div key={source} className="flex items-center justify-between border rounded p-2">
-              <FormLabel className="text-sm font-normal flex-1 mr-4">{source}</FormLabel>
-              <div className="flex items-center space-x-1 w-20">
-                <FormField
-                  control={form.control}
-                  name={`technical_assistance_funding.${source}`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="0.1"
-                          placeholder="0"
-                          className="text-right h-8 w-16"
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            field.onChange(value === '' ? '' : parseFloat(value));
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+            { key: 'Donor', label: 'Donor' },
+            { key: 'Management fees', label: 'Management fees' },
+            { key: 'Portfolio company', label: 'Portfolio company' },
+            { key: 'Other', label: 'Other' },
+            { key: 'N/A', label: 'N/A' }
+          ].map(({ key, label }) => {
+            const isOther = key === 'Other';
+            
+            return (
+              <div key={key} className="flex items-center justify-between space-x-4 py-1 border-b border-gray-100">
+                <div className="flex-1">
+                  <FormLabel className="text-sm font-normal text-gray-900 leading-tight">{label}</FormLabel>
+                </div>
+                <div className="flex-shrink-0">
+                  {isOther ? (
+                    <FormField
+                      control={form.control}
+                      name="other_technical_assistance_selected"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center space-x-2">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <FormLabel className="text-sm font-normal">Enable Other</FormLabel>
+                        </FormItem>
+                      )}
+                    />
+                  ) : (
+                    <FormField
+                      control={form.control}
+                      name="technical_assistance_funding"
+                      render={() => (
+                        <FormItem>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              placeholder="%"
+                              className="w-20"
+                              onChange={(e) => {
+                                const value = e.target.value ? parseInt(e.target.value) : undefined;
+                                const current = form.getValues('technical_assistance_funding') || {};
+                                form.setValue('technical_assistance_funding', { ...current, [key]: value ?? 0 });
+                              }}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
                   )}
-                />
-                <span className="text-sm text-gray-500">%</span>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
-        {form.watch('technical_assistance_funding')?.Other && (
-          <div className="mt-4">
-            <FormField
-              control={form.control}
-              name="technical_assistance_funding_other"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm font-normal">Please specify other funding source</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Describe other funding source" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        {form.watch('other_technical_assistance_selected') && (
+          <div className="mt-4 border rounded p-4 space-y-4">
+            <FormLabel className="text-sm font-normal">Other technical assistance funding details:</FormLabel>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="technical_assistance_funding_other_description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-normal">Please specify other funding source</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Describe other funding source" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="technical_assistance_funding_other_percentage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-normal">Percentage allocation</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        placeholder="0"
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === '' ? '' : parseFloat(value));
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
         )}
         
         <div className="mt-3 p-3 bg-gray-50 rounded">
           <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">Total:</span>
-            <span className={`text-sm font-medium ${Object.values(form.watch('technical_assistance_funding') || {})
-              .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) > 100 ? 'text-red-600' : 
-              Object.values(form.watch('technical_assistance_funding') || {})
-                .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) === 100 ? 'text-green-600' : 'text-gray-900'}`}>
-              {Object.values(form.watch('technical_assistance_funding') || {})
-                .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0).toFixed(1)}%
-            </span>
+            <span className="text-sm font-medium">Total: {(() => {
+              const technicalAssistanceFunding = form.watch('technical_assistance_funding') || {};
+              const otherPercentage = form.watch('technical_assistance_funding_other_percentage') || 0;
+              const total = Object.values(technicalAssistanceFunding).reduce((sum: number, value: any) => sum + (typeof value === 'number' ? value : 0), 0) + (typeof otherPercentage === 'number' ? otherPercentage : 0);
+              return `${total}%`;
+            })()}</span>
+            {(() => {
+              const technicalAssistanceFunding = form.watch('technical_assistance_funding') || {};
+              const otherPercentage = form.watch('technical_assistance_funding_other_percentage') || 0;
+              const total = Object.values(technicalAssistanceFunding).reduce((sum: number, value: any) => sum + (typeof value === 'number' ? value : 0), 0) + (typeof otherPercentage === 'number' ? otherPercentage : 0);
+              return total !== 100 ? (
+                <span className="text-sm text-red-600 font-medium">
+                  {total < 100 ? `Need ${100 - total}% more` : `${total - 100}% over 100%`}
+                </span>
+              ) : (
+                <span className="text-sm text-green-600 font-medium">✓ Perfect!</span>
+              );
+            })()}
           </div>
-          {Object.values(form.watch('technical_assistance_funding') || {})
-            .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) > 100 && (
-            <p className="text-xs text-red-600 mt-1">Total exceeds 100%. Please reduce some percentages.</p>
-          )}
-          {Object.values(form.watch('technical_assistance_funding') || {})
-            .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) < 100 && (
-            <p className="text-xs text-orange-600 mt-1">Total is less than 100%. Please ensure percentages sum to 100%.</p>
-          )}
-          {Object.values(form.watch('technical_assistance_funding') || {})
-            .reduce((sum: number, val: any) => sum + (parseFloat(val) || 0), 0) === 100 && (
-            <p className="text-xs text-green-600 mt-1">✓ Perfect! Total equals 100%.</p>
-          )}
         </div>
       </div>
 
@@ -3337,154 +3585,165 @@ export default function Survey2023() {
         <FormLabel>47. Please provide, across your portfolio, both the historical and expected average change in revenues and operating cash flow of your portfolio. (Please assess based on percentage change over the period of time)</FormLabel>
         
         <div className="space-y-4">
-          {[
-            'Most recent 12 months leading up to March 30, 2023',
-            'Based on current outlook, anticipated performance for next 12 months from April 1, 2023'
-          ].map((period) => (
-            <div key={period} className="border rounded p-4">
-              <h4 className="font-medium mb-3">{period}</h4>
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name={`portfolio_performance.${period}.Revenue Growth`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-normal">Revenue Growth (%)</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          step="0.1"
-                          placeholder="0.0"
-                          className="text-right"
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            field.onChange(value === '' ? '' : parseFloat(value));
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name={`portfolio_performance.${period}.Operating Cash Flow Growth`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-normal">Operating Cash Flow Growth (%)</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          step="0.1"
-                          placeholder="0.0"
-                          className="text-right"
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            field.onChange(value === '' ? '' : parseFloat(value));
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-          ))}
-          
-          {/* Other option with checkbox */}
-          <div className="border rounded p-4">
-            <div className="flex items-center space-x-2 mb-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <h4 className="font-medium">Revenue Growth</h4>
               <FormField
                 control={form.control}
-                name="portfolio_performance_other_selected"
+                name="portfolio_revenue_growth_12m"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-            <FormControl>
-              <Checkbox
-                checked={field.value}
-                onCheckedChange={field.onChange}
+                  <FormItem>
+                    <FormLabel className="text-sm font-normal">Most recent 12 months leading up to March 30, 2023</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        placeholder="Enter percentage"
+                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </FormControl>
-                    <FormLabel className="text-sm font-normal">
-                      Other (please specify)
-              </FormLabel>
+              <FormField
+                control={form.control}
+                name="portfolio_revenue_growth_next_12m"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-normal">Based on current outlook, anticipated performance for next 12 months from April 1, 2023</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        placeholder="Enter percentage"
+                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                      />
+                    </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
-            
-            {form.watch('portfolio_performance_other_selected') && (
-              <div className="space-y-4">
+            <div className="space-y-2">
+              <h4 className="font-medium">Operating Cash Flow Growth</h4>
+              <FormField
+                control={form.control}
+                name="portfolio_cashflow_growth_12m"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-normal">Most recent 12 months leading up to March 30, 2023</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        placeholder="Enter percentage"
+                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="portfolio_cashflow_growth_next_12m"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-normal">Based on current outlook, anticipated performance for next 12 months from April 1, 2023</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        placeholder="Enter percentage"
+                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+          
+          <FormField
+            control={form.control}
+            name="portfolio_performance_other_enabled"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={(checked) => {
+                      field.onChange(checked);
+                      if (!checked) {
+                        // Clear other fields when unchecked
+                        form.setValue('portfolio_performance_other_description', '');
+                        form.setValue('portfolio_performance_other_revenue', undefined);
+                        form.setValue('portfolio_performance_other_cashflow', undefined);
+                      }
+                    }}
+                  />
+                </FormControl>
+                <FormLabel className="text-sm font-normal">Other (please specify)</FormLabel>
+              </FormItem>
+            )}
+          />
+          {form.watch('portfolio_performance_other_enabled') && (
+            <div className="space-y-4 pl-6 border-l-2 border-gray-200">
+              <FormField
+                control={form.control}
+                name="portfolio_performance_other_description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-normal">Description</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Describe the other performance metric..." />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="space-y-2">
                 <FormField
                   control={form.control}
-                  name="portfolio_performance_other_description"
+                  name="portfolio_performance_other_revenue"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-normal">Please specify other time period</FormLabel>
+                      <FormLabel className="text-sm font-normal">Revenue Growth</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Describe other time period" />
+                        <Input
+                          {...field}
+                          type="number"
+                          placeholder="Enter percentage"
+                          onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="portfolio_performance.Other.Revenue Growth"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-normal">Revenue Growth (%)</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="number"
-                            step="0.1"
-                            placeholder="0.0"
-                            className="text-right"
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              field.onChange(value === '' ? '' : parseFloat(value));
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="portfolio_performance.Other.Operating Cash Flow Growth"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-normal">Operating Cash Flow Growth (%)</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="number"
-                            step="0.1"
-                            placeholder="0.0"
-                            className="text-right"
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              field.onChange(value === '' ? '' : parseFloat(value));
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-          </FormItem>
-        )}
-      />
-                </div>
+                <FormField
+                  control={form.control}
+                  name="portfolio_performance_other_cashflow"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-normal">Operating Cash Flow Growth</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="number"
+                          placeholder="Enter percentage"
+                          onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -3679,11 +3938,11 @@ export default function Survey2023() {
                             <SelectValue placeholder="Rank" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="1">1</SelectItem>
+                            <SelectItem value="1">1 (Lowest need)</SelectItem>
                             <SelectItem value="2">2</SelectItem>
                             <SelectItem value="3">3</SelectItem>
                             <SelectItem value="4">4</SelectItem>
-                            <SelectItem value="5">5</SelectItem>
+                            <SelectItem value="5">5 (Highest need)</SelectItem>
                           </SelectContent>
                         </Select>
                       </FormControl>
@@ -3796,11 +4055,11 @@ export default function Survey2023() {
                             <SelectValue placeholder="Rank" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="1">1</SelectItem>
+                            <SelectItem value="1">1 (Not a concern)</SelectItem>
                             <SelectItem value="2">2</SelectItem>
                             <SelectItem value="3">3</SelectItem>
                             <SelectItem value="4">4</SelectItem>
-                            <SelectItem value="5">5</SelectItem>
+                            <SelectItem value="5">5 (Greatly Concern)</SelectItem>
                           </SelectContent>
                         </Select>
                       </FormControl>
@@ -4048,7 +4307,7 @@ Which of the following would you be prepared to make available? [note: we are cu
   return (
     <SidebarLayout>
       <div className="min-h-screen bg-gray-50 pb-16">
-        <div className={`max-w-6xl mx-auto ${!showIntro ? 'pr-72' : ''}`}>
+        <div className={`max-w-6xl mx-auto ${!showIntro ? 'pr-80' : ''}`}>
         {/* Back Button hidden on intro */}
         {!showIntro && null}
         {showIntro && renderIntroCard()}
@@ -4056,20 +4315,43 @@ Which of the following would you be prepared to make available? [note: we are cu
         {/* Section Tabs - removed, now using sidebar */}
 
         {!showIntro && (
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-base font-semibold">
+        <>
+          {/* Mini Header with Section Count */}
+          <Card className="bg-white p-6 rounded-lg border shadow-sm mb-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">
                   Section {currentSection}: {getSectionTitle(currentSection)}
-                  {isReadOnly && <span className="ml-2 text-sm text-gray-500">(Read-Only View)</span>}
                 </h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  {currentSection} of {totalSections} sections
+                </p>
               </div>
-              <Progress value={(currentSection / totalSections) * 100} className="w-full [&>div]:bg-red-500" />
-              <div className="space-y-6">
-                {renderCurrentSection()}
+              <div className="text-right">
+                <div className="text-2xl font-bold text-blue-600">
+                  {currentSection}/{totalSections}
+                </div>
+                <div className="text-xs text-gray-500">Progress</div>
               </div>
             </div>
+            <div className="mt-4">
+              <div className="bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${(currentSection / totalSections) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Main Content */}
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+              <Card className="bg-white p-6 rounded-lg border shadow-sm mb-6">
+                <div className="space-y-6">
+                  {renderCurrentSection()}
+                </div>
+              </Card>
 
             {isReadOnly ? (
               <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
@@ -4085,44 +4367,53 @@ Which of the following would you be prepared to make available? [note: we are cu
                 </div>
               </div>
             ) : (
-              <div className="flex justify-between">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handlePrevious}
-                  disabled={currentSection === 1}
-                >
-                  Previous
-                </Button>
-                
-                <div className="space-x-2">
+              <Card className="bg-white p-6 rounded-lg border shadow-sm">
+                <div className="flex justify-between items-center">
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={saveDraft}
-                    disabled={saving}
+                    onClick={handlePrevious}
+                    disabled={currentSection === 1}
+                    className="px-6 py-2 border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {saving ? 'Saving...' : 'Save Draft'}
+                    ← Previous
                   </Button>
                   
-                  {currentSection < totalSections ? (
-                    <Button type="button" onClick={handleNext}>
-                      Next
-                    </Button>
-                  ) : (
+                  <div className="flex items-center space-x-4">
                     <Button 
-                      type="submit" 
-                      disabled={loading}
-                      className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105"
+                      type="button"
+                      onClick={saveDraft} 
+                      disabled={saving} 
+                      variant="outline"
+                      className="px-6 py-2 border-green-300 text-green-700 hover:bg-green-50 disabled:opacity-50"
                     >
-                      {loading ? 'Submitting...' : 'Submit Survey'}
+                      {saving ? 'Saving...' : '💾 Save Draft'}
                     </Button>
-                  )}
+                    
+                    {currentSection < totalSections ? (
+                      <Button 
+                        type="button" 
+                        onClick={handleNext}
+                        className="px-8 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                      >
+                        Next →
+                      </Button>
+                    ) : (
+                      <Button 
+                        type="submit" 
+                        disabled={loading}
+                        className="px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {loading ? 'Submitting...' : '🎉 Submit Survey'}
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </div>
+              </Card>
             )}
-          </form>
-        </Form>
+            </form>
+          </Form>
+        </>
         )}
         </div>
         
