@@ -87,14 +87,13 @@ const UserOnboarding = () => {
 
     const { error } = await supabase
       .from('user_profiles' as any)
-      .upsert({
-          user_id: user.id,
-          email: user.email,
+      .update({
           company_name: formData.company_name,
           website: formData.website,
           description: formData.description,
           updated_at: new Date().toISOString()
-        });
+        })
+      .eq('id', user.id);
 
       if (error) throw error;
 

@@ -20,23 +20,30 @@ const OnboardingCheck: React.FC<OnboardingCheckProps> = ({ children }) => {
       }
 
       try {
-        // Check if user has a profile in user_profiles table
+        // Check if user has a complete profile
         const { data: profile, error } = await supabase
           .from('user_profiles' as any)
-          .select('company_name')
-          .eq('user_id', user.id)
+          .select('company_name, full_name')
+          .eq('id', user.id)
           .single();
 
         if (error && error.code === 'PGRST116') {
-          // No profile found, redirect to onboarding
+          // No profile found (shouldn't happen with trigger, but handle gracefully)
           navigate('/onboarding');
           return;
         }
 
-        if (profile && (!(profile as any).company_name || (profile as any).company_name.trim() === '')) {
-          // Profile exists but is incomplete, redirect to onboarding
-          navigate('/onboarding');
-          return;
+        // Check if profile needs completion (company_name is required)
+        if (profile) {
+          const needsOnboarding = 
+            !(profile as any).company_name || 
+            (profile as any).company_name.trim() === '' ||
+            (profile as any).company_name === 'Not provided';
+          
+          if (needsOnboarding) {
+            navigate('/onboarding');
+            return;
+          }
         }
 
         // User has complete profile, allow access

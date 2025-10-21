@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      applications: {
+        Row: {
+          admin_notes: string | null
+          application_text: string
+          company_name: string
+          created_at: string | null
+          email: string
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          application_text: string
+          company_name: string
+          created_at?: string | null
+          email: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          application_text?: string
+          company_name?: string
+          created_at?: string | null
+          email?: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       field_visibility: {
         Row: {
           admin_visible: boolean | null
