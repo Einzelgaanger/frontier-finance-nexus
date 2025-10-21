@@ -47,20 +47,20 @@ export default function FundManagerProfile() {
 
       // Fetch manager profile
       const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
+        .from('user_profiles' as any)
         .select('*')
         .eq('id', userId)
         .single();
 
       if (profileError) throw profileError;
-      setManager(profileData);
+      setManager(profileData as any);
 
       // Fetch all survey responses for this manager
       const surveyPromises = [
-        supabase.from('survey_2021_responses').select('id, completed_at, firm_name, email_address').eq('user_id', userId).single(),
-        supabase.from('survey_2022_responses').select('id, completed_at, organisation, email').eq('user_id', userId).single(),
-        supabase.from('survey_2023_responses').select('id, completed_at, organisation_name, fund_name, email_address').eq('user_id', userId).single(),
-        supabase.from('survey_2024_responses').select('id, completed_at, organisation_name, fund_name, email_address').eq('user_id', userId).single(),
+        supabase.from('survey_responses_2021' as any).select('id, completed_at, firm_name, email_address').eq('user_id', userId).maybeSingle(),
+        supabase.from('survey_responses_2022' as any).select('id, completed_at, firm_name, email_address').eq('user_id', userId).maybeSingle(),
+        supabase.from('survey_responses_2023' as any).select('id, completed_at, organisation_name, fund_name, email_address').eq('user_id', userId).maybeSingle(),
+        supabase.from('survey_responses_2024' as any).select('id, completed_at, organisation_name, fund_name, email_address').eq('user_id', userId).maybeSingle(),
       ];
 
       const results = await Promise.allSettled(surveyPromises);
@@ -70,10 +70,11 @@ export default function FundManagerProfile() {
       results.forEach((result, index) => {
         if (result.status === 'fulfilled' && result.value.data) {
           const year = ['2021', '2022', '2023', '2024'][index];
+          const data = result.value.data as any;
           surveyList.push({
-            ...result.value.data,
+            ...data,
             year,
-            organisation_name: result.value.data.organisation_name || result.value.data.organisation || result.value.data.firm_name,
+            organisation_name: data.organisation_name || data.firm_name,
           });
         }
       });
