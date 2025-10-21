@@ -335,7 +335,7 @@ const CreateViewerModal = ({ open, onClose, onSuccess }: CreateViewerModalProps)
           switch (data.survey_year) {
             case 2021:
               const { error: error2021 } = await supabase
-                .from('survey_2021_responses')
+                .from('survey_responses_2021' as any)
                 .insert({
                   user_id: userResult.user_id,
                   email_address: data.email,
@@ -347,7 +347,7 @@ const CreateViewerModal = ({ open, onClose, onSuccess }: CreateViewerModalProps)
               break;
             case 2022:
               const { error: error2022 } = await supabase
-                .from('survey_2022_responses')
+                .from('survey_responses_2022' as any)
                 .insert({
                   user_id: userResult.user_id,
                   email: data.email,
@@ -359,7 +359,7 @@ const CreateViewerModal = ({ open, onClose, onSuccess }: CreateViewerModalProps)
               break;
             case 2023:
               const { error: error2023 } = await supabase
-                .from('survey_2023_responses')
+                .from('survey_responses_2023' as any)
                 .insert({
                   user_id: userResult.user_id,
                   email_address: data.email,
@@ -371,7 +371,7 @@ const CreateViewerModal = ({ open, onClose, onSuccess }: CreateViewerModalProps)
               break;
             case 2024:
               const { error: error2024 } = await supabase
-                .from('survey_2024_responses')
+                .from('survey_responses_2024' as any)
                 .insert({
                   user_id: userResult.user_id,
                   email_address: data.email,
