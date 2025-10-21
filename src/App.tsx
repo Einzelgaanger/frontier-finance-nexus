@@ -119,7 +119,7 @@ const App = () => {
               </ProtectedRoute>
             } />
             <Route path="/analytics" element={
-              <ProtectedRoute requiredRole="admin">
+              <ProtectedRoute>
                 <AnalyticsWrapper />
               </ProtectedRoute>
             } />
