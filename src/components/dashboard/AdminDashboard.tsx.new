@@ -1,0 +1,342 @@
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import StatsCard from "./StatsCard";
+import { 
+  Users, 
+  Building2, 
+  TrendingUp, 
+  Shield, 
+  UserCheck, 
+  AlertCircle,
+  Activity,
+  Database,
+  Zap,
+  CheckCircle,
+  RefreshCw,
+  ArrowRight
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from '@/integrations/supabase/client';
+import { Badge } from "@/components/ui/badge";
+
+interface ActivityItem {
+  id: string;
+  type: 'user_registration' | 'survey_completed' | 'pending_request' | 'role_change';
+  title: string;
+  description: string;
+  timestamp: string;
+  icon: any;
+  color: string;
+}
+
+interface SystemStatus {
+  status: string;
+  healthy: boolean;
+}
+
+const AdminDashboard = () => {
+  const [stats, setStats] = useState([
+    { title: 'Total Users', value: '...', icon: Users, description: 'Across all roles', trend: { value: 0, isPositive: true }, color: 'bg-blue-500' },
+    { title: 'Pending Requests', value: '...', icon: UserCheck, description: 'Membership applications', trend: { value: 0, isPositive: true }, color: 'bg-orange-500' },
+    { title: 'Active Surveys', value: '...', icon: Building2, description: 'Completed this month', trend: { value: 0, isPositive: true }, color: 'bg-green-500' },
+    { title: 'Platform Health', value: '99.9%', icon: TrendingUp, description: 'Uptime this month', trend: { value: 0, isPositive: true }, color: 'bg-purple-500' },
+  ]);
+  
+  const [pendingRequests, setPendingRequests] = useState(0);
+  const [expiringCodes, setExpiringCodes] = useState(0);
+  const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(new Date());
+  
+  const systemStatus = {
+    database: { status: 'Online', healthy: true },
+    apiServices: { status: 'Healthy', healthy: true },
+    authentication: { status: 'Active', healthy: true },
+    fileStorage: { status: 'Connected', healthy: true }
+  };
+
+  // Mock data fetch - replace with actual implementation
+  const fetchAllData = async () => {
+    setLoading(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Update stats with mock data
+      setStats([
+        { title: 'Total Users', value: '1,234', icon: Users, description: 'Across all roles', trend: { value: 12, isPositive: true }, color: 'bg-blue-500' },
+        { title: 'Pending Requests', value: pendingRequests.toString(), icon: UserCheck, description: 'Membership applications', trend: { value: 5, isPositive: false }, color: 'bg-orange-500' },
+        { title: 'Active Surveys', value: '89', icon: Building2, description: 'Completed this month', trend: { value: 24, isPositive: true }, color: 'bg-green-500' },
+        { title: 'Platform Health', value: '99.9%', icon: TrendingUp, description: 'Uptime this month', trend: { value: 0.1, isPositive: true }, color: 'bg-purple-500' },
+      ]);
+      
+      // Mock recent activity
+      setRecentActivity([
+        {
+          id: '1',
+          type: 'user_registration',
+          title: 'New User Registration',
+          description: 'John Doe joined the platform',
+          timestamp: '2 min ago',
+          icon: Users,
+          color: 'bg-blue-100 border-blue-200'
+        },
+        {
+          id: '2',
+          type: 'survey_completed',
+          title: 'Survey Completed',
+          description: 'Quarterly member feedback survey',
+          timestamp: '15 min ago',
+          icon: CheckCircle,
+          color: 'bg-green-100 border-green-200'
+        },
+        {
+          id: '3',
+          type: 'pending_request',
+          title: 'Membership Request',
+          description: 'New request from jane@example.com',
+          timestamp: '1 hour ago',
+          icon: AlertCircle,
+          color: 'bg-yellow-100 border-yellow-200'
+        }
+      ]);
+      
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAllData();
+  }, []);
+
+  const systemServices = [
+    { 
+      name: 'Database', 
+      status: systemStatus.database,
+      icon: Database,
+      description: 'Primary database connection'
+    },
+    { 
+      name: 'API Services', 
+      status: systemStatus.apiServices,
+      icon: Zap,
+      description: 'Backend API endpoints'
+    },
+    { 
+      name: 'Authentication', 
+      status: systemStatus.authentication,
+      icon: Shield,
+      description: 'User authentication service'
+    },
+    { 
+      name: 'File Storage', 
+      status: systemStatus.fileStorage,
+      icon: Database,
+      description: 'File uploads and storage'
+    }
+  ];
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto p-6">
+        {/* Attention Banner */}
+        {(pendingRequests > 0 || expiringCodes > 0) && (
+          <div className="mb-8">
+            <Card className="border-orange-200 bg-orange-50 shadow-sm">
+              <CardHeader className="pb-3">
+                <div className="flex items-center">
+                  <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center mr-3">
+                    <AlertCircle className="w-4 h-4 text-white" />
+                  </div>
+                  <CardTitle className="text-orange-800 text-lg">Attention Required</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-orange-700 mb-4">
+                  You have <span className="font-bold">{pendingRequests}</span> pending membership requests 
+                  {expiringCodes > 0 && ` and ${expiringCodes} invitation codes expiring today`}.
+                </p>
+                <Button className="bg-orange-600 hover:bg-orange-700 text-white shadow-sm">
+                  <Link to="/admin" className="flex items-center">
+                    <UserCheck className="w-4 h-4 mr-2" />
+                    Review Requests
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Stats Overview */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-gray-900">System Overview</h2>
+            <Badge variant="outline" className="text-sm">
+              Real-time data
+            </Badge>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {stats.map((stat, i) => (
+              <StatsCard
+                key={i}
+                title={stat.title}
+                value={stat.value}
+                icon={stat.icon}
+                description={stat.description}
+                trend={stat.trend}
+                color={stat.color}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* System Status */}
+        <div className="grid grid-cols-1 gap-6 mb-8">
+          <Card className="border border-gray-100 shadow-sm">
+            <CardHeader className="border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg font-semibold text-gray-900">System Status</CardTitle>
+                  <CardDescription className="text-sm text-gray-500">
+                    Current platform health and performance
+                  </CardDescription>
+                </div>
+                <div className="flex items-center">
+                  <span className="inline-flex h-2 w-2 rounded-full bg-green-500 mr-2"></span>
+                  <span className="text-xs font-medium text-gray-600">All Systems Operational</span>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {systemServices.map((service, index) => (
+                  <div key={index} className="p-4 border border-gray-100 rounded-lg bg-white hover:shadow-sm transition-shadow">
+                    <div className="flex items-start">
+                      <div className={`p-2 rounded-lg ${
+                        service.status.healthy ? 'bg-green-50' : 'bg-red-50'
+                      }`}>
+                        <service.icon className={`h-5 w-5 ${
+                          service.status.healthy ? 'text-green-500' : 'text-red-500'
+                        }`} />
+                      </div>
+                      <div className="ml-3">
+                        <div className="flex items-center">
+                          <h3 className="text-sm font-medium text-gray-900">{service.name}</h3>
+                          <Badge
+                            variant={service.status.healthy ? 'outline' : 'destructive'}
+                            className="ml-2 text-xs font-normal"
+                          >
+                            {service.status.status}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">{service.description}</p>
+                        <div className="mt-2 w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-500 ${
+                              service.status.healthy ? 'bg-green-500' : 'bg-red-500'
+                            }`}
+                            style={{ width: '100%' }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="mt-6 pt-4 border-t border-gray-100">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500">
+                    Last updated: {lastUpdated.toLocaleString()}
+                  </span>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-gray-600 hover:bg-gray-50 border-gray-200"
+                    onClick={fetchAllData}
+                    disabled={loading}
+                  >
+                    <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
+                    Refresh Status
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Recent Activity */}
+        <div className="mb-8">
+          <Card className="border border-gray-100 shadow-sm">
+            <CardHeader className="border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg font-semibold text-gray-900">Recent Activity</CardTitle>
+                  <CardDescription className="text-sm text-gray-500">
+                    Latest actions on the platform
+                  </CardDescription>
+                </div>
+                <Button variant="ghost" size="sm" className="text-gray-500 hover:bg-gray-50">
+                  View All
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              {recentActivity.length > 0 ? (
+                <div className="divide-y divide-gray-100">
+                  {recentActivity.map((activity) => (
+                    <div
+                      key={activity.id}
+                      className="flex items-start p-4 hover:bg-gray-50 transition-colors duration-150"
+                    >
+                      <div className="flex-shrink-0 mt-0.5">
+                        <div className={`p-2 rounded-lg ${activity.color} bg-opacity-10`}>
+                          <activity.icon 
+                            className={`h-5 w-5 ${
+                              activity.color.includes('yellow') ? 'text-yellow-500' :
+                              activity.color.includes('green') ? 'text-green-500' :
+                              activity.color.includes('blue') ? 'text-blue-500' : 'text-gray-500'
+                            }`} 
+                          />
+                        </div>
+                      </div>
+                      <div className="ml-4 flex-1 min-w-0">
+                        <div className="flex justify-between">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {activity.title}
+                          </p>
+                          <span className="text-xs text-gray-400 ml-2 whitespace-nowrap">
+                            {activity.timestamp}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {activity.description}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-10">
+                  <div className="mx-auto h-14 w-14 text-gray-300">
+                    <Activity className="h-full w-full" />
+                  </div>
+                  <p className="mt-3 text-sm text-gray-500">No recent activity to display</p>
+                  <p className="text-xs text-gray-400 mt-1">Check back later for updates</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AdminDashboard;

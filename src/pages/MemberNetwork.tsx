@@ -139,14 +139,13 @@ const MemberNetwork = React.memo(() => {
       }
       console.log('Fetching all users in the system...');
 
-      // Fetch all users with their roles and profiles from network_users and user_profiles
-      const [networkUsersResult, userProfilesResult, survey2021Result, survey2022Result, survey2023Result, survey2024Result] = await Promise.all([
-        supabase.from('network_users').select('id, user_id, email, first_name, last_name, role, created_at'),
-        supabase.from('user_profiles').select('user_id, company_name, email, website, description, profile_photo_url'),
-        supabase.from('survey_2021_responses').select('user_id, form_data, submission_status, completed_at'),
-        supabase.from('survey_2022_responses').select('user_id, form_data, submission_status, completed_at'),
-        supabase.from('survey_2023_responses').select('user_id, form_data, submission_status, completed_at'),
-        supabase.from('survey_2024_responses').select('user_id, form_data, submission_status, completed_at')
+      // Fetch user profiles and survey data - avoid network_users and user_roles to prevent RLS recursion
+      const [userProfilesResult, survey2021Result, survey2022Result, survey2023Result, survey2024Result] = await Promise.all([
+        supabase.from('user_profiles').select('id, user_id, company_name, email, full_name, role_title, phone, profile_picture_url, user_role, is_active, created_at'),
+        supabase.from('survey_responses_2021').select('id, user_id, email_address, firm_name, participant_name, role_title, company_name, completed_at'),
+        supabase.from('survey_responses_2022').select('id, user_id, email_address, organisation_name, participant_name, role_title, completed_at'),
+        supabase.from('survey_responses_2023').select('id, user_id, email_address, organisation_name, completed_at'),
+        supabase.from('survey_responses_2024').select('id, user_id, email_address, organisation_name, completed_at')
       ]);
 
       // Handle errors gracefully
@@ -162,24 +161,17 @@ const MemberNetwork = React.memo(() => {
       if (survey2024Result.error) {
         console.warn('Could not fetch 2024 survey data:', survey2024Result.error);
       }
-      if (networkUsersResult.error) {
-        console.warn('Could not fetch network users data:', networkUsersResult.error);
-      }
       if (userProfilesResult.error) {
         console.warn('Could not fetch user profiles data:', userProfilesResult.error);
       }
 
-      // Get all users and their data from network_users and user_profiles
-      const allUsers = networkUsersResult.data || [];
+      // Get all users from user_profiles (individual tables approach)
       const allUserProfiles = userProfilesResult.data || [];
       const survey2021Users = survey2021Result.data || [];
       const survey2022Users = survey2022Result.data || [];
       const survey2023Users = survey2023Result.data || [];
       const survey2024Users = survey2024Result.data || [];
 
-      console.log('All users in system (from network_users):', allUsers);
-      console.log('Network users result:', networkUsersResult);
-      console.log('Sample network user:', allUsers[0]);
       console.log('All user profiles:', allUserProfiles);
       console.log('User profiles count:', allUserProfiles.length);
       console.log('Survey data available:', {
@@ -191,17 +183,11 @@ const MemberNetwork = React.memo(() => {
 
       // Create maps for efficient lookups
       const userProfilesMap = new Map();
-      const userRolesMap = new Map();
       const surveyDataMap = new Map();
       
       // Map user profiles
       allUserProfiles.forEach(profile => {
         userProfilesMap.set(profile.user_id, profile);
-      });
-      
-      // Map user roles
-      allUsers.forEach(userRole => {
-        userRolesMap.set(userRole.user_id, userRole.role);
       });
 
       // Map survey data by user
@@ -212,47 +198,47 @@ const MemberNetwork = React.memo(() => {
         surveyDataMap.get(survey.user_id).push(survey);
       });
 
-      // Process all users to create network profiles
-      let processedManagers = allUsers.map(networkUser => {
-        const userProfile = userProfilesMap.get(networkUser.user_id);
-        const userSurveys = surveyDataMap.get(networkUser.user_id) || [];
+      // Process all users to create network profiles from user_profiles
+      let processedManagers = allUserProfiles.map(userProfile => {
+        const userSurveys = surveyDataMap.get(userProfile.user_id) || [];
         
-        // Use profile data for company information with better fallbacks
-        const companyName = userProfile?.company_name || 
-                           (networkUser.first_name && networkUser.last_name ? 
-                            `${networkUser.first_name} ${networkUser.last_name}` : 
-                            networkUser.email?.split('@')[0] || 'CFF Network User');
-        const email = userProfile?.email || networkUser.email || 'No email provided';
-        const website = userProfile?.website || '';
-        const description = userProfile?.description || '';
-        const profilePhoto = userProfile?.profile_photo_url || '';
+        // Use profile data for company information
+        const companyName = userProfile.company_name || 'CFF Network User';
+        const email = userProfile.email || 'No email provided';
+        const fullName = userProfile.full_name || 'Network User';
+        const roleTitle = userProfile.role_title || 'Network Member';
+        const profilePhoto = userProfile.profile_picture_url || '';
+        const userRole = userProfile.user_role || 'viewer';
+        const isActive = userProfile.is_active !== false; // Default to true if not specified
         
         // Debug logging for first few users
-        if (allUsers.indexOf(networkUser) < 3) {
-          console.log('Processing user:', {
-            networkUser,
+        if (allUserProfiles.indexOf(userProfile) < 3) {
+          console.log('Processing user profile:', {
             userProfile,
             companyName,
-            email
+            email,
+            fullName,
+            userRole,
+            userSurveys: userSurveys.length
           });
         }
         
         return {
-          id: networkUser.user_id || networkUser.id,
-          user_id: networkUser.user_id || networkUser.id,
+          id: userProfile.user_id || userProfile.id,
+          user_id: userProfile.user_id || userProfile.id,
           fund_name: companyName,
           firm_name: companyName,
-          participant_name: networkUser.first_name + ' ' + networkUser.last_name || 'Network User',
+          participant_name: fullName,
           email_address: email,
-          website: website,
-          description: description,
+          website: '', // Not available in new schema
+          description: '', // Not available in new schema
           profile_photo_url: profilePhoto,
           has_survey: userSurveys.length > 0,
           surveys_completed: userSurveys.length,
           survey_data: userSurveys, // Store all survey data for viewing
           profile: {
-            first_name: networkUser.first_name || 'Unknown',
-            last_name: networkUser.last_name || 'User',
+            first_name: fullName.split(' ')[0] || 'Unknown',
+            last_name: fullName.split(' ').slice(1).join(' ') || 'User',
             email: email
           },
           geographic_focus: ['Global'], // Simplified
@@ -260,9 +246,10 @@ const MemberNetwork = React.memo(() => {
           fund_stage: 'Active', // Simplified
           team_size: 1, // Simplified
           year_founded: 2020, // Simplified
-          role_title: 'Network Member', // Simplified
-          created_at: networkUser.created_at || new Date().toISOString(),
-          role_badge: networkUser.role || 'viewer'
+          role_title: roleTitle,
+          created_at: userProfile.created_at || new Date().toISOString(),
+          role_badge: userRole,
+          is_active: isActive
         };
       });
 

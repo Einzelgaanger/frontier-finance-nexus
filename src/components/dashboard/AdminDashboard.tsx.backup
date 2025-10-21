@@ -1,0 +1,659 @@
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import StatsCard from "./StatsCard";
+import { 
+  Users, 
+  Building2, 
+  TrendingUp, 
+  Shield, 
+  UserCheck, 
+  AlertCircle,
+  Activity,
+  Database,
+  Zap,
+  Clock,
+  CheckCircle,
+  FileText as FileTextIcon,
+  RefreshCw,
+} from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { supabase } from '@/integrations/supabase/client';
+import { Badge } from "@/components/ui/badge";
+
+// Import LucideIcon type from lucide-react
+import type { LucideIcon } from 'lucide-react';
+
+type IconType = LucideIcon;
+
+interface ActivityItem {
+  id: string;
+  type: 'user_registration' | 'survey_completed' | 'pending_request' | 'role_change';
+  title: string;
+  description: string;
+  timestamp: string;
+  icon: IconType;
+  color: string;
+}
+
+interface SystemStatus {
+  status: string;
+  healthy: boolean;
+}
+
+interface StatItem {
+  title: string;
+  value: string;
+  icon: IconType;
+  description: string;
+  trend: {
+    value: number;
+    isPositive: boolean;
+  };
+  color: string;
+}
+
+interface SystemStatusState {
+  database: SystemStatus;
+  apiServices: SystemStatus;
+  authentication: SystemStatus;
+  fileStorage: SystemStatus;
+}
+
+const AdminDashboard = () => {
+  const [stats, setStats] = useState<StatItem[]>([
+    { 
+      title: 'Total Users', 
+      value: '...', 
+      icon: Users, 
+      description: 'Across all roles', 
+      trend: { value: 0, isPositive: true }, 
+      color: 'bg-blue-500' 
+    },
+    { 
+      title: 'Pending Requests', 
+      value: '...', 
+      icon: UserCheck, 
+      description: 'Membership applications', 
+      trend: { value: 0, isPositive: true }, 
+      color: 'bg-orange-500' 
+    },
+    { 
+      title: 'Active Surveys', 
+      value: '...', 
+      icon: Building2, 
+      description: 'Completed this month', 
+      trend: { value: 0, isPositive: true }, 
+      color: 'bg-green-500' 
+    },
+    { 
+      title: 'Platform Health', 
+      value: '99.9%', 
+      icon: TrendingUp, 
+      description: 'Uptime this month', 
+      trend: { value: 0, isPositive: true }, 
+      color: 'bg-purple-500' 
+    },
+  ]);
+  
+  const [pendingRequests, setPendingRequests] = useState(0);
+  const [expiringCodes, setExpiringCodes] = useState(0);
+  const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
+  const [systemStatus, setSystemStatus] = useState<SystemStatusState>({
+    database: { status: 'Online', healthy: true },
+    apiServices: { status: 'Healthy', healthy: true },
+    authentication: { status: 'Active', healthy: true },
+    fileStorage: { status: 'Connected', healthy: true }
+  });
+  const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+
+  // Format date to readable time ago
+  const formatTimeAgo = (date: Date | string): string => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - dateObj.getTime()) / 60000);
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes} min ago`;
+    if (diffInMinutes < 1440) {
+      const hours = Math.floor(diffInMinutes / 60);
+      return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    }
+    const days = Math.floor(diffInMinutes / 1440);
+    return `${days} day${days > 1 ? 's' : ''} ago`;
+  };
+
+  // Fetch all real data
+  const fetchAllData = useCallback(async (): Promise<void> => {
+    setLoading(true);
+    try {
+      // 1. Total Users
+      const { data: roles, error: rolesError } = await supabase.from('user_roles').select('role');
+      const totalUsers = roles && !rolesError ? roles.length : 0;
+
+      // 2. Pending Requests
+      const { data: requests, error: reqError } = await supabase
+        .from('membership_requests')
+        .select('id')
+        .eq('status', 'pending');
+      const pendingRequestsCount = requests?.length || 0;
+      setPendingRequests(pendingRequestsCount);
+
+      // 3. Active Surveys (completed this month)
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      
+      const { data: surveys, error: surveysError } = await supabase
+        .from('survey_responses')
+        .select('id, completed_at')
+        .gte('completed_at', startOfMonth.toISOString());
+      
+      const activeSurveys = surveys?.length || 0;
+
+      // 4. Invitation Codes Expiring Today
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      
+      const endOfDay = new Date(startOfDay);
+      endOfDay.setHours(23, 59, 59, 999);
+      
+      const { data: codes, error: codesError } = await supabase
+        .from('invitation_codes')
+        .select('id, expires_at')
+        .gte('expires_at', startOfDay.toISOString())
+        .lte('expires_at', endOfDay.toISOString());
+      
+      const expiringCodesCount = codes?.length || 0;
+      setExpiringCodes(expiringCodesCount);
+
+      // Update stats
+      setStats(prevStats => [
+        { 
+          ...prevStats[0], 
+          value: totalUsers.toString(), 
+          trend: { value: 0, isPositive: true } 
+        },
+        { 
+          ...prevStats[1], 
+          value: pendingRequestsCount.toString(), 
+          trend: { value: 0, isPositive: pendingRequestsCount > 0 } 
+        },
+        { 
+          ...prevStats[2], 
+          value: activeSurveys.toString(), 
+          trend: { value: 0, isPositive: activeSurveys > 0 } 
+        },
+        { ...prevStats[3] }
+      ]);
+
+      // Mock recent activity (replace with actual data)
+      const mockActivities: ActivityItem[] = [
+        {
+          id: '1',
+          type: 'user_registration',
+          title: 'New User Registration',
+          description: 'John Doe joined the platform',
+          timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+          icon: UserCheck,
+          color: 'text-green-500'
+        },
+        {
+          id: '2',
+          type: 'survey_completed',
+          title: 'Survey Completed',
+          description: 'Quarterly impact survey submitted',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+          icon: CheckCircle,
+          color: 'text-blue-500'
+        }
+      ];
+      
+      setRecentActivity(mockActivities);
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Fetch data on component mount and set up auto-refresh
+  useEffect(() => {
+    fetchAllData();
+    
+    // Set up auto-refresh every 30 seconds
+    const intervalId = setInterval(fetchAllData, 30000);
+    
+    // Clean up interval on component unmount
+    return () => clearInterval(intervalId);
+  }, [fetchAllData]);
+
+  // Render the dashboard
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Attention Banner */}
+        {(pendingRequests > 0 || expiringCodes > 0) && (
+          <div className="mb-6">
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <AlertCircle className="h-5 w-5 text-yellow-400" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-yellow-700">
+                    {pendingRequests > 0 && `You have ${pendingRequests} pending membership request${pendingRequests > 1 ? 's' : ''}. `}
+                    {expiringCodes > 0 && `You have ${expiringCodes} invitation code${expiringCodes > 1 ? 's' : ''} expiring today.`}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Stats Overview */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Dashboard Overview</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {stats.map((stat, index) => (
+              <StatsCard
+                key={stat.title}
+                title={stat.title}
+                value={stat.value}
+                icon={stat.icon}
+                description={stat.description}
+                trend={stat.trend}
+                color={stat.color}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* System Status */}
+        <div className="mb-8">
+          <Card className="border border-gray-200 shadow-sm">
+            <CardHeader className="border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg font-semibold">System Status</CardTitle>
+                  <CardDescription className="text-sm text-gray-500">
+                    Current platform health and performance
+                  </CardDescription>
+                </div>
+                <div className="flex items-center">
+                  <span className="inline-flex h-2 w-2 rounded-full bg-green-500 mr-2"></span>
+                  <span className="text-sm font-medium text-gray-600">All Systems Operational</span>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {Object.entries(systemStatus).map(([key, status]) => {
+                  const serviceName = key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1');
+                  const Icon = key === 'database' ? Database : 
+                              key === 'apiServices' ? Zap : 
+                              key === 'authentication' ? Shield : FileTextIcon;
+                  
+                  return (
+                    <div key={key} className="p-4 border border-gray-200 rounded-lg bg-white">
+                      <div className="flex items-center">
+                        <div className={`p-2 rounded-full ${status.healthy ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div className="ml-3">
+                          <h3 className="font-medium text-gray-900">{serviceName}</h3>
+                          <p className="text-sm text-gray-500">
+                            {status.healthy ? 'Operational' : 'Degraded'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Recent Activity */}
+        <div className="mb-8">
+          <Card className="border border-gray-200 shadow-sm">
+            <CardHeader className="border-b border-gray-200">
+              <CardTitle className="text-lg font-semibold">Recent Activity</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              {recentActivity.length > 0 ? (
+                <div>
+                  {recentActivity.map((activity) => {
+                    const Icon = activity.icon;
+                    return (
+                      <div key={activity.id} className="p-4 hover:bg-gray-50 border-b last:border-b-0">
+                        <div className="flex items-start">
+                          <div className={`flex-shrink-0 h-10 w-10 rounded-full ${activity.color} bg-opacity-10 flex items-center justify-center`}>
+                            <Icon className={`h-5 w-5 ${activity.color}`} />
+                          </div>
+                          <div className="ml-4 flex-1">
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-sm font-medium text-gray-900">{activity.title}</h4>
+                              <span className="text-xs text-gray-500">
+                                {formatTimeAgo(new Date(activity.timestamp))}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-10">
+                  <div className="mx-auto h-14 w-14 text-gray-300">
+                    <Activity className="h-full w-full" />
+                  </div>
+                  <p className="mt-3 text-sm text-gray-500">No recent activity to display</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AdminDashboard;
+              icon: AlertCircle,
+              color: 'bg-yellow-50 border-yellow-200'
+            });
+          });
+        }
+
+        // Get recent survey completions
+        const { data: recentSurveys } = await supabase
+          .from('survey_responses')
+          .select('id, completed_at, user_id')
+          .not('completed_at', 'is', null)
+          .order('completed_at', { ascending: false })
+          .limit(2);
+
+        if (recentSurveys) {
+          recentSurveys.forEach((survey) => {
+            const timeAgo = getTimeAgo(new Date(survey.completed_at));
+            activities.push({
+              id: survey.id,
+              type: 'survey_completed',
+              title: 'Survey Completed',
+              description: 'A member completed their profile survey',
+              timestamp: timeAgo,
+              icon: CheckCircle,
+              color: 'bg-green-50 border-green-200'
+            });
+          });
+        }
+
+        // Get recent user registrations (from user_roles)
+        const { data: recentUsers } = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .limit(1);
+
+        if (recentUsers && recentUsers.length > 0) {
+          // Since user_roles doesn't have created_at, use current time
+          const timeAgo = getTimeAgo(new Date());
+          activities.push({
+            id: recentUsers[0].user_id,
+            type: 'user_registration',
+            title: 'New User Registration',
+            description: 'A new member joined the platform',
+            timestamp: timeAgo,
+            icon: Users,
+            color: 'bg-blue-50 border-blue-200'
+          });
+        }
+
+        // Sort by timestamp and take the most recent 3
+        activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        setRecentActivity(activities.slice(0, 3));
+      };
+
+      await fetchRecentActivity();
+
+      // 6. System Status Check
+      const checkSystemStatus = async () => {
+        try {
+          // Test database connection
+          const { data: testQuery, error: dbError } = await supabase
+            .from('user_roles')
+            .select('count')
+            .limit(1);
+
+      setStats([
+        { ...stats[0], value: totalUsers.toString(), trend: { value: 0, isPositive: true } },
+        { ...stats[1], value: pendingRequestsCount.toString(), trend: { value: 0, isPositive: pendingRequestsCount > 0 } },
+        { ...stats[2], value: activeSurveys.toString(), trend: { value: 0, isPositive: activeSurveys > 0 } },
+        { ...stats[3] }
+      ]);
+
+      const mockActivity: ActivityItem[] = [
+        {
+          id: '1',
+          type: 'user_registration',
+          title: 'New User Registration',
+          description: 'John Doe joined the platform',
+          timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+          icon: UserCheck,
+          color: 'text-green-500'
+        },
+        {
+          id: '2',
+          type: 'survey_completed',
+          title: 'Survey Completed',
+          description: 'Quarterly impact survey submitted',
+          timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+          icon: CheckCircle,
+          color: 'text-blue-500'
+        },
+        {
+          id: '3',
+          type: 'pending_request',
+          title: 'Membership Request',
+          description: 'New request from Jane Smith',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+          icon: Clock,
+          color: 'text-orange-500'
+        },
+        {
+          id: '4',
+          type: 'role_change',
+          title: 'Role Updated',
+          description: 'Alex Johnson promoted to Admin',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+          icon: Shield,
+          color: 'text-purple-500'
+        }
+      ];
+
+      setRecentActivity(mockActivity);
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getTimeAgo = (date: Date): string => {
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / 60000);
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes} min ago`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} hour${Math.floor(diffInMinutes / 60) > 1 ? 's' : ''} ago`;
+    return `${Math.floor(diffInMinutes / 1440)} day${Math.floor(diffInMinutes / 1440) > 1 ? 's' : ''} ago`;
+  };
+
+  useEffect(() => {
+    fetchAllData();
+    
+    const interval = setInterval(fetchAllData, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto p-6">
+        {(pendingRequests > 0 || expiringCodes > 0) && (
+          <div className="mb-8">
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <AlertCircle className="h-5 w-5 text-yellow-400" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-yellow-700">
+                    {pendingRequests > 0 && `You have ${pendingRequests} pending membership request${pendingRequests > 1 ? 's' : ''}. `}
+                    {expiringCodes > 0 && `You have ${expiringCodes} invitation code${expiringCodes > 1 ? 's' : ''} expiring today.`}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-gray-900">System Overview</h2>
+            <Badge variant="outline" className="text-sm">
+              Real-time data
+            </Badge>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {stats.map((stat, index) => (
+              <StatsCard
+                key={index}
+                title={stat.title}
+                value={stat.value}
+                icon={stat.icon}
+                description={stat.description}
+                trend={stat.trend}
+                color={stat.color}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-8">
+          <Card className="border border-gray-100 shadow-sm">
+            <CardHeader className="border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg font-semibold text-gray-900">System Status</CardTitle>
+                  <CardDescription className="text-sm text-gray-500">
+                    Current platform health and performance
+                  </CardDescription>
+                </div>
+                <div className="flex items-center">
+                  <span className="inline-flex h-2 w-2 rounded-full bg-green-500 mr-2"></span>
+                  <span className="text-xs font-medium text-gray-600">All Systems Operational</span>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[
+                  { name: 'Database', status: systemStatus.database, icon: Database, description: 'Primary database connection' },
+                  { name: 'API Services', status: systemStatus.apiServices, icon: Zap, description: 'Backend API endpoints' },
+                  { name: 'Authentication', status: systemStatus.authentication, icon: Shield, description: 'User authentication service' },
+                  { name: 'File Storage', status: systemStatus.fileStorage, icon: FileTextIcon, description: 'Document storage service' }
+                ].map((service, index) => (
+                  <div key={index} className="p-4 border border-gray-100 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex items-center mb-2">
+                      <div className={`p-2 rounded-full ${service.status.healthy ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                        <service.icon className="h-5 w-5" />
+                      </div>
+                      <h4 className="ml-3 font-medium text-gray-900">{service.name}</h4>
+                      <div className="ml-auto">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          service.status.healthy ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
+                          {service.status.status}
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-500">{service.description}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-end mt-4">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-gray-600 hover:bg-gray-50 border-gray-200"
+                  onClick={fetchAllData}
+                  disabled={loading}
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
+                  Refresh Status
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="mb-8">
+          <Card className="border border-gray-100 shadow-sm">
+            <CardHeader className="border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg font-semibold text-gray-900">Recent Activity</CardTitle>
+                  <CardDescription className="text-sm text-gray-500">
+                    Latest actions and events in the system
+                  </CardDescription>
+                </div>
+                <div className="text-xs text-gray-500">
+                  Updated {getTimeAgo(lastUpdated)}
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              {recentActivity.length > 0 ? (
+                <div className="divide-y divide-gray-100">
+                  {recentActivity.map((activity) => {
+                    const Icon = activity.icon;
+                    return (
+                      <div key={activity.id} className="p-4 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-start">
+                          <div className={`flex-shrink-0 h-10 w-10 rounded-full ${activity.color} bg-opacity-10 flex items-center justify-center`}>
+                            <Icon className={`h-5 w-5 ${activity.color}`} />
+                          </div>
+                          <div className="ml-4 flex-1">
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-sm font-medium text-gray-900">{activity.title}</h4>
+                              <span className="text-xs text-gray-500">{getTimeAgo(new Date(activity.timestamp))}</span>
+                            </div>
+                            <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-10">
+                  <div className="mx-auto h-14 w-14 text-gray-300">
+                    <Activity className="h-full w-full" />
+                  </div>
+                  <p className="mt-3 text-sm text-gray-500">No recent activity to display</p>
+                  <p className="text-xs text-gray-400 mt-1">Check back later for updates</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AdminDashboard;

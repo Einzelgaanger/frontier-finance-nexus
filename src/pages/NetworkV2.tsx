@@ -131,56 +131,94 @@ const NetworkV2 = React.memo(() => {
       }
       console.log('Fetching network data...');
 
-      // Fetch survey data to determine who has surveys
-      const [survey2021Result, surveyResult] = await Promise.all([
-        supabase.from('survey_2021_responses').select('user_id, firm_name, participant_name, geographic_focus, investment_vehicle_type, fund_stage, current_ftes'),
-        supabase.from('survey_responses').select('user_id')
+      // Fetch user profiles and survey data - avoid tables with RLS recursion issues
+      const [userProfilesResult, survey2021Result, survey2022Result, survey2023Result, survey2024Result] = await Promise.all([
+        supabase.from('user_profiles').select('id, user_id, company_name, email, full_name, role_title, profile_picture_url, user_role, is_active, created_at'),
+        supabase.from('survey_responses_2021').select('id, user_id, email_address, firm_name, participant_name, role_title, company_name, completed_at'),
+        supabase.from('survey_responses_2022').select('id, user_id, email_address, organisation_name, participant_name, role_title, completed_at'),
+        supabase.from('survey_responses_2023').select('id, user_id, email_address, organisation_name, completed_at'),
+        supabase.from('survey_responses_2024').select('id, user_id, email_address, organisation_name, completed_at')
       ]);
 
-      // Handle survey data errors gracefully
-      const survey2021UserIds = survey2021Result.data?.map(s => s.user_id) || [];
-      const surveyUserIds = surveyResult.data?.map(s => s.user_id) || [];
-      const allSurveyUserIds = [...new Set([...survey2021UserIds, ...surveyUserIds])];
-      
-      // Create a map of survey data for enhanced profiles
-      const surveyDataMap = new Map();
-      if (survey2021Result.data) {
-        survey2021Result.data.forEach(survey => {
-          surveyDataMap.set(survey.user_id, survey);
-        });
+      // Handle errors gracefully
+      if (userProfilesResult.error) {
+        console.warn('Could not fetch user profiles:', userProfilesResult.error);
+      }
+      if (survey2021Result.error) {
+        console.warn('Could not fetch 2021 survey data:', survey2021Result.error);
+      }
+      if (survey2022Result.error) {
+        console.warn('Could not fetch 2022 survey data:', survey2022Result.error);
+      }
+      if (survey2023Result.error) {
+        console.warn('Could not fetch 2023 survey data:', survey2023Result.error);
+      }
+      if (survey2024Result.error) {
+        console.warn('Could not fetch 2024 survey data:', survey2024Result.error);
       }
 
-      // Since profiles table is empty, create fund managers directly from survey data
-      let processedManagers = [];
-      
-      if (survey2021Result.data && survey2021Result.data.length > 0) {
-        processedManagers = survey2021Result.data.map(survey => {
-          const hasSurvey = allSurveyUserIds.includes(survey.user_id);
-          
-          return {
-            id: survey.user_id,
-            user_id: survey.user_id,
-            fund_name: survey.firm_name || 'Unnamed Fund',
-            firm_name: survey.firm_name || 'Unnamed Fund',
-            participant_name: survey.participant_name || 'Unknown Participant',
-            email_address: survey.email_address || 'No email provided',
-            has_survey: hasSurvey,
-            profile: {
-              first_name: survey.participant_name?.split(' ')[0] || 'Unknown',
-              last_name: survey.participant_name?.split(' ').slice(1).join(' ') || 'User',
-              email: survey.email_address || 'No email provided'
-            },
-            // Use survey data
-            geographic_focus: survey.geographic_focus || ['Global'],
-            vehicle_type: survey.investment_vehicle_type?.[0] || 'Investment Fund',
-            fund_stage: survey.fund_stage || 'Active',
-            team_size: survey.current_ftes ? parseInt(survey.current_ftes) : 5,
-            year_founded: 2020 // Default year since it's not in survey data
-          };
-        });
-      } else {
-        // Fallback: create some sample data if no survey data is available
-        console.log('No survey data available, creating sample data');
+      // Get all users from user_profiles
+      const allUserProfiles = userProfilesResult.data || [];
+      const survey2021Users = survey2021Result.data || [];
+      const survey2022Users = survey2022Result.data || [];
+      const survey2023Users = survey2023Result.data || [];
+      const survey2024Users = survey2024Result.data || [];
+
+      // Create a map of survey data for enhanced profiles
+      const surveyDataMap = new Map();
+      [...survey2021Users, ...survey2022Users, ...survey2023Users, ...survey2024Users].forEach(survey => {
+        if (!surveyDataMap.has(survey.user_id)) {
+          surveyDataMap.set(survey.user_id, []);
+        }
+        surveyDataMap.get(survey.user_id).push(survey);
+      });
+
+      // Process all users to create network profiles from user_profiles
+      let processedManagers = allUserProfiles.map(userProfile => {
+        const userSurveys = surveyDataMap.get(userProfile.user_id) || [];
+        
+        // Use profile data for company information
+        const companyName = userProfile.company_name || 'CFF Network User';
+        const email = userProfile.email || 'No email provided';
+        const fullName = userProfile.full_name || 'Network User';
+        const roleTitle = userProfile.role_title || 'Network Member';
+        const profilePhoto = userProfile.profile_picture_url || '';
+        const userRole = userProfile.user_role || 'viewer';
+        const isActive = userProfile.is_active !== false;
+        
+        return {
+          id: userProfile.user_id || userProfile.id,
+          user_id: userProfile.user_id || userProfile.id,
+          fund_name: companyName,
+          firm_name: companyName,
+          participant_name: fullName,
+          email_address: email,
+          website: '', // Not available in new schema
+          description: '', // Not available in new schema
+          profile_photo_url: profilePhoto,
+          has_survey: userSurveys.length > 0,
+          surveys_completed: userSurveys.length,
+          survey_data: userSurveys,
+          profile: {
+            first_name: fullName.split(' ')[0] || 'Unknown',
+            last_name: fullName.split(' ').slice(1).join(' ') || 'User',
+            email: email
+          },
+          geographic_focus: ['Global'], // Simplified
+          vehicle_type: 'Network Participant', // Simplified
+          fund_stage: 'Active', // Simplified
+          team_size: 1, // Simplified
+          year_founded: 2020, // Simplified
+          role_title: roleTitle,
+          created_at: userProfile.created_at || new Date().toISOString(),
+          role_badge: userRole,
+          is_active: isActive
+        };
+      });
+
+      if (processedManagers.length === 0) {
+        // Fallback: create realistic sample data
+        console.log('No users found in system, creating realistic sample data');
         processedManagers = [
           {
             id: 'sample-1',

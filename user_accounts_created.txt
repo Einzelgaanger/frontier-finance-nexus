@@ -1,0 +1,530 @@
+======================================================================
+USER ACCOUNTS CREATION REPORT
+======================================================================
+
+Total Unique Emails: 172
+Accounts Created: 129
+Already Existed (Skipped): 0
+Failed: 43
+Default Password: @ESCPNetwork2025#
+
+======================================================================
+DETAILED RESULTS
+======================================================================
+
+✅ CREATED | a.annan@impcapadv.com
+         User ID: 6790ad70-8d09-46e4-a0a0-c380ab35c4a1
+
+✅ CREATED | a.fofana@comoecapital.com
+         User ID: a6dce5a2-9578-45f0-a6d1-38480e4966f5
+
+✅ CREATED | a@a.com
+         User ID: 7e02dcf1-f662-44eb-b883-2706f330520d
+
+✅ CREATED | aarthi.ramasubramanian@opesfund.eu
+         User ID: f7d9c432-09c7-48b9-87f7-a75ef4f29bf9
+
+✅ CREATED | agnes@firstcircle.capital
+         User ID: a1496a91-588b-445a-a6ab-995ed36ddd8b
+
+❌ FAILED | alberto@co.org.mx
+         Error: A user with this email address has already been registered
+
+❌ FAILED | ali.alsuhail@kapita.iq
+         Error: A user with this email address has already been registered
+
+✅ CREATED | allert@mmfm-ltd.com
+         User ID: c065b6f7-9a14-42cb-af2a-792571c6578c
+
+✅ CREATED | alyune@loftyinc.vc
+         User ID: 7cdaf059-6bf1-415e-a098-03e611e41525
+
+✅ CREATED | amaka@weavcapital.com
+         User ID: 9ec23ae2-53d1-44a1-ba78-4fb31ef8fd6c
+
+✅ CREATED | amaka@weavcapital.con
+         User ID: 2947736c-7d48-406a-93f6-c8f6b3baa4ba
+
+✅ CREATED | amanda.kabagambe@tlgcapital.com
+         User ID: bbe1215c-74b8-48f8-9f08-08dc93744ac7
+
+❌ FAILED | ambar@ibtikarfund.com
+         Error: A user with this email address has already been registered
+
+✅ CREATED | amel.saidane@betawaves.io
+         User ID: ac764bc2-01fb-4b4b-8b89-5b94b7b22fb0
+
+✅ CREATED | andiac@gracamacheltrust.org
+         User ID: ed100faf-93fb-4795-84d1-e56d1447ed32
+
+❌ FAILED | andylower@adapcapital.com
+         Error: A user with this email address has already been registered
+
+✅ CREATED | angela@angazacapital.com
+         User ID: 6b6a0ba1-6bea-4d2e-928d-d0eec7836d44
+
+✅ CREATED | ani@mostfund.vc
+         User ID: 1ff21ad2-e04c-4272-9d96-b520c1bc9331
+
+❌ FAILED | annan.anthony@gmail.com
+         Error: A user with this email address has already been registered
+
+✅ CREATED | anne@sayuni.capital
+         User ID: 2e737278-f5f5-463f-8ab4-212b005ddbc2
+
+✅ CREATED | anthony@mmfm-ltd.com
+         User ID: 124073b2-aa91-4555-b6f7-ae87e35e9111
+
+✅ CREATED | aor@aruwacapital.com
+         User ID: 2a2101ba-072f-4237-94f8-80a2b81c21d9
+
+❌ FAILED | arthi.ramasubramanian@opesfund.eu
+         Error: A user with this email address has already been registered
+
+✅ CREATED | ashleigh.fynn-munda@opp-gen.com
+         User ID: 7506cecf-b117-4364-b4c8-976e21343d23
+
+✅ CREATED | audrey@anza.holdings
+         User ID: 913e71ee-8999-4678-90ca-6a01325171e0
+
+✅ CREATED | bfaga.negocio@am.bfa.ao
+         User ID: 23ab6b36-8e91-4946-b4af-6efe7078f40a
+
+❌ FAILED | brendan@sechacapital.com
+         Error: A user with this email address has already been registered
+
+✅ CREATED | bu@aruwacapital.com
+         User ID: f92bc196-685e-4955-bb60-56f8b53f1b26
+
+✅ CREATED | carol.birungi@xsmlcapital.com
+         User ID: 8fa36e8d-9155-4411-b58c-2dc8e0db16cd
+
+❌ FAILED | cathy@fyrefem.com
+         Error: A user with this email address has already been registered
+
+✅ CREATED | cedella.besong@cfbholding.com
+         User ID: c7625573-44b7-41d5-9006-83fb7b7f3a9c
+
+❌ FAILED | chai@vakayi.com
+         Error: A user with this email address has already been registered
+
+✅ CREATED | chibamba@finbond.co.zm
+         User ID: 5bb13b5c-de4f-4721-a84d-4ac2fbf5d7cf
+
+✅ CREATED | ckingombe@4ipgroup.com
+         User ID: e006a894-cfad-4e9e-8fda-50fadcc1215e
+
+✅ CREATED | ckirabo@mkyalaventures.com
+         User ID: b0c44ab5-3dc6-4c57-a3aa-7faff833d575
+
+✅ CREATED | colin@lineacap.com
+         User ID: aca432ea-e5fa-4ffc-9a38-ab838247c786
+
+✅ CREATED | d.doumbia@comoecapital.com
+         User ID: 11556a59-733e-43da-af5f-0bc93f5915e2
+
+✅ CREATED | d.rono@samawaticapital.com
+         User ID: 35f53bbc-3e19-4d6d-a304-1c6a094d0d59
+
+✅ CREATED | david.wangolo@pearlcapital.net
+         User ID: 8cd42210-c95c-4a09-ac52-9ffa0de59981
+
+❌ FAILED | dayo@microtraction.com
+         Error: A user with this email address has already been registered
+
+✅ CREATED | dmitry.fotiyev@brightmorecapital.com
+         User ID: 764abf36-9be4-4707-b407-b2e90458cbfe
+
+❌ FAILED | e.arthur@wangaracapital.com
+         Error: A user with this email address has already been registered
+
+❌ FAILED | e.cotsoyannis@miarakap.com
+         Error: A user with this email address has already been registered
+
+✅ CREATED | e.ravohitrarivo@miarakap.com
+         User ID: 5642aa41-038a-4c46-ae12-1b414b20a5c1
+
+✅ CREATED | eddie.sembatya@findingxy.com
+         User ID: 55d13546-29fb-4de1-92c0-573d1df1422a
+
+❌ FAILED | edioh@wic-capital.net
+         Error: A user with this email address has already been registered
+
+✅ CREATED | edson@relevant.is
+         User ID: 71126ca4-9813-426e-80e5-44630f1d610d
+
+✅ CREATED | egla@msftventures.com
+         User ID: 6f4aadbc-e07c-47fc-a4c5-a34e4ee7d086
+
+✅ CREATED | enyonam@mirepaadvisors.com
+         User ID: 8030f807-d81b-4b2c-81fc-33e94ce9ae38
+
+✅ CREATED | enyonam@mirepacapital.com
+         User ID: 543a9d01-2686-44d3-82a0-932166612815
+
+✅ CREATED | eric@happysmala.com
+         User ID: 5eb4a2f8-27ad-444f-b640-6192e74fae15
+
+✅ CREATED | esther@unconventional.capital
+         User ID: 029df685-3253-4d9a-b3d5-26cfc4bd63d0
+
+✅ CREATED | farynv@gmail.com
+         User ID: f5b79dd7-9751-463d-8280-2ae2fac89e44
+
+✅ CREATED | finance@habacapital.com
+         User ID: 41001850-f535-40a0-a713-62369de1122d
+
+✅ CREATED | florian.ibrahim@responsability.com
+         User ID: 27179fde-6629-4ab6-bcb2-071602e3df07
+
+❌ FAILED | fngenyi@sycomore-venture.com
+         Error: A user with this email address has already been registered
+
+✅ CREATED | franziska@unconventional.capital
+         User ID: 18bc0cf5-6c55-4cf9-b5c2-b3f3f211a43b
+
+✅ CREATED | geraldine@darenaventures.com
+         User ID: aee64854-76d4-4fc5-b25c-68ea73b365c2
+
+✅ CREATED | h.vincent-genod@ietp.com
+         User ID: f9a746c3-0809-4f1a-8e4c-5059bac7ae26
+
+✅ CREATED | ha@cra.fund
+         User ID: b26946ed-7bc3-471c-9a4f-d7f4c64d7d24
+
+✅ CREATED | hema@five35.ventures
+         User ID: 39402310-a293-4d4a-af03-d1272282355b
+
+✅ CREATED | hilina@kazanafund.com
+         User ID: 83d8ac93-cef1-4911-830d-1759a8b73bf8
+
+❌ FAILED | i.sidibe@comoecapital.com
+         Error: A user with this email address has already been registered
+
+❌ FAILED | idris.bello@loftyincltd.biz
+         Error: A user with this email address has already been registered
+
+✅ CREATED | idris@loftyinc.vc
+         User ID: 6bb0d6bc-d8c2-4972-a2d9-e2fc2f93b096
+
+✅ CREATED | imandela@shonacapital.co
+         User ID: 98f6323f-5837-4844-87f2-74dde087b8c4
+
+✅ CREATED | imare@startupbugu.net
+         User ID: 22c7d64e-102a-4be3-b9e9-559bc3711e9f
+
+✅ CREATED | innocent@anzaentrepreneurs.co.tz
+         User ID: 3d406a32-8494-4f9e-8dad-4cb38be92ff3
+
+✅ CREATED | invest@blackstoneafrica.com
+         User ID: 380d70ba-8621-45f2-8d88-ae2023c9e9b3
+
+✅ CREATED | invteam@altreecapital.com
+         User ID: 46f5b767-f897-4d7b-bc29-c63e8562149a
+
+✅ CREATED | is@neper.africa
+         User ID: 688accdb-b135-48c4-afc2-17af2268cddb
+
+✅ CREATED | j.namoma@nithio.com
+         User ID: 5e193756-2352-40c9-87af-22808391230b
+
+❌ FAILED | jaap-jan@truvalu-group.com
+         Error: A user with this email address has already been registered
+
+✅ CREATED | jacobus@growthcap.co.za
+         User ID: b2899de2-741d-4391-a451-078837529c08
+
+✅ CREATED | janice@aisikicapital.com
+         User ID: bf406630-3054-4efc-9a60-89af74127950
+
+❌ FAILED | jason@viktoria.co.ke
+         Error: A user with this email address has already been registered
+
+✅ CREATED | jchamberlain@altreecapital.om
+         User ID: 65bd00e6-ef71-4d31-bf2c-23b648b9a147
+
+❌ FAILED | jenny@amamventures.com
+         Error: A user with this email address has already been registered
+
+✅ CREATED | jesse@takeofffund.com
+         User ID: 0317142c-9a2c-4426-9ddc-8259feba4da6
+
+✅ CREATED | jim@untapped-global.com
+         User ID: 62a9c187-fdc9-4c9f-b9b8-915e5e55e0bc
+
+❌ FAILED | josh@balloonventures.com
+         Error: A user with this email address has already been registered
+
+✅ CREATED | josh@holocene.africa
+         User ID: 7e164639-d1a1-42cb-a077-31cdbe8be4a2
+
+✅ CREATED | julia@lineacap.com
+         User ID: ef3e37bc-5d66-483d-a855-bdfd2acca844
+
+✅ CREATED | july.andraous@jambaar-capital.com
+         User ID: cd47d566-3ce9-4dca-af25-1f49ff2f272d
+
+✅ CREATED | jzongo@sinergiburkina.com
+         User ID: 8bc79777-0b64-4efc-ae64-41b81e2bbb91
+
+✅ CREATED | k.owusu-sarfo@wangaracapital.com
+         User ID: 8dd59e84-ff3b-4d33-adc3-8c3e3b0224b7
+
+✅ CREATED | kamaldine08@gmail.com
+         User ID: 1acd17b2-e62b-4c33-9e3c-53ac0ce3b7f6
+
+✅ CREATED | karinawong@smallfoundation.ie
+         User ID: e6a5df7a-969c-4a5f-80c6-d6594cc47ab8
+
+❌ FAILED | karthik@sangam.vc
+         Error: A user with this email address has already been registered
+
+✅ CREATED | kendi@hevafund.com
+         User ID: d013145b-0200-42f5-a958-ede279a70e64
+
+❌ FAILED | kenza@outlierz.co
+         Error: A user with this email address has already been registered
+
+✅ CREATED | kim@inuacapital.com
+         User ID: eccd6c85-13f4-4764-b0fd-eab2772dd3f1
+
+❌ FAILED | klakhani@invest2innovate.com
+         Error: A user with this email address has already been registered
+
+❌ FAILED | klegesi@ortusafrica.com
+         Error: A user with this email address has already been registered
+
+❌ FAILED | lavanya@vestedworld.com
+         Error: A user with this email address has already been registered
+
+✅ CREATED | ldavis@renewcapital.com
+         User ID: ad120c36-871f-4bf8-a869-869e877c9c20
+
+❌ FAILED | ldavis@renewstrategies.com
+         Error: A user with this email address has already been registered
+
+✅ CREATED | lelemba@africatrustgroup.com
+         User ID: 9d7dc1fa-e5c6-4a6c-a2b6-57da971113bc
+
+✅ CREATED | lidelkellytoh1989@gmail.com
+         User ID: e6fb0bf8-9f77-4985-b038-f156422db59a
+
+✅ CREATED | lisa@atgsamata.com
+         User ID: ab67aa69-4df4-4817-86cb-f72d570c1220
+
+❌ FAILED | lkamara@sahelinvest.com
+         Error: A user with this email address has already been registered
+
+❌ FAILED | lkefela@gmail.com
+         Error: A user with this email address has already been registered
+
+❌ FAILED | lmramba@gbfund.org
+         Error: A user with this email address has already been registered
+
+❌ FAILED | lsz@nordicimpactfunds.com
+         Error: A user with this email address has already been registered
+
+✅ CREATED | lthomas@samatacapital.com
+         User ID: 3ea7d9e1-082d-4f8d-8edf-88f50bbe7de9
+
+✅ CREATED | m.roestenberg@fmo.nl
+         User ID: bf49a1ae-3e4f-4d7d-b7cf-994455d3ac61
+
+✅ CREATED | mamokete@mamorcapital.com
+         User ID: 0fd45e64-afa6-4629-a81d-902dc9c5f3f0
+
+✅ CREATED | mariamkamel@aucegypt.edu
+         User ID: 01239342-85a7-489a-bd9f-60462ac0ce53
+
+✅ CREATED | mark@bidcp.com
+         User ID: b92db078-ca2a-4548-ba91-9d6b0d04d5d7
+
+✅ CREATED | martin@warioba.ventures
+         User ID: c06ab55d-ee5e-4d31-a111-eb8fdf309a15
+
+✅ CREATED | maya@womvest.club
+         User ID: 9bdf6c25-5a8a-44b5-869a-b6ad829a3fcb
+
+✅ CREATED | micheal.m@bamboocp.com
+         User ID: a2e38916-3f3d-46cc-b8b9-be49c27e9427
+
+✅ CREATED | micheal@cosefinvest.com
+         User ID: 3d3260f5-d1ca-4cc1-8e67-c8b9dedacbc4
+
+✅ CREATED | mouattara@footprint-cap.com
+         User ID: 7807354b-95a7-403f-a33f-d530bcab195f
+
+✅ CREATED | ndeye.thiaw@brightmorecapital.com
+         User ID: 71c85e0f-2be4-4b74-970d-92e477a47ebe
+
+✅ CREATED | nkhulu@torhotech.com
+         User ID: 8c0e090f-bcfd-4871-89a5-bfd940719d41
+
+✅ CREATED | nneka@vestedworld.com
+         User ID: 33840f0a-7265-42c2-a9b5-fe3c7e6fde72
+
+✅ CREATED | nyeji@womencapital.co
+         User ID: 52141df9-ff16-4295-a755-8efe2fe17ac0
+
+✅ CREATED | o.adepoju@pearlbridgecapital.africa
+         User ID: f6b02ee8-8758-41f0-837f-f2d336be83db
+
+❌ FAILED | oeharmon@gemicap.com
+         Error: A user with this email address has already been registered
+
+❌ FAILED | olivier.furdelle@terangacapital.com
+         Error: A user with this email address has already been registered
+
+✅ CREATED | p.koelbl@shequity.com
+         User ID: 304354dd-c760-49ac-9a1f-b336a021f5e1
+
+✅ CREATED | patrick.mutenda@gmail.com
+         User ID: 26357ec6-031b-48a9-8a1a-fdde4a470a2b
+
+✅ CREATED | paul@agleaseco.com
+         User ID: 8e7be78f-6ade-4ec5-bbe2-1be79a12c996
+
+✅ CREATED | peter@vestedworld.com
+         User ID: aed553cd-8604-41ee-abac-cd31f6d9e346
+
+✅ CREATED | rekia@barkafund.com
+         User ID: 96e2a1cd-89fd-4d8c-a6b0-681cf115e1ad
+
+✅ CREATED | rnyakinyua@meda.org
+         User ID: e5cdcc72-05ec-43cf-aec1-e34ab65c7173
+
+❌ FAILED | roeland@iungocapital.com
+         Error: A user with this email address has already been registered
+
+✅ CREATED | rtugume@practitionerscp.com
+         User ID: 3e5aeaaf-1286-400d-a925-e1c892219429
+
+✅ CREATED | s.ndonga@samawaticapital.com
+         User ID: fed9d761-0842-4ac4-bdda-399c3aa43e6c
+
+❌ FAILED | sagar@firstfollowers.co
+         Error: A user with this email address has already been registered
+
+✅ CREATED | sam@mirepaadvisors.com
+         User ID: 2abba1de-ce66-46b7-bcdb-c3b562ce0ccd
+
+❌ FAILED | sam@mirepacapital.com
+         Error: A user with this email address has already been registered
+
+✅ CREATED | samuel@saviu.vc
+         User ID: c31fa9cb-4b07-44e1-b027-9b78b131841d
+
+✅ CREATED | sana@headingforchange.org
+         User ID: 8b4df582-c1f5-43ef-a517-5e304354c388
+
+✅ CREATED | sawadh@ssc.co.tz
+         User ID: 14555251-d5b9-4dca-a1f2-c999efa55b71
+
+✅ CREATED | sejakekana@gmail.com
+         User ID: 714d29ad-0500-488b-bc80-f581923e9a37
+
+✅ CREATED | selma@firstcircle.capital
+         User ID: 26ba81f4-5caf-40bf-bf54-66843efab034
+
+✅ CREATED | sewu@jazarift.vc
+         User ID: 77713861-de7b-41e3-b127-a5f8f83bb754
+
+✅ CREATED | shiluba@tshiamoimpact.com
+         User ID: 72602f91-53d4-44ec-82df-44b7d8700adf
+
+❌ FAILED | shiva@ankurcapital.com
+         Error: A user with this email address has already been registered
+
+❌ FAILED | shuyin@beaconfund.asia
+         Error: A user with this email address has already been registered
+
+✅ CREATED | sro@ceo-enterprises.com
+         User ID: a75beb01-05ae-4005-82b0-8f296ce71d8a
+
+✅ CREATED | ssircar@graymatterscap.com
+         User ID: f0950adb-e709-4194-8fa3-b98a67971b03
+
+❌ FAILED | stawia@gmail.com
+         Error: A user with this email address has already been registered
+
+✅ CREATED | stephengugu@viktoria.co.ke
+         User ID: 020d896a-c336-4236-9416-567b487b9774
+
+✅ CREATED | steven@frontend.vc
+         User ID: af7f2864-5f59-4694-83b6-27c2a1832a16
+
+✅ CREATED | sven.haefner@30thirtycapital.com
+         User ID: 2057c2e7-328f-4174-b82f-c47ec7cfe081
+
+✅ CREATED | tadlam@agrifrontier.com
+         User ID: 7051d651-1def-4251-8677-4e85014c0071
+
+✅ CREATED | tamara@amamventures.com
+         User ID: b4a8db2a-2dd4-4ec1-92f2-9c65d9e23905
+
+✅ CREATED | tawana@afirca-growth.com
+         User ID: a17ae349-2941-42b7-9907-097b0ecba481
+
+✅ CREATED | tawana@africa-growth.com
+         User ID: a0fcefb2-8ef6-47fb-aa79-05519c286623
+
+✅ CREATED | tekiyor@nigeriasme.ng
+         User ID: 960923f2-6973-457a-884f-75b2b8830787
+
+✅ CREATED | teluwo@fbx.ventures
+         User ID: ebd52132-1116-4cac-b22d-05868e67f0e7
+
+✅ CREATED | thandeka@digitalafricaventures.com
+         User ID: 03a0d67d-8157-4281-b94f-060824f21fbf
+
+✅ CREATED | tna@kukulacapital.com
+         User ID: 0bcafef9-ad68-424e-97e2-c137db9fff2e
+
+❌ FAILED | tony@kinyungu.com
+         Error: A user with this email address has already been registered
+
+✅ CREATED | toukam@persistent.energy
+         User ID: 974e633f-1e18-43f5-9780-57a3a30d8756
+
+✅ CREATED | v.tchatchueng@fakocapital.com
+         User ID: 5fad57d3-a2a8-4a32-b389-3806063d7e8b
+
+✅ CREATED | veronique@adopes.com
+         User ID: 504c3bbb-63e4-4a4c-b0fb-f796092e8e7c
+
+❌ FAILED | vfraser@jengacapital.com
+         Error: A user with this email address has already been registered
+
+❌ FAILED | victor.ndiege@kcv.co.ke
+         Error: A user with this email address has already been registered
+
+❌ FAILED | victoria@gc.fund
+         Error: A user with this email address has already been registered
+
+✅ CREATED | vkiyingi@businesspartners.co.ug
+         User ID: 4684d9ef-857f-4544-a509-849566681c70
+
+✅ CREATED | wakiuru@hevafund.com
+         User ID: 28b2d368-3c0d-46d9-a66b-a308a0496638
+
+✅ CREATED | wiem.abdeljaouad@gmail.com
+         User ID: 37441a6b-6236-4807-8ddb-31ed89b2707a
+
+✅ CREATED | wiem@actawa.com
+         User ID: 4650793a-7c06-405f-ac94-2ba182bab07b
+
+✅ CREATED | wilfred@viktoria.co.ke
+         User ID: 4f14f72c-9efb-4d3f-b6eb-0ea29903c03d
+
+✅ CREATED | wilfred@villgroafrica.org
+         User ID: dd9e508e-5eb3-40e5-93cc-50f7922ee209
+
+❌ FAILED | william.prothais@uberiscapital.com
+         Error: A user with this email address has already been registered
+
+✅ CREATED | yvonne@saharaimpactventures.com
+         User ID: 922686df-3e00-415e-b148-158d6d1bcc39
+
+✅ CREATED | yvonne@womencapital.co
+         User ID: 523df4cf-6a5e-4b31-ae94-36140799ef76
+

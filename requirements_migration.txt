@@ -1,0 +1,11 @@
+# Python dependencies for survey data migration
+
+# Core dependencies
+pandas>=2.0.0
+openpyxl>=3.1.0
+supabase>=2.0.0
+python-dotenv>=1.0.0
+
+# Optional but recommended
+requests>=2.31.0
+tqdm>=4.66.0  # Progress bars
