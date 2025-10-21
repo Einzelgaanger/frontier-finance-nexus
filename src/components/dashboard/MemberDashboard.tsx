@@ -12,6 +12,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import AIAssistant from './AIAssistant';
 
 const MemberDashboard = () => {
   const { user } = useAuth();
@@ -228,6 +229,9 @@ const MemberDashboard = () => {
             </div>
           </div>
         </div>
+
+        {/* AI Assistant Section */}
+        <AIAssistant />
       </div>
     </div>
   );
