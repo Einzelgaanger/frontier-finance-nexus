@@ -14,757 +14,40 @@ export type Database = {
   }
   public: {
     Tables: {
-      activity_logs: {
+      field_visibility: {
         Row: {
-          action: string
+          admin_visible: boolean | null
           created_at: string | null
-          details: Json | null
-          id: string
-          ip_address: unknown | null
-          user_agent: string | null
-          user_id: string | null
-        }
-        Insert: {
-          action: string
-          created_at?: string | null
-          details?: Json | null
-          id?: string
-          ip_address?: unknown | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          action?: string
-          created_at?: string | null
-          details?: Json | null
-          id?: string
-          ip_address?: unknown | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      applications: {
-        Row: {
-          amount_raised_to_date: string
-          applicant_name: string
-          created_at: string | null
-          domicile_countries: string[] | null
-          email: string
-          expectations_from_network: string
-          how_heard_about_network: string
-          id: string
-          investment_thesis: string
-          number_of_investments: string
-          organization_website: string | null
-          review_notes: string | null
-          reviewed_at: string | null
-          reviewed_by: string | null
-          role_job_title: string
-          status: string
-          supporting_document_links: string[] | null
-          supporting_documents: string[] | null
-          team_overview: string
-          topics_of_interest: string[] | null
-          typical_check_size: string
-          updated_at: string | null
-          user_id: string
-          vehicle_name: string
-        }
-        Insert: {
-          amount_raised_to_date: string
-          applicant_name: string
-          created_at?: string | null
-          domicile_countries?: string[] | null
-          email: string
-          expectations_from_network: string
-          how_heard_about_network: string
-          id?: string
-          investment_thesis: string
-          number_of_investments: string
-          organization_website?: string | null
-          review_notes?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          role_job_title: string
-          status?: string
-          supporting_document_links?: string[] | null
-          supporting_documents?: string[] | null
-          team_overview: string
-          topics_of_interest?: string[] | null
-          typical_check_size: string
-          updated_at?: string | null
-          user_id: string
-          vehicle_name: string
-        }
-        Update: {
-          amount_raised_to_date?: string
-          applicant_name?: string
-          created_at?: string | null
-          domicile_countries?: string[] | null
-          email?: string
-          expectations_from_network?: string
-          how_heard_about_network?: string
-          id?: string
-          investment_thesis?: string
-          number_of_investments?: string
-          organization_website?: string | null
-          review_notes?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          role_job_title?: string
-          status?: string
-          supporting_document_links?: string[] | null
-          supporting_documents?: string[] | null
-          team_overview?: string
-          topics_of_interest?: string[] | null
-          typical_check_size?: string
-          updated_at?: string | null
-          user_id?: string
-          vehicle_name?: string
-        }
-        Relationships: []
-      }
-      data_field_visibility: {
-        Row: {
+          field_category: string
           field_name: string
           id: string
-          updated_at: string | null
-          updated_by: string | null
-          visibility_level: string
+          member_visible: boolean | null
+          survey_year: number
+          viewer_visible: boolean | null
         }
         Insert: {
+          admin_visible?: boolean | null
+          created_at?: string | null
+          field_category: string
           field_name: string
           id?: string
-          updated_at?: string | null
-          updated_by?: string | null
-          visibility_level?: string
+          member_visible?: boolean | null
+          survey_year: number
+          viewer_visible?: boolean | null
         }
         Update: {
+          admin_visible?: boolean | null
+          created_at?: string | null
+          field_category?: string
           field_name?: string
           id?: string
-          updated_at?: string | null
-          updated_by?: string | null
-          visibility_level?: string
+          member_visible?: boolean | null
+          survey_year?: number
+          viewer_visible?: boolean | null
         }
         Relationships: []
       }
-      invitation_codes: {
-        Row: {
-          code: string
-          created_at: string | null
-          created_by: string
-          email: string | null
-          expires_at: string
-          id: string
-          used_at: string | null
-          used_by: string | null
-          vehicle_name: string | null
-        }
-        Insert: {
-          code: string
-          created_at?: string | null
-          created_by: string
-          email?: string | null
-          expires_at: string
-          id?: string
-          used_at?: string | null
-          used_by?: string | null
-          vehicle_name?: string | null
-        }
-        Update: {
-          code?: string
-          created_at?: string | null
-          created_by?: string
-          email?: string | null
-          expires_at?: string
-          id?: string
-          used_at?: string | null
-          used_by?: string | null
-          vehicle_name?: string | null
-        }
-        Relationships: []
-      }
-      member_surveys: {
-        Row: {
-          amount_raised_to_date: string | null
-          aum: string | null
-          completed_at: string | null
-          contact_information: Json | null
-          created_at: string | null
-          current_fund_status: string | null
-          diversity_metrics: Json | null
-          fund_name: string
-          fund_structure: string | null
-          fund_type: string
-          fundraising_target: string | null
-          historical_returns: Json | null
-          id: string
-          investment_instruments: string[] | null
-          investment_thesis: string | null
-          key_team_members: Json | null
-          legal_entity_name: string | null
-          notable_exits: string | null
-          number_of_investments: number | null
-          primary_investment_region: string | null
-          regional_allocation: Json | null
-          regulatory_jurisdiction: string | null
-          role_badge: string | null
-          secondary_regions: string[] | null
-          sector_focus: string[] | null
-          social_media_links: Json | null
-          stage_focus: string[] | null
-          team_size: number | null
-          typical_check_size: string | null
-          typical_ownership_sought: string | null
-          updated_at: string | null
-          user_id: string
-          value_add_services: string | null
-          website: string | null
-          year_founded: number | null
-        }
-        Insert: {
-          amount_raised_to_date?: string | null
-          aum?: string | null
-          completed_at?: string | null
-          contact_information?: Json | null
-          created_at?: string | null
-          current_fund_status?: string | null
-          diversity_metrics?: Json | null
-          fund_name?: string
-          fund_structure?: string | null
-          fund_type?: string
-          fundraising_target?: string | null
-          historical_returns?: Json | null
-          id?: string
-          investment_instruments?: string[] | null
-          investment_thesis?: string | null
-          key_team_members?: Json | null
-          legal_entity_name?: string | null
-          notable_exits?: string | null
-          number_of_investments?: number | null
-          primary_investment_region?: string | null
-          regional_allocation?: Json | null
-          regulatory_jurisdiction?: string | null
-          role_badge?: string | null
-          secondary_regions?: string[] | null
-          sector_focus?: string[] | null
-          social_media_links?: Json | null
-          stage_focus?: string[] | null
-          team_size?: number | null
-          typical_check_size?: string | null
-          typical_ownership_sought?: string | null
-          updated_at?: string | null
-          user_id: string
-          value_add_services?: string | null
-          website?: string | null
-          year_founded?: number | null
-        }
-        Update: {
-          amount_raised_to_date?: string | null
-          aum?: string | null
-          completed_at?: string | null
-          contact_information?: Json | null
-          created_at?: string | null
-          current_fund_status?: string | null
-          diversity_metrics?: Json | null
-          fund_name?: string
-          fund_structure?: string | null
-          fund_type?: string
-          fundraising_target?: string | null
-          historical_returns?: Json | null
-          id?: string
-          investment_instruments?: string[] | null
-          investment_thesis?: string | null
-          key_team_members?: Json | null
-          legal_entity_name?: string | null
-          notable_exits?: string | null
-          number_of_investments?: number | null
-          primary_investment_region?: string | null
-          regional_allocation?: Json | null
-          regulatory_jurisdiction?: string | null
-          role_badge?: string | null
-          secondary_regions?: string[] | null
-          sector_focus?: string[] | null
-          social_media_links?: Json | null
-          stage_focus?: string[] | null
-          team_size?: number | null
-          typical_check_size?: string | null
-          typical_ownership_sought?: string | null
-          updated_at?: string | null
-          user_id?: string
-          value_add_services?: string | null
-          website?: string | null
-          year_founded?: number | null
-        }
-        Relationships: []
-      }
-      membership_requests: {
-        Row: {
-          additional_comments: string | null
-          applicant_name: string
-          aum: string | null
-          capital_raised: string | null
-          country_of_operation: string | null
-          created_at: string | null
-          domicile_country: string | null
-          email: string
-          expectations: string | null
-          fund_vehicle_name: string | null
-          fund_vehicle_type: string | null
-          fundraising_status: string | null
-          how_heard_about_network: string | null
-          id: string
-          information_sharing: Json | null
-          investment_focus: string | null
-          location: string | null
-          motivation: string | null
-          notable_investments: string | null
-          organization_name: string | null
-          organization_website: string | null
-          portfolio_investments: string | null
-          rejection_reason: string | null
-          reviewed_at: string | null
-          reviewed_by: string | null
-          role_job_title: string | null
-          status: string
-          supporting_documents: string | null
-          team_overview: string | null
-          team_size: string | null
-          thesis: string | null
-          ticket_size: string | null
-          user_id: string
-          vehicle_name: string
-          vehicle_website: string | null
-          year_founded: number | null
-        }
-        Insert: {
-          additional_comments?: string | null
-          applicant_name?: string
-          aum?: string | null
-          capital_raised?: string | null
-          country_of_operation?: string | null
-          created_at?: string | null
-          domicile_country?: string | null
-          email: string
-          expectations?: string | null
-          fund_vehicle_name?: string | null
-          fund_vehicle_type?: string | null
-          fundraising_status?: string | null
-          how_heard_about_network?: string | null
-          id?: string
-          information_sharing?: Json | null
-          investment_focus?: string | null
-          location?: string | null
-          motivation?: string | null
-          notable_investments?: string | null
-          organization_name?: string | null
-          organization_website?: string | null
-          portfolio_investments?: string | null
-          rejection_reason?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          role_job_title?: string | null
-          status?: string
-          supporting_documents?: string | null
-          team_overview?: string | null
-          team_size?: string | null
-          thesis?: string | null
-          ticket_size?: string | null
-          user_id: string
-          vehicle_name: string
-          vehicle_website?: string | null
-          year_founded?: number | null
-        }
-        Update: {
-          additional_comments?: string | null
-          applicant_name?: string
-          aum?: string | null
-          capital_raised?: string | null
-          country_of_operation?: string | null
-          created_at?: string | null
-          domicile_country?: string | null
-          email?: string
-          expectations?: string | null
-          fund_vehicle_name?: string | null
-          fund_vehicle_type?: string | null
-          fundraising_status?: string | null
-          how_heard_about_network?: string | null
-          id?: string
-          information_sharing?: Json | null
-          investment_focus?: string | null
-          location?: string | null
-          motivation?: string | null
-          notable_investments?: string | null
-          organization_name?: string | null
-          organization_website?: string | null
-          portfolio_investments?: string | null
-          rejection_reason?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          role_job_title?: string | null
-          status?: string
-          supporting_documents?: string | null
-          team_overview?: string | null
-          team_size?: string | null
-          thesis?: string | null
-          ticket_size?: string | null
-          user_id?: string
-          vehicle_name?: string
-          vehicle_website?: string | null
-          year_founded?: number | null
-        }
-        Relationships: []
-      }
-      profiles: {
-        Row: {
-          created_at: string | null
-          email: string
-          first_name: string | null
-          id: string
-          last_name: string | null
-          organization_name: string | null
-          role_title: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          email: string
-          first_name?: string | null
-          id: string
-          last_name?: string | null
-          organization_name?: string | null
-          role_title?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          email?: string
-          first_name?: string | null
-          id?: string
-          last_name?: string | null
-          organization_name?: string | null
-          role_title?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      survey_2021_business_model_targeted: {
-        Row: {
-          business_model_targeted: string
-          created_at: string | null
-          id: string
-          response_id: string
-        }
-        Insert: {
-          business_model_targeted: string
-          created_at?: string | null
-          id?: string
-          response_id: string
-        }
-        Update: {
-          business_model_targeted?: string
-          created_at?: string | null
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2021_business_stage_targeted: {
-        Row: {
-          business_stage_targeted: string
-          created_at: string | null
-          id: string
-          response_id: string
-        }
-        Insert: {
-          business_stage_targeted: string
-          created_at?: string | null
-          id?: string
-          response_id: string
-        }
-        Update: {
-          business_stage_targeted?: string
-          created_at?: string | null
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2021_covid_government_support: {
-        Row: {
-          covid_government_support: string
-          created_at: string | null
-          id: string
-          response_id: string
-        }
-        Insert: {
-          covid_government_support: string
-          created_at?: string | null
-          id?: string
-          response_id: string
-        }
-        Update: {
-          covid_government_support?: string
-          created_at?: string | null
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2021_explicit_lens_focus: {
-        Row: {
-          created_at: string | null
-          explicit_lens_focus: string
-          id: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          explicit_lens_focus: string
-          id?: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          explicit_lens_focus?: string
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2021_financing_needs: {
-        Row: {
-          created_at: string | null
-          financing_needs: string
-          id: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          financing_needs: string
-          id?: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          financing_needs?: string
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2021_fund_vehicle_considerations: {
-        Row: {
-          created_at: string | null
-          fund_vehicle_considerations: string
-          id: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          fund_vehicle_considerations: string
-          id?: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          fund_vehicle_considerations?: string
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2021_gender_considerations_investment: {
-        Row: {
-          created_at: string | null
-          gender_considerations_investment: string
-          id: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          gender_considerations_investment: string
-          id?: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          gender_considerations_investment?: string
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2021_gender_considerations_requirement: {
-        Row: {
-          created_at: string | null
-          gender_considerations_requirement: string
-          id: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          gender_considerations_requirement: string
-          id?: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          gender_considerations_requirement?: string
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2021_gender_fund_vehicle: {
-        Row: {
-          created_at: string | null
-          gender_fund_vehicle: string
-          id: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          gender_fund_vehicle: string
-          id?: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          gender_fund_vehicle?: string
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2021_geographic_focus: {
-        Row: {
-          created_at: string | null
-          geographic_focus: string
-          id: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          geographic_focus: string
-          id?: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          geographic_focus?: string
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2021_investment_forms: {
-        Row: {
-          created_at: string | null
-          id: string
-          investment_forms: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          investment_forms: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          investment_forms?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2021_investment_monetization: {
-        Row: {
-          created_at: string | null
-          id: string
-          investment_monetization: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          investment_monetization: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          investment_monetization?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2021_investment_vehicle_type: {
-        Row: {
-          created_at: string | null
-          id: string
-          investment_vehicle_type: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          investment_vehicle_type: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          investment_vehicle_type?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2021_present_demystifying_session: {
-        Row: {
-          created_at: string | null
-          id: string
-          present_demystifying_session: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          present_demystifying_session: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          present_demystifying_session?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2021_raising_capital_2021: {
-        Row: {
-          created_at: string | null
-          id: string
-          raising_capital_2021: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          raising_capital_2021: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          raising_capital_2021?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2021_responses: {
+      survey_responses_2021: {
         Row: {
           completed_at: string | null
           created_at: string | null
@@ -809,184 +92,16 @@ export type Database = {
         }
         Relationships: []
       }
-      survey_2021_target_capital_sources: {
-        Row: {
-          created_at: string | null
-          id: string
-          response_id: string
-          target_capital_sources: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          response_id: string
-          target_capital_sources: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          response_id?: string
-          target_capital_sources?: string
-        }
-        Relationships: []
-      }
-      survey_2021_target_sectors: {
-        Row: {
-          created_at: string | null
-          id: string
-          response_id: string
-          target_sectors: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          response_id: string
-          target_sectors: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          response_id?: string
-          target_sectors?: string
-        }
-        Relationships: []
-      }
-      survey_2021_team_based: {
-        Row: {
-          created_at: string | null
-          id: string
-          response_id: string
-          team_based: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          response_id: string
-          team_based: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          response_id?: string
-          team_based?: string
-        }
-        Relationships: []
-      }
-      survey_2022_concessionary_capital: {
-        Row: {
-          concessionary_capital: string
-          created_at: string | null
-          id: string
-          response_id: string
-        }
-        Insert: {
-          concessionary_capital: string
-          created_at?: string | null
-          id?: string
-          response_id: string
-        }
-        Update: {
-          concessionary_capital?: string
-          created_at?: string | null
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2022_enterprise_types: {
-        Row: {
-          created_at: string | null
-          enterprise_types: string
-          id: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          enterprise_types: string
-          id?: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          enterprise_types?: string
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2022_gender_orientation: {
-        Row: {
-          created_at: string | null
-          gender_orientation: string
-          id: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          gender_orientation: string
-          id?: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          gender_orientation?: string
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2022_geographic_markets: {
-        Row: {
-          created_at: string | null
-          geographic_markets: string
-          id: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          geographic_markets: string
-          id?: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          geographic_markets?: string
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2022_investment_monetization_exit_forms: {
-        Row: {
-          created_at: string | null
-          id: string
-          investment_monetization_exit_forms: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          investment_monetization_exit_forms: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          investment_monetization_exit_forms?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2022_responses: {
+      survey_responses_2022: {
         Row: {
           completed_at: string | null
           created_at: string | null
-          email: string
+          email_address: string
+          firm_name: string | null
           form_data: Json | null
+          fund_stage: string | null
           id: string
-          legal_entity_date: string | null
-          name: string | null
-          organisation: string | null
+          participant_name: string | null
           role_title: string | null
           submission_status: string | null
           updated_at: string | null
@@ -995,12 +110,12 @@ export type Database = {
         Insert: {
           completed_at?: string | null
           created_at?: string | null
-          email: string
+          email_address: string
+          firm_name?: string | null
           form_data?: Json | null
+          fund_stage?: string | null
           id?: string
-          legal_entity_date?: string | null
-          name?: string | null
-          organisation?: string | null
+          participant_name?: string | null
           role_title?: string | null
           submission_status?: string | null
           updated_at?: string | null
@@ -1008,641 +123,191 @@ export type Database = {
         }
         Update: {
           completed_at?: string | null
+          created_at?: string | null
+          email_address?: string
+          firm_name?: string | null
+          form_data?: Json | null
+          fund_stage?: string | null
+          id?: string
+          participant_name?: string | null
+          role_title?: string | null
+          submission_status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      survey_responses_2023: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          email_address: string
+          form_data: Json | null
+          fund_name: string | null
+          fund_stage: string | null
+          id: string
+          organisation_name: string
+          participant_name: string | null
+          role_title: string | null
+          submission_status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          email_address: string
+          form_data?: Json | null
+          fund_name?: string | null
+          fund_stage?: string | null
+          id?: string
+          organisation_name: string
+          participant_name?: string | null
+          role_title?: string | null
+          submission_status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          email_address?: string
+          form_data?: Json | null
+          fund_name?: string | null
+          fund_stage?: string | null
+          id?: string
+          organisation_name?: string
+          participant_name?: string | null
+          role_title?: string | null
+          submission_status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      survey_responses_2024: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          email_address: string
+          form_data: Json | null
+          fund_name: string | null
+          fund_stage: string | null
+          id: string
+          organisation_name: string
+          participant_name: string | null
+          role_title: string | null
+          submission_status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          email_address: string
+          form_data?: Json | null
+          fund_name?: string | null
+          fund_stage?: string | null
+          id?: string
+          organisation_name: string
+          participant_name?: string | null
+          role_title?: string | null
+          submission_status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          email_address?: string
+          form_data?: Json | null
+          fund_name?: string | null
+          fund_stage?: string | null
+          id?: string
+          organisation_name?: string
+          participant_name?: string | null
+          role_title?: string | null
+          submission_status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          company_id: string | null
+          company_name: string
+          created_at: string | null
+          email: string
+          email_verified: boolean | null
+          full_name: string | null
+          id: string
+          is_active: boolean | null
+          last_login_at: string | null
+          metadata: Json | null
+          phone: string | null
+          profile_picture_url: string | null
+          role_title: string | null
+          updated_at: string | null
+          user_role: string
+        }
+        Insert: {
+          company_id?: string | null
+          company_name: string
+          created_at?: string | null
+          email: string
+          email_verified?: boolean | null
+          full_name?: string | null
+          id: string
+          is_active?: boolean | null
+          last_login_at?: string | null
+          metadata?: Json | null
+          phone?: string | null
+          profile_picture_url?: string | null
+          role_title?: string | null
+          updated_at?: string | null
+          user_role?: string
+        }
+        Update: {
+          company_id?: string | null
+          company_name?: string
           created_at?: string | null
           email?: string
-          form_data?: Json | null
+          email_verified?: boolean | null
+          full_name?: string | null
           id?: string
-          legal_entity_date?: string | null
-          name?: string | null
-          organisation?: string | null
+          is_active?: boolean | null
+          last_login_at?: string | null
+          metadata?: Json | null
+          phone?: string | null
+          profile_picture_url?: string | null
           role_title?: string | null
-          submission_status?: string | null
           updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      survey_2022_team_based: {
-        Row: {
-          created_at: string | null
-          id: string
-          response_id: string
-          team_based: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          response_id: string
-          team_based: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          response_id?: string
-          team_based?: string
-        }
-        Relationships: []
-      }
-      survey_2023_business_development_approach: {
-        Row: {
-          business_development_approach: string
-          created_at: string | null
-          id: string
-          response_id: string
-        }
-        Insert: {
-          business_development_approach: string
-          created_at?: string | null
-          id?: string
-          response_id: string
-        }
-        Update: {
-          business_development_approach?: string
-          created_at?: string | null
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2023_concessionary_capital: {
-        Row: {
-          concessionary_capital: string
-          created_at: string | null
-          id: string
-          response_id: string
-        }
-        Insert: {
-          concessionary_capital: string
-          created_at?: string | null
-          id?: string
-          response_id: string
-        }
-        Update: {
-          concessionary_capital?: string
-          created_at?: string | null
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2023_exit_form: {
-        Row: {
-          created_at: string | null
-          exit_form: string
-          id: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          exit_form: string
-          id?: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          exit_form?: string
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2023_future_research_data: {
-        Row: {
-          created_at: string | null
-          future_research_data: string
-          id: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          future_research_data: string
-          id?: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          future_research_data?: string
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2023_gender_inclusion: {
-        Row: {
-          created_at: string | null
-          gender_inclusion: string
-          id: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          gender_inclusion: string
-          id?: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          gender_inclusion?: string
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2023_geographic_markets: {
-        Row: {
-          created_at: string | null
-          geographic_markets: string
-          id: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          geographic_markets: string
-          id?: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          geographic_markets?: string
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2023_gp_financial_commitment: {
-        Row: {
-          created_at: string | null
-          gp_financial_commitment: string
-          id: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          gp_financial_commitment: string
-          id?: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          gp_financial_commitment?: string
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2023_legal_domicile: {
-        Row: {
-          created_at: string | null
-          id: string
-          legal_domicile: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          legal_domicile: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          legal_domicile?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2023_responses: {
-        Row: {
-          completed_at: string | null
-          created_at: string | null
-          email_address: string
-          form_data: Json | null
-          fund_name: string | null
-          funds_raising_investing: string | null
-          id: string
-          organisation_name: string | null
-          submission_status: string | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          completed_at?: string | null
-          created_at?: string | null
-          email_address: string
-          form_data?: Json | null
-          fund_name?: string | null
-          funds_raising_investing?: string | null
-          id?: string
-          organisation_name?: string | null
-          submission_status?: string | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          completed_at?: string | null
-          created_at?: string | null
-          email_address?: string
-          form_data?: Json | null
-          fund_name?: string | null
-          funds_raising_investing?: string | null
-          id?: string
-          organisation_name?: string | null
-          submission_status?: string | null
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      survey_2023_sustainable_development_goals: {
-        Row: {
-          created_at: string | null
-          id: string
-          response_id: string
-          sustainable_development_goals: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          response_id: string
-          sustainable_development_goals: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          response_id?: string
-          sustainable_development_goals?: string
-        }
-        Relationships: []
-      }
-      survey_2023_team_based: {
-        Row: {
-          created_at: string | null
-          id: string
-          response_id: string
-          team_based: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          response_id: string
-          team_based: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          response_id?: string
-          team_based?: string
-        }
-        Relationships: []
-      }
-      survey_2024_business_development_approach: {
-        Row: {
-          business_development_approach: string
-          created_at: string | null
-          id: string
-          response_id: string
-        }
-        Insert: {
-          business_development_approach: string
-          created_at?: string | null
-          id?: string
-          response_id: string
-        }
-        Update: {
-          business_development_approach?: string
-          created_at?: string | null
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2024_concessionary_capital: {
-        Row: {
-          concessionary_capital: string
-          created_at: string | null
-          id: string
-          response_id: string
-        }
-        Insert: {
-          concessionary_capital: string
-          created_at?: string | null
-          id?: string
-          response_id: string
-        }
-        Update: {
-          concessionary_capital?: string
-          created_at?: string | null
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2024_data_sharing_willingness: {
-        Row: {
-          created_at: string | null
-          data_sharing_willingness: string
-          id: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          data_sharing_willingness: string
-          id?: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          data_sharing_willingness?: string
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2024_domicile_reason: {
-        Row: {
-          created_at: string | null
-          domicile_reason: string
-          id: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          domicile_reason: string
-          id?: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          domicile_reason?: string
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2024_gender_inclusion: {
-        Row: {
-          created_at: string | null
-          gender_inclusion: string
-          id: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          gender_inclusion: string
-          id?: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          gender_inclusion?: string
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2024_geographic_markets: {
-        Row: {
-          created_at: string | null
-          geographic_markets: string
-          id: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          geographic_markets: string
-          id?: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          geographic_markets?: string
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2024_gp_financial_commitment: {
-        Row: {
-          created_at: string | null
-          gp_financial_commitment: string
-          id: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          gp_financial_commitment: string
-          id?: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          gp_financial_commitment?: string
-          id?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2024_investment_approval: {
-        Row: {
-          created_at: string | null
-          id: string
-          investment_approval: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          investment_approval: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          investment_approval?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2024_investment_monetisation_forms: {
-        Row: {
-          created_at: string | null
-          id: string
-          investment_monetisation_forms: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          investment_monetisation_forms: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          investment_monetisation_forms?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2024_investment_networks: {
-        Row: {
-          created_at: string | null
-          id: string
-          investment_networks: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          investment_networks: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          investment_networks?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2024_legal_domicile: {
-        Row: {
-          created_at: string | null
-          id: string
-          legal_domicile: string
-          response_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          legal_domicile: string
-          response_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          legal_domicile?: string
-          response_id?: string
-        }
-        Relationships: []
-      }
-      survey_2024_responses: {
-        Row: {
-          completed_at: string | null
-          created_at: string | null
-          email_address: string
-          form_data: Json | null
-          fund_name: string | null
-          funds_raising_investing: string | null
-          id: string
-          organisation_name: string | null
-          submission_status: string | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          completed_at?: string | null
-          created_at?: string | null
-          email_address: string
-          form_data?: Json | null
-          fund_name?: string | null
-          funds_raising_investing?: string | null
-          id?: string
-          organisation_name?: string | null
-          submission_status?: string | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          completed_at?: string | null
-          created_at?: string | null
-          email_address?: string
-          form_data?: Json | null
-          fund_name?: string | null
-          funds_raising_investing?: string | null
-          id?: string
-          organisation_name?: string | null
-          submission_status?: string | null
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      survey_2024_team_based: {
-        Row: {
-          created_at: string | null
-          id: string
-          response_id: string
-          team_based: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          response_id: string
-          team_based: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          response_id?: string
-          team_based?: string
-        }
-        Relationships: []
-      }
-      user_backup: {
-        Row: {
-          created_at: string | null
-          email: string | null
-          first_name: string | null
-          id: string | null
-          last_name: string | null
-          role: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          email?: string | null
-          first_name?: string | null
-          id?: string | null
-          last_name?: string | null
-          role?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          email?: string | null
-          first_name?: string | null
-          id?: string | null
-          last_name?: string | null
-          role?: string | null
+          user_role?: string
         }
         Relationships: []
       }
       user_roles: {
         Row: {
-          assigned_at: string | null
           created_at: string | null
-          email: string
           id: string
           role: string
           updated_at: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
-          assigned_at?: string | null
           created_at?: string | null
-          email: string
           id?: string
           role?: string
           updated_at?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
-          assigned_at?: string | null
           created_at?: string | null
-          email?: string
           id?: string
           role?: string
           updated_at?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -1651,17 +316,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_or_create_user_role: {
-        Args: { user_uuid: string }
-        Returns: string
-      }
-      get_user_role_safe: {
-        Args: { user_uuid: string }
+      get_user_role: {
+        Args: { _user_id: string }
         Returns: string
       }
     }
     Enums: {
-      app_role: "viewer" | "member" | "admin"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1788,8 +449,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      app_role: ["viewer", "member", "admin"],
-    },
+    Enums: {},
   },
 } as const
