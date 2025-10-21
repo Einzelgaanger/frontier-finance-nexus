@@ -442,11 +442,37 @@ export default function Survey2024() {
 	};
 
 	const renderSectionSidebar = () => (
-		<div className="w-64 bg-white border-l border-gray-200 p-4 fixed right-0 top-20 h-[calc(100vh-5rem)] overflow-hidden flex flex-col">
-			<h3 className="text-sm font-semibold text-gray-900 mb-4">Survey Sections</h3>
-			<div className="space-y-2 overflow-y-auto flex-1">
+		<div 
+			className="w-72 bg-white border-l border-gray-200 p-6 fixed right-0 top-20 h-[calc(100vh-5rem)] overflow-hidden flex flex-col shadow-lg"
+			style={{
+				scrollbarWidth: 'none',
+				msOverflowStyle: 'none',
+			}}
+		>
+			<div className="mb-6">
+				<h3 className="text-lg font-bold text-gray-900 mb-2">Survey Progress</h3>
+				<div className="bg-gray-100 rounded-full h-2 mb-4">
+					<div 
+						className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-300"
+						style={{ width: `${(currentSection / totalSections) * 100}%` }}
+					></div>
+				</div>
+				<p className="text-sm text-gray-600">
+					Section {currentSection} of {totalSections}
+				</p>
+			</div>
+			
+			<div 
+				className="space-y-3 overflow-y-auto flex-1 hide-scrollbar"
+				style={{
+					scrollbarWidth: 'none',
+					msOverflowStyle: 'none',
+				}}
+			>
+				<h4 className="text-sm font-semibold text-gray-700 mb-3">Sections</h4>
 				{Array.from({ length: totalSections }, (_, idx) => idx + 1).map((sectionNumber) => {
 					const isActive = currentSection === sectionNumber;
+					const isCompleted = sectionNumber < currentSection;
 					return (
 						<button
 							key={sectionNumber}
@@ -456,16 +482,34 @@ export default function Survey2024() {
 								setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 0);
 							}}
 							className={[
-								'w-full text-left px-3 py-2 rounded-md border transition-colors',
+								'w-full text-left px-4 py-3 rounded-lg border transition-all duration-200 group',
 								isActive
-									? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-									: 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+									? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white border-blue-600 shadow-lg transform scale-105'
+									: isCompleted
+									? 'bg-green-50 text-green-800 border-green-200 hover:bg-green-100'
+									: 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
 							].join(' ')}
 							aria-current={isActive ? 'page' : undefined}
 						>
-							<div className="flex items-start gap-2">
-								<span className="font-semibold text-xs mt-0.5">{sectionNumber}.</span>
-								<span className="text-xs leading-tight">{getSectionTitle(sectionNumber)}</span>
+							<div className="flex items-start gap-3">
+								<div className={[
+									'flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold',
+									isActive
+										? 'bg-white text-blue-600'
+										: isCompleted
+										? 'bg-green-500 text-white'
+										: 'bg-gray-200 text-gray-600'
+								].join(' ')}>
+									{isCompleted ? '✓' : sectionNumber}
+								</div>
+								<div className="flex-1 min-w-0">
+									<div className="text-sm font-medium leading-tight">
+										{getSectionTitle(sectionNumber)}
+									</div>
+									{isCompleted && (
+										<div className="text-xs text-green-600 mt-1">Completed</div>
+									)}
+								</div>
 							</div>
 						</button>
 					);
@@ -531,14 +575,16 @@ export default function Survey2024() {
 	);
 
 	const renderSection1 = () => (
-		<div className="space-y-6">
+		<div className="space-y-8">
 			
 			<FormField
 				control={form.control}
 				name="email_address"
 				render={({ field }) => (
 					<FormItem>
-						<FormLabel>1. Email address (note: all responses are anonymized. We have learned through the years that many respondents' answers trigger interesting follow-on discussions, which we use to improve the survey and CFF's overall understanding of the small business finance marketplace) *</FormLabel>
+						<FormLabel>
+							1. Email address (note: all responses are anonymized. We have learned through the years that many respondents' answers trigger interesting follow-on discussions, which we use to improve the survey and CFF's overall understanding of the small business finance marketplace)
+						</FormLabel>
 						<FormControl>
 							<Input {...field} type="email" placeholder="Enter your email address" />
 						</FormControl>
@@ -552,7 +598,7 @@ export default function Survey2024() {
 				name="investment_networks"
 				render={() => (
 					<FormItem>
-						<FormLabel>2. Please check all investment networks or associations that you are a part of. If they are not listed, please include them in the textbox. *</FormLabel>
+						<FormLabel>2. Please check all investment networks or associations that you are a part of. If they are not listed, please include them in the textbox.</FormLabel>
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
 							{[
 								'CFF', 'ABAN', 'AVCA', 'AWI', 'Capria Network', 'WAI'
@@ -626,7 +672,7 @@ export default function Survey2024() {
 				name="organisation_name"
 				render={({ field }) => (
 					<FormItem>
-						<FormLabel>3. Name of your organization *</FormLabel>
+						<FormLabel>3. Name of your organization</FormLabel>
 						<FormControl>
 							<Input {...field} placeholder="Enter organisation name" />
 						</FormControl>
@@ -640,7 +686,7 @@ export default function Survey2024() {
 				name="funds_raising_investing"
 				render={({ field }) => (
 					<FormItem>
-						<FormLabel>4. How many funds are you currently raising and/or investing? *</FormLabel>
+						<FormLabel>4. How many funds are you currently raising and/or investing?</FormLabel>
 						<Select onValueChange={field.onChange} value={field.value}>
 							<FormControl>
 								<SelectTrigger>
@@ -664,7 +710,7 @@ export default function Survey2024() {
 				name="fund_name"
 				render={({ field }) => (
 					<FormItem>
-						<FormLabel>5. Name of Fund to which this survey applies (that is Fund 1) *</FormLabel>
+						<FormLabel>5. Name of Fund to which this survey applies (that is Fund 1)</FormLabel>
 						<FormControl>
 							<Input {...field} placeholder="Enter fund name" />
 						</FormControl>
@@ -686,7 +732,7 @@ export default function Survey2024() {
 						<FormLabel>6. Timeline. When did your fund/investment vehicle achieve each of the following? (Please provide a date for each of three points in your fund's evolution)</FormLabel>
 						<div className="space-y-4">
 							<div>
-								<FormLabel className="text-sm font-medium">Legal Entity</FormLabel>
+								<FormLabel>Legal Entity</FormLabel>
 								<Select onValueChange={field.onChange} value={field.value}>
 									<FormControl>
 										<SelectTrigger>
@@ -713,7 +759,7 @@ export default function Survey2024() {
 				name="first_close_achieved"
 				render={({ field }) => (
 					<FormItem>
-						<FormLabel className="text-sm font-medium text-gray-700">First Close (or equivalent)</FormLabel>
+						<FormLabel>First Close (or equivalent)</FormLabel>
 						<Select onValueChange={field.onChange} value={field.value}>
 							<FormControl>
 								<SelectTrigger>
@@ -738,7 +784,7 @@ export default function Survey2024() {
 				name="first_investment_achieved"
 				render={({ field }) => (
 					<FormItem>
-						<FormLabel className="text-sm font-medium text-gray-700">First Investment</FormLabel>
+						<FormLabel>First Investment</FormLabel>
 						<Select onValueChange={field.onChange} value={field.value}>
 							<FormControl>
 								<SelectTrigger>
@@ -763,7 +809,7 @@ export default function Survey2024() {
 				name="geographic_markets"
 				render={() => (
 					<FormItem>
-						<FormLabel>7. In what geographic markets do you invest? (Please select as many as apply) *</FormLabel>
+						<FormLabel>7. In what geographic markets do you invest? (Please select as many as apply)</FormLabel>
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
 							{[
 								'US', 'Europe', 'Africa: West Africa', 'Africa: East Africa', 
@@ -816,7 +862,7 @@ export default function Survey2024() {
 				name="team_based"
 				render={() => (
 					<FormItem>
-						<FormLabel>8. Where is your Team based? (Please select as many as apply) *</FormLabel>
+						<FormLabel>8. Where is your Team based? (Please select as many as apply)</FormLabel>
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
 							{[
 								'US', 'Europe', 'Africa: West Africa', 'Africa: East Africa', 
@@ -864,74 +910,76 @@ export default function Survey2024() {
 				)}
 			/>
 
-			<FormField
-				control={form.control}
-				name="fte_staff_2023_actual"
-				render={({ field }) => (
-					<FormItem>
-						<FormLabel>9. Number of Full Time Equivalent staff members (FTEs) including principals</FormLabel>
-						<div className="space-y-4">
-							<div>
-								<FormLabel className="text-sm font-medium">December 2023 (actual)</FormLabel>
-								<FormControl>
-									<Input 
-										{...field} 
-										type="number" 
-										placeholder="Enter number of FTEs"
-										onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-									/>
-								</FormControl>
-							</div>
-						</div>
-						<FormMessage />
-					</FormItem>
-				)}
-			/>
+			<FormItem>
+				<FormLabel>9. Number of Full Time Equivalent staff members (FTEs) including principals</FormLabel>
+				<div className="space-y-3">
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+						<FormField
+							control={form.control}
+							name="fte_staff_2023_actual"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>December 2023 (actual)</FormLabel>
+									<FormControl>
+										<Input 
+											{...field} 
+											type="number" 
+											placeholder="Enter number"
+											onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
 
-			<FormField
-				control={form.control}
-				name="fte_staff_current"
-				render={({ field }) => (
-					<FormItem>
-						<FormLabel className="text-sm font-medium text-gray-700">Current (actual)</FormLabel>
-						<FormControl>
-							<Input 
-								{...field} 
-								type="number" 
-								placeholder="Enter current number of FTEs"
-								onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-							/>
-						</FormControl>
-						<FormMessage />
-					</FormItem>
-				)}
-			/>
+						<FormField
+							control={form.control}
+							name="fte_staff_current"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Current (actual)</FormLabel>
+									<FormControl>
+										<Input 
+											{...field} 
+											type="number" 
+											placeholder="Enter number"
+											onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
 
-			<FormField
-				control={form.control}
-				name="fte_staff_2025_forecast"
-				render={({ field }) => (
-					<FormItem>
-						<FormLabel className="text-sm font-medium text-gray-700">December 2025 (forecast)</FormLabel>
-						<FormControl>
-							<Input 
-								{...field} 
-								type="number" 
-								placeholder="Enter forecasted number of FTEs"
-								onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-							/>
-						</FormControl>
-						<FormMessage />
-					</FormItem>
-				)}
-			/>
+						<FormField
+							control={form.control}
+							name="fte_staff_2025_forecast"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>December 2025 (forecast)</FormLabel>
+									<FormControl>
+										<Input 
+											{...field} 
+											type="number" 
+											placeholder="Enter number"
+											onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					</div>
+				</div>
+			</FormItem>
 
 			<FormField
 				control={form.control}
 				name="investment_approval"
 				render={() => (
 					<FormItem>
-						<FormLabel>10. Select all that are included in your Fund's Final Investment Approval *</FormLabel>
+						<FormLabel>10. Select all that are included in your Fund's Final Investment Approval</FormLabel>
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
 							{[
                         'GPs', 'Internal Investment Team', 'External Investment Committee/Board', 'Other'
@@ -978,55 +1026,57 @@ export default function Survey2024() {
 				)}
 			/>
 
-			<FormField
-				control={form.control}
-				name="principals_total"
-				render={({ field }) => (
-					<FormItem>
-						<FormLabel>11. Number of carried-interest/equity-interest principals currently in your Fund management team</FormLabel>
-						<div className="space-y-4">
-							<div>
-								<FormLabel className="text-sm font-medium">Total</FormLabel>
-								<FormControl>
-									<Input 
-										{...field} 
-										type="number" 
-										placeholder="Enter total number of principals"
-										onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-									/>
-								</FormControl>
-							</div>
-						</div>
-						<FormMessage />
-					</FormItem>
-				)}
-			/>
+			<FormItem>
+				<FormLabel>11. Number of carried-interest/equity-interest principals currently in your Fund management team</FormLabel>
+				<div className="space-y-3">
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<FormField
+							control={form.control}
+							name="principals_total"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Total</FormLabel>
+									<FormControl>
+										<Input 
+											{...field} 
+											type="number" 
+											placeholder="Enter total number"
+											onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
 
-			<FormField
-				control={form.control}
-				name="principals_women"
-				render={({ field }) => (
-					<FormItem>
-						<FormLabel className="text-sm font-medium text-gray-700">Women</FormLabel>
-						<FormControl>
-							<Input 
-								{...field} 
-								type="number" 
-								placeholder="Enter number of women principals"
-								onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-							/>
-						</FormControl>
-						<FormMessage />
-					</FormItem>
-				)}
-			/>
+						<FormField
+							control={form.control}
+							name="principals_women"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Women</FormLabel>
+									<FormControl>
+										<Input 
+											{...field} 
+											type="number" 
+											placeholder="Enter number of women"
+											onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					</div>
+				</div>
+			</FormItem>
 
 			<FormField
 				control={form.control}
 				name="gender_inclusion"
 				render={() => (
 					<FormItem>
-						<FormLabel>12. Gender Inclusion. Do any of the following apply to your fund? (Please select as many as apply) *</FormLabel>
+						<FormLabel>12. Gender Inclusion. Do any of the following apply to your fund? (Please select as many as apply)</FormLabel>
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
 							{[
 								'Women ownership/participation interest in the fund is ≥ 50%',
@@ -1085,7 +1135,7 @@ export default function Survey2024() {
 				render={() => (
 					<FormItem>
 						<FormLabel>13. What is the prior work experience within the GP leadership team / fund principals, as it relates to fund management? (Please provide a response for each row as to your GP management team / fund principals' experience)</FormLabel>
-						<div className="space-y-4">
+						<div className="space-y-3">
 							{[
 								{ key: 'new_to_investment', label: 'New to investment and fund management' },
 								{ key: 'adjacent_finance_experience', label: 'Investment/ financial experience in adjacent finance field (e.g. banking, asset management, financial advisory)' },
@@ -1094,75 +1144,124 @@ export default function Survey2024() {
 								{ key: 'direct_investment_senior_well_documented', label: 'Direct investment experience in senior fund management position. Has well-documented data regarding prior investment performance, track record and exits.' },
 								{ key: 'other', label: 'Other (please specify)' }
 							].map((opt) => (
-								<div key={opt.key} className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
-								<div>
-										<FormLabel className="text-sm font-normal">{opt.label}</FormLabel>
-									</div>
-									<div>
+								<div key={opt.key} className="flex items-center justify-between space-x-4 py-3 border-b border-gray-100">
+									<div className="flex-1">
 										{opt.key !== 'other' ? (
-									<Select onValueChange={(value) => {
-										const current = form.getValues('team_experience_investments') || {};
+											<FormLabel className="text-sm font-normal text-gray-900 leading-tight">{opt.label}</FormLabel>
+										) : (
+											<div className="flex items-center space-x-3">
+												<Checkbox
+													checked={(form.watch('team_experience_investments') || {})['other_enabled'] === 'true'}
+													onCheckedChange={(checked) => {
+														const current = form.getValues('team_experience_investments') || {};
+														if (checked) {
+															form.setValue('team_experience_investments', { ...current, other_enabled: 'true' });
+														} else {
+															const { other_enabled, other, other_details, ...rest } = current as any;
+															form.setValue('team_experience_investments', rest);
+														}
+													}}
+												/>
+												<FormLabel className="text-sm font-normal text-gray-900 leading-tight">Other (please specify)</FormLabel>
+											</div>
+										)}
+										{opt.key === 'other' && (form.watch('team_experience_investments') || {})['other_enabled'] === 'true' && (
+											<div className="mt-3 space-y-3">
+												<Input
+													placeholder="Please specify other experience"
+													value={(form.watch('team_experience_investments') || {})['other_details'] || ''}
+													onChange={(e) => {
+														const current = form.getValues('team_experience_investments') || {};
+														form.setValue('team_experience_investments', { ...current, other_details: e.target.value });
+													}}
+												/>
+											</div>
+										)}
+									</div>
+									<div className="flex-shrink-0">
+										{opt.key !== 'other' && (
+											<Select onValueChange={(value) => {
+												const current = form.getValues('team_experience_investments') || {};
 												form.setValue('team_experience_investments', { ...current, [opt.key]: value });
-									}}>
-										<FormControl>
-											<SelectTrigger>
+											}}>
+												<FormControl>
+													<SelectTrigger className="w-48">
 														<SelectValue placeholder="Select one" />
-											</SelectTrigger>
-										</FormControl>
-										<SelectContent>
+													</SelectTrigger>
+												</FormControl>
+												<SelectContent>
 													<SelectItem value="Not Applicable">Not Applicable</SelectItem>
 													<SelectItem value="Applies to 1 Principal">Applies to 1 Principal</SelectItem>
 													<SelectItem value="Applies to 2 or more Principals">Applies to 2 or more Principals</SelectItem>
-										</SelectContent>
-									</Select>
-										) : (
-								<div>
-												<div className="flex items-center space-x-3">
-													<Checkbox
-														checked={(form.watch('team_experience_investments') || {})['other_enabled'] === 'true'}
-														onCheckedChange={(checked) => {
-															const current = form.getValues('team_experience_investments') || {};
-															if (checked) {
-																form.setValue('team_experience_investments', { ...current, other_enabled: 'true' });
-															} else {
-																const { other_enabled, other, other_details, ...rest } = current as any;
-																form.setValue('team_experience_investments', rest);
-															}
-														}}
-													/>
-													<FormLabel className="text-sm font-normal">Enable Other</FormLabel>
-												</div>
-												{(form.watch('team_experience_investments') || {})['other_enabled'] === 'true' && (
-													<div className="mt-2 space-y-2">
-														<Input 
-															placeholder="Please specify other experience"
-															value={(form.watch('team_experience_investments') || {})['other_details'] || ''}
-															onChange={(e) => {
-																const current = form.getValues('team_experience_investments') || {};
-																form.setValue('team_experience_investments', { ...current, other_details: e.target.value });
-															}}
-														/>
-									<Select onValueChange={(value) => {
-										const current = form.getValues('team_experience_investments') || {};
-															form.setValue('team_experience_investments', { ...current, other: value });
-									}}>
-										<FormControl>
-											<SelectTrigger>
-																	<SelectValue placeholder="Classify other (select one)" />
-											</SelectTrigger>
-										</FormControl>
-										<SelectContent>
-																<SelectItem value="Not Applicable">Not Applicable</SelectItem>
-																<SelectItem value="Applies to 1 Principal">Applies to 1 Principal</SelectItem>
-																<SelectItem value="Applies to 2 or more Principals">Applies to 2 or more Principals</SelectItem>
-										</SelectContent>
-									</Select>
-								</div>
-												)}
-							</div>
+												</SelectContent>
+											</Select>
 										)}
+										{opt.key === 'other' && (form.watch('team_experience_investments') || {})['other_enabled'] === 'true' && (
+											<div className="mt-3">
+												<Select onValueChange={(value) => {
+													const current = form.getValues('team_experience_investments') || {};
+													form.setValue('team_experience_investments', { ...current, other: value });
+												}}>
+													<FormControl>
+														<SelectTrigger className="w-48">
+															<SelectValue placeholder="Classify other (select one)" />
+														</SelectTrigger>
+													</FormControl>
+													<SelectContent>
+														<SelectItem value="Not Applicable">Not Applicable</SelectItem>
+														<SelectItem value="Applies to 1 Principal">Applies to 1 Principal</SelectItem>
+														<SelectItem value="Applies to 2 or more Principals">Applies to 2 or more Principals</SelectItem>
+													</SelectContent>
+												</Select>
+											</div>
+										)}
+									</div>
 								</div>
-							</div>
+							))}
+						</div>
+						<FormMessage />
+					</FormItem>
+				)}
+			/>
+
+			{/* Question 14 */}
+			<FormField
+				control={form.control}
+				name="team_experience_transactions"
+				render={() => (
+					<FormItem>
+						<FormLabel>14. Team Experience. Please specify cumulative number of investment/financing transactions completed by your principal(s) prior to this current fund/vehicle? (Please provide a response for each row)</FormLabel>
+						<div className="space-y-3">
+							{[
+								{ key: 'participated_as_investments_team_member', label: 'Participated as Investments Team Member' },
+								{ key: 'principal_in_investments_decisions', label: 'Principal in Investments Decisions' },
+								{ key: 'achieved_exits_monetizations', label: 'Achieved Exits/Monetizations' }
+							].map((opt) => (
+								<div key={opt.key} className="flex items-center justify-between space-x-4 py-3 border-b border-gray-100">
+									<div className="flex-1">
+										<FormLabel className="text-sm font-normal text-gray-900 leading-tight">{opt.label}</FormLabel>
+									</div>
+									<div className="flex-shrink-0">
+										<Select onValueChange={(value) => {
+											const current = form.getValues('team_experience_transactions') || {};
+											form.setValue('team_experience_transactions', { ...current, [opt.key]: value });
+										}}>
+											<FormControl>
+												<SelectTrigger className="w-48">
+													<SelectValue placeholder="Select one" />
+												</SelectTrigger>
+											</FormControl>
+											<SelectContent>
+												<SelectItem value="0">0</SelectItem>
+												<SelectItem value="1-4">1-4</SelectItem>
+												<SelectItem value="5-9">5-9</SelectItem>
+												<SelectItem value="10-14">10-14</SelectItem>
+												<SelectItem value="15-24">15-24</SelectItem>
+												<SelectItem value="≥ 25">≥ 25</SelectItem>
+											</SelectContent>
+										</Select>
+									</div>
+								</div>
 							))}
 						</div>
 						<FormMessage />
@@ -1180,12 +1279,12 @@ export default function Survey2024() {
 				name="legal_domicile"
 				render={() => (
 					<FormItem>
-						<FormLabel>15. Where is the legal domicile of your fund? (Please select as many as apply) *</FormLabel>
+						<FormLabel>15. Where is the legal domicile of your fund? (Please select as many as apply)</FormLabel>
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
 							{[
 								'Mauritius', 'Netherlands', 'Luxembourg', 'Canada', 'Delaware', 
 								'Kenya', 'Senegal', 'Nigeria', 'South Africa', 'Ghana',
-								'Location pending', 'Location pending – dependent on anchor LP preference', 'Other'
+								'Location pending', 'Location pending – dependent on anchor LP preference', 'Other (please specify)'
 							].map((domicile) => (
 								<FormField
 									key={domicile}
@@ -1204,13 +1303,13 @@ export default function Survey2024() {
 													}}
 												/>
 											</FormControl>
-											<FormLabel className="text-sm font-normal">{domicile === 'Other' ? 'Other (please specify)' : domicile}</FormLabel>
+											<FormLabel className="text-sm font-normal">{domicile}</FormLabel>
 										</FormItem>
 									)}
 								/>
 							))}
 						</div>
-						{(form.watch('legal_domicile') || []).includes('Other') && (
+						{(form.watch('legal_domicile') || []).includes('Other (please specify)') && (
 						<FormField
 							control={form.control}
 							name="legal_domicile_other"
@@ -1234,11 +1333,11 @@ export default function Survey2024() {
 				name="domicile_reason"
 				render={() => (
 					<FormItem>
-						<FormLabel>16. What is the reason you chose to domicile there? (Please select as many as apply) *</FormLabel>
+						<FormLabel>16. What is the reason you chose to domicile there? (Please select as many as apply)</FormLabel>
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
 							{[
 								'LP Preferences', 'Tax Regime', 'Legal and Regulatory Framework', 
-								'GP Residence', 'Country where investments are made', 'Other'
+								'GP Residence', 'Country where investments are made', 'Other (please specify)'
 							].map((reason) => (
 								<FormField
 									key={reason}
@@ -1257,13 +1356,13 @@ export default function Survey2024() {
 													}}
 												/>
 											</FormControl>
-											<FormLabel className="text-sm font-normal">{reason === 'Other' ? 'Other (please specify)' : reason}</FormLabel>
+											<FormLabel className="text-sm font-normal">{reason}</FormLabel>
 										</FormItem>
 									)}
 								/>
 							))}
 						</div>
-						{(form.watch('domicile_reason') || []).includes('Other') && (
+						{(form.watch('domicile_reason') || []).includes('Other (please specify)') && (
 						<FormField
 							control={form.control}
 							name="domicile_reason_other"
@@ -1507,63 +1606,69 @@ export default function Survey2024() {
 			{/* 21. Hard commitments raised, current amount invested and target size */}
 			<FormItem>
 				<FormLabel>21. What are your hard commitments raised, current amount invested/outstanding portfolio and target size of your fund vehicle? (USD Equivalent)</FormLabel>
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-					<div className="space-y-4">
-						<FormLabel className="text-sm font-medium">Funds raised</FormLabel>
-			<FormField
-				control={form.control}
+				
+				{/* Funds raised section */}
+				<div className="space-y-4 mb-6">
+					<FormLabel className="text-sm font-normal text-gray-900">Funds raised</FormLabel>
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<FormField
+							control={form.control}
 							name="hard_commitments_2022"
-				render={({ field }) => (
-					<FormItem>
+							render={({ field }) => (
+								<FormItem>
 									<FormLabel className="text-sm font-medium">Year-End 2022</FormLabel>
-						<FormControl>
-							<Input 
-								{...field} 
-								type="number" 
+									<FormControl>
+										<Input 
+											{...field} 
+											type="number" 
 											placeholder="USD amount"
 											onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-							/>
-						</FormControl>
-					</FormItem>
-				)}
-			/>
-			<FormField
-				control={form.control}
+										/>
+									</FormControl>
+								</FormItem>
+							)}
+						/>
+						<FormField
+							control={form.control}
 							name="hard_commitments_current"
-				render={({ field }) => (
-					<FormItem>
+							render={({ field }) => (
+								<FormItem>
 									<FormLabel className="text-sm font-medium">Current (30 June 2024)</FormLabel>
-							<FormControl>
+									<FormControl>
 										<Input
 											{...field}
 											type="number"
 											placeholder="USD amount"
 											onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
 										/>
-							</FormControl>
-					</FormItem>
-				)}
-			/>
+									</FormControl>
+								</FormItem>
+							)}
+						/>
 					</div>
-					<div className="space-y-4">
-						<FormLabel className="text-sm font-medium">Amount invested by fund</FormLabel>
-			<FormField
-				control={form.control}
+				</div>
+
+				{/* Amount invested by fund section */}
+				<div className="space-y-4 mb-6">
+					<FormLabel className="text-sm font-normal text-gray-900">Amount invested by fund</FormLabel>
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<FormField
+							control={form.control}
 							name="amount_invested_2022"
-									render={({ field }) => (
+							render={({ field }) => (
 								<FormItem>
 									<FormLabel className="text-sm font-medium">Year-End 2022</FormLabel>
-											<FormControl>
+									<FormControl>
 										<Input
 											{...field}
 											type="number"
 											placeholder="USD amount"
 											onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-												/>
-											</FormControl>
-										</FormItem>
-									)}
-								/>
+										/>
+									</FormControl>
+								</FormItem>
+							)}
+						/>
 						<FormField
 							control={form.control}
 							name="amount_invested_current"
@@ -1582,42 +1687,46 @@ export default function Survey2024() {
 							)}
 						/>
 					</div>
-					<div className="space-y-4">
-						<FormLabel className="text-sm font-medium">Target fund size</FormLabel>
-			<FormField
-				control={form.control}
+				</div>
+
+				{/* Target fund size section */}
+				<div className="space-y-4">
+					<FormLabel className="text-sm font-normal text-gray-900">Target fund size</FormLabel>
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<FormField
+							control={form.control}
 							name="target_fund_size_2022"
-				render={({ field }) => (
-					<FormItem>
+							render={({ field }) => (
+								<FormItem>
 									<FormLabel className="text-sm font-medium">Year-End 2022</FormLabel>
-							<FormControl>
+									<FormControl>
 										<Input
 											{...field}
 											type="number"
 											placeholder="USD amount"
 											onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
 										/>
-							</FormControl>
+									</FormControl>
 								</FormItem>
 							)}
 						/>
-			<FormField
-				control={form.control}
+						<FormField
+							control={form.control}
 							name="target_fund_size_current"
-				render={({ field }) => (
-					<FormItem>
+							render={({ field }) => (
+								<FormItem>
 									<FormLabel className="text-sm font-medium">Current (30 June 2024)</FormLabel>
-							<FormControl>
+									<FormControl>
 										<Input
 											{...field}
 											type="number"
 											placeholder="USD amount"
 											onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
 										/>
-							</FormControl>
-					</FormItem>
-				)}
-			/>
+									</FormControl>
+								</FormItem>
+							)}
+						/>
 					</div>
 				</div>
 			</FormItem>
@@ -1830,6 +1939,42 @@ export default function Survey2024() {
 					{/* Other description field */}
 					{/* moved inline with Other row */}
 				</div>
+				
+				{/* Total percentage validation */}
+				<div className="mt-4 p-4 bg-gray-50 rounded-lg border">
+					<div className="flex items-center justify-between">
+						<span className="text-sm font-medium text-gray-700">Total Percentage:</span>
+						<span className={`text-lg font-bold ${(() => {
+							const sources = form.watch('existing_lp_sources') || {};
+							const total = Object.values(sources).reduce((sum: number, value: any) => {
+								if (typeof value === 'number') return sum + value;
+								return sum;
+							}, 0);
+							return total === 100 ? 'text-green-600' : 'text-red-600';
+						})()}`}>
+							{(() => {
+								const sources = form.watch('existing_lp_sources') || {};
+								const total = Object.values(sources).reduce((sum: number, value: any) => {
+									if (typeof value === 'number') return sum + value;
+									return sum;
+								}, 0);
+								return `${total}%`;
+							})()}
+						</span>
+					</div>
+					{(() => {
+						const sources = form.watch('existing_lp_sources') || {};
+						const total = Object.values(sources).reduce((sum: number, value: any) => {
+							if (typeof value === 'number') return sum + value;
+							return sum;
+						}, 0);
+						return total !== 100 && (
+							<div className="mt-2 text-sm text-red-600">
+								⚠️ Total must equal exactly 100% to proceed
+							</div>
+						);
+					})()}
+				</div>
 			</FormItem>
 
 			{/* 26. Target LP capital sources (sum to 100%) */}
@@ -1934,6 +2079,42 @@ export default function Survey2024() {
 							</div>
 						</div>
 					))}
+				</div>
+				
+				{/* Total percentage validation */}
+				<div className="mt-4 p-4 bg-gray-50 rounded-lg border">
+					<div className="flex items-center justify-between">
+						<span className="text-sm font-medium text-gray-700">Total Percentage:</span>
+						<span className={`text-lg font-bold ${(() => {
+							const sources = form.watch('target_lp_sources') || {};
+							const total = Object.values(sources).reduce((sum: number, value: any) => {
+								if (typeof value === 'number') return sum + value;
+								return sum;
+							}, 0);
+							return total === 100 ? 'text-green-600' : 'text-red-600';
+						})()}`}>
+							{(() => {
+								const sources = form.watch('target_lp_sources') || {};
+								const total = Object.values(sources).reduce((sum: number, value: any) => {
+									if (typeof value === 'number') return sum + value;
+									return sum;
+								}, 0);
+								return `${total}%`;
+							})()}
+						</span>
+					</div>
+					{(() => {
+						const sources = form.watch('target_lp_sources') || {};
+						const total = Object.values(sources).reduce((sum: number, value: any) => {
+							if (typeof value === 'number') return sum + value;
+							return sum;
+						}, 0);
+						return total !== 100 && (
+							<div className="mt-2 text-sm text-red-600">
+								⚠️ Total must equal exactly 100% to proceed
+							</div>
+						);
+					})()}
 				</div>
 			</FormItem>
 
@@ -2246,68 +2427,39 @@ export default function Survey2024() {
 			<FormItem>
 				<FormLabel>33. Stage of the businesses that you finance / invest in. (Please provide responses summing up to 100%)</FormLabel>
 				<div className="space-y-4">
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-					<FormField
-						control={form.control}
-						name="business_stages"
-						render={() => (
-							<FormItem>
-									<FormLabel className="text-sm font-normal">Start-up (prerevenue, concept and business plan development)</FormLabel>
-								<FormControl>
-									<Input
-										type="number"
-										placeholder="%"
-										onChange={(e) => {
-											const value = e.target.value ? parseInt(e.target.value) : undefined;
-											const current = form.getValues('business_stages') || {};
-											form.setValue('business_stages', { ...current, 'Start-up': value ?? 0 });
-										}}
-									/>
-								</FormControl>
-							</FormItem>
-						)}
-					/>
-					<FormField
-						control={form.control}
-						name="business_stages"
-						render={() => (
-							<FormItem>
-									<FormLabel className="text-sm font-normal">Early stage (early revenue, product/service development, funds needed to expand business model)</FormLabel>
-								<FormControl>
-									<Input
-										type="number"
-										placeholder="%"
-										onChange={(e) => {
-											const value = e.target.value ? parseInt(e.target.value) : undefined;
-											const current = form.getValues('business_stages') || {};
-											form.setValue('business_stages', { ...current, 'Early stage': value ?? 0 });
-										}}
-									/>
-								</FormControl>
-							</FormItem>
-						)}
-					/>
-					<FormField
-						control={form.control}
-						name="business_stages"
-						render={() => (
-							<FormItem>
-									<FormLabel className="text-sm font-normal">Growth (established business in need of funds for expansion, assets, working capital etc)</FormLabel>
-								<FormControl>
-									<Input
-										type="number"
-										placeholder="%"
-										onChange={(e) => {
-											const value = e.target.value ? parseInt(e.target.value) : undefined;
-											const current = form.getValues('business_stages') || {};
-											form.setValue('business_stages', { ...current, 'Growth': value ?? 0 });
-										}}
-									/>
-								</FormControl>
-							</FormItem>
-						)}
-					/>
-					</div>
+					{[
+						{ key: 'Start-up', label: 'Start-up (prerevenue, concept and business plan development)' },
+						{ key: 'Early stage', label: 'Early stage (early revenue, product/service development, funds needed to expand business model)' },
+						{ key: 'Growth', label: 'Growth (established business in need of funds for expansion, assets, working capital etc)' }
+					].map((stage) => (
+						<div key={stage.key} className="flex items-center justify-between space-x-4 py-3 border-b border-gray-100">
+							<div className="flex-1">
+								<FormLabel className="text-sm font-normal text-gray-900 leading-tight">{stage.label}</FormLabel>
+							</div>
+							<div className="flex-shrink-0">
+								<FormField
+									control={form.control}
+									name="business_stages"
+									render={() => (
+										<FormItem>
+											<FormControl>
+												<Input
+													type="number"
+													placeholder="%"
+													className="w-20"
+													onChange={(e) => {
+														const value = e.target.value ? parseInt(e.target.value) : undefined;
+														const current = form.getValues('business_stages') || {};
+														form.setValue('business_stages', { ...current, [stage.key]: value ?? 0 });
+													}}
+												/>
+											</FormControl>
+										</FormItem>
+									)}
+								/>
+							</div>
+						</div>
+					))}
 					
 					{/* Total validation display */}
 					<div className="mt-4 p-3 bg-gray-50 rounded-lg">
@@ -2337,36 +2489,40 @@ export default function Survey2024() {
 			<FormItem>
 				<FormLabel>34. Mix in revenue growth expectations of portfolio enterprises you finance / invest in? (Please provide responses of whole numbers summing up to 100%)</FormLabel>
 				<div className="space-y-4">
-				<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 					{[
-						{ key: 'Livelihood Sustaining (\u003c5%)', label: 'Livelihood Sustaining (\u003c5% USD revenue growth equivalent pa)' },
-						{ key: 'Growth (5-10%)', label: 'Growth (5-10% USD revenue growth equivalent pa)' },
-						{ key: 'Dynamic (11-20%)', label: 'Dynamic (11-20% USD revenue growth equivalent pa)' },
-						{ key: 'High-Growth (\u003e20%)', label: 'High-Growth (\u003e20% USD revenue growth equivalent pa)' },
+						{ key: 'Livelihood Sustaining (<5%)', label: 'Livelihood Sustaining Enterprises (<5% USD revenue growth equivalent pa)' },
+						{ key: 'Growth (5-10%)', label: 'Growth Enterprises (5-10% USD revenue growth equivalent pa)' },
+						{ key: 'Dynamic (11-20%)', label: 'Dynamic Enterprises (11-20% USD revenue growth equivalent pa)' },
+						{ key: 'High-Growth (>20%)', label: 'High-Growth Ventures (>20% USD revenue growth equivalent pa)' }
 					].map(({ key, label }) => (
-						<FormField
-							key={key}
-							control={form.control}
-							name="revenue_growth_mix"
-							render={() => (
-								<FormItem>
-										<FormLabel className="text-sm font-normal">{label}</FormLabel>
-									<FormControl>
-										<Input
-											type="number"
-											placeholder="%"
-											onChange={(e) => {
-												const value = e.target.value ? parseInt(e.target.value) : undefined;
-												const current = form.getValues('revenue_growth_mix') || {};
-												form.setValue('revenue_growth_mix', { ...current, [key]: value ?? 0 });
-											}}
-										/>
-									</FormControl>
-								</FormItem>
-							)}
-						/>
+						<div key={key} className="flex items-center justify-between space-x-4 py-3 border-b border-gray-100">
+							<div className="flex-1">
+								<FormLabel className="text-sm font-normal text-gray-900 leading-tight">{label}</FormLabel>
+							</div>
+							<div className="flex-shrink-0">
+								<FormField
+									control={form.control}
+									name="revenue_growth_mix"
+									render={() => (
+										<FormItem>
+											<FormControl>
+												<Input
+													type="number"
+													placeholder="%"
+													className="w-20"
+													onChange={(e) => {
+														const value = e.target.value ? parseInt(e.target.value) : undefined;
+														const current = form.getValues('revenue_growth_mix') || {};
+														form.setValue('revenue_growth_mix', { ...current, [key]: value ?? 0 });
+													}}
+												/>
+											</FormControl>
+										</FormItem>
+									)}
+								/>
+							</div>
+						</div>
 					))}
-					</div>
 					
 					{/* Total validation display */}
 					<div className="mt-4 p-3 bg-gray-50 rounded-lg">
@@ -2396,37 +2552,41 @@ export default function Survey2024() {
 			<FormItem>
 				<FormLabel>35. Describe the key financing needs of your portfolio enterprises at the time of your initial investment/funding. (Please provide responses summing up to 100%)</FormLabel>
 				<div className="space-y-4">
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 					{[
 						'Venture launch (e.g. invest in initial staff, product/ services development and market acceptance)',
 						'Inventory and working capital requirements',
 						'Small-ticket tangible assets (e.g. computers, routers, mobile and connectivity systems, office equipment)',
 						'Major capital investments (facilities, production equipment, fleet/ logistics, etc.)',
-						'Enterprise growth capital (e.g. intangible investments such as staff build-out, expanded sales & marketing capabilities, new markets, operational and support systems, etc.)',
+						'Enterprise growth capital (e.g. intangible investments such as staff build-out, expanded sales & marketing capabilities, new markets, operational and support systems, etc.)'
 					].map((row) => (
-						<FormField
-							key={row}
-							control={form.control}
-							name="financing_needs"
-							render={() => (
-								<FormItem>
-										<FormLabel className="text-sm font-normal">{row}</FormLabel>
-									<FormControl>
-										<Input
-											type="number"
-											placeholder="%"
-											onChange={(e) => {
-												const value = e.target.value ? parseInt(e.target.value) : undefined;
-												const current = form.getValues('financing_needs') || {};
-												form.setValue('financing_needs', { ...current, [row]: value ?? 0 });
-											}}
-										/>
-									</FormControl>
-								</FormItem>
-							)}
-						/>
+						<div key={row} className="flex items-center justify-between space-x-4 py-3 border-b border-gray-100">
+							<div className="flex-1">
+								<FormLabel className="text-sm font-normal text-gray-900 leading-tight">{row}</FormLabel>
+							</div>
+							<div className="flex-shrink-0">
+								<FormField
+									control={form.control}
+									name="financing_needs"
+									render={() => (
+										<FormItem>
+											<FormControl>
+												<Input
+													type="number"
+													placeholder="%"
+													className="w-20"
+													onChange={(e) => {
+														const value = e.target.value ? parseInt(e.target.value) : undefined;
+														const current = form.getValues('financing_needs') || {};
+														form.setValue('financing_needs', { ...current, [row]: value ?? 0 });
+													}}
+												/>
+											</FormControl>
+										</FormItem>
+									)}
+								/>
+							</div>
+						</div>
 					))}
-					</div>
 					
 					{/* Total validation display */}
 					<div className="mt-4 p-3 bg-gray-50 rounded-lg">
@@ -2457,18 +2617,18 @@ export default function Survey2024() {
 				<FormLabel>36. Target Investment Activities by Sector. Provide sector mix according to target outlined in investment thesis. (Please list sectors in order from 1st to 5th with their percentages)</FormLabel>
 				<div className="space-y-4">
 					{Array.from({ length: 5 }, (_, index) => (
-						<div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-							<div className="flex items-center space-x-2">
-								<span className="text-sm font-medium w-8">{index + 1}.</span>
+						<div key={index} className="flex items-center justify-between space-x-4 py-3 border-b border-gray-100">
+							<div className="flex-1 flex items-center space-x-3">
+								<span className="text-sm font-medium w-8 flex-shrink-0">{index + 1}.</span>
 								<FormField
 									control={form.control}
 									name="sector_target_allocation"
 									render={() => (
 										<FormItem className="flex-1">
-				<FormControl>
+											<FormControl>
 												<Input
 													placeholder="Sector name"
-						onChange={(e) => {
+													onChange={(e) => {
 														const current = form.getValues('sector_target_allocation') || {};
 														const updated = { ...current };
 														if (e.target.value) {
@@ -2484,7 +2644,7 @@ export default function Survey2024() {
 									)}
 								/>
 							</div>
-							<div className="flex items-center space-x-2">
+							<div className="flex-shrink-0">
 								<FormField
 									control={form.control}
 									name="sector_target_allocation"
@@ -2494,6 +2654,7 @@ export default function Survey2024() {
 												<Input
 													type="number"
 													placeholder="%"
+													className="w-20"
 													onChange={(e) => {
 														const value = e.target.value ? parseInt(e.target.value) : undefined;
 														const current = form.getValues('sector_target_allocation') || {};
@@ -2504,13 +2665,12 @@ export default function Survey2024() {
 															delete updated[`percentage_${index + 1}`];
 														}
 														form.setValue('sector_target_allocation', updated);
-						}}
-					/>
-				</FormControl>
+													}}
+												/>
+											</FormControl>
 										</FormItem>
 									)}
 								/>
-								<span className="text-sm text-gray-500">%</span>
 							</div>
 						</div>
 					))}
@@ -2558,30 +2718,33 @@ export default function Survey2024() {
 					].map((row) => (
 						<div key={row} className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
 							<div>
-								<FormLabel className="text-sm font-normal">{row}</FormLabel>
+								{row === 'Other (please specify)' ? (
+									<div className="flex items-center space-x-3">
+										<Checkbox
+											checked={(form.watch('investment_considerations') || {})['other_enabled'] === true}
+											onCheckedChange={(checked) => {
+												const current = form.getValues('investment_considerations') || {};
+												if (checked) {
+													form.setValue('investment_considerations', { ...current, other_enabled: true });
+												} else {
+													const { other_enabled, other_description, other_score, ...rest } = current as any;
+													form.setValue('investment_considerations', rest);
+													form.setValue('investment_considerations_other', '');
+												}
+											}}
+										/>
+										<FormLabel className="text-sm font-normal">Other (please specify)</FormLabel>
+									</div>
+								) : (
+									<FormLabel className="text-sm font-normal">{row}</FormLabel>
+								)}
 							</div>
 							<div>
 								{row === 'Other (please specify)' ? (
 									<div className="space-y-2">
-										<div className="flex items-center space-x-3">
-											<Checkbox
-												checked={(form.watch('investment_considerations') || {})['other_enabled'] === true}
-												onCheckedChange={(checked) => {
-													const current = form.getValues('investment_considerations') || {};
-													if (checked) {
-														form.setValue('investment_considerations', { ...current, other_enabled: true });
-													} else {
-														const { other_enabled, other_description, other_score, ...rest } = current as any;
-														form.setValue('investment_considerations', rest);
-														form.setValue('investment_considerations_other', '');
-													}
-												}}
-											/>
-											<FormLabel className="text-sm font-normal">Other (please specify)</FormLabel>
-										</div>
 										{(form.watch('investment_considerations') || {})['other_enabled'] && (
 											<>
-						<FormField
+												<FormField
 													control={form.control}
 													name="investment_considerations_other"
 													render={({ field }) => (
@@ -2593,10 +2756,10 @@ export default function Survey2024() {
 													)}
 												/>
 												<FormField
-							control={form.control}
-							name="investment_considerations"
-							render={() => (
-								<FormItem>
+													control={form.control}
+													name="investment_considerations"
+													render={() => (
+														<FormItem>
 															<Select
 																onValueChange={(value) => {
 																	const score = value ? parseInt(value) : 0;
@@ -2630,30 +2793,30 @@ export default function Survey2024() {
 										name="investment_considerations"
 										render={() => (
 											<FormItem>
-									<Select
-										onValueChange={(value) => {
-											const score = value ? parseInt(value) : 0;
-											const current = form.getValues('investment_considerations') || {};
-											form.setValue('investment_considerations', { ...current, [row]: score });
-										}}
-									>
-										<FormControl>
-											<SelectTrigger>
-												<SelectValue placeholder="Select 1-5 or N/A" />
-											</SelectTrigger>
-										</FormControl>
-										<SelectContent>
+												<Select
+													onValueChange={(value) => {
+														const score = value ? parseInt(value) : 0;
+														const current = form.getValues('investment_considerations') || {};
+														form.setValue('investment_considerations', { ...current, [row]: score });
+													}}
+												>
+													<FormControl>
+														<SelectTrigger>
+															<SelectValue placeholder="Select 1-5 or N/A" />
+														</SelectTrigger>
+													</FormControl>
+													<SelectContent>
 														<SelectItem value="1">1 (least relevant)</SelectItem>
-											<SelectItem value="2">2</SelectItem>
-											<SelectItem value="3">3</SelectItem>
-											<SelectItem value="4">4</SelectItem>
+														<SelectItem value="2">2</SelectItem>
+														<SelectItem value="3">3</SelectItem>
+														<SelectItem value="4">4</SelectItem>
 														<SelectItem value="5">5 (most relevant)</SelectItem>
-											<SelectItem value="0">Not Applicable</SelectItem>
-										</SelectContent>
-									</Select>
-								</FormItem>
-							)}
-						/>
+														<SelectItem value="0">Not Applicable</SelectItem>
+													</SelectContent>
+												</Select>
+											</FormItem>
+										)}
+									/>
 								)}
 							</div>
 						</div>
@@ -2935,7 +3098,7 @@ export default function Survey2024() {
 									>
 										<FormControl>
 											<SelectTrigger>
-												<SelectValue placeholder="Select -5 to +5 or N/A" />
+												<SelectValue placeholder="Select -5 to +5" />
 											</SelectTrigger>
 										</FormControl>
 										<SelectContent>
@@ -2950,7 +3113,6 @@ export default function Survey2024() {
 											<SelectItem value="3">3</SelectItem>
 											<SelectItem value="4">4</SelectItem>
 											<SelectItem value="5">5 (most positive)</SelectItem>
-											<SelectItem value="999">Not Applicable</SelectItem>
 										</SelectContent>
 									</Select>
 								</FormItem>
@@ -3000,7 +3162,7 @@ export default function Survey2024() {
 			{/* 44. Post-investment priorities (1-5 scale) */}
 			<FormItem>
 				<FormLabel>44. In the first 12 months after closing on an investment, what are the key areas that you prioritise with regards to your portfolio enterprises? (1 = lowest need, 5 = highest need)</FormLabel>
-				<div className="space-y-4">
+				<div className="space-y-1">
 					{[
 						'Senior Management Development',
 						'Governance (e.g. putting board structures in place)',
@@ -3008,58 +3170,33 @@ export default function Survey2024() {
 						'Financial Management (e.g. budgeting, accounting, MIS)',
 						'Fundraising - Accessing additional capital',
 						'Optimizing working capital mgt.',
-							'Refine Product/Services and Proof of Concept',
+						'Refine Product/Services and Proof of Concept',
 						'Operations Mgt./Production Processes',
 						'Sales & Marketing, Diversifying Revenue Streams',
 						'Digitalization of business model (e.g. web tools, AI, etc.)',
 						'Human capital management – hiring/training',
-						'Other (please specify)'
 					].map((priority) => (
-						<FormField
-							key={priority}
-							control={form.control}
-							name="post_investment_priorities"
-							render={() => (
-								<FormItem>
-									{priority === 'Other (please specify)' ? (
-										<div className="space-y-2">
-											<div className="flex items-center space-x-3">
-												<Checkbox
-													checked={form.watch('post_investment_priorities_other_enabled') === true}
-													onCheckedChange={(checked) => {
-														form.setValue('post_investment_priorities_other_enabled', !!checked);
-														if (!checked) {
-															form.setValue('post_investment_priorities_other_description', '');
-															form.setValue('post_investment_priorities_other_score', 0);
-														}
-												}}
-											/>
-											<FormLabel className="text-sm font-normal">Other (please specify)</FormLabel>
-										</div>
-										{form.watch('post_investment_priorities_other_enabled') && (
-											<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
-												<FormField
-													control={form.control}
-													name="post_investment_priorities_other_description"
-													render={({ field }) => (
-														<FormItem>
-															<FormControl>
-															<Input {...field} placeholder="Describe other priority" />
-															</FormControl>
-														</FormItem>
-													)}
-												/>
+						<div key={priority} className="flex items-center justify-between space-x-4 py-1 border-b border-gray-100">
+							<div className="flex-1">
+								<FormLabel className="text-sm font-normal text-gray-900 leading-tight">{priority}</FormLabel>
+							</div>
+							<div className="flex-shrink-0">
+								<FormField
+									control={form.control}
+									name="post_investment_priorities"
+									render={() => (
+										<FormItem>
+											<FormControl>
 												<Select
 													onValueChange={(value) => {
 														const score = value ? parseInt(value) : 0;
-														form.setValue('post_investment_priorities_other_score', score);
+														const current = form.getValues('post_investment_priorities') || {};
+														form.setValue('post_investment_priorities', { ...current, [priority]: score });
 													}}
 												>
-													<FormControl>
-														<SelectTrigger>
-															<SelectValue placeholder="Select 1-5 or N/A" />
-														</SelectTrigger>
-													</FormControl>
+													<SelectTrigger className="w-32">
+														<SelectValue placeholder="Select 1-5 or N/A" />
+													</SelectTrigger>
 													<SelectContent>
 														<SelectItem value="1">1 (lowest need)</SelectItem>
 														<SelectItem value="2">2</SelectItem>
@@ -3069,76 +3206,143 @@ export default function Survey2024() {
 														<SelectItem value="0">Not Applicable</SelectItem>
 													</SelectContent>
 												</Select>
-											</div>
-										)}
-									</div>
-									) : (
-										<>
-											<FormLabel className="text-sm font-normal">{priority}</FormLabel>
-									<Select
-										onValueChange={(value) => {
-											const score = value ? parseInt(value) : 0;
-											const current = form.getValues('post_investment_priorities') || {};
-											form.setValue('post_investment_priorities', { ...current, [priority]: score });
-										}}
-									>
-										<FormControl>
-											<SelectTrigger>
-												<SelectValue placeholder="Select 1-5 or N/A" />
-											</SelectTrigger>
-										</FormControl>
-										<SelectContent>
-											<SelectItem value="1">1 (lowest need)</SelectItem>
-											<SelectItem value="2">2</SelectItem>
-											<SelectItem value="3">3</SelectItem>
-											<SelectItem value="4">4</SelectItem>
-											<SelectItem value="5">5 (highest need)</SelectItem>
-											<SelectItem value="0">Not Applicable</SelectItem>
-										</SelectContent>
-									</Select>
-										</>
+											</FormControl>
+										</FormItem>
 									)}
-								</FormItem>
-							)}
-						/>
+								/>
+							</div>
+						</div>
 					))}
+				</div>
+				{/* Other option with checkbox */}
+				<div className="mt-4 space-y-2">
+					<div className="flex items-center space-x-3">
+						<Checkbox
+							checked={form.watch('post_investment_priorities_other_enabled') === true}
+							onCheckedChange={(checked) => {
+								form.setValue('post_investment_priorities_other_enabled', !!checked);
+								if (!checked) {
+									form.setValue('post_investment_priorities_other_description', '');
+									form.setValue('post_investment_priorities_other_score', 0);
+								}
+							}}
+						/>
+						<FormLabel className="text-sm font-normal">Other (please specify)</FormLabel>
+					</div>
+					{form.watch('post_investment_priorities_other_enabled') && (
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+							<FormField
+								control={form.control}
+								name="post_investment_priorities_other_description"
+								render={({ field }) => (
+									<FormItem>
+										<FormControl>
+										<Input {...field} placeholder="Describe other priority" />
+										</FormControl>
+									</FormItem>
+								)}
+							/>
+							<Select
+								onValueChange={(value) => {
+									const score = value ? parseInt(value) : 0;
+									form.setValue('post_investment_priorities_other_score', score);
+								}}
+							>
+								<FormControl>
+									<SelectTrigger>
+										<SelectValue placeholder="Select 1-5 or N/A" />
+									</SelectTrigger>
+								</FormControl>
+								<SelectContent>
+									<SelectItem value="1">1 (lowest need)</SelectItem>
+									<SelectItem value="2">2</SelectItem>
+									<SelectItem value="3">3</SelectItem>
+									<SelectItem value="4">4</SelectItem>
+									<SelectItem value="5">5 (highest need)</SelectItem>
+									<SelectItem value="0">Not Applicable</SelectItem>
+								</SelectContent>
+							</Select>
+						</div>
+					)}
 				</div>
 			</FormItem>
 
 			{/* 45. Technical assistance funding (sum to 100%) */}
 			<FormItem>
 				<FormLabel>45. How is your pre and post technical assistance to portfolio companies funded? (Please provide responses summing up to 100%)</FormLabel>
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+				<div className="space-y-1">
 					{[
 						'Donor',
 						'Management fees',
 						'Portfolio company',
 						'Enterprise Support Organization (ESO) partnership and Post Investment Support Program',
 						'Other',
-						'N/A',
+						'N/A'
 					].map((source) => (
-						<FormField
-							key={source}
-							control={form.control}
-							name="technical_assistance_funding"
-							render={() => (
-								<FormItem>
-										<FormLabel className="text-sm font-normal">{source}</FormLabel>
-									<FormControl>
-										<Input
-											type="number"
-											placeholder="%"
-											onChange={(e) => {
-												const value = e.target.value ? parseInt(e.target.value) : undefined;
-												const current = form.getValues('technical_assistance_funding') || {};
-												form.setValue('technical_assistance_funding', { ...current, [source]: value ?? 0 });
-											}}
-										/>
-									</FormControl>
-								</FormItem>
-							)}
-						/>
+						<div key={source} className="flex items-center justify-between space-x-4 py-1 border-b border-gray-100">
+							<div className="flex-1">
+								<FormLabel className="text-sm font-normal text-gray-900 leading-tight">{source}</FormLabel>
+							</div>
+							<div className="flex-shrink-0">
+								<FormField
+									control={form.control}
+									name="technical_assistance_funding"
+									render={() => (
+										<FormItem>
+											<FormControl>
+												<Input
+													type="number"
+													placeholder="%"
+													className="w-20"
+													onChange={(e) => {
+														const value = e.target.value ? parseInt(e.target.value) : undefined;
+														const current = form.getValues('technical_assistance_funding') || {};
+														form.setValue('technical_assistance_funding', { ...current, [source]: value ?? 0 });
+													}}
+												/>
+											</FormControl>
+										</FormItem>
+									)}
+								/>
+							</div>
+						</div>
 					))}
+				</div>
+				
+				{/* Total percentage validation */}
+				<div className="mt-4 p-4 bg-gray-50 rounded-lg border">
+					<div className="flex items-center justify-between">
+						<span className="text-sm font-medium text-gray-700">Total Percentage:</span>
+						<span className={`text-lg font-bold ${(() => {
+							const sources = form.watch('technical_assistance_funding') || {};
+							const total = Object.values(sources).reduce((sum: number, value: any) => {
+								if (typeof value === 'number') return sum + value;
+								return sum;
+							}, 0);
+							return total === 100 ? 'text-green-600' : 'text-red-600';
+						})()}`}>
+							{(() => {
+								const sources = form.watch('technical_assistance_funding') || {};
+								const total = Object.values(sources).reduce((sum: number, value: any) => {
+									if (typeof value === 'number') return sum + value;
+									return sum;
+								}, 0);
+								return `${total}%`;
+							})()}
+						</span>
+					</div>
+					{(() => {
+						const sources = form.watch('technical_assistance_funding') || {};
+						const total = Object.values(sources).reduce((sum: number, value: any) => {
+							if (typeof value === 'number') return sum + value;
+							return sum;
+						}, 0);
+						return total !== 100 && (
+							<div className="mt-2 text-sm text-red-600">
+								⚠️ Total must equal exactly 100% to proceed
+							</div>
+						);
+					})()}
 				</div>
 			</FormItem>
 
@@ -3213,7 +3417,7 @@ export default function Survey2024() {
 			{/* 47. Unique offerings relevance (1-5 scale) */}
 			<FormItem>
 				<FormLabel>47. Please rank the relevance of your unique offerings to SGBs in comparison to other capital providers. (1 = least relevant, 5 = most relevant)</FormLabel>
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+				<div className="space-y-1">
 					{[
 						'Flexible Collateral terms',
 						'Competitive Pricing',
@@ -3222,37 +3426,42 @@ export default function Survey2024() {
 						'Speed and Ease for Decision-Making',
 						'Hands-on support and mentoring',
 					].map((offering) => (
-						<FormField
-							key={offering}
-							control={form.control}
-							name="unique_offerings"
-							render={() => (
-								<FormItem>
-									<FormLabel className="text-sm font-normal">{offering}</FormLabel>
-									<Select
-										onValueChange={(value) => {
-											const score = value ? parseInt(value) : 0;
-											const current = form.getValues('unique_offerings') || {};
-											form.setValue('unique_offerings', { ...current, [offering]: score });
-										}}
-									>
-										<FormControl>
-											<SelectTrigger>
-												<SelectValue placeholder="Select 1-5 or N/A" />
-											</SelectTrigger>
-										</FormControl>
-										<SelectContent>
-											<SelectItem value="1">1 (least relevant)</SelectItem>
-											<SelectItem value="2">2</SelectItem>
-											<SelectItem value="3">3</SelectItem>
-											<SelectItem value="4">4</SelectItem>
-											<SelectItem value="5">5 (most relevant)</SelectItem>
-											<SelectItem value="0">Not Applicable</SelectItem>
-										</SelectContent>
-									</Select>
-								</FormItem>
-							)}
-						/>
+						<div key={offering} className="flex items-center justify-between space-x-4 py-1 border-b border-gray-100">
+							<div className="flex-1">
+								<FormLabel className="text-sm font-normal text-gray-900 leading-tight">{offering}</FormLabel>
+							</div>
+							<div className="flex-shrink-0">
+								<FormField
+									control={form.control}
+									name="unique_offerings"
+									render={() => (
+										<FormItem>
+											<FormControl>
+												<Select
+													onValueChange={(value) => {
+														const score = value ? parseInt(value) : 0;
+														const current = form.getValues('unique_offerings') || {};
+														form.setValue('unique_offerings', { ...current, [offering]: score });
+													}}
+												>
+													<SelectTrigger className="w-32">
+														<SelectValue placeholder="Select 1-5 or N/A" />
+													</SelectTrigger>
+													<SelectContent>
+														<SelectItem value="1">1 (least relevant)</SelectItem>
+														<SelectItem value="2">2</SelectItem>
+														<SelectItem value="3">3</SelectItem>
+														<SelectItem value="4">4</SelectItem>
+														<SelectItem value="5">5 (most relevant)</SelectItem>
+														<SelectItem value="0">Not Applicable</SelectItem>
+													</SelectContent>
+												</Select>
+											</FormControl>
+										</FormItem>
+									)}
+								/>
+							</div>
+						</div>
 					))}
 				</div>
 				{/* Other option with checkbox */}
@@ -3654,8 +3863,8 @@ const renderSection7 = () => (
 											if (!checked) {
 												// Clear other fields when unchecked
 												form.setValue('portfolio_performance_other_description', '');
-												form.setValue('portfolio_performance_other_category', '');
-												form.setValue('portfolio_performance_other_value', undefined);
+												form.setValue('portfolio_performance_other_revenue', undefined);
+												form.setValue('portfolio_performance_other_cashflow', undefined);
 											}
 										}}
 									/>
@@ -3669,56 +3878,54 @@ const renderSection7 = () => (
 							<FormField
 								control={form.control}
 								name="portfolio_performance_other_description"
-					render={({ field }) => (
-						<FormItem>
+								render={({ field }) => (
+									<FormItem>
 										<FormLabel className="text-sm font-normal">Description</FormLabel>
-							<FormControl>
-											<Input {...field} placeholder="Describe the other performance metric..." />
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-							<FormField
-								control={form.control}
-								name="portfolio_performance_other_category"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel className="text-sm font-normal">Category</FormLabel>
-										<Select onValueChange={field.onChange} value={field.value}>
-											<FormControl>
-												<SelectTrigger>
-													<SelectValue placeholder="Select category" />
-												</SelectTrigger>
-											</FormControl>
-											<SelectContent>
-												<SelectItem value="revenue_growth">Revenue Growth</SelectItem>
-												<SelectItem value="cashflow_growth">Operating Cash Flow Growth</SelectItem>
-												<SelectItem value="other">Other</SelectItem>
-											</SelectContent>
-										</Select>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-							<FormField
-								control={form.control}
-								name="portfolio_performance_other_value"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel className="text-sm font-normal">Value (%)</FormLabel>
 										<FormControl>
-											<Input
-												{...field}
-												type="number"
-												placeholder="Enter percentage value"
-												onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-											/>
+											<Input {...field} placeholder="Describe the other performance metric..." />
 										</FormControl>
 										<FormMessage />
 									</FormItem>
 								)}
 							/>
+							<div className="space-y-2">
+								<FormField
+									control={form.control}
+									name="portfolio_performance_other_revenue"
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel className="text-sm font-normal">Revenue Growth</FormLabel>
+											<FormControl>
+												<Input
+													{...field}
+													type="number"
+													placeholder="Enter percentage"
+													onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+												/>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+								<FormField
+									control={form.control}
+									name="portfolio_performance_other_cashflow"
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel className="text-sm font-normal">Operating Cash Flow Growth</FormLabel>
+											<FormControl>
+												<Input
+													{...field}
+													type="number"
+													placeholder="Enter percentage"
+													onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+												/>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+							</div>
 						</div>
 					)}
 				</div>
@@ -3727,85 +3934,91 @@ const renderSection7 = () => (
 			{/* 55. Employment impact */}
 			<FormItem>
 				<FormLabel>55. What is the total impact on employment/jobs associated with your portfolio? What has been the average impact since date of investments and what is the expected impact over the next 12 months on direct and indirect jobs?</FormLabel>
-					<div className="space-y-4">
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-						<div className="space-y-2">
-							<h4 className="font-medium">Net increase jobs as of June 30, 2024</h4>
-						<FormField
-							control={form.control}
-							name="direct_jobs_current"
-							render={({ field }) => (
-								<FormItem>
-										<FormLabel className="text-sm font-normal">Direct</FormLabel>
-									<FormControl>
-										<Input
-											{...field}
-											type="number"
+				<div className="space-y-6">
+					{/* Direct Jobs Section */}
+					<div className="space-y-2">
+						<h4 className="font-medium text-sm">Direct Jobs</h4>
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+							<FormField
+								control={form.control}
+								name="direct_jobs_current"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel className="text-sm font-normal">Net increase jobs as of June 30, 2024</FormLabel>
+										<FormControl>
+											<Input
+												{...field}
+												type="number"
 												placeholder="Enter number of direct jobs"
-											onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-										/>
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-						<FormField
-							control={form.control}
-							name="indirect_jobs_current"
-							render={({ field }) => (
-								<FormItem>
-										<FormLabel className="text-sm font-normal">Indirect</FormLabel>
-									<FormControl>
-										<Input
-											{...field}
-											type="number"
-												placeholder="Enter number of indirect jobs"
-											onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-										/>
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
+												onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+							<FormField
+								control={form.control}
+								name="direct_jobs_anticipated"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel className="text-sm font-normal">Anticipated net increase jobs by June 30, 2025</FormLabel>
+										<FormControl>
+											<Input
+												{...field}
+												type="number"
+												placeholder="Enter anticipated direct jobs"
+												onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						</div>
 					</div>
-						<div className="space-y-2">
-							<h4 className="font-medium">Anticipated net increase jobs by June 30, 2025</h4>
-						<FormField
-							control={form.control}
-							name="direct_jobs_anticipated"
-							render={({ field }) => (
-								<FormItem>
-										<FormLabel className="text-sm font-normal">Direct</FormLabel>
-									<FormControl>
-										<Input
-											{...field}
-											type="number"
-											placeholder="Enter anticipated direct jobs"
-											onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-										/>
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-						<FormField
-							control={form.control}
-							name="indirect_jobs_anticipated"
-							render={({ field }) => (
-								<FormItem>
-										<FormLabel className="text-sm font-normal">Indirect</FormLabel>
-									<FormControl>
-										<Input
-											{...field}
-											type="number"
-											placeholder="Enter anticipated indirect jobs"
-											onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-										/>
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
+
+					{/* Indirect Jobs Section */}
+					<div className="space-y-2">
+						<h4 className="font-medium text-sm">Indirect Jobs</h4>
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+							<FormField
+								control={form.control}
+								name="indirect_jobs_current"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel className="text-sm font-normal">Net increase jobs as of June 30, 2024</FormLabel>
+										<FormControl>
+											<Input
+												{...field}
+												type="number"
+												placeholder="Enter number of indirect jobs"
+												onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+							<FormField
+								control={form.control}
+								name="indirect_jobs_anticipated"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel className="text-sm font-normal">Anticipated net increase jobs by June 30, 2025</FormLabel>
+										<FormControl>
+											<Input
+												{...field}
+												type="number"
+												placeholder="Enter anticipated indirect jobs"
+												onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						</div>
 					</div>
 				</div>
 				<FormField
@@ -3821,8 +4034,8 @@ const renderSection7 = () => (
 											if (!checked) {
 												// Clear other fields when unchecked
 												form.setValue('employment_impact_other_description', '');
-												form.setValue('employment_impact_other_category', '');
-												form.setValue('employment_impact_other_value', undefined);
+												form.setValue('employment_impact_other_current', undefined);
+												form.setValue('employment_impact_other_anticipated', undefined);
 											}
 										}}
 									/>
@@ -3836,59 +4049,59 @@ const renderSection7 = () => (
 							<FormField
 								control={form.control}
 								name="employment_impact_other_description"
-					render={({ field }) => (
-						<FormItem>
+								render={({ field }) => (
+									<FormItem>
 										<FormLabel className="text-sm font-normal">Description</FormLabel>
-							<FormControl>
-											<Input {...field} placeholder="Describe the other employment impact..." />
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-							<FormField
-								control={form.control}
-								name="employment_impact_other_category"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel className="text-sm font-normal">Category</FormLabel>
-										<Select onValueChange={field.onChange} value={field.value}>
-											<FormControl>
-												<SelectTrigger>
-													<SelectValue placeholder="Select category" />
-												</SelectTrigger>
-											</FormControl>
-											<SelectContent>
-												<SelectItem value="direct_jobs">Direct Jobs</SelectItem>
-												<SelectItem value="indirect_jobs">Indirect Jobs</SelectItem>
-												<SelectItem value="other">Other</SelectItem>
-											</SelectContent>
-										</Select>
-										<FormMessage />
-			</FormItem>
-								)}
-							/>
-							<FormField
-								control={form.control}
-								name="employment_impact_other_value"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel className="text-sm font-normal">Value (number of jobs)</FormLabel>
 										<FormControl>
-											<Input
-												{...field}
-												type="number"
-												placeholder="Enter number of jobs"
-												onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-											/>
+											<Input {...field} placeholder="Describe the other employment impact..." />
 										</FormControl>
 										<FormMessage />
 									</FormItem>
 								)}
 							/>
-		</div>
+							<div className="space-y-2">
+								<h4 className="font-medium text-sm">Other Employment Impact</h4>
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<FormField
+										control={form.control}
+										name="employment_impact_other_current"
+										render={({ field }) => (
+											<FormItem>
+												<FormLabel className="text-sm font-normal">Net increase jobs as of June 30, 2024</FormLabel>
+												<FormControl>
+													<Input
+														{...field}
+														type="number"
+														placeholder="Enter number of jobs"
+														onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+													/>
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+									<FormField
+										control={form.control}
+										name="employment_impact_other_anticipated"
+										render={({ field }) => (
+											<FormItem>
+												<FormLabel className="text-sm font-normal">Anticipated net increase jobs by June 30, 2025</FormLabel>
+												<FormControl>
+													<Input
+														{...field}
+														type="number"
+														placeholder="Enter anticipated jobs"
+														onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+													/>
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+								</div>
+							</div>
+						</div>
 					)}
-				</div>
 			</FormItem>
 
 			{/* 56. Fund priorities */}
@@ -4099,7 +4312,7 @@ const renderSection7 = () => (
 									<FormMessage />
 								</FormItem>
 							)}
-						/>0
+						/>
 							</div>
 						)}
 						<FormMessage />
@@ -4151,7 +4364,7 @@ const renderSection7 = () => (
 	return (
 		<SidebarLayout>
 			<div className="min-h-screen bg-gray-50 pb-16">
-				<div className={`max-w-6xl mx-auto ${!showIntro ? 'pr-72' : ''}` }>
+				<div className={`max-w-6xl mx-auto ${!showIntro ? 'pr-80' : ''}` }>
 				{/* Back Button hidden on intro */}
 				{!showIntro && null}
 
@@ -4216,12 +4429,36 @@ const renderSection7 = () => (
 				<Form {...form}>
 					<form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
 						<div className="space-y-6">
-							<div className="flex items-center justify-between">
-								<h2 className="text-base font-semibold">
-									Section {currentSection}: {getSectionTitle(currentSection)}
-								</h2>
+							<div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+								<div className="flex items-center justify-between mb-4">
+									<div>
+										<h2 className="text-xl font-bold text-gray-900">
+											Section {currentSection}: {getSectionTitle(currentSection)}
+										</h2>
+										<p className="text-sm text-gray-600 mt-1">
+											Complete this section to continue with the survey
+										</p>
+									</div>
+									<div className="text-right">
+										<div className="text-2xl font-bold text-blue-600">
+											{currentSection}/{totalSections}
+										</div>
+										<div className="text-xs text-gray-500">sections</div>
+									</div>
+								</div>
+								<div className="space-y-2">
+									<div className="flex justify-between text-sm text-gray-600">
+										<span>Progress</span>
+										<span>{Math.round((currentSection / totalSections) * 100)}%</span>
+									</div>
+									<div className="bg-gray-200 rounded-full h-3 overflow-hidden">
+										<div 
+											className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500 ease-out"
+											style={{ width: `${(currentSection / totalSections) * 100}%` }}
+										></div>
+									</div>
+								</div>
 							</div>
-								<Progress value={(currentSection / totalSections) * 100} className="w-full [&>div]:bg-red-500" />
 							<div className="space-y-6">
 								{currentSection === 1 && renderSection1()}
 								{currentSection === 2 && renderSection2()}
@@ -4235,39 +4472,47 @@ const renderSection7 = () => (
 						</div>
 
 						{/* Navigation Buttons */}
-						<div className="flex justify-between">
-							<Button
-								type="button"
-								variant="outline"
-								onClick={handlePrevious}
-								disabled={currentSection === 1}
-							>
-								Previous
-							</Button>
-							
-							<div className="flex items-center space-x-4">
-								<Button 
+						<div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+							<div className="flex justify-between items-center">
+								<Button
 									type="button"
-									onClick={saveDraft} 
-									disabled={saving} 
 									variant="outline"
+									onClick={handlePrevious}
+									disabled={currentSection === 1}
+									className="px-6 py-2 border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
 								>
-									{saving ? 'Saving...' : 'Save Draft'}
+									← Previous
 								</Button>
 								
-								{currentSection < totalSections ? (
-									<Button type="button" onClick={handleNext}>
-										Next
-									</Button>
-								) : (
+								<div className="flex items-center space-x-4">
 									<Button 
-										type="submit" 
-										disabled={loading}
-										className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105"
+										type="button"
+										onClick={saveDraft} 
+										disabled={saving} 
+										variant="outline"
+										className="px-6 py-2 border-green-300 text-green-700 hover:bg-green-50 disabled:opacity-50"
 									>
-										{loading ? 'Submitting...' : 'Submit Survey'}
+										{saving ? 'Saving...' : '💾 Save Draft'}
 									</Button>
-								)}
+									
+									{currentSection < totalSections ? (
+										<Button 
+											type="button" 
+											onClick={handleNext}
+											className="px-8 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+										>
+											Next →
+										</Button>
+									) : (
+										<Button 
+											type="submit" 
+											disabled={loading}
+											className="px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+										>
+											{loading ? 'Submitting...' : '🎉 Submit Survey'}
+										</Button>
+									)}
+								</div>
 							</div>
 						</div>
 					</form>
