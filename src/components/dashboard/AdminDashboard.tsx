@@ -30,6 +30,7 @@ import { useEffect, useState } from "react";
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from "@/components/ui/badge";
 import AIAssistant from './AIAssistant';
+import { Leaderboard } from './Leaderboard';
 
 interface ActivityItem {
   id: string;
@@ -318,6 +319,11 @@ const AdminDashboard = () => {
               <StatsCard key={index} {...stat} />
             ))}
           </div>
+        </div>
+
+        {/* Leaderboard */}
+        <div className="mb-8">
+          <Leaderboard />
         </div>
 
         {/* System Status & Quick Actions */}

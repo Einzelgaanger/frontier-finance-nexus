@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { 
   User, 
   Building2, 
@@ -20,8 +22,15 @@ import {
   Save,
   Loader2,
   Upload,
-  X
+  X,
+  Trophy,
+  Zap,
+  BookOpen,
+  LogIn,
+  TrendingUp
 } from 'lucide-react';
+import { getBadge, getNextBadge, getProgressToNextBadge } from '@/utils/badgeSystem';
+import { format } from 'date-fns';
 
 interface UserProfile {
   id: string;
@@ -123,7 +132,7 @@ const MyProfile = () => {
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(10);
 
       if (activityData) {
         setRecentActivity(activityData);
@@ -310,6 +319,20 @@ const MyProfile = () => {
     }));
   };
 
+  const currentBadge = credits ? getBadge(credits.total_points) : null;
+  const nextBadge = credits ? getNextBadge(credits.total_points) : null;
+  const progress = credits ? getProgressToNextBadge(credits.total_points) : 0;
+
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'ai_usage': return <Zap className="h-4 w-4 text-yellow-500" />;
+      case 'blog_post': return <BookOpen className="h-4 w-4 text-blue-500" />;
+      case 'daily_login': return <LogIn className="h-4 w-4 text-green-500" />;
+      case 'survey_completion': return <FileText className="h-4 w-4 text-purple-500" />;
+      default: return <TrendingUp className="h-4 w-4 text-gray-500" />;
+    }
+  };
+
   if (loading) {
     return (
       <SidebarLayout>
@@ -356,12 +379,21 @@ const MyProfile = () => {
                       <h2 className="text-lg font-bold text-gray-800">Profile Photo</h2>
                     </div>
                     
-                    <Avatar className="w-32 h-32 mx-auto mb-6 border-4 border-white shadow-lg">
+                    <Avatar className="w-32 h-32 mx-auto mb-4 border-4 border-white shadow-lg">
                       <AvatarImage src={imagePreview || formData.profile_photo_url} className="object-cover" />
                       <AvatarFallback className="text-3xl font-bold bg-gradient-to-br from-blue-500 to-blue-600 text-white">
                         {formData.company_name?.charAt(0) || 'C'}
                       </AvatarFallback>
                     </Avatar>
+                    
+                    {currentBadge && (
+                      <div className="flex items-center justify-center gap-2 mb-6">
+                        <span className="text-2xl">{currentBadge.icon}</span>
+                        <Badge className={`${currentBadge.color} text-white`}>
+                          {currentBadge.name}
+                        </Badge>
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-4">
@@ -508,27 +540,37 @@ const MyProfile = () => {
           </div>
 
           {/* Gamification Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6 px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mt-6 px-4 sm:px-6 lg:px-8">
             <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-primary/20 rounded-lg p-6 hover:shadow-lg transition-all">
               <div className="text-center">
+                <Trophy className="w-6 h-6 text-primary mx-auto mb-2" />
                 <p className="text-sm text-gray-600 mb-2">Total Points</p>
                 <p className="text-3xl font-bold text-primary">{credits?.total_points || 0}</p>
+                {nextBadge && (
+                  <div className="mt-3">
+                    <Progress value={progress} className="h-2 mb-1" />
+                    <p className="text-xs text-gray-500">{nextBadge.minPoints - (credits?.total_points || 0)} to {nextBadge.name}</p>
+                  </div>
+                )}
               </div>
             </div>
             <div className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-2 border-blue-500/20 rounded-lg p-6 hover:shadow-lg transition-all">
               <div className="text-center">
+                <Zap className="w-6 h-6 text-blue-600 mx-auto mb-2" />
                 <p className="text-sm text-gray-600 mb-2">AI Queries</p>
                 <p className="text-3xl font-bold text-blue-600">{credits?.ai_usage_count || 0}</p>
               </div>
             </div>
             <div className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-2 border-green-500/20 rounded-lg p-6 hover:shadow-lg transition-all">
               <div className="text-center">
+                <BookOpen className="w-6 h-6 text-green-600 mx-auto mb-2" />
                 <p className="text-sm text-gray-600 mb-2">Blog Posts</p>
                 <p className="text-3xl font-bold text-green-600">{credits?.blog_posts_count || 0}</p>
               </div>
             </div>
             <div className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border-2 border-orange-500/20 rounded-lg p-6 hover:shadow-lg transition-all">
               <div className="text-center">
+                <LogIn className="w-6 h-6 text-orange-600 mx-auto mb-2" />
                 <p className="text-sm text-gray-600 mb-2">Login Streak</p>
                 <p className="text-3xl font-bold text-orange-600">{credits?.login_streak || 0} days</p>
               </div>
@@ -550,15 +592,23 @@ const MyProfile = () => {
                     {recentActivity.map((activity) => (
                       <div
                         key={activity.id}
-                        className="flex items-center justify-between p-3 rounded-lg bg-white/60 border border-gray-200"
+                        className="flex items-center justify-between p-3 rounded-lg bg-white/60 border border-gray-200 hover:border-primary/30 transition-colors"
                       >
-                        <div>
-                          <p className="font-medium text-sm">
-                            {activity.description || activity.activity_type}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {new Date(activity.created_at).toLocaleDateString()}
-                          </p>
+                        <div className="flex items-center gap-3">
+                          {getActivityIcon(activity.activity_type)}
+                          <div>
+                            <p className="font-medium text-sm capitalize">
+                              {activity.activity_type?.replace('_', ' ') || 'Activity'}
+                            </p>
+                            {activity.description && (
+                              <p className="text-xs text-gray-600 line-clamp-1">
+                                {activity.description}
+                              </p>
+                            )}
+                            <p className="text-xs text-gray-500 mt-1">
+                              {format(new Date(activity.created_at), 'MMM d, yyyy HH:mm')}
+                            </p>
+                          </div>
                         </div>
                         <span className="text-sm font-bold text-primary px-3 py-1 bg-primary/10 rounded-full">
                           +{activity.points_earned}
