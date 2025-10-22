@@ -343,27 +343,48 @@ const Survey2021: React.FC = () => {
       // Save to localStorage as backup
       saveFormData(formData);
       
-      const { error } = await supabase
+      // Check if record exists
+      const { data: existingRecord } = await supabase
         .from('survey_responses_2021')
-        .upsert({
-          user_id: user.id,
-          email_address: formData.email_address,
-          firm_name: formData.firm_name,
-          participant_name: formData.participant_name,
-          role_title: formData.role_title,
-          team_based: formData.team_based || [],
-          team_based_other: formData.team_based_other,
-          geographic_focus: formData.geographic_focus || [],
-          geographic_focus_other: formData.geographic_focus_other,
-          fund_stage: formData.fund_stage,
-          fund_stage_other: formData.fund_stage_other,
-          legal_entity_date: formData.legal_entity_date,
-          first_close_date: formData.first_close_date,
-          first_investment_date: formData.first_investment_date,
-          form_data: formData,
-          submission_status: 'draft',
-          updated_at: new Date().toISOString(),
-        });
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      const recordData = {
+        user_id: user.id,
+        email_address: formData.email_address,
+        firm_name: formData.firm_name,
+        participant_name: formData.participant_name,
+        role_title: formData.role_title,
+        team_based: formData.team_based || [],
+        team_based_other: formData.team_based_other,
+        geographic_focus: formData.geographic_focus || [],
+        geographic_focus_other: formData.geographic_focus_other,
+        fund_stage: formData.fund_stage,
+        fund_stage_other: formData.fund_stage_other,
+        legal_entity_date: formData.legal_entity_date,
+        first_close_date: formData.first_close_date,
+        first_investment_date: formData.first_investment_date,
+        form_data: formData,
+        submission_status: 'draft',
+        updated_at: new Date().toISOString(),
+      };
+
+      let error;
+      if (existingRecord) {
+        // Update existing record
+        const { error: updateError } = await supabase
+          .from('survey_responses_2021')
+          .update(recordData)
+          .eq('user_id', user.id);
+        error = updateError;
+      } else {
+        // Insert new record
+        const { error: insertError } = await supabase
+          .from('survey_responses_2021')
+          .insert(recordData);
+        error = insertError;
+      }
 
       if (error) throw error;
       
@@ -494,6 +515,8 @@ const Survey2021: React.FC = () => {
           submission_status: 'completed',
           completed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id'
         });
 
       if (error) throw error;
