@@ -123,6 +123,7 @@ const survey2021Schema = z.object({
   convening_initiatives_ranking: z.record(z.string(), z.string()),
   convening_initiatives_other: z.string().optional(),
   convening_initiatives_other_enabled: z.boolean().optional(),
+  convening_initiatives_other_ranking: z.string().optional(),
   
   // Section 7: 2021 Convening Objectives & Goals
   participate_mentoring_program: z.string().optional(),
@@ -198,9 +199,9 @@ const Survey2021: React.FC = () => {
       explicit_lens_focus: [],
       explicit_lens_focus_other: '',
       report_sustainable_development_goals: false,
-      top_sdg_1: '',
-      top_sdg_2: '',
-      top_sdg_3: '',
+      top_sdg_1: undefined,
+      top_sdg_2: undefined,
+      top_sdg_3: undefined,
       top_sdgs: {},
       other_sdgs: [],
       gender_considerations_investment: [],
@@ -249,6 +250,7 @@ const Survey2021: React.FC = () => {
       convening_initiatives_ranking: {},
       convening_initiatives_other: '',
       convening_initiatives_other_enabled: false,
+      convening_initiatives_other_ranking: '',
       participate_mentoring_program: '',
       participate_mentoring_program_other: '',
       present_demystifying_session: [],
@@ -290,6 +292,13 @@ const Survey2021: React.FC = () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [showIntro]);
+
+  // Scroll to top when section changes
+  useEffect(() => {
+    if (!showIntro) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [currentSection, showIntro]);
 
   // Check if survey is completed and show read-only version
   const surveyCompleted = isSurveyCompleted('2021');
@@ -1265,7 +1274,7 @@ const Survey2021: React.FC = () => {
                 <div className="p-4 border rounded-md bg-white">
                   <Label className="text-sm font-medium text-gray-800 mb-2">1st Priority SDG</Label>
                   <Select
-                    value={form.watch("top_sdg_1") || ""}
+                    value={form.watch("top_sdg_1") || undefined}
                     onValueChange={(value) => {
                       form.setValue("top_sdg_1", value);
                     }}
@@ -1274,15 +1283,14 @@ const Survey2021: React.FC = () => {
                       <SelectValue placeholder="Select 1st priority SDG" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
-            {[
-              "No Poverty", "Zero Hunger", "Good Health and Well-Being", "Quality Education",
-              "Gender Equality", "Clean Water and Sanitation", "Affordable and Clean Energy",
-              "Decent Work and Economic Growth", "Industry Innovation and Infrastructure",
-              "Reduced Inequalities", "Sustainable Cities and Communities", "Responsible Consumption and Production",
-              "Climate Action", "Life Below Water", "Life on Land", "Peace, Justice, and Strong Institutions",
-              "Partnerships for the Goals"
-            ].map((sdg) => (
+                      {[
+                        "No Poverty", "Zero Hunger", "Good Health and Well-Being", "Quality Education",
+                        "Gender Equality", "Clean Water and Sanitation", "Affordable and Clean Energy",
+                        "Decent Work and Economic Growth", "Industry Innovation and Infrastructure",
+                        "Reduced Inequalities", "Sustainable Cities and Communities", "Responsible Consumption and Production",
+                        "Climate Action", "Life Below Water", "Life on Land", "Peace, Justice, and Strong Institutions",
+                        "Partnerships for the Goals"
+                      ].map((sdg) => (
                         <SelectItem key={sdg} value={sdg}>{sdg}</SelectItem>
                       ))}
                     </SelectContent>
@@ -1292,8 +1300,8 @@ const Survey2021: React.FC = () => {
                 {/* 2nd Priority */}
                 <div className="p-4 border rounded-md bg-white">
                   <Label className="text-sm font-medium text-gray-800 mb-2">2nd Priority SDG</Label>
-                <Select
-                    value={form.watch("top_sdg_2") || ""}
+                  <Select
+                    value={form.watch("top_sdg_2") || undefined}
                     onValueChange={(value) => {
                       form.setValue("top_sdg_2", value);
                     }}
@@ -1302,7 +1310,6 @@ const Survey2021: React.FC = () => {
                       <SelectValue placeholder="Select 2nd priority SDG" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
                       {[
                         "No Poverty", "Zero Hunger", "Good Health and Well-Being", "Quality Education",
                         "Gender Equality", "Clean Water and Sanitation", "Affordable and Clean Energy",
@@ -1321,7 +1328,7 @@ const Survey2021: React.FC = () => {
                 <div className="p-4 border rounded-md bg-white">
                   <Label className="text-sm font-medium text-gray-800 mb-2">3rd Priority SDG</Label>
                   <Select
-                    value={form.watch("top_sdg_3") || ""}
+                    value={form.watch("top_sdg_3") || undefined}
                     onValueChange={(value) => {
                       form.setValue("top_sdg_3", value);
                     }}
@@ -1330,7 +1337,6 @@ const Survey2021: React.FC = () => {
                       <SelectValue placeholder="Select 3rd priority SDG" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
                       {[
                         "No Poverty", "Zero Hunger", "Good Health and Well-Being", "Quality Education",
                         "Gender Equality", "Clean Water and Sanitation", "Affordable and Clean Energy",
@@ -1580,7 +1586,7 @@ const Survey2021: React.FC = () => {
     <div className="space-y-6">
       <div className="space-y-3">
         <div>
-          <Label >26. What is the typical size of investment in your portfolio companies at the time of initial investment (in USD)?</Label>
+          <Label >25. What is the typical size of investment in your portfolio companies at the time of initial investment (in USD)?</Label>
         </div>
         <div className="grid grid-cols-2 gap-6">
           <div>
@@ -1619,7 +1625,7 @@ const Survey2021: React.FC = () => {
       </div>
         
       <div>
-        <Label >27. What forms of investment do you typically make?</Label>
+        <Label >26. What forms of investment do you typically make?</Label>
         <div className="text-sm text-gray-600">Check all that apply.</div>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
@@ -1667,7 +1673,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >28. What are your target investment sectors/focus areas?</Label>
+        <Label >27. What are your target investment sectors/focus areas?</Label>
         <div className="text-sm text-gray-600">Check all that apply.</div>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
@@ -1718,7 +1724,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label htmlFor="carried_interest_principals">Number of current carried-interest/equity-interest principals</Label>
+        <Label htmlFor="carried_interest_principals">28. Number of current carried-interest/equity-interest principals</Label>
         <Select onValueChange={(value) => form.setValue("carried_interest_principals", value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select count" />
@@ -1734,7 +1740,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label htmlFor="current_ftes">Number of current Full Time Equivalent staff members (FTEs) including principals</Label>
+        <Label htmlFor="current_ftes">29. Number of current Full Time Equivalent staff members (FTEs) including principals</Label>
         <Select onValueChange={(value) => form.setValue("current_ftes", value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select count" />
@@ -1843,7 +1849,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >32. What is the typical form of investment monetization/exit?</Label>
+        <Label >31. What is the typical form of investment monetization/exit?</Label>
         <div className="text-sm text-gray-600">Check all that apply.</div>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
@@ -1889,7 +1895,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label htmlFor="exits_achieved" >33. How many exits has your vehicle achieved to date (ie exits/monetizations for equity investments and full repayments for debt investments)?</Label>
+        <Label htmlFor="exits_achieved" >32. How many exits has your vehicle achieved to date (ie exits/monetizations for equity investments and full repayments for debt investments)?</Label>
         <Select onValueChange={(value) => {
           form.setValue("exits_achieved", value);
           if (value !== 'Other') {
@@ -1923,7 +1929,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >34. Fund capabilities and resources – what are the areas of desired investment/support for your fund? Please provide one ranking per row: 1 = highest need, 5 = lowest need</Label>
+        <Label >33. Fund capabilities and resources – what are the areas of desired investment/support for your fund? Please provide one ranking per row: 1 = highest need, 5 = lowest need</Label>
         <div className="space-y-4 mt-2">
           {[
             "Fundraising with access to global LPs",
@@ -2019,7 +2025,7 @@ const Survey2021: React.FC = () => {
   const renderSection5 = () => (
     <div className="space-y-6">
       <div>
-        <Label htmlFor="covid_impact_aggregate" >35. At an aggregate level, please indicate the impact of COVID-19 on your investment vehicle and operations.</Label>
+        <Label htmlFor="covid_impact_aggregate" >34. At an aggregate level, please indicate the impact of COVID-19 on your investment vehicle and operations.</Label>
         <Select onValueChange={(value) => form.setValue("covid_impact_aggregate", value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select impact level" />
@@ -2035,7 +2041,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >36. What impact has COVID-19 had on the following aspects of your portfolio companies?</Label>
+        <Label >35. What impact has COVID-19 had on the following aspects of your portfolio companies?</Label>
         <div className="space-y-4 mt-2">
           {[
             "Staff attendance", "Customer demand", "Ability to pay staff salaries",
@@ -2072,7 +2078,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >37. Have you received any financial or non-financial support from any government programs or grant funding related to COVID-19?</Label>
+        <Label >36. Have you received any financial or non-financial support from any government programs or grant funding related to COVID-19?</Label>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
             "Yes, government support (financial)",
@@ -2115,7 +2121,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >38. Do you anticipate raising new LP/investor funds in 2021? If yes, for what purpose?</Label>
+        <Label >37. Do you anticipate raising new LP/investor funds in 2021? If yes, for what purpose?</Label>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
             "N/A - have no plans to raise capital in 2021", "Stabilize operations of existing portfolio companies",
@@ -2157,7 +2163,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >39. Regarding your current fund/investment vehicle, which of the following is under consideration?</Label>
+        <Label >38. Regarding your current fund/investment vehicle, which of the following is under consideration?</Label>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
             "No change planned",
@@ -2166,7 +2172,8 @@ const Survey2021: React.FC = () => {
             "Increase application of alternative debt instruments (e.g. mezzanine debt, convertible debt, or shared revenue instruments)",
             "Increase use of technology in order to lower fund operational costs",
             "Increase use of data and technology to facilitate investment decisions",
-            "Build new partnerships for joint co-investment opportunities, expand pipeline opportunities"
+            "Build new partnerships for joint co-investment opportunities, expand pipeline opportunities",
+            "Other"
           ].map((consideration) => (
             <div key={consideration} className="flex items-center space-x-2">
               <Checkbox
@@ -2179,12 +2186,27 @@ const Survey2021: React.FC = () => {
                   } else {
                     form.setValue("fund_vehicle_considerations", current.filter(item => item !== consideration));
                   }
+                  // Clear other input when unchecking Other
+                  if (consideration === 'Other' && !checked) {
+                    form.setValue('fund_vehicle_considerations_other', '');
+                  }
                 }}
               />
               <Label htmlFor={`vehicle_consideration_${consideration}`} className="text-sm font-normal text-gray-800">{consideration}</Label>
             </div>
           ))}
         </div>
+        {form.watch("fund_vehicle_considerations").includes("Other") && (
+          <div className="mt-3">
+            <Label htmlFor="fund_vehicle_considerations_other">Other:</Label>
+            <Input
+              id="fund_vehicle_considerations_other"
+              {...form.register("fund_vehicle_considerations_other")}
+              placeholder="Please specify other fund vehicle consideration"
+              className="mt-1"
+            />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -2192,7 +2214,7 @@ const Survey2021: React.FC = () => {
   const renderSection6 = () => (
     <div className="space-y-6">
       <div>
-        <Label >40. Overall, how valuable have you found your participation in the ESCP network?</Label>
+        <Label >39. Overall, how valuable have you found your participation in the ESCP network?</Label>
         <Select onValueChange={(value) => form.setValue('network_value_rating', value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select rating (1 = Most valuable, 5 = Least valuable)" />
@@ -2208,7 +2230,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >41. Please indicate which working groups you have found the most valuable. Please provide one ranking per row (or for each group you have engaged with): 1 = most valuable, 5 = least valuable, N/A = not engaged</Label>
+        <Label >40. Please indicate which working groups you have found the most valuable. Please provide one ranking per row (or for each group you have engaged with): 1 = most valuable, 5 = least valuable, N/A = not engaged</Label>
         <div className="space-y-4 mt-2">
           {[
             'Fund Economics',
@@ -2241,7 +2263,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >42. Do you have suggestions of new working group topics/formats you would like to see?</Label>
+        <Label >41. Do you have suggestions of new working group topics/formats you would like to see?</Label>
         <div className="mt-2">
           <textarea
             id="new_working_group_suggestions"
@@ -2253,7 +2275,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >43. Please indicate which webinar content you have found the most valuable. Please provide one ranking per row (or for each webinar you attended/watched): 1 = most valuable, 5 = least valuable, N/A = not attended</Label>
+        <Label >42. Please indicate which webinar content you have found the most valuable. Please provide one ranking per row (or for each webinar you attended/watched): 1 = most valuable, 5 = least valuable, N/A = not attended</Label>
         <div className="space-y-4 mt-2">
           {[
             'Gender lens investing (facilitated by Suzanne Biegel)',
@@ -2292,7 +2314,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >44. Do you have suggestions of new webinar topics/formats you would like to see?</Label>
+        <Label >43. Do you have suggestions of new webinar topics/formats you would like to see?</Label>
         <div className="mt-2">
           <textarea
             id="new_webinar_suggestions"
@@ -2304,7 +2326,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >45. Do you prefer Slack or WhatsApp as a communication platform for the network?</Label>
+        <Label >44. Do you prefer Slack or WhatsApp as a communication platform for the network?</Label>
         <Select onValueChange={(value) => {
           form.setValue('communication_platform', value);
           if (value !== 'Other') {
@@ -2341,7 +2363,7 @@ const Survey2021: React.FC = () => {
   const renderSection7 = () => (
     <div className="space-y-6">
       <div>
-        <Label >46. What are the main areas of value that you have received from the network to date? Please provide one ranking per row: 1 = most valuable, 5 = least valuable</Label>
+        <Label >45. What are the main areas of value that you have received from the network to date? Please provide one ranking per row: 1 = most valuable, 5 = least valuable</Label>
         <div className="space-y-4 mt-2">
           {[
             "Peer connections and peer learning", "Advocacy for early stage investing",
@@ -2371,7 +2393,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >47. Would you like to present in Session 1: "Connection/Reconnection" on Tuesday February 16th to provide a brief (1-2 min update) on your activities/progress (please note you are not required to present in order to attend this session – presenting is optional!)?</Label>
+        <Label >46. Would you like to present in Session 1: "Connection/Reconnection" on Tuesday February 16th to provide a brief (1-2 min update) on your activities/progress (please note you are not required to present in order to attend this session – presenting is optional!)?</Label>
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <input
@@ -2421,7 +2443,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >48. In advance of Session 3: "Planning for 2021" on Tuesday February 23rd, please indicate which of the below initiatives you would be interested in, that you believe will add most value to your organization. Please provide one ranking per row: 1 = very interested, 2 = possibly interested, 3 = not interested</Label>
+        <Label >47. In advance of Session 3: "Planning for 2021" on Tuesday February 23rd, please indicate which of the below initiatives you would be interested in, that you believe will add most value to your organization. Please provide one ranking per row: 1 = very interested, 2 = possibly interested, 3 = not interested</Label>
         <div className="space-y-4 mt-2">
           {[
             "Warehousing/seed funding for fund managers to build track record",
@@ -2464,24 +2486,43 @@ const Survey2021: React.FC = () => {
                 form.setValue("convening_initiatives_other_enabled", checked);
                 if (!checked) {
                   form.setValue("convening_initiatives_other", "");
+                  form.setValue("convening_initiatives_other_ranking", "");
                 }
               }}
             />
             <Label htmlFor="convening_initiatives_other_enabled">Other:</Label>
           </div>
           {form.watch("convening_initiatives_other_enabled") && (
-            <Input
-              id="convening_initiatives_other"
-              {...form.register("convening_initiatives_other")}
-              placeholder="Please specify other initiative"
-              className="mt-1"
-            />
+            <div className="mt-3 space-y-3">
+              <div>
+                <Label htmlFor="convening_initiatives_other">Please describe the other initiative:</Label>
+                <Input
+                  id="convening_initiatives_other"
+                  {...form.register("convening_initiatives_other")}
+                  placeholder="Please specify other initiative"
+                  className="mt-1"
+                />
+              </div>
+              <div className="flex items-center space-x-3">
+                <Label className="text-sm font-normal text-gray-800">Rank:</Label>
+                <Select onValueChange={(value) => form.setValue("convening_initiatives_other_ranking", value)}>
+                  <SelectTrigger className="w-20">
+                    <SelectValue placeholder="-" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1</SelectItem>
+                    <SelectItem value="2">2</SelectItem>
+                    <SelectItem value="3">3</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           )}
         </div>
       </div>
 
       <div>
-        <Label >49. Would you be interested in participating in a peer mentoring program?</Label>
+        <Label >48. Would you be interested in participating in a peer mentoring program?</Label>
         <Select onValueChange={(value) => form.setValue("participate_mentoring_program", value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select option" />
@@ -2508,7 +2549,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >50. Would you like to present in Session 4: "Demystifying frontier finance" on Thursday February 25th, and if so, please indicate which sub-topic(s) you would be interested in presenting on (please note you are not required to present in order to attend this session – presenting is optional!)?</Label>
+        <Label >49. Would you like to present in Session 4: "Demystifying frontier finance" on Thursday February 25th, and if so, please indicate which sub-topic(s) you would be interested in presenting on (please note you are not required to present in order to attend this session – presenting is optional!)?</Label>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
             "Yes, open ended vehicles", "Yes, early stage debt vehicles", "Yes, early stage equity",
@@ -2557,7 +2598,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >51. Any other comments / feedback that you would like to share?</Label>
+        <Label >50. Any other comments / feedback that you would like to share?</Label>
         <Textarea
           id="additional_comments"
           {...form.register("additional_comments")}
@@ -2637,7 +2678,10 @@ const Survey2021: React.FC = () => {
                 return (
                   <button
                     key={sectionNumber}
-                    onClick={() => setCurrentSection(sectionNumber)}
+                    onClick={() => {
+                      setCurrentSection(sectionNumber);
+                      setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 0);
+                    }}
                     className={[
                       'w-full flex items-center space-x-3 p-3 rounded-lg text-left transition-all duration-200',
                       isActive

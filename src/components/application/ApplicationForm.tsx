@@ -263,137 +263,168 @@ const ApplicationForm = () => {
 
   // Show application form
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Apply for CFF Network Membership</CardTitle>
-          <CardDescription>
-            Join our global community of fund managers and emerging market professionals
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Section A: Background Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold border-b pb-2 text-gray-800">A. Background Information</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="applicant_name">
-                    Name <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="applicant_name"
-                    value={formData.applicant_name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, applicant_name: e.target.value }))}
-                    placeholder="Enter your full name"
-                    required
-                    className="mt-1"
-                  />
-                </div>
+    <div className="max-w-4xl mx-auto p-6 space-y-8">
+      {/* Header Section */}
+      <div className="text-center space-y-4">
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl p-8 shadow-lg">
+          <h1 className="text-4xl font-bold mb-4">Join the CFF Network</h1>
+          <p className="text-xl text-blue-100">
+            Connect with global fund managers and emerging market professionals
+          </p>
+        </div>
+      </div>
 
-                <div>
-                  <Label htmlFor="email">
-                    Email Address <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    disabled
-                    className="mt-1 bg-gray-50"
-                  />
-                </div>
+      <form onSubmit={handleSubmit} className="space-y-8">
+        {/* Section A: Background Information */}
+        <Card className="border-l-4 border-l-blue-500 shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100">
+            <CardTitle className="text-2xl text-blue-800 flex items-center gap-3">
+              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">A</div>
+              Background Information
+            </CardTitle>
+            <CardDescription className="text-blue-700">
+              Tell us about yourself and your organization
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="applicant_name" className="text-sm font-medium text-gray-700">
+                  Full Name <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="applicant_name"
+                  value={formData.applicant_name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, applicant_name: e.target.value }))}
+                  placeholder="Enter your full name"
+                  required
+                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
 
-                <div>
-                  <Label htmlFor="vehicle_name">
-                    Vehicle Name <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="vehicle_name"
-                    value={formData.vehicle_name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, vehicle_name: e.target.value }))}
-                    placeholder="Enter vehicle name"
-                    required
-                    className="mt-1"
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                  Email Address <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  disabled
+                  className="bg-gray-50 border-gray-300 text-gray-600"
+                />
+              </div>
 
-                <div>
-                  <Label htmlFor="organization_website">
-                    Vehicle Website <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="organization_website"
-                    type="url"
-                    value={formData.organization_website}
-                    onChange={(e) => setFormData(prev => ({ ...prev, organization_website: e.target.value }))}
-                    placeholder="https://example.com"
-                    required
-                    className="mt-1"
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicle_name" className="text-sm font-medium text-gray-700">
+                  Fund/Vehicle Name <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="vehicle_name"
+                  value={formData.vehicle_name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, vehicle_name: e.target.value }))}
+                  placeholder="Enter your fund or vehicle name"
+                  required
+                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="organization_website" className="text-sm font-medium text-gray-700">
+                  Website <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="organization_website"
+                  type="url"
+                  value={formData.organization_website}
+                  onChange={(e) => setFormData(prev => ({ ...prev, organization_website: e.target.value }))}
+                  placeholder="https://example.com"
+                  required
+                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                />
               </div>
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Section B: Team Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold border-b pb-2 text-gray-800">B. Team Information</h3>
-              
-              <div>
-                <Label htmlFor="role_job_title">
-                  Role/Job Title & Relevant Experience <span className="text-red-500">*</span>
+        {/* Section B: Team Information */}
+        <Card className="border-l-4 border-l-green-500 shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-green-50 to-green-100">
+            <CardTitle className="text-2xl text-green-800 flex items-center gap-3">
+              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white font-bold">B</div>
+              Team Information
+            </CardTitle>
+            <CardDescription className="text-green-700">
+              Share details about your team and experience
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="role_job_title" className="text-sm font-medium text-gray-700">
+                  Role & Relevant Experience <span className="text-red-500">*</span>
                 </Label>
                 <Textarea
                   id="role_job_title"
                   value={formData.role_job_title}
                   onChange={(e) => setFormData(prev => ({ ...prev, role_job_title: e.target.value }))}
-                  rows={3}
-                  placeholder="Describe your role and relevant experience"
+                  rows={4}
+                  placeholder="Describe your role, responsibilities, and relevant experience in the investment space"
                   required
-                  className="mt-1"
+                  className="border-gray-300 focus:border-green-500 focus:ring-green-500"
                 />
               </div>
 
-              <div>
-                <Label htmlFor="team_overview">
-                  Team Size & Co-founder Details <span className="text-red-500">*</span>
+              <div className="space-y-2">
+                <Label htmlFor="team_overview" className="text-sm font-medium text-gray-700">
+                  Team Structure & Co-founders <span className="text-red-500">*</span>
                 </Label>
                 <Textarea
                   id="team_overview"
                   value={formData.team_overview}
                   onChange={(e) => setFormData(prev => ({ ...prev, team_overview: e.target.value }))}
-                  rows={3}
-                  placeholder="Describe your team size, structure, and key co-founders"
+                  rows={4}
+                  placeholder="Describe your team size, structure, key co-founders, and their backgrounds"
                   required
-                  className="mt-1"
+                  className="border-gray-300 focus:border-green-500 focus:ring-green-500"
                 />
               </div>
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Section C: Vehicle Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold border-b pb-2 text-gray-800">C. Vehicle Information</h3>
-              
-              <div>
-                <Label htmlFor="investment_thesis">
+        {/* Section C: Vehicle Information */}
+        <Card className="border-l-4 border-l-purple-500 shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-purple-50 to-purple-100">
+            <CardTitle className="text-2xl text-purple-800 flex items-center gap-3">
+              <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold">C</div>
+              Investment Vehicle Details
+            </CardTitle>
+            <CardDescription className="text-purple-700">
+              Tell us about your investment strategy and track record
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="investment_thesis" className="text-sm font-medium text-gray-700">
                   Investment Thesis <span className="text-red-500">*</span>
                 </Label>
                 <Textarea
                   id="investment_thesis"
                   value={formData.investment_thesis}
                   onChange={(e) => setFormData(prev => ({ ...prev, investment_thesis: e.target.value }))}
-                  rows={4}
-                  placeholder="Describe your investment strategy and focus"
+                  rows={5}
+                  placeholder="Describe your investment strategy, focus areas, target sectors, and investment criteria"
                   required
-                  className="mt-1"
+                  className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="typical_check_size">
-                    Average Ticket Size (USD) <span className="text-red-500">*</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="typical_check_size" className="text-sm font-medium text-gray-700">
+                    Average Investment Size <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="typical_check_size"
@@ -401,13 +432,13 @@ const ApplicationForm = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, typical_check_size: e.target.value }))}
                     placeholder="e.g., $100K - $500K"
                     required
-                    className="mt-1"
+                    className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="number_of_investments">
-                    Number of Investments Made <span className="text-red-500">*</span>
+                <div className="space-y-2">
+                  <Label htmlFor="number_of_investments" className="text-sm font-medium text-gray-700">
+                    Number of Investments <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="number_of_investments"
@@ -415,82 +446,106 @@ const ApplicationForm = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, number_of_investments: e.target.value }))}
                     placeholder="e.g., 15"
                     required
-                    className="mt-1"
+                    className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                   />
                 </div>
 
-                <div className="md:col-span-2">
-                  <Label htmlFor="amount_raised_to_date">
-                    Capital Raised (soft + hard commitments; include self-contribution) <span className="text-red-500">*</span>
+                <div className="md:col-span-2 space-y-2">
+                  <Label htmlFor="amount_raised_to_date" className="text-sm font-medium text-gray-700">
+                    Total Capital Raised <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="amount_raised_to_date"
                     value={formData.amount_raised_to_date}
                     onChange={(e) => setFormData(prev => ({ ...prev, amount_raised_to_date: e.target.value }))}
-                    placeholder="e.g., $5M"
+                    placeholder="e.g., $5M (include soft + hard commitments and self-contribution)"
                     required
-                    className="mt-1"
+                    className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                   />
                 </div>
               </div>
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Section D: Network Expectations */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold border-b pb-2 text-gray-800">D. Network Expectations</h3>
-              
-              <div>
-                <Label htmlFor="expectations_from_network">
-                  Expectations from the CFF Network <span className="text-red-500">*</span>
+        {/* Section D: Network Expectations */}
+        <Card className="border-l-4 border-l-orange-500 shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-orange-50 to-orange-100">
+            <CardTitle className="text-2xl text-orange-800 flex items-center gap-3">
+              <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold">D</div>
+              Network Expectations
+            </CardTitle>
+            <CardDescription className="text-orange-700">
+              Share your goals and how you discovered our network
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="expectations_from_network" className="text-sm font-medium text-gray-700">
+                  What do you hope to gain from the CFF Network? <span className="text-red-500">*</span>
                 </Label>
                 <Textarea
                   id="expectations_from_network"
                   value={formData.expectations_from_network}
                   onChange={(e) => setFormData(prev => ({ ...prev, expectations_from_network: e.target.value }))}
-                  rows={4}
-                  placeholder="What are you hoping to gain from joining the network?"
+                  rows={5}
+                  placeholder="Describe your expectations, goals, and what you hope to contribute to and gain from the network"
                   required
-                  className="mt-1"
+                  className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
                 />
               </div>
 
-              <div>
-                <Label htmlFor="how_heard_about_network">
-                  How did you hear about the Network? <span className="text-red-500">*</span>
+              <div className="space-y-2">
+                <Label htmlFor="how_heard_about_network" className="text-sm font-medium text-gray-700">
+                  How did you hear about the CFF Network? <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="how_heard_about_network"
                   value={formData.how_heard_about_network}
                   onChange={(e) => setFormData(prev => ({ ...prev, how_heard_about_network: e.target.value }))}
-                  placeholder="e.g., Referral, Social Media, Conference"
+                  placeholder="e.g., Referral from member, LinkedIn, Conference, Media, etc."
                   required
-                  className="mt-1"
+                  className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
                 />
               </div>
             </div>
+          </CardContent>
+        </Card>
 
-            <div className="flex gap-4 pt-4">
+        {/* Submit Section */}
+        <Card className="border-l-4 border-l-indigo-500 shadow-lg">
+          <CardContent className="p-6">
+            <div className="text-center space-y-4">
+              <div className="bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-indigo-800 mb-2">Ready to Submit?</h3>
+                <p className="text-indigo-700 text-sm">
+                  Please review all information before submitting your application. 
+                  Our team will review your application within 5-7 business days.
+                </p>
+              </div>
+              
               <Button
                 type="submit"
                 disabled={loading}
-                className="flex-1"
+                className="w-full md:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 px-8 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200"
               >
                 {loading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Submitting...
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                    Submitting Application...
                   </>
                 ) : (
                   <>
-                    <Send className="w-4 h-4 mr-2" />
+                    <Send className="w-5 h-5 mr-3" />
                     Submit Application
                   </>
                 )}
               </Button>
             </div>
-          </form>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </form>
     </div>
   );
 };
