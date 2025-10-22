@@ -738,6 +738,39 @@ const MemberNetwork = React.memo(() => {
           </Card>
         </div>
 
+        {/* Survey Access Section */}
+        <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50 to-purple-50 mb-6">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-600 rounded-xl flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl font-bold text-gray-900">Take Surveys</CardTitle>
+                  <CardDescription className="text-gray-600">
+                    Access and complete surveys for different years
+                  </CardDescription>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <Select onValueChange={(value) => value && navigate(`/survey/${value}`)}>
+                  <SelectTrigger className="w-48 bg-white border-2 border-blue-200 hover:border-blue-400">
+                    <SelectValue placeholder="Choose Survey Year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2021">📊 2021 Survey</SelectItem>
+                    <SelectItem value="2022">📊 2022 Survey</SelectItem>
+                    <SelectItem value="2023">📊 2023 Survey</SelectItem>
+                    <SelectItem value="2024">📊 2024 Survey</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
         {/* Modern Search & Filter Section */}
         <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
           <CardHeader className="pb-4">
@@ -755,20 +788,6 @@ const MemberNetwork = React.memo(() => {
               </div>
               
               <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-2">
-                  <FileText className="w-4 h-4 text-purple-600" />
-                  <Select onValueChange={(value) => value && navigate(`/survey/${value}`)}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Go to Survey Year" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="2021">2021 Survey</SelectItem>
-                      <SelectItem value="2022">2022 Survey</SelectItem>
-                      <SelectItem value="2023">2023 Survey</SelectItem>
-                      <SelectItem value="2024">2024 Survey</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
                 
                 <Button
                   variant="outline"

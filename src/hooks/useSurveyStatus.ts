@@ -57,7 +57,7 @@ class SurveyStatusManager {
         (async () => {
           try {
             return await supabase
-              .from('survey_2021_responses')
+              .from('survey_responses_2021')
               .select('id, completed_at, *')
               .eq('user_id', userId)
               .not('completed_at', 'is', null)
@@ -75,7 +75,7 @@ class SurveyStatusManager {
         (async () => {
           try {
             return await supabase
-              .from('survey_2023_responses')
+              .from('survey_responses_2023')
               .select('id, completed_at, *')
               .eq('user_id', userId)
               .not('completed_at', 'is', null)
@@ -90,7 +90,7 @@ class SurveyStatusManager {
         (async () => {
           try {
             return await supabase
-              .from('survey_2024_responses')
+              .from('survey_responses_2024')
               .select('id, completed_at, *')
               .eq('user_id', userId)
               .not('completed_at', 'is', null)
@@ -105,10 +105,10 @@ class SurveyStatusManager {
         (async () => {
           try {
             const [survey2021, survey2022, survey2023, survey2024] = await Promise.all([
-              supabase.from('survey_2021_responses').select('id, completed_at, *').eq('user_id', userId).not('completed_at', 'is', null).maybeSingle(),
-              supabase.from('survey_2022_responses').select('id, completed_at, *').eq('user_id', userId).not('completed_at', 'is', null).maybeSingle(),
-              supabase.from('survey_2023_responses').select('id, completed_at, *').eq('user_id', userId).not('completed_at', 'is', null).maybeSingle(),
-              supabase.from('survey_2024_responses').select('id, completed_at, *').eq('user_id', userId).not('completed_at', 'is', null).maybeSingle()
+              supabase.from('survey_responses_2021').select('id, completed_at, *').eq('user_id', userId).not('completed_at', 'is', null).maybeSingle(),
+              supabase.from('survey_responses_2022').select('id, completed_at, *').eq('user_id', userId).not('completed_at', 'is', null).maybeSingle(),
+              supabase.from('survey_responses_2023').select('id, completed_at, *').eq('user_id', userId).not('completed_at', 'is', null).maybeSingle(),
+              supabase.from('survey_responses_2024').select('id, completed_at, *').eq('user_id', userId).not('completed_at', 'is', null).maybeSingle()
             ]);
             
             // Return the first completed survey found

@@ -273,14 +273,14 @@ const ViewerNetworkPage = () => {
               <div className="flex items-center space-x-2">
                 <FileText className="w-4 h-4 text-purple-600" />
                 <Select onValueChange={(value) => value && (window.location.href = `/survey/${value}`)}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Go to Survey Year" />
+                  <SelectTrigger className="w-48 bg-white border-2 border-blue-200 hover:border-blue-400">
+                    <SelectValue placeholder="Choose Survey Year" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="2021">2021 Survey</SelectItem>
-                    <SelectItem value="2022">2022 Survey</SelectItem>
-                    <SelectItem value="2023">2023 Survey</SelectItem>
-                    <SelectItem value="2024">2024 Survey</SelectItem>
+                    <SelectItem value="2021">📊 2021 Survey</SelectItem>
+                    <SelectItem value="2022">📊 2022 Survey</SelectItem>
+                    <SelectItem value="2023">📊 2023 Survey</SelectItem>
+                    <SelectItem value="2024">📊 2024 Survey</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
