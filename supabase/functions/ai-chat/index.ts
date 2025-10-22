@@ -148,6 +148,14 @@ If the question is general (not about this dataset), you may answer helpfully us
     const aiData = await aiResponse.json()
     const reply = aiData.choices[0].message.content
 
+    // Award points for AI usage (fire and forget)
+    supabaseClient.rpc('award_points', {
+      p_user_id: user.id,
+      p_activity_type: 'ai_usage',
+      p_points: 5,
+      p_description: 'Used AI assistant'
+    }).then(() => console.log('Points awarded')).catch(e => console.error('Failed to award points:', e))
+
     return new Response(
       JSON.stringify({ reply, response: reply }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

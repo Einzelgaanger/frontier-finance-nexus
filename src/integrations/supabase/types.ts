@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_log: {
+        Row: {
+          activity_type: string
+          created_at: string | null
+          description: string | null
+          id: string
+          points_earned: number
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          points_earned: number
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          points_earned?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       applications: {
         Row: {
           admin_notes: string | null
@@ -86,6 +113,45 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
           vehicle_name?: string | null
+        }
+        Relationships: []
+      }
+      blogs: {
+        Row: {
+          caption: string | null
+          content: string | null
+          created_at: string | null
+          id: string
+          is_published: boolean | null
+          media_type: string | null
+          media_url: string | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          caption?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          is_published?: boolean | null
+          media_type?: string | null
+          media_url?: string | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          caption?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          is_published?: boolean | null
+          media_type?: string | null
+          media_url?: string | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -308,6 +374,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_credits: {
+        Row: {
+          ai_usage_count: number | null
+          blog_posts_count: number | null
+          created_at: string | null
+          id: string
+          last_login_date: string | null
+          login_streak: number | null
+          total_points: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          ai_usage_count?: number | null
+          blog_posts_count?: number | null
+          created_at?: string | null
+          id?: string
+          last_login_date?: string | null
+          login_streak?: number | null
+          total_points?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          ai_usage_count?: number | null
+          blog_posts_count?: number | null
+          created_at?: string | null
+          id?: string
+          last_login_date?: string | null
+          login_streak?: number | null
+          total_points?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
           company_id: string | null
@@ -391,6 +493,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      award_points: {
+        Args: {
+          p_activity_type: string
+          p_description?: string
+          p_points: number
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: string

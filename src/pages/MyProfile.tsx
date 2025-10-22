@@ -40,6 +40,8 @@ const MyProfile = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [credits, setCredits] = useState<any>(null);
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     company_name: '',
     email: '',
@@ -102,7 +104,32 @@ const MyProfile = () => {
           description: profileData.description || '',
           profile_photo_url: profileData.profile_photo_url || ''
         });
-      } else {
+      }
+
+      // Fetch credits
+      const { data: creditsData } = await supabase
+        .from('user_credits')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (creditsData) {
+        setCredits(creditsData);
+      }
+
+      // Fetch recent activity
+      const { data: activityData } = await supabase
+        .from('activity_log')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (activityData) {
+        setRecentActivity(activityData);
+      }
+
+      if (!data) {
         // Create default profile - handle case where user might not exist in auth.users
         const { data: newProfile, error: createError } = await supabase
           .from('user_profiles' as any)
@@ -474,6 +501,95 @@ const MyProfile = () => {
                         )}
                       </Button>
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Gamification Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6 px-4 sm:px-6 lg:px-8">
+            <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-primary/20 rounded-lg p-6 hover:shadow-lg transition-all">
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-2">Total Points</p>
+                <p className="text-3xl font-bold text-primary">{credits?.total_points || 0}</p>
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-2 border-blue-500/20 rounded-lg p-6 hover:shadow-lg transition-all">
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-2">AI Queries</p>
+                <p className="text-3xl font-bold text-blue-600">{credits?.ai_usage_count || 0}</p>
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-2 border-green-500/20 rounded-lg p-6 hover:shadow-lg transition-all">
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-2">Blog Posts</p>
+                <p className="text-3xl font-bold text-green-600">{credits?.blog_posts_count || 0}</p>
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border-2 border-orange-500/20 rounded-lg p-6 hover:shadow-lg transition-all">
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-2">Login Streak</p>
+                <p className="text-3xl font-bold text-orange-600">{credits?.login_streak || 0} days</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Activity & Points Info */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6 px-4 sm:px-6 lg:px-8 pb-12">
+            {/* Recent Activity */}
+            <div className="group relative overflow-hidden rounded-lg bg-[#f5f5dc] border-2 border-purple-200 hover:border-purple-400 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg">
+              <div className="relative p-6">
+                <h2 className="text-lg font-bold text-gray-800 mb-4">Recent Activity</h2>
+                {recentActivity.length === 0 ? (
+                  <p className="text-sm text-gray-600 text-center py-4">
+                    No activity yet. Start using the platform to earn points!
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {recentActivity.map((activity) => (
+                      <div
+                        key={activity.id}
+                        className="flex items-center justify-between p-3 rounded-lg bg-white/60 border border-gray-200"
+                      >
+                        <div>
+                          <p className="font-medium text-sm">
+                            {activity.description || activity.activity_type}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {new Date(activity.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <span className="text-sm font-bold text-primary px-3 py-1 bg-primary/10 rounded-full">
+                          +{activity.points_earned}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Points Info */}
+            <div className="group relative overflow-hidden rounded-lg bg-[#f5f5dc] border-2 border-yellow-200 hover:border-yellow-400 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg">
+              <div className="relative p-6">
+                <h2 className="text-lg font-bold text-gray-800 mb-4">How to Earn Points</h2>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 p-3 bg-white/60 rounded-lg border border-gray-200">
+                    <span className="font-bold text-lg text-primary">+10</span>
+                    <span className="text-sm text-gray-700">Create a blog post</span>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-white/60 rounded-lg border border-gray-200">
+                    <span className="font-bold text-lg text-primary">+5</span>
+                    <span className="text-sm text-gray-700">Use AI assistant</span>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-white/60 rounded-lg border border-gray-200">
+                    <span className="font-bold text-lg text-primary">+2</span>
+                    <span className="text-sm text-gray-700">Daily login</span>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-white/60 rounded-lg border border-gray-200">
+                    <span className="font-bold text-lg text-primary">+20</span>
+                    <span className="text-sm text-gray-700">Complete survey</span>
                   </div>
                 </div>
               </div>
