@@ -10,6 +10,7 @@ import LoadingScreen from "@/components/ui/loading-screen";
 import { useLoadingStore } from "@/store/loading-store";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import EncodedAuth from "./pages/EncodedAuth";
 import Dashboard from "./pages/Dashboard";
 import NetworkWrapper from "./components/NetworkWrapper";
 import FundManagerDetail from "./pages/FundManagerDetail";
@@ -49,6 +50,7 @@ const App = () => {
             <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/encoded-auth" element={<EncodedAuth />} />
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
