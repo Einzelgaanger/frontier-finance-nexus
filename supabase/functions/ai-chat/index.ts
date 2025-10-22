@@ -23,7 +23,10 @@ Deno.serve(async (req) => {
 
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
     if (userError || !user) {
-      throw new Error('Unauthorized')
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
     const { message } = await req.json()
@@ -102,6 +105,7 @@ ${visibleFields.map(f => `- ${f.field_name} (${f.field_category})`).join('\n')}
 
 Answer the user's question based ONLY on the data you can access. Be helpful and concise.
 If the user asks about data you cannot access due to their role, politely explain that the information is restricted to higher roles.
+If the question is general (not about this dataset), you may answer helpfully using your general knowledge, and clearly note when an answer is not sourced from the dataset.
 `
 
     // Call Lovable AI

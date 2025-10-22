@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SidebarLayout from '@/components/layout/SidebarLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,6 +17,19 @@ const PortIQ = () => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+
+  // SEO: dynamic title and description
+  useEffect(() => {
+    document.title = 'PortIQ – AI Assistant for CFF Network';
+    const desc = 'Ask PortIQ about fund data and surveys. Role-aware access with professional insights.';
+    let meta = document.querySelector('meta[name="description"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'description');
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute('content', desc);
+  }, []);
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
