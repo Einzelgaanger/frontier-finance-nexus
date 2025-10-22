@@ -26,6 +26,7 @@ import ResetPassword from "./pages/ResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import AdminWrapper from "./components/AdminWrapper";
 import AnalyticsWrapper from "./components/AnalyticsWrapper";
+import AdminAnalytics from "./pages/AdminAnalytics";
 // Onboarding removed per request
 import SurveyResponseViewer from "./components/survey/SurveyResponseViewer";
 import NotFound from "./pages/NotFound";
@@ -117,8 +118,8 @@ const App = () => {
               </ProtectedRoute>
             } />
             <Route path="/analytics" element={
-              <ProtectedRoute>
-                <AnalyticsWrapper />
+              <ProtectedRoute requiredRole="admin">
+                <AdminAnalytics />
               </ProtectedRoute>
             } />
             <Route path="/portiq" element={

@@ -29,7 +29,11 @@ Deno.serve(async (req) => {
       )
     }
 
-    const { message } = await req.json()
+    const { message, messages } = await req.json()
+
+    // Support both single message and messages array formats
+    const userMessage = message || (messages && messages[messages.length - 1]?.content) || ''
+    const conversationHistory = messages || [{ role: 'user', content: userMessage }]
 
     // Get user role
     const { data: roleData, error: roleError } = await supabaseClient
@@ -256,7 +260,7 @@ ${visibleFields.map(f => `- ${f.table_name}.${f.field_name} (${f.field_category}
         model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: context },
-          { role: 'user', content: message }
+          ...conversationHistory
         ],
       }),
     })
@@ -294,7 +298,7 @@ ${visibleFields.map(f => `- ${f.table_name}.${f.field_name} (${f.field_category}
     }).then(() => console.log('Points awarded')).catch(e => console.error('Failed to award points:', e))
 
     return new Response(
-      JSON.stringify({ reply, response: reply }),
+      JSON.stringify({ reply, response: reply, message: reply }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
