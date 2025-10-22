@@ -48,7 +48,6 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import AIAssistant from './AIAssistant';
-import EncodedModeToggle from '@/components/admin/EncodedModeToggle';
 
 interface StatCard {
   title: string;
@@ -733,9 +732,6 @@ const AdminDashboardV2 = () => {
               </div>
             </div>
           </div>
-
-          {/* Data Privacy Mode Toggle */}
-          <EncodedModeToggle />
 
           {/* AI Assistant Section */}
           <AIAssistant />

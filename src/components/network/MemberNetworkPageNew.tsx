@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Building2, Mail, Globe, Loader2, User, FileText } from 'lucide-react';
 import FundManagerDetailModal from './FundManagerDetailModal';
 import { useAuth } from '@/hooks/useAuth';
-import { displayString } from '@/utils/encodingSystem';
 
 interface UserProfile {
   id: string;
@@ -190,7 +189,7 @@ export default function MemberNetworkPageNew() {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm">
                       <Mail className="w-4 h-4 text-muted-foreground" />
-                      <span className="truncate text-xs break-all">{displayString(profile.email)}</span>
+                      <span className="truncate text-xs break-all">{profile.email}</span>
                     </div>
                     
                     {profile.website && (

@@ -7,7 +7,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { displayString } from "@/utils/encodingSystem";
 
 interface HeaderProps {
   showNav?: boolean;
@@ -179,7 +178,7 @@ const Header = ({ showNav = true }: HeaderProps) => {
                 {/* Email Display */}
                 <div className="flex items-center space-x-2 text-sm text-gray-700 bg-gray-50 px-3 py-2 rounded-xl border border-gray-200">
                   <User className="w-4 h-4 text-gray-500" />
-                  <span className="font-medium text-gray-800 text-xs break-all max-w-xs">{displayString(user.email || '')}</span>
+                  <span className="font-medium text-gray-800 text-xs break-all max-w-xs">{user.email || ''}</span>
                   
                   {/* Role-based Access Badge with Hover Popup */}
                   <div className={`relative ${userRole === 'admin' ? '' : 'group'}`}>
@@ -243,7 +242,7 @@ const Header = ({ showNav = true }: HeaderProps) => {
                   {/* Email and Role (2 rows) */}
                   <div className="text-right">
                     <p className="text-xs font-medium text-gray-700 break-all max-w-xs">
-                      {displayString(user?.email || '')}
+                      {user?.email || ''}
                     </p>
                     {/* Role Badge */}
                     <div className="mt-1">
