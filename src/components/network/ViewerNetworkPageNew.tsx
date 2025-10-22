@@ -123,7 +123,7 @@ export default function ViewerNetworkPageNew() {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm">
                   <Mail className="w-4 h-4 text-muted-foreground" />
-                  <span className="truncate text-xs break-all">{profile.email}</span>
+                  <span className="truncate">{profile.email}</span>
                 </div>
                 
                 {profile.website && (

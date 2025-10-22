@@ -178,7 +178,7 @@ const Header = ({ showNav = true }: HeaderProps) => {
                 {/* Email Display */}
                 <div className="flex items-center space-x-2 text-sm text-gray-700 bg-gray-50 px-3 py-2 rounded-xl border border-gray-200">
                   <User className="w-4 h-4 text-gray-500" />
-                  <span className="font-medium text-gray-800 text-xs break-all max-w-xs">{user.email || ''}</span>
+                  <span className="font-medium text-gray-800">{user.email}</span>
                   
                   {/* Role-based Access Badge with Hover Popup */}
                   <div className={`relative ${userRole === 'admin' ? '' : 'group'}`}>
@@ -241,8 +241,8 @@ const Header = ({ showNav = true }: HeaderProps) => {
                 <div className="flex items-center space-x-4">
                   {/* Email and Role (2 rows) */}
                   <div className="text-right">
-                    <p className="text-xs font-medium text-gray-700 break-all max-w-xs">
-                      {user?.email || ''}
+                    <p className="text-sm font-medium text-gray-700">
+                      {user?.email}
                     </p>
                     {/* Role Badge */}
                     <div className="mt-1">
