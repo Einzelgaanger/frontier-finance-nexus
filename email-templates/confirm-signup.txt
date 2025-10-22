@@ -1,0 +1,50 @@
+========================================
+COLLABORATIVE FOR FRONTIER FINANCE (CFF)
+========================================
+
+🎉 WELCOME TO CFF SURVEY PLATFORM! 🎉
+
+Thank you for joining the Collaborative for Frontier Finance (CFF) Survey Platform. We're excited to have you as part of our community focused on advancing MSME financing in Africa and the Middle East.
+
+CONFIRM YOUR ACCOUNT
+====================
+
+To complete your registration, please confirm your email address by clicking the link below:
+
+👉 CONFIRM YOUR ACCOUNT: {{ .ConfirmationURL }}
+
+⚠️  IMPORTANT: This link will expire in 24 hours for security reasons.
+
+🔒 SECURITY NOTICE
+==================
+If you didn't create an account with CFF Survey Platform, please ignore this email. Your account will not be activated without email confirmation.
+
+🚀 WHAT YOU CAN DO NEXT
+=======================
+
+📊 Complete Surveys
+   Access 2022, 2023, and 2024 MSME financing surveys
+
+📈 View Analytics  
+   Explore comprehensive data insights and trends
+
+🌐 Network Access
+   Connect with other LCPs and industry professionals
+
+📋 Track Progress
+   Monitor your survey completion status
+
+NEED HELP?
+==========
+If you're having trouble with the confirmation link, you can copy and paste this URL into your browser:
+
+{{ .ConfirmationURL }}
+
+For support, please contact our team.
+
+---
+COLLABORATIVE FOR FRONTIER FINANCE
+Advancing MSME financing in Africa and the Middle East
+📍 Global Network | 🌍 Pan-Africa & MENA Focus
+
+© 2024 Collaborative for Frontier Finance. All rights reserved.

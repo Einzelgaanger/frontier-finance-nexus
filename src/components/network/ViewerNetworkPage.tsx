@@ -10,7 +10,8 @@ import {
   Calendar,
   ChevronDown,
   ChevronUp,
-  Info
+  Info,
+  FileText
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -268,23 +269,35 @@ const ViewerNetworkPage = () => {
               <p className="text-gray-600">View companies that participated in the survey by year</p>
             </div>
             
-            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border border-gray-200">
-              <Calendar className="w-5 h-5 text-gray-500" />
-              <Select 
-                value={String(selectedYear)}
-                onValueChange={(value) => setSelectedYear(Number(value))}
+            <div className="flex items-center gap-3">
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => window.location.href = '/survey'}
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
               >
-                <SelectTrigger className="w-32 border-0 shadow-none focus:ring-0">
-                  <SelectValue placeholder="Select year" />
-                </SelectTrigger>
-                <SelectContent>
-                  {SURVEY_YEARS.map(year => (
-                    <SelectItem key={year} value={String(year)}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <FileText className="w-4 h-4 mr-2" />
+                Surveys
+              </Button>
+              
+              <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border border-gray-200">
+                <Calendar className="w-5 h-5 text-gray-500" />
+                <Select 
+                  value={String(selectedYear)}
+                  onValueChange={(value) => setSelectedYear(Number(value))}
+                >
+                  <SelectTrigger className="w-32 border-0 shadow-none focus:ring-0">
+                    <SelectValue placeholder="Select year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SURVEY_YEARS.map(year => (
+                      <SelectItem key={year} value={String(year)}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         </div>

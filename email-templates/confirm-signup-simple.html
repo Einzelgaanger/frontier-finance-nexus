@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Your Account - CFF</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background-color: #f8fafc;
+        }
+        .email-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header { 
+            background: linear-gradient(135deg, #000080 0%, #1e3a8a 50%, #3b82f6 100%); 
+            color: white; 
+            padding: 30px; 
+            text-align: center; 
+            border-radius: 12px 12px 0 0;
+        }
+        .logo { 
+            font-size: 32px; 
+            font-weight: bold; 
+            margin-bottom: 10px; 
+            background-color: rgba(255, 255, 255, 0.15);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        .content { 
+            background: white; 
+            padding: 30px; 
+        }
+        .cta-button { 
+            display: inline-block; 
+            background: linear-gradient(135deg, #000080 0%, #3b82f6 100%); 
+            color: white; 
+            text-decoration: none; 
+            padding: 15px 30px; 
+            border-radius: 6px; 
+            font-weight: bold; 
+            margin: 20px 0; 
+            box-shadow: 0 4px 12px rgba(0, 0, 128, 0.4);
+        }
+        .footer { 
+            background: #000080; 
+            color: #e5e7eb; 
+            padding: 20px; 
+            text-align: center; 
+            border-radius: 0 0 12px 12px; 
+            font-size: 14px; 
+        }
+        .security-note { 
+            background: #fef3c7; 
+            border-left: 4px solid #f59e0b; 
+            padding: 15px; 
+            margin: 20px 0; 
+            border-radius: 0 4px 4px 0; 
+        }
+        .features {
+            background: #f8fafc;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #000080;
+        }
+        .feature-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+        }
+        .feature-icon {
+            color: #000080;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <!-- Logo Options - Choose one -->
+            
+            <!-- Option 1: Text Logo (Current) -->
+            <div class="logo">CFF</div>
+            
+            <!-- Option 2: Image Logo (Uncomment to use) -->
+            <!-- 
+            <img src="https://yourdomain.com/logo.png" alt="CFF Logo" style="width: 80px; height: 80px; margin-bottom: 20px;">
+            -->
+            
+            <h1>Welcome to CFF Survey Platform</h1>
+            <p>Collaborative for Frontier Finance</p>
+        </div>
+        
+        <div class="content">
+            <h2 style="color: #000080; text-align: center;">🎉 Almost There!</h2>
+            <p>Thank you for joining the Collaborative for Frontier Finance (CFF) Survey Platform. We're excited to have you as part of our community focused on advancing MSME financing in Africa and the Middle East.</p>
+            
+            <p><strong style="color: #000080;">Please confirm your email address to complete your registration:</strong></p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{ .ConfirmationURL }}" class="cta-button">✅ Confirm Your Account</a>
+            </div>
+            
+            <p style="text-align: center; color: #6b7280; font-size: 14px;">This link will expire in 24 hours for security reasons.</p>
+            
+            <div class="features">
+                <h3 style="color: #000080; text-align: center; margin-bottom: 20px;">🚀 What You Can Do Next:</h3>
+                <div class="feature-item">
+                    <span class="feature-icon">📊</span><strong>Complete Surveys:</strong> Access 2022, 2023, and 2024 MSME financing surveys
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">📈</span><strong>View Analytics:</strong> Explore comprehensive data insights and trends
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🌐</span><strong>Network Access:</strong> Connect with other LCPs and industry professionals
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">📋</span><strong>Track Progress:</strong> Monitor your survey completion status
+                </div>
+            </div>
+            
+            <div class="security-note">
+                <strong>🔒 Security Notice:</strong> If you didn't create an account with CFF Survey Platform, please ignore this email. Your account will not be activated without email confirmation.
+            </div>
+            
+            <div style="text-align: center; color: #6b7280; margin-top: 30px;">
+                <p><strong>Need Help?</strong></p>
+                <p>If you're having trouble with the confirmation link, you can copy and paste this URL into your browser:</p>
+                <p style="word-break: break-all; background-color: #f3f4f6; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 12px;">{{ .ConfirmationURL }}</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><strong style="color: white;">Collaborative for Frontier Finance</strong></p>
+            <p>Advancing MSME financing in Africa and the Middle East</p>
+            <p>📍 Global Network | 🌍 Pan-Africa & MENA Focus</p>
+            <div style="margin: 15px 0;">
+                <a href="#" style="color: #60a5fa; text-decoration: none; margin: 0 10px;">Website</a>
+                <a href="#" style="color: #60a5fa; text-decoration: none; margin: 0 10px;">LinkedIn</a>
+                <a href="#" style="color: #60a5fa; text-decoration: none; margin: 0 10px;">Twitter</a>
+                <a href="#" style="color: #60a5fa; text-decoration: none; margin: 0 10px;">Contact</a>
+            </div>
+            <p style="margin-top: 15px; font-size: 12px;">© 2024 Collaborative for Frontier Finance. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

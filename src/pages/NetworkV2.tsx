@@ -574,6 +574,16 @@ const NetworkV2 = React.memo(() => {
               
               <div className="flex items-center space-x-3">
                 <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => navigate('/survey')}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Surveys
+                </Button>
+                
+                <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setShowFilters(!showFilters)}

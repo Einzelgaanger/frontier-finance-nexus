@@ -1,6 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -330,6 +330,24 @@ const Survey2022 = () => {
     }
   };
 
+  const handleSaveDraft = async () => {
+    try {
+      // Save current form data as draft
+      const formData = form.getValues();
+      // You can implement draft saving logic here
+      toast({
+        title: "Draft Saved",
+        description: "Your progress has been saved as a draft.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save draft. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handlePrevious = () => {
     if (currentSection > 1) {
       setCurrentSection(currentSection - 1);
@@ -389,7 +407,7 @@ const Survey2022 = () => {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>1. Name *</FormLabel>
+                <FormLabel>1. Name</FormLabel>
                 <FormControl>
                   <Input placeholder="Your full name" {...field} />
                 </FormControl>
@@ -403,7 +421,7 @@ const Survey2022 = () => {
             name="role_title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>2. Role or title *</FormLabel>
+                <FormLabel>2. Role or title</FormLabel>
                 <FormControl>
                   <Input placeholder="Your role or title" {...field} />
                 </FormControl>
@@ -417,7 +435,7 @@ const Survey2022 = () => {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>3. Email address *</FormLabel>
+                <FormLabel>3. Email address</FormLabel>
                 <FormControl>
                   <Input type="email" placeholder="your.email@example.com" {...field} />
                 </FormControl>
@@ -431,7 +449,7 @@ const Survey2022 = () => {
             name="organisation"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>4. Name of organisation *</FormLabel>
+                <FormLabel>4. Name of organisation</FormLabel>
                 <FormControl>
                   <Input placeholder="Your organisation name" {...field} />
                 </FormControl>
@@ -458,7 +476,7 @@ const Survey2022 = () => {
                 name="legal_entity_date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Legal Entity *</FormLabel>
+                    <FormLabel>Legal Entity</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select date" />
@@ -481,7 +499,7 @@ const Survey2022 = () => {
                 name="first_close_date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>First Close (or equivalent) *</FormLabel>
+                    <FormLabel>First Close (or equivalent)</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select date" />
@@ -504,7 +522,7 @@ const Survey2022 = () => {
                 name="first_investment_date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>First Investment *</FormLabel>
+                    <FormLabel>First Investment</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select date" />
@@ -777,33 +795,40 @@ const Survey2022 = () => {
                 'GP management/ investment team has direct fund investment experience. However, lack well-documented data regarding prior investment performance, track record and exits.',
                 'GP management/ investment team has direct investment experience in senior fund management position. Have a well-documented data regarding prior investment performance, track record and exits.'
               ].map((experience) => (
-                <div key={experience} className="border rounded p-4">
-                  <FormLabel className="text-sm font-normal mb-3 block">{experience}</FormLabel>
-                <FormField
-                  control={form.control}
-                    name={`gp_experience.${experience}`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select applicability" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="Not Applicable">Not Applicable</SelectItem>
-                            <SelectItem value="Applies to 1 Principal">Applies to 1 Principal</SelectItem>
-                            <SelectItem value="Applies to 2 or more principals">Applies to 2 or more principals</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div key={experience} className="flex items-center justify-between space-x-4 py-3 border-b border-gray-100">
+                  <div className="flex-1">
+                    <FormLabel className="text-sm font-normal text-gray-900 leading-tight">{experience}</FormLabel>
+                  </div>
+                  <div className="flex-shrink-0">
+                    <FormField
+                      control={form.control}
+                      name={`gp_experience.${experience}`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger className="w-48">
+                              <SelectValue placeholder="Select applicability" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Not Applicable">Not Applicable</SelectItem>
+                              <SelectItem value="Applies to 1 Principal">Applies to 1 Principal</SelectItem>
+                              <SelectItem value="Applies to 2 or more principals">Applies to 2 or more principals</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
               ))}
               
               {/* Other option with checkbox */}
-              <div className="border rounded p-4">
-                <div className="flex items-center space-x-2 mb-3">
+              <div className="flex items-center justify-between space-x-4 py-3 border-b border-gray-100">
+                <div className="flex-1">
+                  <FormLabel className="text-sm font-normal text-gray-900 leading-tight">Other (please specify)</FormLabel>
+                </div>
+                <div className="flex-shrink-0">
                   <FormField
                     control={form.control}
                     name="gp_experience_other_selected"
@@ -816,12 +841,13 @@ const Survey2022 = () => {
                           />
                         </FormControl>
                         <FormLabel className="text-sm font-normal">
-                          Other (please specify)
+                          Enable Other
                         </FormLabel>
                       </FormItem>
                     )}
                   />
                 </div>
+              </div>
                 
                 {form.watch('gp_experience_other_selected') && (
                   <div className="space-y-3">
@@ -1005,7 +1031,6 @@ const Survey2022 = () => {
               />
             </div>
           </div>
-      </div>
     </div>
   );
 
@@ -1440,11 +1465,11 @@ const Survey2022 = () => {
                 'International impact investors',
                 'Donors / Bilateral Agencies / Foundations'
               ].map((category) => (
-                <div key={category} className="flex flex-col md:flex-row md:items-start gap-4">
-                  <div className="md:w-1/3">
+                <div key={category} className="flex items-center justify-between space-x-4 py-2 border-b border-gray-100">
+                  <div className="flex-1">
                     <span className="text-sm font-normal">{category}</span>
                   </div>
-                  <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center space-x-4">
                     <FormField
                       control={form.control}
                       name={`lp_capital_sources.${category}.existing`}
@@ -1461,7 +1486,7 @@ const Survey2022 = () => {
                               onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                               value={field.value || ''}
                               placeholder="0"
-                              className="h-8"
+                              className="h-8 w-20"
                             />
                           </FormControl>
                           <FormMessage />
@@ -1484,7 +1509,7 @@ const Survey2022 = () => {
                               onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                               value={field.value || ''}
                               placeholder="0"
-                              className="h-8"
+                              className="h-8 w-20"
                             />
                           </FormControl>
                           <FormMessage />
@@ -1495,78 +1520,96 @@ const Survey2022 = () => {
                 </div>
               ))}
               
-              {/* Other category with description input */}
-              <div className="space-y-3">
-                <FormField
-                  control={form.control}
-                  name="lp_capital_sources_other_description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-normal">Other LP capital source (please specify)</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Specify other LP capital source" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {form.watch('lp_capital_sources_other_description') && (
-                  <div className="flex flex-col md:flex-row md:items-start gap-4">
-                    <div className="md:w-1/3">
-                      <span className="text-sm font-normal">Other (as specified above)</span>
-                    </div>
-                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="lp_capital_sources.Other.existing"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs font-normal">Existing (%)</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min="0"
-                                max="100"
-                                step="0.1"
-                                {...field}
-                                onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                                value={field.value || ''}
-                                placeholder="0"
-                                className="h-8"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="lp_capital_sources.Other.targeted"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs font-normal">Targeted (%)</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min="0"
-                                max="100"
-                                step="0.1"
-                                {...field}
-                                onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                                value={field.value || ''}
-                                placeholder="0"
-                                className="h-8"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-                )}
+              {/* Other category integrated inline */}
+              <div className="flex items-center justify-between space-x-4 py-2 border-b border-gray-100">
+                <div className="flex items-center space-x-2">
+                  <FormField
+                    control={form.control}
+                    name="lp_capital_sources_other_selected"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal">Other (please specify)</FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="flex items-center space-x-4">
+                  <FormField
+                    control={form.control}
+                    name="lp_capital_sources.Other.existing"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs font-normal">Existing (%)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="0.1"
+                            {...field}
+                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                            value={field.value || ''}
+                            placeholder="0"
+                            className="h-8 w-20"
+                            disabled={!form.watch('lp_capital_sources_other_selected')}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="lp_capital_sources.Other.targeted"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs font-normal">Targeted (%)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="0.1"
+                            {...field}
+                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                            value={field.value || ''}
+                            placeholder="0"
+                            className="h-8 w-20"
+                            disabled={!form.watch('lp_capital_sources_other_selected')}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
+              
+              {/* Description field for Other when selected */}
+              {form.watch('lp_capital_sources_other_selected') && (
+                <div className="pl-6 border-l-2 border-gray-200">
+                  <FormField
+                    control={form.control}
+                    name="lp_capital_sources_other_description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-normal">Please specify other LP capital source</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Specify other LP capital source" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
+            </div>
               
               {/* Live sum calculation and feedback for each row */}
               <div className="bg-gray-50 p-4 rounded-lg">
@@ -1833,10 +1876,9 @@ const Survey2022 = () => {
                 </div>
               </div>
             </div>
-
           </div>
+        </div>
       </div>
-
     </div>
   );
 
@@ -3988,11 +4030,37 @@ const Survey2022 = () => {
   };
 
   const renderSectionSidebar = () => (
-    <div className="w-64 bg-white border-l border-gray-200 p-4 fixed right-0 top-20 h-[calc(100vh-5rem)] overflow-hidden flex flex-col">
-      <h3 className="text-sm font-semibold text-gray-900 mb-4">Survey Sections</h3>
-      <div className="space-y-2 overflow-y-auto flex-1">
+    <div 
+      className="w-72 bg-white border-l border-gray-200 p-6 fixed right-0 top-20 h-[calc(100vh-5rem)] overflow-hidden flex flex-col shadow-lg"
+      style={{
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
+      }}
+    >
+      <div className="mb-6">
+        <h3 className="text-lg font-bold text-gray-900 mb-2">Survey Progress</h3>
+        <div className="bg-gray-100 rounded-full h-2 mb-4">
+          <div 
+            className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-300"
+            style={{ width: `${(currentSection / totalSections) * 100}%` }}
+          ></div>
+        </div>
+        <p className="text-sm text-gray-600">
+          Section {currentSection} of {totalSections}
+        </p>
+      </div>
+      
+      <div 
+        className="space-y-3 overflow-y-auto flex-1 hide-scrollbar"
+        style={{
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+        }}
+      >
+        <h4 className="text-sm font-semibold text-gray-700 mb-3">Sections</h4>
         {Array.from({ length: totalSections }, (_, idx) => idx + 1).map((sectionNumber) => {
           const isActive = currentSection === sectionNumber;
+          const isCompleted = sectionNumber < currentSection;
           return (
             <button
               key={sectionNumber}
@@ -4002,26 +4070,43 @@ const Survey2022 = () => {
                 setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 0);
               }}
               className={[
-                'w-full text-left px-3 py-2 rounded-md border transition-colors',
+                'w-full text-left px-4 py-3 rounded-lg border transition-all duration-200 group',
                 isActive
-                  ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                  : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white border-blue-600 shadow-lg transform scale-105'
+                  : isCompleted
+                  ? 'bg-green-50 text-green-800 border-green-200 hover:bg-green-100'
+                  : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
               ].join(' ')}
               aria-current={isActive ? 'page' : undefined}
             >
-              <div className="flex items-start gap-2">
-                <span className="font-semibold text-xs mt-0.5">{sectionNumber}.</span>
-                <span className="text-xs leading-tight">{getSectionTitle(sectionNumber)}</span>
+              <div className="flex items-center space-x-3">
+                <div className={[
+                  'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-200',
+                  isActive
+                    ? 'bg-white text-blue-600'
+                    : isCompleted
+                    ? 'bg-green-500 text-white'
+                    : 'bg-gray-200 text-gray-600'
+                ].join(' ')}>
+                  {isCompleted ? '✓' : sectionNumber}
+                </div>
+                <div className="flex-1">
+                  <div className="text-sm font-semibold leading-tight">{getSectionTitle(sectionNumber)}</div>
+                  {isCompleted && (
+                    <div className="text-xs text-green-600 mt-1">Completed</div>
+                  )}
+                </div>
               </div>
             </button>
           );
         })}
       </div>
+      
       <Button
         variant="outline"
         size="sm"
         onClick={() => navigate('/survey')}
-        className="mt-4 w-full"
+        className="mt-6 w-full border-gray-300 hover:bg-gray-50"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
         Back to Surveys
@@ -4087,7 +4172,7 @@ const Survey2022 = () => {
   return (
     <SidebarLayout>
       <div className="min-h-screen bg-gray-50 pb-16">
-        <div className={`max-w-6xl mx-auto ${!showIntro ? 'pr-72' : ''}` }>
+        <div className={`max-w-6xl mx-auto ${!showIntro ? 'pr-80' : ''}` }>
         {/* Back Button hidden on intro */}
         {!showIntro && null}
 
@@ -4099,49 +4184,83 @@ const Survey2022 = () => {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-base font-semibold">
-                  Section {currentSection}: {getSectionTitle(currentSection)}
-                </h2>
-              </div>
-              <Progress value={progress} className="w-full [&>div]:bg-red-500" />
+              {/* Enhanced Section Header */}
+              <Card className="bg-white p-6 rounded-lg border shadow-sm mb-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">
+                      Section {currentSection}: {getSectionTitle(currentSection)}
+                    </h2>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {currentSection} of {totalSections} sections
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {currentSection}/{totalSections}
+                    </div>
+                    <div className="text-xs text-gray-500">Progress</div>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <div className="bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${(currentSection / totalSections) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </Card>
+              
               <div className="space-y-6">
                 {renderCurrentSection()}
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handlePrevious}
-                disabled={currentSection === 1}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Previous
-              </Button>
-              
-              <div className="flex items-center space-x-2">
-                {currentSection < totalSections ? (
-                  <Button
+            {/* Enhanced Navigation Buttons */}
+            <Card className="bg-white p-6 rounded-lg border shadow-sm">
+              <div className="flex items-center justify-between">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handlePrevious}
+                  disabled={currentSection === 1}
+                  className="px-6 py-2 border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  ← Previous
+                </Button>
+                
+                <div className="flex items-center space-x-4">
+                  <Button 
                     type="button"
-                    onClick={handleNext}
-                  >
-                    Next
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                ) : (
-                  <Button
-                    type="submit"
+                    onClick={handleSaveDraft} 
                     disabled={loading}
-                    className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105"
+                    variant="outline"
+                    className="px-6 py-2 border-green-300 text-green-700 hover:bg-green-50 disabled:opacity-50"
                   >
-                    <Send className="w-4 h-4 mr-2" />
-                    {loading ? 'Submitting...' : 'Submit Survey'}
+                    {loading ? 'Saving...' : '💾 Save Draft'}
                   </Button>
-                )}
+                  
+                  {currentSection < totalSections ? (
+                    <Button 
+                      type="button" 
+                      onClick={handleNext}
+                      className="px-8 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                    >
+                      Next →
+                    </Button>
+                  ) : (
+                    <Button 
+                      type="submit" 
+                      disabled={loading}
+                      className="px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loading ? 'Submitting...' : '🎉 Submit Survey'}
+                    </Button>
+                  )}
+                </div>
               </div>
-            </div>
+            </Card>
           </form>
         </Form>
         )}

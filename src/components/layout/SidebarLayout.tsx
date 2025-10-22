@@ -82,15 +82,6 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
       color: "green"
     },
     { 
-      name: "Surveys", 
-      href: "/survey", 
-      icon: FileText, 
-      roles: ["member", "viewer"],
-      description: (userRole === "viewer" || !userRole) ? "View survey data and insights" : "Complete and view surveys",
-      badge: null,
-      color: "purple"
-    },
-    { 
       name: "Application", 
       href: "/application", 
       icon: Send, 
@@ -149,7 +140,6 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
   const isActive = (href: string) => {
     if (href === "/dashboard" && location.pathname === "/dashboard") return true;
     if (href === "/profile" && location.pathname === "/profile") return true;
-    if (href === "/survey" && location.pathname.startsWith("/survey")) return true;
     if (href === "/network" && location.pathname === "/network") return true;
     if (href === "/analytics" && location.pathname === "/analytics") return true;
     if (href === "/admin" && location.pathname.startsWith("/admin")) return true;
