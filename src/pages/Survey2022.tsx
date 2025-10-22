@@ -1031,6 +1031,8 @@ const Survey2022 = () => {
               />
             </div>
           </div>
+        </div>
+      </div>
     </div>
   );
 
