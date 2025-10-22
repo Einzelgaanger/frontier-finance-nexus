@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, Image, Video, FileText } from "lucide-react";
+import { PlusCircle, Image, Video, FileText, Heart, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { CreateBlogModal } from "@/components/blogs/CreateBlogModal";
 import { format } from "date-fns";
@@ -21,12 +21,15 @@ interface Blog {
   media_url: string | null;
   caption: string | null;
   created_at: string;
+  like_count: number;
+  comment_count: number;
   author?: {
     full_name: string;
     company_name: string;
     profile_picture_url: string | null;
     total_points?: number;
   };
+  is_liked?: boolean;
 }
 
 export default function Blogs() {
@@ -72,12 +75,25 @@ export default function Blogs() {
           .in("user_id", userIds)
       ]);
 
+      // Fetch user likes
+      let userLikes = new Set<string>();
+      if (user) {
+        const { data: likesData } = await supabase
+          .from("blog_likes" as any)
+          .select("blog_id")
+          .eq("user_id", user.id);
+        userLikes = new Set(likesData?.map((l: any) => l.blog_id) || []);
+      }
+
       const blogsWithAuthors = (blogsData?.map(blog => {
         const profile = profilesRes.data?.find(p => p.id === blog.user_id);
         const credit = creditsRes.data?.find(c => c.user_id === blog.user_id);
         return {
           ...blog,
           media_type: blog.media_type as 'text' | 'image' | 'video' | null,
+          like_count: (blog as any).like_count || 0,
+          comment_count: (blog as any).comment_count || 0,
+          is_liked: userLikes.has(blog.id),
           author: profile ? { ...profile, total_points: credit?.total_points || 0 } : undefined
         };
       }) || []) as Blog[];
@@ -88,6 +104,28 @@ export default function Blogs() {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const toggleLike = async (blogId: string, isLiked: boolean) => {
+    if (!user) return;
+
+    try {
+      if (isLiked) {
+        await supabase
+          .from("blog_likes" as any)
+          .delete()
+          .eq("blog_id", blogId)
+          .eq("user_id", user.id);
+      } else {
+        await supabase
+          .from("blog_likes" as any)
+          .insert({ blog_id: blogId, user_id: user.id });
+      }
+      await fetchBlogs();
+    } catch (error) {
+      console.error("Error toggling like:", error);
+      toast.error("Failed to update like");
     }
   };
 
@@ -144,7 +182,7 @@ export default function Blogs() {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {blogs.map((blog) => (
-              <Card key={blog.id} className="hover:shadow-lg transition-shadow">
+              <Card key={blog.id} className="hover:shadow-lg transition-shadow group">
                 <CardHeader>
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
@@ -176,29 +214,61 @@ export default function Blogs() {
                     {format(new Date(blog.created_at), "MMM d, yyyy")}
                   </p>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-3">
                   {blog.media_type === "image" && blog.media_url && (
-                    <img 
-                      src={blog.media_url} 
-                      alt={blog.title}
-                      className="w-full h-48 object-cover rounded-lg mb-3"
-                    />
+                    <div className="relative rounded-lg overflow-hidden">
+                      <img 
+                        src={blog.media_url} 
+                        alt={blog.title}
+                        className="w-full h-48 object-cover"
+                      />
+                      <Badge 
+                        variant="secondary" 
+                        className="absolute top-2 left-2 bg-black/60 text-white backdrop-blur-sm"
+                      >
+                        {blog.author?.company_name}
+                      </Badge>
+                    </div>
                   )}
                   {blog.media_type === "video" && blog.media_url && (
                     <video 
                       src={blog.media_url}
-                      controls
-                      className="w-full h-48 rounded-lg mb-3"
+                      muted
+                      loop
+                      playsInline
+                      className="w-full h-48 object-cover rounded-lg"
+                      onMouseEnter={(e) => e.currentTarget.play()}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.pause();
+                        e.currentTarget.currentTime = 0;
+                      }}
                     />
                   )}
                   {blog.caption && (
-                    <p className="text-sm text-muted-foreground italic mb-2 line-clamp-2">
+                    <p className="text-sm text-muted-foreground italic line-clamp-2">
                       {blog.caption}
                     </p>
                   )}
                   {blog.content && (
                     <p className="text-sm line-clamp-3">{blog.content}</p>
                   )}
+                  
+                  <div className="flex items-center gap-4 pt-2 border-t">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleLike(blog.id, blog.is_liked || false);
+                      }}
+                      className="flex items-center gap-1 text-sm hover:text-primary transition-colors"
+                    >
+                      <Heart className={`w-4 h-4 ${blog.is_liked ? 'fill-red-500 text-red-500' : ''}`} />
+                      <span>{blog.like_count}</span>
+                    </button>
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <MessageCircle className="w-4 h-4" />
+                      <span>{blog.comment_count}</span>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             ))}
