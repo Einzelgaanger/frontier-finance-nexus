@@ -63,44 +63,67 @@ const ApplicationForm = () => {
     checkExistingApplication();
   }, [user?.id, toast]);
 
+  const [formData, setFormData] = useState({
+    applicant_name: '',
+    email: user?.email || '',
+    vehicle_name: '',
+    organization_website: '',
+    role_job_title: '',
+    team_overview: '',
+    investment_thesis: '',
+    typical_check_size: '',
+    number_of_investments: '',
+    amount_raised_to_date: '',
+    expectations_from_network: '',
+    how_heard_about_network: '',
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!applicationText.trim() || !companyName.trim()) {
+    
+    // Validate all required fields
+    if (!companyName || !applicationText || !formData.applicant_name || !formData.vehicle_name || 
+        !formData.organization_website || !formData.role_job_title || !formData.team_overview ||
+        !formData.investment_thesis || !formData.typical_check_size || !formData.number_of_investments ||
+        !formData.amount_raised_to_date || !formData.expectations_from_network || !formData.how_heard_about_network) {
       toast({
-        title: "Please complete all fields",
-        description: "All required fields must be filled before submitting.",
+        title: "Missing Information",
+        description: "Please fill in all required fields.",
         variant: "destructive",
       });
       return;
     }
 
     setLoading(true);
+
     try {
-      const { error } = await supabase
-        .from('applications' as any)
-        .insert([{
-          user_id: user?.id,
-          email: user?.email,
-          company_name: companyName,
-          application_text: applicationText,
-          status: 'pending'
-        }]);
+      const { data, error } = await supabase
+        .from('applications')
+        .insert([
+          {
+            user_id: user?.id,
+            email: user?.email,
+            company_name: companyName,
+            application_text: applicationText,
+            status: 'pending',
+            ...formData
+          },
+        ]);
 
       if (error) throw error;
 
       toast({
-        title: "Application submitted successfully!",
-        description: "Your membership application has been submitted for review. You'll receive an email notification once it's reviewed.",
+        title: "Application Submitted",
+        description: "Your application has been submitted successfully. We'll review it soon.",
       });
 
-      // Refresh to show pending status
+      // Reload to show the new status
       window.location.reload();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting application:', error);
       toast({
-        title: "Submission failed",
-        description: "There was an error submitting your application. Please try again.",
+        title: "Submission Error",
+        description: error.message || "Failed to submit application. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -249,74 +272,207 @@ const ApplicationForm = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div className="text-sm text-blue-800">
-                  <p className="font-semibold mb-2">Membership Benefits:</p>
-                  <ul className="space-y-1 ml-4 list-disc">
-                    <li>Complete and access survey data</li>
-                    <li>View detailed fund manager profiles</li>
-                    <li>Access industry analytics and insights</li>
-                    <li>Connect with 200+ fund managers across 25+ countries</li>
-                  </ul>
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Section A: Background Information */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold border-b pb-2 text-gray-800">A. Background Information</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="applicant_name">
+                    Name <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="applicant_name"
+                    value={formData.applicant_name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, applicant_name: e.target.value }))}
+                    placeholder="Enter your full name"
+                    required
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="email">
+                    Email Address <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    disabled
+                    className="mt-1 bg-gray-50"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="vehicle_name">
+                    Vehicle Name <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="vehicle_name"
+                    value={formData.vehicle_name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, vehicle_name: e.target.value }))}
+                    placeholder="Enter vehicle name"
+                    required
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="organization_website">
+                    Vehicle Website <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="organization_website"
+                    type="url"
+                    value={formData.organization_website}
+                    onChange={(e) => setFormData(prev => ({ ...prev, organization_website: e.target.value }))}
+                    placeholder="https://example.com"
+                    required
+                    className="mt-1"
+                  />
                 </div>
               </div>
             </div>
 
+            {/* Section B: Team Information */}
             <div className="space-y-4">
+              <h3 className="text-lg font-semibold border-b pb-2 text-gray-800">B. Team Information</h3>
+              
               <div>
-                <Label htmlFor="company_name">
-                  Company/Fund Name <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="company_name"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  placeholder="Enter your company or fund name"
-                  required
-                  className="mt-1"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="email">
-                  Email <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={user?.email || ''}
-                  disabled
-                  className="mt-1 bg-gray-50"
-                />
-                <p className="text-xs text-gray-500 mt-1">This is your account email</p>
-              </div>
-
-              <div>
-                <Label htmlFor="application_text">
-                  Why do you want to join CFF Network? <span className="text-red-500">*</span>
+                <Label htmlFor="role_job_title">
+                  Role/Job Title & Relevant Experience <span className="text-red-500">*</span>
                 </Label>
                 <Textarea
-                  id="application_text"
-                  value={applicationText}
-                  onChange={(e) => setApplicationText(e.target.value)}
-                  placeholder="Tell us about your fund/organization, your investment focus, and how you plan to contribute to and benefit from the CFF Network community..."
-                  rows={8}
+                  id="role_job_title"
+                  value={formData.role_job_title}
+                  onChange={(e) => setFormData(prev => ({ ...prev, role_job_title: e.target.value }))}
+                  rows={3}
+                  placeholder="Describe your role and relevant experience"
                   required
                   className="mt-1"
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  Minimum 100 characters ({applicationText.length}/100)
-                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="team_overview">
+                  Team Size & Co-founder Details <span className="text-red-500">*</span>
+                </Label>
+                <Textarea
+                  id="team_overview"
+                  value={formData.team_overview}
+                  onChange={(e) => setFormData(prev => ({ ...prev, team_overview: e.target.value }))}
+                  rows={3}
+                  placeholder="Describe your team size, structure, and key co-founders"
+                  required
+                  className="mt-1"
+                />
+              </div>
+            </div>
+
+            {/* Section C: Vehicle Information */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold border-b pb-2 text-gray-800">C. Vehicle Information</h3>
+              
+              <div>
+                <Label htmlFor="investment_thesis">
+                  Investment Thesis <span className="text-red-500">*</span>
+                </Label>
+                <Textarea
+                  id="investment_thesis"
+                  value={formData.investment_thesis}
+                  onChange={(e) => setFormData(prev => ({ ...prev, investment_thesis: e.target.value }))}
+                  rows={4}
+                  placeholder="Describe your investment strategy and focus"
+                  required
+                  className="mt-1"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="typical_check_size">
+                    Average Ticket Size (USD) <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="typical_check_size"
+                    value={formData.typical_check_size}
+                    onChange={(e) => setFormData(prev => ({ ...prev, typical_check_size: e.target.value }))}
+                    placeholder="e.g., $100K - $500K"
+                    required
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="number_of_investments">
+                    Number of Investments Made <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="number_of_investments"
+                    value={formData.number_of_investments}
+                    onChange={(e) => setFormData(prev => ({ ...prev, number_of_investments: e.target.value }))}
+                    placeholder="e.g., 15"
+                    required
+                    className="mt-1"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <Label htmlFor="amount_raised_to_date">
+                    Capital Raised (soft + hard commitments; include self-contribution) <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="amount_raised_to_date"
+                    value={formData.amount_raised_to_date}
+                    onChange={(e) => setFormData(prev => ({ ...prev, amount_raised_to_date: e.target.value }))}
+                    placeholder="e.g., $5M"
+                    required
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Section D: Network Expectations */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold border-b pb-2 text-gray-800">D. Network Expectations</h3>
+              
+              <div>
+                <Label htmlFor="expectations_from_network">
+                  Expectations from the CFF Network <span className="text-red-500">*</span>
+                </Label>
+                <Textarea
+                  id="expectations_from_network"
+                  value={formData.expectations_from_network}
+                  onChange={(e) => setFormData(prev => ({ ...prev, expectations_from_network: e.target.value }))}
+                  rows={4}
+                  placeholder="What are you hoping to gain from joining the network?"
+                  required
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="how_heard_about_network">
+                  How did you hear about the Network? <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="how_heard_about_network"
+                  value={formData.how_heard_about_network}
+                  onChange={(e) => setFormData(prev => ({ ...prev, how_heard_about_network: e.target.value }))}
+                  placeholder="e.g., Referral, Social Media, Conference"
+                  required
+                  className="mt-1"
+                />
               </div>
             </div>
 
             <div className="flex gap-4 pt-4">
               <Button
                 type="submit"
-                disabled={loading || applicationText.length < 100}
+                disabled={loading}
                 className="flex-1"
               >
                 {loading ? (

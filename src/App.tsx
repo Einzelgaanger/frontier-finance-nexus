@@ -28,6 +28,7 @@ import AnalyticsWrapper from "./components/AnalyticsWrapper";
 import UserOnboarding from "./components/onboarding/UserOnboarding";
 import SurveyResponseViewer from "./components/survey/SurveyResponseViewer";
 import NotFound from "./pages/NotFound";
+import PortIQ from "./pages/PortIQ";
 
 const queryClient = new QueryClient();
 
@@ -121,6 +122,11 @@ const App = () => {
             <Route path="/analytics" element={
               <ProtectedRoute>
                 <AnalyticsWrapper />
+              </ProtectedRoute>
+            } />
+            <Route path="/portiq" element={
+              <ProtectedRoute>
+                <PortIQ />
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />

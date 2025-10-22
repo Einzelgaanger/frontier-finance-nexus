@@ -18,7 +18,8 @@ import {
   Calendar,
   ArrowLeft,
   Send,
-  User
+  User,
+  Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -91,6 +92,15 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
       color: "orange"
     },
     { 
+      name: "PortIQ", 
+      href: "/portiq", 
+      icon: Sparkles, 
+      roles: ["admin", "member", "viewer"],
+      description: "AI Assistant for data insights",
+      badge: null,
+      color: "purple"
+    },
+    { 
       name: "Analytics", 
       href: "/analytics", 
       icon: BarChart3, 
@@ -143,6 +153,8 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
     if (href === "/network" && location.pathname === "/network") return true;
     if (href === "/analytics" && location.pathname === "/analytics") return true;
     if (href === "/admin" && location.pathname.startsWith("/admin")) return true;
+    if (href === "/portiq" && location.pathname === "/portiq") return true;
+    if (href === "/application" && location.pathname === "/application") return true;
     return false;
   };
 
@@ -339,12 +351,14 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
                         {location.pathname === '/network' && 'Network Directory'}
                         {location.pathname === '/analytics' && 'Analytics Hub'}
                         {location.pathname.startsWith('/admin') && 'Admin Panel'}
+                        {location.pathname === '/portiq' && 'PortIQ - AI Assistant'}
                       </h2>
                       <p className="text-sm text-white/70 transition-colors">
                         {location.pathname.startsWith('/survey') && 'Complete and view survey responses'}
                         {location.pathname === '/network' && 'Browse and connect with fund managers'}
                         {location.pathname === '/analytics' && 'Data insights and comprehensive reports'}
                         {location.pathname.startsWith('/admin') && 'Manage users, content, and system settings'}
+                        {location.pathname === '/portiq' && 'Your intelligent assistant for data insights and analysis'}
                       </p>
                     </>
                   )}

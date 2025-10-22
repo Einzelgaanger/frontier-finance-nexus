@@ -17,42 +17,75 @@ export type Database = {
       applications: {
         Row: {
           admin_notes: string | null
+          amount_raised_to_date: string | null
+          applicant_name: string | null
           application_text: string
           company_name: string
           created_at: string | null
           email: string
+          expectations_from_network: string | null
+          how_heard_about_network: string | null
           id: string
+          investment_thesis: string | null
+          number_of_investments: string | null
+          organization_website: string | null
           reviewed_at: string | null
           reviewed_by: string | null
+          role_job_title: string | null
           status: string
+          team_overview: string | null
+          typical_check_size: string | null
           updated_at: string | null
           user_id: string
+          vehicle_name: string | null
         }
         Insert: {
           admin_notes?: string | null
+          amount_raised_to_date?: string | null
+          applicant_name?: string | null
           application_text: string
           company_name: string
           created_at?: string | null
           email: string
+          expectations_from_network?: string | null
+          how_heard_about_network?: string | null
           id?: string
+          investment_thesis?: string | null
+          number_of_investments?: string | null
+          organization_website?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          role_job_title?: string | null
           status?: string
+          team_overview?: string | null
+          typical_check_size?: string | null
           updated_at?: string | null
           user_id: string
+          vehicle_name?: string | null
         }
         Update: {
           admin_notes?: string | null
+          amount_raised_to_date?: string | null
+          applicant_name?: string | null
           application_text?: string
           company_name?: string
           created_at?: string | null
           email?: string
+          expectations_from_network?: string | null
+          how_heard_about_network?: string | null
           id?: string
+          investment_thesis?: string | null
+          number_of_investments?: string | null
+          organization_website?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          role_job_title?: string | null
           status?: string
+          team_overview?: string | null
+          typical_check_size?: string | null
           updated_at?: string | null
           user_id?: string
+          vehicle_name?: string | null
         }
         Relationships: []
       }
