@@ -163,7 +163,8 @@ export type Database = {
           field_name: string
           id: string
           member_visible: boolean | null
-          survey_year: number
+          survey_year: number | null
+          table_name: string
           viewer_visible: boolean | null
         }
         Insert: {
@@ -173,7 +174,8 @@ export type Database = {
           field_name: string
           id?: string
           member_visible?: boolean | null
-          survey_year: number
+          survey_year?: number | null
+          table_name: string
           viewer_visible?: boolean | null
         }
         Update: {
@@ -183,7 +185,8 @@ export type Database = {
           field_name?: string
           id?: string
           member_visible?: boolean | null
-          survey_year?: number
+          survey_year?: number | null
+          table_name?: string
           viewer_visible?: boolean | null
         }
         Relationships: []
