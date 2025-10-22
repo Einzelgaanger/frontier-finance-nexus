@@ -3914,11 +3914,11 @@ const Survey2022 = () => {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="1">1</SelectItem>
+                            <SelectItem value="1">1 (Not a concern)</SelectItem>
                             <SelectItem value="2">2</SelectItem>
                             <SelectItem value="3">3</SelectItem>
                             <SelectItem value="4">4</SelectItem>
-                            <SelectItem value="5">5</SelectItem>
+                            <SelectItem value="5">5 (Greatly Concern)</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -3962,11 +3962,11 @@ const Survey2022 = () => {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="1">1</SelectItem>
+                              <SelectItem value="1">1 (Not a concern)</SelectItem>
                               <SelectItem value="2">2</SelectItem>
                               <SelectItem value="3">3</SelectItem>
                               <SelectItem value="4">4</SelectItem>
-                              <SelectItem value="5">5</SelectItem>
+                              <SelectItem value="5">5 (Greatly Concern)</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -4277,7 +4277,7 @@ const Survey2022 = () => {
                     variant="outline"
                     className="px-6 py-2 border-green-300 text-green-700 hover:bg-green-50 disabled:opacity-50"
                   >
-                    {loading ? 'Saving...' : '&floppy; Save Draft'}
+                    {loading ? 'Saving...' : '💾 Save Draft'}
                   </Button>
                   
                   {currentSection < totalSections ? (
@@ -4294,7 +4294,7 @@ const Survey2022 = () => {
                       disabled={loading}
                       className="px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {loading ? 'Submitting...' : '&party; Submit Survey'}
+                      {loading ? 'Submitting...' : '🎉 Submit Survey'}
                     </Button>
                   )}
                 </div>
