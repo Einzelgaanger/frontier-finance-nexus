@@ -49,7 +49,7 @@ export default function Analytics2024() {
   const fetchData = async () => {
     try {
       const { data: responses, error } = await supabase
-        .from('survey_2024_responses')
+        .from('survey_responses_2024')
         .select('*');
 
       if (error) throw error;

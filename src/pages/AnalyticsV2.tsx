@@ -87,7 +87,7 @@ const AnalyticsV2 = () => {
 
       // Fetch 2021 survey data
       const { data: survey2021Data, error: survey2021Error } = await supabase
-        .from('survey_2021_responses')
+        .from('survey_responses_2021')
         .select('*');
 
       if (survey2021Error) {
