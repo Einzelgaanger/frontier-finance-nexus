@@ -68,6 +68,7 @@ const survey2021Schema = z.object({
   top_sdg_2: z.string().optional(),
   top_sdg_3: z.string().optional(),
   top_sdgs: z.record(z.string(), z.string()).optional(),
+  other_sdgs: z.array(z.string()).optional(),
   gender_considerations_investment: z.array(z.string()).min(1, "Please select at least one gender consideration"),
   gender_considerations_investment_other: z.string().optional(),
   gender_considerations_requirement: z.array(z.string()).min(1, "Please select at least one gender requirement"),
@@ -201,6 +202,7 @@ const Survey2021: React.FC = () => {
       top_sdg_2: '',
       top_sdg_3: '',
       top_sdgs: {},
+      other_sdgs: [],
       gender_considerations_investment: [],
       gender_considerations_investment_other: '',
       gender_considerations_requirement: [],
@@ -263,6 +265,9 @@ const Survey2021: React.FC = () => {
     if (savedSection && savedSection > 1) {
       setCurrentSection(savedSection);
     }
+    
+    // Scroll to top when component mounts
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
   // Setup auto-save when form data changes
@@ -278,6 +283,13 @@ const Survey2021: React.FC = () => {
     saveCurrentSection(currentSection);
     saveScrollPosition();
   }, [currentSection]);
+
+  // Scroll to top when showing intro
+  useEffect(() => {
+    if (showIntro) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [showIntro]);
 
   // Check if survey is completed and show read-only version
   const surveyCompleted = isSurveyCompleted('2021');
@@ -823,15 +835,15 @@ const Survey2021: React.FC = () => {
         )}
       </div>
 
-      {/* Question 11: Fund size */}
+      {/* Question 12: Fund size */}
       <div className="space-y-4">
         <div>
-          <Label >11. What is the current (hard commitments raised) and target size of your fund / investment vehicle?</Label>
+          <Label >12. What is the current (hard commitments raised) and target size of your fund / investment vehicle?</Label>
         </div>
         
         <div className="grid grid-cols-2 gap-6">
           <div>
-            <Label htmlFor="current_fund_size">Current *</Label>
+            <Label htmlFor="current_fund_size">Current</Label>
             <Select onValueChange={(value) => form.setValue("current_fund_size", value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select size" />
@@ -847,7 +859,7 @@ const Survey2021: React.FC = () => {
             </Select>
           </div>
           <div>
-            <Label htmlFor="target_fund_size">Target *</Label>
+            <Label htmlFor="target_fund_size">Target</Label>
             <Select onValueChange={(value) => form.setValue("target_fund_size", value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select size" />
@@ -865,10 +877,10 @@ const Survey2021: React.FC = () => {
         </div>
       </div>
 
-      {/* Question 12: Investment timeframe */}
+      {/* Question 13: Investment timeframe */}
       <div className="space-y-4">
         <div>
-          <Label >12. Typical investment timeframe *</Label>
+          <Label >13. Typical investment timeframe</Label>
         </div>
         
         <Select onValueChange={(value) => {
@@ -902,10 +914,10 @@ const Survey2021: React.FC = () => {
         )}
       </div>
 
-      {/* Question 13: Type of business model targeted */}
+      {/* Question 14: Type of business model targeted */}
       <div className="space-y-4">
         <div>
-          <Label >13. Type of business model targeted *</Label>
+          <Label >14. Type of business model targeted</Label>
         </div>
         
         <div className="grid grid-cols-2 gap-3 mt-2">
@@ -949,10 +961,10 @@ const Survey2021: React.FC = () => {
         )}
       </div>
 
-      {/* Question 14: Stage of business model targeted */}
+      {/* Question 15: Stage of business model targeted */}
       <div className="space-y-4">
         <div>
-          <Label >14. Stage of business model targeted *</Label>
+          <Label >15. Stage of business model targeted</Label>
         </div>
         
         <div className="grid grid-cols-2 gap-3 mt-2">
@@ -994,10 +1006,10 @@ const Survey2021: React.FC = () => {
         )}
       </div>
 
-      {/* Question 15: Key financing needs of portfolio enterprises */}
+      {/* Question 16: Key financing needs of portfolio enterprises */}
       <div className="space-y-4">
         <div>
-          <Label >15. Key financing needs of portfolio enterprises (at time of initial investment/funding) *</Label>
+          <Label >16. Key financing needs of portfolio enterprises (at time of initial investment/funding)</Label>
         </div>
         
         <div className="grid grid-cols-2 gap-3 mt-2">
@@ -1041,10 +1053,10 @@ const Survey2021: React.FC = () => {
         )}
       </div>
 
-      {/* Question 16: Target sources of capital for your fund */}
+      {/* Question 17: Target sources of capital for your fund */}
       <div className="space-y-4">
         <div>
-          <Label >16. Target sources of capital for your fund *</Label>
+          <Label >17. Target sources of capital for your fund</Label>
         </div>
         
         <div className="grid grid-cols-2 gap-3 mt-2">
@@ -1086,15 +1098,15 @@ const Survey2021: React.FC = () => {
         )}
       </div>
 
-      {/* Question 17: Target IRR */}
+      {/* Question 18: Target IRR */}
       <div className="space-y-4">
         <div>
-          <Label >17. What is your target Internal Rate of Return (IRR) for investors (in USD equivalent)?</Label>
+          <Label >18. What is your target Internal Rate of Return (IRR) for investors (in USD equivalent)?</Label>
         </div>
         
         <div className="grid grid-cols-2 gap-6">
           <div>
-            <Label htmlFor="target_irr_achieved">Achieved in most recent reporting period *</Label>
+            <Label htmlFor="target_irr_achieved">Achieved in most recent reporting period</Label>
             <Select onValueChange={(value) => form.setValue("target_irr_achieved", value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select IRR" />
@@ -1109,7 +1121,7 @@ const Survey2021: React.FC = () => {
             </Select>
           </div>
           <div>
-            <Label htmlFor="target_irr_targeted">Targeted *</Label>
+            <Label htmlFor="target_irr_targeted">Targeted</Label>
             <Select onValueChange={(value) => form.setValue("target_irr_targeted", value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select IRR" />
@@ -1126,10 +1138,10 @@ const Survey2021: React.FC = () => {
         </div>
       </div>
 
-      {/* Question 18: Impact vs financial return orientation */}
+      {/* Question 19: Impact vs financial return orientation */}
       <div className="space-y-4">
         <div>
-          <Label >18. How would you frame the impact vs financial return orientation of your capital vehicle? *</Label>
+          <Label >19. How would you frame the impact vs financial return orientation of your capital vehicle?</Label>
         </div>
         
         <Select onValueChange={(value) => {
@@ -1163,10 +1175,10 @@ const Survey2021: React.FC = () => {
         )}
       </div>
 
-      {/* Question 19: Explicit lens/focus */}
+      {/* Question 20: Explicit lens/focus */}
       <div className="space-y-4">
         <div>
-          <Label >19. Does your fund/vehicle have an explicit lens/focus? *</Label>
+          <Label >20. Does your fund/vehicle have an explicit lens/focus?</Label>
         </div>
         
         <div className="grid grid-cols-2 gap-3 mt-2">
@@ -1205,10 +1217,10 @@ const Survey2021: React.FC = () => {
         )}
       </div>
 
-      {/* Question 20: Report Sustainable Development Goals */}
+      {/* Question 21: Report Sustainable Development Goals */}
       <div className="space-y-4">
         <div>
-          <Label >20. Does your fund/investment vehicle specifically report any Sustainable Development Goals? *</Label>
+          <Label >21. Does your fund/investment vehicle specifically report any Sustainable Development Goals?</Label>
         </div>
         
         <div className="flex items-center space-x-4">
@@ -1237,13 +1249,32 @@ const Survey2021: React.FC = () => {
         </div>
       </div>
 
-      {/* Question 21: SDGs categorization by rank */}
+      {/* Question 22: SDGs categorization by rank */}
       {form.watch("report_sustainable_development_goals") && (
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div>
-            <Label >21. If yes, select SDGs and assign rank for each (First, Second, Third, or Other):</Label>
+            <Label >22. If yes, first select your top 3 SDGs in order (1st, 2nd, 3rd), then select additional SDGs that will be classified as "Other":</Label>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          
+          {/* Step 1: Top 3 SDGs in Order */}
+          <div className="space-y-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-medium text-blue-800 mb-3">Step 1: Select your top 3 SDGs in order (1st, 2nd, 3rd)</h4>
+              <div className="space-y-4">
+                {/* 1st Priority */}
+                <div className="p-4 border rounded-md bg-white">
+                  <Label className="text-sm font-medium text-gray-800 mb-2">1st Priority SDG</Label>
+                  <Select
+                    value={form.watch("top_sdg_1") || ""}
+                    onValueChange={(value) => {
+                      form.setValue("top_sdg_1", value);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select 1st priority SDG" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
             {[
               "No Poverty", "Zero Hunger", "Good Health and Well-Being", "Quality Education",
               "Gender Equality", "Clean Water and Sanitation", "Affordable and Clean Energy",
@@ -1252,42 +1283,141 @@ const Survey2021: React.FC = () => {
               "Climate Action", "Life Below Water", "Life on Land", "Peace, Justice, and Strong Institutions",
               "Partnerships for the Goals"
             ].map((sdg) => (
-              <div key={sdg} className="p-3 border rounded-md bg-white">
-                <div className="text-sm font-medium text-gray-800 mb-2">{sdg}</div>
+                        <SelectItem key={sdg} value={sdg}>{sdg}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* 2nd Priority */}
+                <div className="p-4 border rounded-md bg-white">
+                  <Label className="text-sm font-medium text-gray-800 mb-2">2nd Priority SDG</Label>
                 <Select
-                  value={form.watch("top_sdgs")?.[sdg] ?? undefined}
-                  onValueChange={(rank) => {
-                    const current = form.getValues("top_sdgs") || {};
-                    const updated = { ...current } as Record<string, string>;
-                    if (rank === 'None') {
-                      delete updated[sdg];
-                    } else {
-                      updated[sdg] = rank;
+                    value={form.watch("top_sdg_2") || ""}
+                    onValueChange={(value) => {
+                      form.setValue("top_sdg_2", value);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select 2nd priority SDG" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      {[
+                        "No Poverty", "Zero Hunger", "Good Health and Well-Being", "Quality Education",
+                        "Gender Equality", "Clean Water and Sanitation", "Affordable and Clean Energy",
+                        "Decent Work and Economic Growth", "Industry Innovation and Infrastructure",
+                        "Reduced Inequalities", "Sustainable Cities and Communities", "Responsible Consumption and Production",
+                        "Climate Action", "Life Below Water", "Life on Land", "Peace, Justice, and Strong Institutions",
+                        "Partnerships for the Goals"
+                      ].filter(sdg => sdg !== form.watch("top_sdg_1")).map((sdg) => (
+                        <SelectItem key={sdg} value={sdg}>{sdg}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* 3rd Priority */}
+                <div className="p-4 border rounded-md bg-white">
+                  <Label className="text-sm font-medium text-gray-800 mb-2">3rd Priority SDG</Label>
+                  <Select
+                    value={form.watch("top_sdg_3") || ""}
+                    onValueChange={(value) => {
+                      form.setValue("top_sdg_3", value);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select 3rd priority SDG" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      {[
+                        "No Poverty", "Zero Hunger", "Good Health and Well-Being", "Quality Education",
+                        "Gender Equality", "Clean Water and Sanitation", "Affordable and Clean Energy",
+                        "Decent Work and Economic Growth", "Industry Innovation and Infrastructure",
+                        "Reduced Inequalities", "Sustainable Cities and Communities", "Responsible Consumption and Production",
+                        "Climate Action", "Life Below Water", "Life on Land", "Peace, Justice, and Strong Institutions",
+                        "Partnerships for the Goals"
+                      ].filter(sdg => sdg !== form.watch("top_sdg_1") && sdg !== form.watch("top_sdg_2")).map((sdg) => (
+                        <SelectItem key={sdg} value={sdg}>{sdg}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Step 2: Additional SDGs as "Other" */}
+          <div className="space-y-4">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <h4 className="font-medium text-green-800 mb-3">Step 2: Select additional SDGs (these will be classified as "Other")</h4>
+              <div className="p-4 border rounded-md bg-white">
+                <Label className="text-sm font-medium text-gray-800 mb-2">Additional SDGs</Label>
+                <Select
+                  value=""
+                  onValueChange={(value) => {
+                    const current = form.getValues("other_sdgs") || [];
+                    if (!current.includes(value)) {
+                      form.setValue("other_sdgs", [...current, value], { shouldDirty: true, shouldTouch: true });
                     }
-                    form.setValue("top_sdgs", updated, { shouldDirty: true, shouldTouch: true });
                   }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="No selection" />
+                    <SelectValue placeholder="Select additional SDGs (no specific order)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="None">None</SelectItem>
-                    <SelectItem value="First">First</SelectItem>
-                    <SelectItem value="Second">Second</SelectItem>
-                    <SelectItem value="Third">Third</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
+                    {[
+                      "No Poverty", "Zero Hunger", "Good Health and Well-Being", "Quality Education",
+                      "Gender Equality", "Clean Water and Sanitation", "Affordable and Clean Energy",
+                      "Decent Work and Economic Growth", "Industry Innovation and Infrastructure",
+                      "Reduced Inequalities", "Sustainable Cities and Communities", "Responsible Consumption and Production",
+                      "Climate Action", "Life Below Water", "Life on Land", "Peace, Justice, and Strong Institutions",
+                      "Partnerships for the Goals"
+                    ].filter(sdg => 
+                      sdg !== form.watch("top_sdg_1") && 
+                      sdg !== form.watch("top_sdg_2") && 
+                      sdg !== form.watch("top_sdg_3") &&
+                      !form.watch("other_sdgs")?.includes(sdg)
+                    ).map((sdg) => (
+                      <SelectItem key={sdg} value={sdg}>{sdg}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
+                
+                {/* Show selected "Other" SDGs */}
+                {form.watch("other_sdgs") && form.watch("other_sdgs").length > 0 && (
+                  <div className="mt-3">
+                    <Label className="text-sm font-medium text-gray-800 mb-2">Selected as "Other":</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {form.watch("other_sdgs").map((sdg, index) => (
+                        <div key={index} className="flex items-center space-x-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
+                          <span>{sdg}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const current = form.getValues("other_sdgs") || [];
+                              form.setValue("other_sdgs", current.filter(item => item !== sdg), { shouldDirty: true, shouldTouch: true });
+                            }}
+                            className="ml-2 text-green-600 hover:text-green-800"
+                          >
+                            ×
+                          </button>
               </div>
             ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Question 22: Gender considerations - categorize each as Investment Consideration, Investment Requirement, or None */}
+      {/* Question 23: Gender considerations - categorize each as Investment Consideration, Investment Requirement, or None */}
       <div className="space-y-4">
         <div>
-          <Label >22. Do any of the following gender considerations apply when making investment/financing considerations?</Label>
+          <Label >23. Do any of the following gender considerations apply when making investment/financing considerations?</Label>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
           {[
@@ -1401,10 +1531,10 @@ const Survey2021: React.FC = () => {
         
       </div>
 
-      {/* Question 23: Do any of the following apply to your fund/vehicle? */}
+      {/* Question 24: Do any of the following apply to your fund/vehicle? */}
       <div className="space-y-4">
         <div>
-          <Label >23. Do any of the following apply to your fund/vehicle? *</Label>
+          <Label >24. Do any of the following apply to your fund/vehicle?</Label>
           <div className="text-sm text-gray-600">Check all that apply.</div>
         </div>
         
@@ -1450,11 +1580,11 @@ const Survey2021: React.FC = () => {
     <div className="space-y-6">
       <div className="space-y-3">
         <div>
-          <Label >25. What is the typical size of investment in your portfolio companies at the time of initial investment (in USD)?</Label>
+          <Label >26. What is the typical size of investment in your portfolio companies at the time of initial investment (in USD)?</Label>
         </div>
         <div className="grid grid-cols-2 gap-6">
           <div>
-            <Label htmlFor="investment_size_your_amount">Your investment amount at time of initial investment *</Label>
+            <Label htmlFor="investment_size_your_amount">Your investment amount at time of initial investment</Label>
             <Select onValueChange={(value) => form.setValue("investment_size_your_amount", value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select amount" />
@@ -1470,7 +1600,7 @@ const Survey2021: React.FC = () => {
             </Select>
           </div>
           <div>
-            <Label htmlFor="investment_size_total_raise">Total raise by portfolio company *</Label>
+            <Label htmlFor="investment_size_total_raise">Total raise by portfolio company</Label>
             <Select onValueChange={(value) => form.setValue("investment_size_total_raise", value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select amount" />
@@ -1489,7 +1619,7 @@ const Survey2021: React.FC = () => {
       </div>
         
       <div>
-        <Label >26. What forms of investment do you typically make? *</Label>
+        <Label >27. What forms of investment do you typically make?</Label>
         <div className="text-sm text-gray-600">Check all that apply.</div>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
@@ -1537,7 +1667,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >26. What are your target investment sectors/focus areas? *</Label>
+        <Label >28. What are your target investment sectors/focus areas?</Label>
         <div className="text-sm text-gray-600">Check all that apply.</div>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
@@ -1588,7 +1718,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label htmlFor="carried_interest_principals">Number of current carried-interest/equity-interest principals *</Label>
+        <Label htmlFor="carried_interest_principals">Number of current carried-interest/equity-interest principals</Label>
         <Select onValueChange={(value) => form.setValue("carried_interest_principals", value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select count" />
@@ -1604,7 +1734,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label htmlFor="current_ftes">Number of current Full Time Equivalent staff members (FTEs) including principals *</Label>
+        <Label htmlFor="current_ftes">Number of current Full Time Equivalent staff members (FTEs) including principals</Label>
         <Select onValueChange={(value) => form.setValue("current_ftes", value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select count" />
@@ -1623,7 +1753,7 @@ const Survey2021: React.FC = () => {
   const renderSection4 = () => (
     <div className="space-y-6">
       <div>
-        <Label >29. During the first 3 years of an investment, what are the key needs of portfolio enterprises? Please provide one ranking per row: 1 = highest need, 5 = lowest need *</Label>
+        <Label >30. During the first 3 years of an investment, what are the key needs of portfolio enterprises? Please provide one ranking per row: 1 = highest need, 5 = lowest need</Label>
         <div className="space-y-4 mt-2">
           {[
             "Finance, budgeting, accounting, cash and tax management",
@@ -1713,7 +1843,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >31. What is the typical form of investment monetization/exit? *</Label>
+        <Label >32. What is the typical form of investment monetization/exit?</Label>
         <div className="text-sm text-gray-600">Check all that apply.</div>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
@@ -1759,7 +1889,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label htmlFor="exits_achieved" >32. How many exits has your vehicle achieved to date (ie exits/monetizations for equity investments and full repayments for debt investments)? *</Label>
+        <Label htmlFor="exits_achieved" >33. How many exits has your vehicle achieved to date (ie exits/monetizations for equity investments and full repayments for debt investments)?</Label>
         <Select onValueChange={(value) => {
           form.setValue("exits_achieved", value);
           if (value !== 'Other') {
@@ -1793,7 +1923,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >33. Fund capabilities and resources – what are the areas of desired investment/support for your fund? Please provide one ranking per row: 1 = highest need, 5 = lowest need *</Label>
+        <Label >34. Fund capabilities and resources – what are the areas of desired investment/support for your fund? Please provide one ranking per row: 1 = highest need, 5 = lowest need</Label>
         <div className="space-y-4 mt-2">
           {[
             "Fundraising with access to global LPs",
@@ -1889,7 +2019,7 @@ const Survey2021: React.FC = () => {
   const renderSection5 = () => (
     <div className="space-y-6">
       <div>
-        <Label htmlFor="covid_impact_aggregate" >33. At an aggregate level, please indicate the impact of COVID-19 on your investment vehicle and operations. *</Label>
+        <Label htmlFor="covid_impact_aggregate" >35. At an aggregate level, please indicate the impact of COVID-19 on your investment vehicle and operations.</Label>
         <Select onValueChange={(value) => form.setValue("covid_impact_aggregate", value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select impact level" />
@@ -1905,7 +2035,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >34. What impact has COVID-19 had on the following aspects of your portfolio companies? *</Label>
+        <Label >36. What impact has COVID-19 had on the following aspects of your portfolio companies?</Label>
         <div className="space-y-4 mt-2">
           {[
             "Staff attendance", "Customer demand", "Ability to pay staff salaries",
@@ -1942,7 +2072,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >35. Have you received any financial or non-financial support from any government programs or grant funding related to COVID-19? *</Label>
+        <Label >37. Have you received any financial or non-financial support from any government programs or grant funding related to COVID-19?</Label>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
             "Yes, government support (financial)",
@@ -1985,7 +2115,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >36. Do you anticipate raising new LP/investor funds in 2021? If yes, for what purpose? *</Label>
+        <Label >38. Do you anticipate raising new LP/investor funds in 2021? If yes, for what purpose?</Label>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
             "N/A - have no plans to raise capital in 2021", "Stabilize operations of existing portfolio companies",
@@ -2027,7 +2157,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >37. Regarding your current fund/investment vehicle, which of the following is under consideration? *</Label>
+        <Label >39. Regarding your current fund/investment vehicle, which of the following is under consideration?</Label>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
             "No change planned",
@@ -2062,7 +2192,7 @@ const Survey2021: React.FC = () => {
   const renderSection6 = () => (
     <div className="space-y-6">
       <div>
-        <Label >38. Overall, how valuable have you found your participation in the ESCP network? *</Label>
+        <Label >40. Overall, how valuable have you found your participation in the ESCP network?</Label>
         <Select onValueChange={(value) => form.setValue('network_value_rating', value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select rating (1 = Most valuable, 5 = Least valuable)" />
@@ -2078,7 +2208,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >39. Please indicate which working groups you have found the most valuable. Please provide one ranking per row (or for each group you have engaged with): 1 = most valuable, 5 = least valuable, N/A = not engaged *</Label>
+        <Label >41. Please indicate which working groups you have found the most valuable. Please provide one ranking per row (or for each group you have engaged with): 1 = most valuable, 5 = least valuable, N/A = not engaged</Label>
         <div className="space-y-4 mt-2">
           {[
             'Fund Economics',
@@ -2111,7 +2241,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >40. Do you have suggestions of new working group topics/formats you would like to see? *</Label>
+        <Label >42. Do you have suggestions of new working group topics/formats you would like to see?</Label>
         <div className="mt-2">
           <textarea
             id="new_working_group_suggestions"
@@ -2123,7 +2253,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >41. Please indicate which webinar content you have found the most valuable. Please provide one ranking per row (or for each webinar you attended/watched): 1 = most valuable, 5 = least valuable, N/A = not attended *</Label>
+        <Label >43. Please indicate which webinar content you have found the most valuable. Please provide one ranking per row (or for each webinar you attended/watched): 1 = most valuable, 5 = least valuable, N/A = not attended</Label>
         <div className="space-y-4 mt-2">
           {[
             'Gender lens investing (facilitated by Suzanne Biegel)',
@@ -2162,7 +2292,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >42. Do you have suggestions of new webinar topics/formats you would like to see? *</Label>
+        <Label >44. Do you have suggestions of new webinar topics/formats you would like to see?</Label>
         <div className="mt-2">
           <textarea
             id="new_webinar_suggestions"
@@ -2174,7 +2304,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >43. Do you prefer Slack or WhatsApp as a communication platform for the network? *</Label>
+        <Label >45. Do you prefer Slack or WhatsApp as a communication platform for the network?</Label>
         <Select onValueChange={(value) => {
           form.setValue('communication_platform', value);
           if (value !== 'Other') {
@@ -2211,7 +2341,7 @@ const Survey2021: React.FC = () => {
   const renderSection7 = () => (
     <div className="space-y-6">
       <div>
-        <Label >44. What are the main areas of value that you have received from the network to date? Please provide one ranking per row: 1 = most valuable, 5 = least valuable *</Label>
+        <Label >46. What are the main areas of value that you have received from the network to date? Please provide one ranking per row: 1 = most valuable, 5 = least valuable</Label>
         <div className="space-y-4 mt-2">
           {[
             "Peer connections and peer learning", "Advocacy for early stage investing",
@@ -2241,7 +2371,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >45. Would you like to present in Session 1: "Connection/Reconnection" on Tuesday February 16th to provide a brief (1-2 min update) on your activities/progress (please note you are not required to present in order to attend this session – presenting is optional!)? *</Label>
+        <Label >47. Would you like to present in Session 1: "Connection/Reconnection" on Tuesday February 16th to provide a brief (1-2 min update) on your activities/progress (please note you are not required to present in order to attend this session – presenting is optional!)?</Label>
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <input
@@ -2291,7 +2421,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >46. In advance of Session 3: "Planning for 2021" on Tuesday February 23rd, please indicate which of the below initiatives you would be interested in, that you believe will add most value to your organization. Please provide one ranking per row: 1 = very interested, 2 = possibly interested, 3 = not interested *</Label>
+        <Label >48. In advance of Session 3: "Planning for 2021" on Tuesday February 23rd, please indicate which of the below initiatives you would be interested in, that you believe will add most value to your organization. Please provide one ranking per row: 1 = very interested, 2 = possibly interested, 3 = not interested</Label>
         <div className="space-y-4 mt-2">
           {[
             "Warehousing/seed funding for fund managers to build track record",
@@ -2351,7 +2481,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >47. Would you be interested in participating in a peer mentoring program? *</Label>
+        <Label >49. Would you be interested in participating in a peer mentoring program?</Label>
         <Select onValueChange={(value) => form.setValue("participate_mentoring_program", value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select option" />
@@ -2378,7 +2508,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >48. Would you like to present in Session 4: "Demystifying frontier finance" on Thursday February 25th, and if so, please indicate which sub-topic(s) you would be interested in presenting on (please note you are not required to present in order to attend this session – presenting is optional!)? *</Label>
+        <Label >50. Would you like to present in Session 4: "Demystifying frontier finance" on Thursday February 25th, and if so, please indicate which sub-topic(s) you would be interested in presenting on (please note you are not required to present in order to attend this session – presenting is optional!)?</Label>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
             "Yes, open ended vehicles", "Yes, early stage debt vehicles", "Yes, early stage equity",
@@ -2427,7 +2557,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label >49. Any other comments / feedback that you would like to share?</Label>
+        <Label >51. Any other comments / feedback that you would like to share?</Label>
         <Textarea
           id="additional_comments"
           {...form.register("additional_comments")}
@@ -2629,15 +2759,15 @@ const Survey2021: React.FC = () => {
           {/* Enhanced Progress Bar and Section Header */}
           <Card className="bg-white p-6 rounded-lg border shadow-sm">
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900">
-                    Section {currentSection}: {getSectionTitle(currentSection)}
-                  </h2>
+                Section {currentSection}: {getSectionTitle(currentSection)}
+              </h2>
                   <p className="text-sm text-gray-600 mt-1">
                     {currentSection} of {totalSections} sections
                   </p>
-                </div>
+            </div>
                 <div className="text-right">
                   <div className="text-sm font-medium text-gray-900">{Math.round(progress)}% Complete</div>
                   <div className="text-xs text-gray-500">Survey Progress</div>
@@ -2652,53 +2782,53 @@ const Survey2021: React.FC = () => {
             </div>
           </Card>
 
-          <div className="space-y-6">
-            {renderCurrentSection()}
+            <div className="space-y-6">
+              {renderCurrentSection()}
           </div>
 
           {/* Enhanced Navigation Buttons */}
           <Card className="bg-white p-6 rounded-lg border shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handlePrevious}
+              disabled={currentSection === 1}
+                className="px-6 py-2 border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Previous
+            </Button>
+
+              <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
               <Button
                 type="button"
                 variant="outline"
-                onClick={handlePrevious}
-                disabled={currentSection === 1}
-                className="px-6 py-2 border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                onClick={saveDraft}
+                disabled={saving}
+                  className="px-6 py-2 border-green-300 text-green-700 hover:bg-green-50 disabled:opacity-50"
               >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Previous
+                  {saving ? 'Saving...' : '💾 Save Draft'}
               </Button>
-
-              <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
+              {currentSection < totalSections ? (
                 <Button
                   type="button"
-                  variant="outline"
-                  onClick={saveDraft}
-                  disabled={saving}
-                  className="px-6 py-2 border-green-300 text-green-700 hover:bg-green-50 disabled:opacity-50"
-                >
-                  {saving ? 'Saving...' : '💾 Save Draft'}
-                </Button>
-                {currentSection < totalSections ? (
-                  <Button
-                    type="button"
-                    onClick={handleNext}
+                  onClick={handleNext}
                     className="px-8 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                  >
+                >
                     Next &rarr;
-                  </Button>
-                ) : (
-                  <Button
-                    type="submit"
-                    disabled={loading}
+                </Button>
+              ) : (
+                <Button
+                  type="submit"
+                  disabled={loading}
                     className="px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
+                >
                     {loading ? 'Submitting...' : '🎉 Submit Survey'}
-                  </Button>
-                )}
-              </div>
+                </Button>
+              )}
             </div>
+          </div>
           </Card>
         </form>
         </Form>
