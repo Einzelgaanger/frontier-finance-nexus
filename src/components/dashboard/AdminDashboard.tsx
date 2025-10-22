@@ -29,6 +29,8 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from "@/components/ui/badge";
+import AIAssistant from './AIAssistant';
+import AIAssistant from './AIAssistant';
 
 interface ActivityItem {
   id: string;
@@ -473,6 +475,11 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      {/* AI Assistant Section */}
+      <div className="mt-8">
+        <AIAssistant />
       </div>
     </div>
   );
