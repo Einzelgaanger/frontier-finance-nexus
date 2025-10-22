@@ -35,6 +35,7 @@ export default function ViewerNetworkPageNew() {
       const { data, error } = await supabase
         .from('user_profiles')
         .select('id, email, company_name, description, website, profile_picture_url, user_role')
+        .not('email', 'like', '%.test@escpnetwork.net')
         .order('company_name');
 
       if (error) throw error;

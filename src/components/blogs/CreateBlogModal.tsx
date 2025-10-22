@@ -32,7 +32,7 @@ export function CreateBlogModal({ open, onOpenChange, onSuccess }: CreateBlogMod
     content: "",
     media_type: "text" as "text" | "image" | "video",
     media_url: "",
-    caption: "",
+    caption: ""
   });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -124,7 +124,7 @@ export function CreateBlogModal({ open, onOpenChange, onSuccess }: CreateBlogMod
         content: "",
         media_type: "text",
         media_url: "",
-        caption: "",
+        caption: ""
       });
       setSelectedFile(null);
       onOpenChange(false);
@@ -206,7 +206,7 @@ export function CreateBlogModal({ open, onOpenChange, onSuccess }: CreateBlogMod
                   <Label htmlFor="media_url">Media URL</Label>
                   <Input
                     id="media_url"
-                    value={formData.media_url}
+                    value={formData.media_url || ""}
                     onChange={(e) => setFormData({ ...formData, media_url: e.target.value })}
                     placeholder={`Enter ${formData.media_type} URL`}
                     type="url"
@@ -234,7 +234,7 @@ export function CreateBlogModal({ open, onOpenChange, onSuccess }: CreateBlogMod
                 <Label htmlFor="caption">Caption</Label>
                 <Input
                   id="caption"
-                  value={formData.caption}
+                  value={formData.caption || ""}
                   onChange={(e) => setFormData({ ...formData, caption: e.target.value })}
                   placeholder="Add a caption"
                 />

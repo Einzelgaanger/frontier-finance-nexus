@@ -89,13 +89,13 @@ export default function MyProfile() {
       const fileName = `${user.id}/avatar.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('blog-media')
+        .from('profile-pictures')
         .upload(fileName, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('blog-media')
+        .from('profile-pictures')
         .getPublicUrl(fileName);
 
       setProfile(prev => ({ ...prev, profile_picture_url: publicUrl }));

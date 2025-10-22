@@ -19,6 +19,7 @@ const PortIQ = () => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -32,29 +33,64 @@ const PortIQ = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Fetch user profile
+  // Fetch user profile and load conversation history
   useEffect(() => {
-    const fetchUserProfile = async () => {
+    const initialize = async () => {
       if (user) {
         try {
-          const { data, error } = await supabase
+          // Fetch profile
+          const { data: profileData } = await supabase
             .from('user_profiles')
             .select('company_name, profile_picture_url, full_name')
             .eq('id', user.id)
             .single();
           
-          if (data && !error) {
-            setUserProfile(data);
+          if (profileData) {
+            setUserProfile(profileData);
+          }
+
+          // Get or create conversation
+          const { data: conversations } = await supabase
+            .from('chat_conversations' as any)
+            .select('id')
+            .eq('user_id', user.id)
+            .order('updated_at', { ascending: false })
+            .limit(1);
+
+          let convId: string;
+          if (conversations && (conversations as any).length > 0) {
+            convId = (conversations as any)[0].id;
           } else {
-            console.error('Error fetching user profile:', error);
+            // Create new conversation
+            const { data: newConv, error: createError } = await supabase
+              .from('chat_conversations' as any)
+              .insert({ user_id: user.id, title: 'PortIQ Chat' })
+              .select('id')
+              .single();
+            
+            if (createError) throw createError;
+            convId = (newConv as any).id;
+          }
+
+          setConversationId(convId);
+
+          // Load messages for this conversation
+          const { data: messagesData } = await supabase
+            .from('chat_messages' as any)
+            .select('role, content, created_at')
+            .eq('conversation_id', convId)
+            .order('created_at', { ascending: true });
+
+          if (messagesData && messagesData.length > 0) {
+            setMessages(messagesData.map((m: any) => ({ role: m.role as 'user' | 'assistant', content: m.content })));
           }
         } catch (error) {
-          console.error('Error fetching user profile:', error);
+          console.error('Error initializing:', error);
         }
       }
     };
 
-    fetchUserProfile();
+    initialize();
   }, [user]);
 
   // Prevent body scrolling
@@ -79,23 +115,50 @@ const PortIQ = () => {
   }, []);
 
   const sendMessage = async () => {
-    if (!input.trim() || loading) return;
+    if (!input.trim() || loading || !conversationId || !user) return;
 
     const userMessage = input.trim();
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    
+    // Optimistically add user message
+    const userMsg: Message = { role: 'user', content: userMessage };
+    setMessages(prev => [...prev, userMsg]);
     setLoading(true);
 
     try {
+      // Save user message to DB
+      await supabase.from('chat_messages' as any).insert({
+        conversation_id: conversationId,
+        user_id: user.id,
+        role: 'user',
+        content: userMessage
+      });
+
+      // Send all messages for context
       const { data, error } = await supabase.functions.invoke('ai-chat', {
-        body: { message: userMessage }
+        body: { messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })) }
       });
 
       if (error) throw error;
 
       const resText = (data as any)?.reply ?? (data as any)?.response;
       if (resText) {
-        setMessages(prev => [...prev, { role: 'assistant', content: resText }]);
+        const assistantMsg: Message = { role: 'assistant', content: resText };
+        setMessages(prev => [...prev, assistantMsg]);
+        
+        // Save assistant message to DB
+        await supabase.from('chat_messages' as any).insert({
+          conversation_id: conversationId,
+          user_id: user.id,
+          role: 'assistant',
+          content: resText
+        });
+
+        // Update conversation timestamp
+        await supabase
+          .from('chat_conversations' as any)
+          .update({ updated_at: new Date().toISOString() })
+          .eq('id', conversationId);
       } else {
         throw new Error('Empty response from AI');
       }
@@ -106,6 +169,8 @@ const PortIQ = () => {
         description: error.message || "Failed to send message",
         variant: "destructive"
       });
+      // Remove optimistic user message on error
+      setMessages(prev => prev.slice(0, -1));
     } finally {
       setLoading(false);
     }
