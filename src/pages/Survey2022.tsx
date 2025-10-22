@@ -719,10 +719,10 @@ const Survey2022 = () => {
                         <SelectValue placeholder="Select number" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="≤ 2 FTEs">≤ 2 FTEs</SelectItem>
-                        <SelectItem value="3 - 5 FTEs">3 - 5 FTEs</SelectItem>
-                        <SelectItem value="6 - 10 FTEs">6 - 10 FTEs</SelectItem>
-                        <SelectItem value=">10 FTEs">&gt;10 FTEs</SelectItem>
+                        <SelectItem value="lte_2_FTEs">&le; 2 FTEs</SelectItem>
+                        <SelectItem value="3_5_FTEs">3 - 5 FTEs</SelectItem>
+                        <SelectItem value="6_10_FTEs">6 - 10 FTEs</SelectItem>
+                        <SelectItem value="gt_10_FTEs">&gt;10 FTEs</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -741,10 +741,10 @@ const Survey2022 = () => {
                         <SelectValue placeholder="Select number" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="≤ 2 FTEs">≤ 2 FTEs</SelectItem>
-                        <SelectItem value="3 - 5 FTEs">3 - 5 FTEs</SelectItem>
-                        <SelectItem value="6 - 10 FTEs">6 - 10 FTEs</SelectItem>
-                        <SelectItem value=">10 FTEs">&gt;10 FTEs</SelectItem>
+                        <SelectItem value="lte_2_FTEs">&le; 2 FTEs</SelectItem>
+                        <SelectItem value="3_5_FTEs">3 - 5 FTEs</SelectItem>
+                        <SelectItem value="6_10_FTEs">6 - 10 FTEs</SelectItem>
+                        <SelectItem value="gt_10_FTEs">&gt;10 FTEs</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -772,7 +772,7 @@ const Survey2022 = () => {
                       <SelectItem value="1">1</SelectItem>
                       <SelectItem value="2 - 3">2 - 3</SelectItem>
                       <SelectItem value="4 - 5">4 - 5</SelectItem>
-                      <SelectItem value="> 5">&gt; 5</SelectItem>
+                      <SelectItem value="gt_5">&gt; 5</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -899,9 +899,9 @@ const Survey2022 = () => {
             
             <div className="grid grid-cols-1 gap-3">
               {[
-                'Women ownership/participation interest is ≥ 50%',
-                'Women representation on the board/investment committee is ≥ 50',
-                'Female staffing is ≥ 50%',
+                'Women ownership/participation interest is greater than or equal to 50%',
+                'Women representation on the board/investment committee is greater than or equal to 50',
+                'Female staffing is greater than or equal to 50%',
                 'Provide specific reporting on gender related indicators for your investors/funders',
                 'Require specific reporting on gender related indicators by your investees/borrowers'
               ].map((option) => (
@@ -998,7 +998,7 @@ const Survey2022 = () => {
                         <SelectItem value="5 - 9">5 - 9</SelectItem>
                         <SelectItem value="10 - 14">10 - 14</SelectItem>
                         <SelectItem value="15 - 24">15 - 24</SelectItem>
-                        <SelectItem value="≥ 25">≥ 25</SelectItem>
+                        <SelectItem value="gte_25">&ge; 25</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -1022,7 +1022,7 @@ const Survey2022 = () => {
                         <SelectItem value="5 - 9">5 - 9</SelectItem>
                         <SelectItem value="10 - 14">10 - 14</SelectItem>
                         <SelectItem value="15 - 24">15 - 24</SelectItem>
-                        <SelectItem value="≥ 25">≥ 25</SelectItem>
+                        <SelectItem value="gte_25">&ge; 25</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -1299,9 +1299,9 @@ const Survey2022 = () => {
                     </SelectTrigger>
                   <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
                     <SelectItem value="Not Permitted">Not Permitted</SelectItem>
-                    <SelectItem value="< 25% of Fund">&lt; 25% of Fund</SelectItem>
-                    <SelectItem value="26% - 50% of Fund">26% - 50% of Fund</SelectItem>
-                    <SelectItem value="> 50% of Fund">&gt; 50% of Fund</SelectItem>
+                    <SelectItem value="lt_25_percent_of_Fund">&lt; 25% of Fund</SelectItem>
+                    <SelectItem value="26_50_percent_of_Fund">26% - 50% of Fund</SelectItem>
+                    <SelectItem value="gt_50_percent_of_Fund">&gt; 50% of Fund</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -1323,11 +1323,11 @@ const Survey2022 = () => {
                     </SelectTrigger>
                     <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
                       <SelectItem value="N/A - 100% of our capital is concessionary">N/A - 100% of our capital is concessionary</SelectItem>
-                      <SelectItem value="≤ 5%">&le; 5%</SelectItem>
+                      <SelectItem value="lte_5_percent">&le; 5%</SelectItem>
                       <SelectItem value="6 – 9%">6 – 9%</SelectItem>
                       <SelectItem value="10 – 14%">10 – 14%</SelectItem>
                       <SelectItem value="15 – 19%">15 – 19%</SelectItem>
-                      <SelectItem value="≥ 20%">&ge; 20%</SelectItem>
+                      <SelectItem value="gte_20_percent">&ge; 20%</SelectItem>
                       <SelectItem value="Other">Other (please specify)</SelectItem>
                     </SelectContent>
                   </Select>
@@ -1732,9 +1732,9 @@ const Survey2022 = () => {
                     </SelectTrigger>
                     <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
                       <SelectItem value="N/A - No Carried Interest">N/A - No Carried Interest</SelectItem>
-                      <SelectItem value="Hurdle Target: IRR Returns > 5% (USD Equivalent)">Hurdle Target: IRR Returns &gt; 5% (USD Equivalent)</SelectItem>
-                      <SelectItem value="Hurdle Target: IRR Returns > 8% (USD Equivalent)">Hurdle Target: IRR Returns &gt; 8% (USD Equivalent)</SelectItem>
-                      <SelectItem value="Hurdle Target: IRR Returns > 10% (USD Equivalent)">Hurdle Target: IRR Returns &gt; 10% (USD Equivalent)</SelectItem>
+                      <SelectItem value="IRR_gt_5_percent">Hurdle Target: IRR Returns &gt; 5% (USD Equivalent)</SelectItem>
+                      <SelectItem value="IRR_gt_8_percent">Hurdle Target: IRR Returns &gt; 8% (USD Equivalent)</SelectItem>
+                      <SelectItem value="IRR_gt_10_percent">Hurdle Target: IRR Returns &gt; 10% (USD Equivalent)</SelectItem>
                       <SelectItem value="Other">Other (please specify basis for calculation and hurdle rate)</SelectItem>
                     </SelectContent>
                   </Select>
@@ -1918,7 +1918,7 @@ const Survey2022 = () => {
                                 <SelectItem value="1 - 24% of target portfolio">1 - 24% of target portfolio</SelectItem>
                                 <SelectItem value="25 - 49% of target portfolio">25 - 49% of target portfolio</SelectItem>
                                 <SelectItem value="50 - 74% of target portfolio">50 - 74% of target portfolio</SelectItem>
-                                <SelectItem value="≥ 75% of target portfolio">&ge; 75% of target portfolio</SelectItem>
+                                <SelectItem value="gte_75_percent_target_portfolio">&ge; 75% of target portfolio</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -1984,7 +1984,7 @@ const Survey2022 = () => {
                                     <SelectItem value="1 - 24% of target portfolio">1 - 24% of target portfolio</SelectItem>
                                     <SelectItem value="25 - 49% of target portfolio">25 - 49% of target portfolio</SelectItem>
                                     <SelectItem value="50 - 74% of target portfolio">50 - 74% of target portfolio</SelectItem>
-                                    <SelectItem value="≥ 75% of target portfolio">&ge; 75% of target portfolio</SelectItem>
+                                    <SelectItem value="gte_75_percent_target_portfolio">&ge; 75% of target portfolio</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -2078,7 +2078,7 @@ const Survey2022 = () => {
                                 <SelectItem value="1-24% of target portfolio">1-24% of target portfolio</SelectItem>
                                 <SelectItem value="25-49% of target portfolio">25-49% of target portfolio</SelectItem>
                                 <SelectItem value="50-74% of target portfolio">50-74% of target portfolio</SelectItem>
-                                <SelectItem value="≥ 75% of target portfolio">&ge; 75% of target portfolio</SelectItem>
+                                <SelectItem value="gte_75_percent_target_portfolio">&ge; 75% of target portfolio</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -2144,7 +2144,7 @@ const Survey2022 = () => {
                                     <SelectItem value="1-24% of target portfolio">1-24% of target portfolio</SelectItem>
                                     <SelectItem value="25-49% of target portfolio">25-49% of target portfolio</SelectItem>
                                     <SelectItem value="50-74% of target portfolio">50-74% of target portfolio</SelectItem>
-                                    <SelectItem value="≥ 75% of target portfolio">&ge; 75% of target portfolio</SelectItem>
+                                    <SelectItem value="gte_75_percent_target_portfolio">&ge; 75% of target portfolio</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -2343,7 +2343,7 @@ const Survey2022 = () => {
                                 <SelectItem value="1 - 24% of invested capital">1 - 24% of invested capital</SelectItem>
                                 <SelectItem value="25 - 49% of invested capital">25 - 49% of invested capital</SelectItem>
                                 <SelectItem value="50 - 74% of invested capital">50 - 74% of invested capital</SelectItem>
-                                <SelectItem value="≥ 75% of invested capital">&ge; 75% of invested capital</SelectItem>
+                                <SelectItem value="gte_75_percent_invested_capital">&ge; 75% of invested capital</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -2409,7 +2409,7 @@ const Survey2022 = () => {
                                     <SelectItem value="1 - 24% of invested capital">1 - 24% of invested capital</SelectItem>
                                     <SelectItem value="25 - 49% of invested capital">25 - 49% of invested capital</SelectItem>
                                     <SelectItem value="50 - 74% of invested capital">50 - 74% of invested capital</SelectItem>
-                                    <SelectItem value="≥ 75% of invested capital">&ge; 75% of invested capital</SelectItem>
+                                    <SelectItem value="gte_75_percent_invested_capital">&ge; 75% of invested capital</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -3253,7 +3253,7 @@ const Survey2022 = () => {
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="> 5" id="exits-over-5" />
+                        <RadioGroupItem value="gt_5" id="exits-over-5" />
                         <Label htmlFor="exits-over-5" className="text-sm font-normal">
                           &gt; 5
                         </Label>
@@ -4127,7 +4127,7 @@ const Survey2022 = () => {
           <div className="flex flex-col items-end gap-2">
             <div className="flex items-center flex-wrap gap-2 text-[10px] justify-end">
               <span className="px-2 py-0.5 rounded-full bg-white/80 text-blue-700 border border-blue-200">6 sections</span>
-              <span className="px-2 py-0.5 rounded-full bg-white/80 text-blue-700 border border-blue-200">10–12 min</span>
+              <span className="px-2 py-0.5 rounded-full bg-white/80 text-blue-700 border border-blue-200">10-12 min</span>
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={() => navigate('/survey')}>Back to Surveys</Button>
