@@ -274,8 +274,12 @@ const Survey2022 = () => {
 
   
 
+  const calculateProgress = () => {
+    return (currentSection / totalSections) * 100;
+  };
+
   useEffect(() => {
-    setProgress((currentSection / totalSections) * 100);
+    setProgress(calculateProgress());
   }, [currentSection]);
 
   const saveDraft = async () => {
@@ -464,315 +468,75 @@ const Survey2022 = () => {
   const renderSection2 = () => (
     <div className="space-y-6">
       <div className="space-y-6">
-          <div>
-            <FormLabel>5. Timeline. When did your current fund/investment vehicle achieve each of the following?</FormLabel>
-            <p className="text-sm text-gray-600 mb-4">
-              (Please provide a date for each of three points in your fund's evolution)
-            </p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="legal_entity_date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Legal Entity</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select date" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="not_achieved">Not Achieved</SelectItem>
-                        <SelectItem value="2015_or_earlier">2015 or earlier</SelectItem>
-                        <SelectItem value="2016_2020">2016 - 2020</SelectItem>
-                        <SelectItem value="2021">2021</SelectItem>
-                        <SelectItem value="2022">2022</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="first_close_date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>First Close (or equivalent)</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select date" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="not_achieved">Not Achieved</SelectItem>
-                        <SelectItem value="2015_or_earlier">2015 or earlier</SelectItem>
-                        <SelectItem value="2016_2020">2016 - 2020</SelectItem>
-                        <SelectItem value="2021">2021</SelectItem>
-                        <SelectItem value="2022">2022</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="first_investment_date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>First Investment</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select date" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="not_achieved">Not Achieved</SelectItem>
-                        <SelectItem value="2015_or_earlier">2015 or earlier</SelectItem>
-                        <SelectItem value="2016_2020">2016 - 2020</SelectItem>
-                        <SelectItem value="2021">2021</SelectItem>
-                        <SelectItem value="2022">2022</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
-
-          <div>
-            <FormLabel>6. In what geographic markets do you operate?</FormLabel>
-            <p className="text-sm text-gray-600 mb-4">
-              (select as many as applicable)
-            </p>
-            
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {[
-                'US', 'Europe', 'Africa: West Africa', 'Africa: East Africa',
-                'Africa: Central Africa', 'Africa: Southern Africa', 'Africa: North Africa', 'Middle East'
-              ].map((market) => (
-                <FormField
-                  key={market}
-                  control={form.control}
-                  name="geographic_markets"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value?.includes(market)}
-                          onCheckedChange={(checked) => {
-                            const current = field.value || [];
-                            if (checked) {
-                              field.onChange([...current, market]);
-                            } else {
-                              field.onChange(current.filter((value) => value !== market));
-                            }
-                          }}
-                        />
-                      </FormControl>
-                      <FormLabel className="text-sm font-normal">{market}</FormLabel>
-                    </FormItem>
-                  )}
-                />
-              ))}
-              
-              {/* Other option */}
-              <FormField
-                control={form.control}
-                name="geographic_markets"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value?.includes('Other')}
-                        onCheckedChange={(checked) => {
-                          const current = field.value || [];
-                          if (checked) {
-                            field.onChange([...current, 'Other']);
-                          } else {
-                            field.onChange(current.filter((value) => value !== 'Other'));
-                          }
-                        }}
-                      />
-                    </FormControl>
-                    <FormLabel className="text-sm font-normal">Other (please specify)</FormLabel>
-                  </FormItem>
-                )}
-              />
-            </div>
-            
-            {/* Conditional "Other" input field */}
-            {form.watch('geographic_markets')?.includes('Other') && (
-              <div className="mt-4">
-                <FormField
-                  control={form.control}
-                  name="geographic_markets_other"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-normal">Please specify other geographic market</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Specify other geographic market" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            )}
-          </div>
-
-          <div>
-            <FormLabel>7. Where is your Team based?</FormLabel>
-            <p className="text-sm text-gray-600 mb-4">
-              (select as many as applicable)
-            </p>
-            
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {[
-                'US', 'Europe', 'Africa: West Africa', 'Africa: East Africa',
-                'Africa: Central Africa', 'Africa: Southern Africa', 'Africa: North Africa', 'Middle East'
-              ].map((location) => (
-                <FormField
-                  key={location}
-                  control={form.control}
-                  name="team_based"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value?.includes(location)}
-                          onCheckedChange={(checked) => {
-                            const current = field.value || [];
-                            if (checked) {
-                              field.onChange([...current, location]);
-                            } else {
-                              field.onChange(current.filter((value) => value !== location));
-                            }
-                          }}
-                        />
-                      </FormControl>
-                      <FormLabel className="text-sm font-normal">{location}</FormLabel>
-                    </FormItem>
-                  )}
-                />
-              ))}
-              
-              {/* Other option */}
-              <FormField
-                control={form.control}
-                name="team_based"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value?.includes('Other')}
-                        onCheckedChange={(checked) => {
-                          const current = field.value || [];
-                          if (checked) {
-                            field.onChange([...current, 'Other']);
-                          } else {
-                            field.onChange(current.filter((value) => value !== 'Other'));
-                          }
-                        }}
-                      />
-                    </FormControl>
-                    <FormLabel className="text-sm font-normal">Other (please specify)</FormLabel>
-                  </FormItem>
-                )}
-              />
-            </div>
-            
-            {/* Conditional "Other" input field */}
-            {form.watch('team_based')?.includes('Other') && (
-              <div className="mt-4">
-                <FormField
-                  control={form.control}
-                  name="team_based_other"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-normal">Please specify other team location</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Specify other team location" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            )}
-          </div>
-
-          <div>
-            <FormLabel>8. Number of current and forecasted Full Time Equivalent staff members (FTEs) including principals</FormLabel>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="current_ftes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Current</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select number" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="lte_2_FTEs">&le; 2 FTEs</SelectItem>
-                        <SelectItem value="3_5_FTEs">3 - 5 FTEs</SelectItem>
-                        <SelectItem value="6_10_FTEs">6 - 10 FTEs</SelectItem>
-                        <SelectItem value="gt_10_FTEs">&gt;10 FTEs</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="ye2023_ftes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Year-End 2023 (est.)</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select number" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="lte_2_FTEs">&le; 2 FTEs</SelectItem>
-                        <SelectItem value="3_5_FTEs">3 - 5 FTEs</SelectItem>
-                        <SelectItem value="6_10_FTEs">6 - 10 FTEs</SelectItem>
-                        <SelectItem value="gt_10_FTEs">&gt;10 FTEs</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
-
-          <div>
-            <FormLabel>9. Number of carried-interest/equity-interest principals currently in your Fund management team</FormLabel>
+        <div>
+          <FormLabel>5. Timeline. When did your current fund/investment vehicle achieve each of the following?</FormLabel>
+          <p className="text-sm text-gray-600 mb-4">
+            (Please provide a date for each of three points in your fund's evolution)
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="legal_entity_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Legal Entity</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select date" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="not_achieved">Not Achieved</SelectItem>
+                      <SelectItem value="2015_or_earlier">2015 or earlier</SelectItem>
+                      <SelectItem value="2016_2020">2016 - 2020</SelectItem>
+                      <SelectItem value="2021">2021</SelectItem>
+                      <SelectItem value="2022">2022</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             
             <FormField
               control={form.control}
-              name="principals_count"
+              name="first_close_date"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Select number</FormLabel>
+                  <FormLabel>First Close (or equivalent)</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select number" />
+                      <SelectValue placeholder="Select date" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="0">0</SelectItem>
-                      <SelectItem value="1">1</SelectItem>
-                      <SelectItem value="2 - 3">2 - 3</SelectItem>
-                      <SelectItem value="4 - 5">4 - 5</SelectItem>
-                      <SelectItem value="gt_5">&gt; 5</SelectItem>
+                      <SelectItem value="not_achieved">Not Achieved</SelectItem>
+                      <SelectItem value="2015_or_earlier">2015 or earlier</SelectItem>
+                      <SelectItem value="2016_2020">2016 - 2020</SelectItem>
+                      <SelectItem value="2021">2021</SelectItem>
+                      <SelectItem value="2022">2022</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="first_investment_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>First Investment</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select date" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="not_achieved">Not Achieved</SelectItem>
+                      <SelectItem value="2015_or_earlier">2015 or earlier</SelectItem>
+                      <SelectItem value="2016_2020">2016 - 2020</SelectItem>
+                      <SelectItem value="2021">2021</SelectItem>
+                      <SelectItem value="2022">2022</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -780,193 +544,342 @@ const Survey2022 = () => {
               )}
             />
           </div>
+        </div>
 
-          <div>
-            <FormLabel>10. Within the GP leadership team / fund principals, what is their prior work experience as it relates to fund management?</FormLabel>
-            <p className="text-sm text-gray-600 mb-4">
-              (Please provide a response for each row as to your GP management team / fund principals' experience)
-            </p>
+        <div>
+          <FormLabel>6. In what geographic markets do you operate?</FormLabel>
+          <p className="text-sm text-gray-600 mb-4">
+            (select as many as applicable)
+          </p>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {[
+              'US', 'Europe', 'Africa: West Africa', 'Africa: East Africa',
+              'Africa: Central Africa', 'Africa: Southern Africa', 'Africa: North Africa', 'Middle East'
+            ].map((market) => (
+              <FormField
+                key={market}
+                control={form.control}
+                name="geographic_markets"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value?.includes(market)}
+                        onCheckedChange={(checked) => {
+                          const current = field.value || [];
+                          if (checked) {
+                            field.onChange([...current, market]);
+                          } else {
+                            field.onChange(current.filter((value) => value !== market));
+                          }
+                        }}
+                      />
+                    </FormControl>
+                    <FormLabel className="text-sm font-normal">{market}</FormLabel>
+                  </FormItem>
+                )}
+              />
+            ))}
             
-            <div className="space-y-4">
-              {[
-                'New to investment and fund management',
-                'Investment/ financial experience in adjacent finance field (e.g. banking, asset management, financial advisory)',
-                'Relevant business management experience (e.g. Entrepreneur/CEO, business CFO, management consultancy)',
-                'GP management/ investment team has direct fund investment experience. However, lack well-documented data regarding prior investment performance, track record and exits.',
-                'GP management/ investment team has direct investment experience in senior fund management position. Have a well-documented data regarding prior investment performance, track record and exits.'
-              ].map((experience) => (
-                <div key={experience} className="flex items-center justify-between space-x-4 py-3 border-b border-gray-100">
-                  <div className="flex-1">
-                    <FormLabel className="text-sm font-normal text-gray-900 leading-tight">{experience}</FormLabel>
-                  </div>
-                  <div className="flex-shrink-0">
-                    <FormField
-                      control={form.control}
-                      name={`gp_experience.${experience}`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <SelectTrigger className="w-48">
-                              <SelectValue placeholder="Select applicability" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Not Applicable">Not Applicable</SelectItem>
-                              <SelectItem value="Applies to 1 Principal">Applies to 1 Principal</SelectItem>
-                              <SelectItem value="Applies to 2 or more principals">Applies to 2 or more principals</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+            <FormField
+              control={form.control}
+              name="geographic_markets"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value?.includes('Other')}
+                      onCheckedChange={(checked) => {
+                        const current = field.value || [];
+                        if (checked) {
+                          field.onChange([...current, 'Other']);
+                        } else {
+                          field.onChange(current.filter((value) => value !== 'Other'));
+                        }
+                      }}
                     />
-                  </div>
-                </div>
-              ))}
-              
-              {/* Other option with checkbox */}
-              <div className="flex items-center justify-between space-x-4 py-3 border-b border-gray-100">
+                  </FormControl>
+                  <FormLabel className="text-sm font-normal">Other (please specify)</FormLabel>
+                </FormItem>
+              )}
+            />
+          </div>
+          
+          {form.watch('geographic_markets')?.includes('Other') && (
+            <div className="mt-4">
+              <FormField
+                control={form.control}
+                name="geographic_markets_other"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-normal">Please specify other geographic market</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Specify other geographic market" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
+        </div>
+
+        <div>
+          <FormLabel>7. Where is your Team based?</FormLabel>
+          <p className="text-sm text-gray-600 mb-4">
+            (select as many as applicable)
+          </p>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {[
+              'US', 'Europe', 'Africa: West Africa', 'Africa: East Africa',
+              'Africa: Central Africa', 'Africa: Southern Africa', 'Africa: North Africa', 'Middle East'
+            ].map((location) => (
+              <FormField
+                key={location}
+                control={form.control}
+                name="team_based"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value?.includes(location)}
+                        onCheckedChange={(checked) => {
+                          const current = field.value || [];
+                          if (checked) {
+                            field.onChange([...current, location]);
+                          } else {
+                            field.onChange(current.filter((value) => value !== location));
+                          }
+                        }}
+                      />
+                    </FormControl>
+                    <FormLabel className="text-sm font-normal">{location}</FormLabel>
+                  </FormItem>
+                )}
+              />
+            ))}
+            
+            <FormField
+              control={form.control}
+              name="team_based"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value?.includes('Other')}
+                      onCheckedChange={(checked) => {
+                        const current = field.value || [];
+                        if (checked) {
+                          field.onChange([...current, 'Other']);
+                        } else {
+                          field.onChange(current.filter((value) => value !== 'Other'));
+                        }
+                      }}
+                    />
+                  </FormControl>
+                  <FormLabel className="text-sm font-normal">Other (please specify)</FormLabel>
+                </FormItem>
+              )}
+            />
+          </div>
+          
+          {form.watch('team_based')?.includes('Other') && (
+            <div className="mt-4">
+              <FormField
+                control={form.control}
+                name="team_based_other"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-normal">Please specify other team location</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Specify other team location" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
+        </div>
+
+        <div>
+          <FormLabel>8. Number of current and forecasted Full Time Equivalent staff members (FTEs) including principals</FormLabel>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="current_ftes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Current</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select number" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="lte_2_FTEs">&le; 2 FTEs</SelectItem>
+                      <SelectItem value="3_5_FTEs">3 - 5 FTEs</SelectItem>
+                      <SelectItem value="6_10_FTEs">6 - 10 FTEs</SelectItem>
+                      <SelectItem value="gt_10_FTEs">&gt;10 FTEs</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="ye2023_ftes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Year-End 2023 (est.)</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select number" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="lte_2_FTEs">&le; 2 FTEs</SelectItem>
+                      <SelectItem value="3_5_FTEs">3 - 5 FTEs</SelectItem>
+                      <SelectItem value="6_10_FTEs">6 - 10 FTEs</SelectItem>
+                      <SelectItem value="gt_10_FTEs">&gt;10 FTEs</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        <div>
+          <FormLabel>9. Number of carried-interest/equity-interest principals currently in your Fund management team</FormLabel>
+          
+          <FormField
+            control={form.control}
+            name="principals_count"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Select number</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select number" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">0</SelectItem>
+                    <SelectItem value="1">1</SelectItem>
+                    <SelectItem value="2 - 3">2 - 3</SelectItem>
+                    <SelectItem value="4 - 5">4 - 5</SelectItem>
+                    <SelectItem value="gt_5">&gt; 5</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div>
+          <FormLabel>10. Within the GP leadership team / fund principals, what is their prior work experience as it relates to fund management?</FormLabel>
+          <p className="text-sm text-gray-600 mb-4">
+            (Please provide a response for each row as to your GP management team / fund principals experience)
+          </p>
+          
+          <div className="space-y-4">
+            {[
+              'New to investment and fund management',
+              'Investment/ financial experience in adjacent finance field (e.g. banking, asset management, financial advisory)',
+              'Relevant business management experience (e.g. Entrepreneur/CEO, business CFO, management consultancy)',
+              'GP management/ investment team has direct fund investment experience. However, lack well-documented data regarding prior investment performance, track record and exits.',
+              'GP management/ investment team has direct investment experience in senior fund management position. Have a well-documented data regarding prior investment performance, track record and exits.'
+            ].map((experience) => (
+              <div key={experience} className="flex items-center justify-between space-x-4 py-3 border-b border-gray-100">
                 <div className="flex-1">
-                  <FormLabel className="text-sm font-normal text-gray-900 leading-tight">Other (please specify)</FormLabel>
+                  <FormLabel className="text-sm font-normal text-gray-900 leading-tight">{experience}</FormLabel>
                 </div>
                 <div className="flex-shrink-0">
                   <FormField
                     control={form.control}
-                    name="gp_experience_other_selected"
+                    name={`gp_experience.${experience}`}
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <FormLabel className="text-sm font-normal">
-                          Enable Other
-                        </FormLabel>
+                      <FormItem>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger className="w-48">
+                            <SelectValue placeholder="Select applicability" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Not Applicable">Not Applicable</SelectItem>
+                            <SelectItem value="Applies to 1 Principal">Applies to 1 Principal</SelectItem>
+                            <SelectItem value="Applies to 2 or more principals">Applies to 2 or more principals</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
               </div>
-                
-                {form.watch('gp_experience_other_selected') && (
-                  <div className="space-y-3">
-                    <FormField
-                      control={form.control}
-                      name="gp_experience_other_description"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-normal">Please specify other experience</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="Describe other experience" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="gp_experience.Other"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-normal">Applicability</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select applicability" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Not Applicable">Not Applicable</SelectItem>
-                              <SelectItem value="Applies to 1 Principal">Applies to 1 Principal</SelectItem>
-                              <SelectItem value="Applies to 2 or more principals">Applies to 2 or more principals</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <FormLabel>11. Gender orientation. Do any of the following apply to your fund?</FormLabel>
-            <p className="text-sm text-gray-600 mb-4">
-              (select as many as applicable)
-            </p>
+            ))}
             
-            <div className="grid grid-cols-1 gap-3">
-              {[
-                'Women ownership/participation interest is greater than or equal to 50%',
-                'Women representation on the board/investment committee is greater than or equal to 50',
-                'Female staffing is greater than or equal to 50%',
-                'Provide specific reporting on gender related indicators for your investors/funders',
-                'Require specific reporting on gender related indicators by your investees/borrowers'
-              ].map((option) => (
+            <div className="flex items-center justify-between space-x-4 py-3 border-b border-gray-100">
+              <div className="flex-1">
+                <FormLabel className="text-sm font-normal text-gray-900 leading-tight">Other (please specify)</FormLabel>
+              </div>
+              <div className="flex-shrink-0">
                 <FormField
-                  key={option}
                   control={form.control}
-                  name="gender_orientation"
+                  name="gp_experience_other_selected"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
                       <FormControl>
                         <Checkbox
-                          checked={field.value?.includes(option)}
-                          onCheckedChange={(checked) => {
-                            const current = field.value || [];
-                            if (checked) {
-                              field.onChange([...current, option]);
-                            } else {
-                              field.onChange(current.filter((value) => value !== option));
-                            }
-                          }}
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
                         />
                       </FormControl>
-                      <FormLabel className="text-sm font-normal">{option}</FormLabel>
+                      <FormLabel className="text-sm font-normal">
+                        Enable Other
+                      </FormLabel>
                     </FormItem>
                   )}
                 />
-              ))}
-              
-              {/* Other option */}
-              <FormField
-                control={form.control}
-                name="gender_orientation"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value?.includes('Other')}
-                        onCheckedChange={(checked) => {
-                          const current = field.value || [];
-                          if (checked) {
-                            field.onChange([...current, 'Other']);
-                          } else {
-                            field.onChange(current.filter((value) => value !== 'Other'));
-                          }
-                        }}
-                      />
-                    </FormControl>
-                    <FormLabel className="text-sm font-normal">Other (please specify)</FormLabel>
-                  </FormItem>
-                )}
-              />
+              </div>
             </div>
-            
-            {/* Conditional "Other" input field */}
-            {form.watch('gender_orientation')?.includes('Other') && (
-              <div className="mt-4">
+              
+            {form.watch('gp_experience_other_selected') && (
+              <div className="space-y-3">
                 <FormField
                   control={form.control}
-                  name="gender_orientation_other"
+                  name="gp_experience_other_description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-normal">Please specify other gender orientation aspect</FormLabel>
+                      <FormLabel className="text-sm font-normal">Please specify other experience</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Specify other gender orientation aspect" />
+                        <Input {...field} placeholder="Describe other experience" />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="gp_experience.Other"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-normal">Applicability</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select applicability" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Not Applicable">Not Applicable</SelectItem>
+                          <SelectItem value="Applies to 1 Principal">Applies to 1 Principal</SelectItem>
+                          <SelectItem value="Applies to 2 or more principals">Applies to 2 or more principals</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -974,67 +887,150 @@ const Survey2022 = () => {
               </div>
             )}
           </div>
+        </div>
 
-          <div>
-            <FormLabel>12. Team Experience: Please specify cumulative number of investment/financing transactions completed by your principal(s) prior to this current fund/vehicle?</FormLabel>
-            <p className="text-sm text-gray-600 mb-4">
-              (Please provide answer for both columns)
-            </p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <FormLabel>11. Gender orientation. Do any of the following apply to your fund?</FormLabel>
+          <p className="text-sm text-gray-600 mb-4">
+            (select as many as applicable)
+          </p>
+          
+          <div className="grid grid-cols-1 gap-3">
+            {[
+              'Women ownership/participation interest is greater than or equal to 50%',
+              'Women representation on the board/investment committee is greater than or equal to 50',
+              'Female staffing is greater than or equal to 50%',
+              'Provide specific reporting on gender related indicators for your investors/funders',
+              'Require specific reporting on gender related indicators by your investees/borrowers'
+            ].map((option) => (
               <FormField
+                key={option}
                 control={form.control}
-                name="investments_experience"
+                name="gender_orientation"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Investments</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select number" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="0">0</SelectItem>
-                        <SelectItem value="1 - 4">1 - 4</SelectItem>
-                        <SelectItem value="5 - 9">5 - 9</SelectItem>
-                        <SelectItem value="10 - 14">10 - 14</SelectItem>
-                        <SelectItem value="15 - 24">15 - 24</SelectItem>
-                        <SelectItem value="gte_25">&ge; 25</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value?.includes(option)}
+                        onCheckedChange={(checked) => {
+                          const current = field.value || [];
+                          if (checked) {
+                            field.onChange([...current, option]);
+                          } else {
+                            field.onChange(current.filter((value) => value !== option));
+                          }
+                        }}
+                      />
+                    </FormControl>
+                    <FormLabel className="text-sm font-normal">{option}</FormLabel>
                   </FormItem>
                 )}
               />
-              
+            ))}
+            
+            <FormField
+              control={form.control}
+              name="gender_orientation"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value?.includes('Other')}
+                      onCheckedChange={(checked) => {
+                        const current = field.value || [];
+                        if (checked) {
+                          field.onChange([...current, 'Other']);
+                        } else {
+                          field.onChange(current.filter((value) => value !== 'Other'));
+                        }
+                      }}
+                    />
+                  </FormControl>
+                  <FormLabel className="text-sm font-normal">Other (please specify)</FormLabel>
+                </FormItem>
+              )}
+            />
+          </div>
+          
+          {form.watch('gender_orientation')?.includes('Other') && (
+            <div className="mt-4">
               <FormField
                 control={form.control}
-                name="exits_experience"
+                name="gender_orientation_other"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Exits / Monetizations</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select number" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="0">0</SelectItem>
-                        <SelectItem value="1 - 4">1 - 4</SelectItem>
-                        <SelectItem value="5 - 9">5 - 9</SelectItem>
-                        <SelectItem value="10 - 14">10 - 14</SelectItem>
-                        <SelectItem value="15 - 24">15 - 24</SelectItem>
-                        <SelectItem value="gte_25">&ge; 25</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormLabel className="text-sm font-normal">Please specify other gender orientation aspect</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Specify other gender orientation aspect" />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
+          )}
+        </div>
+
+        <div>
+          <FormLabel>12. Team Experience: Please specify cumulative number of investment/financing transactions completed by your principal(s) prior to this current fund/vehicle?</FormLabel>
+          <p className="text-sm text-gray-600 mb-4">
+            (Please provide answer for both columns)
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="investments_experience"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Investments</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select number" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">0</SelectItem>
+                      <SelectItem value="1 - 4">1 - 4</SelectItem>
+                      <SelectItem value="5 - 9">5 - 9</SelectItem>
+                      <SelectItem value="10 - 14">10 - 14</SelectItem>
+                      <SelectItem value="15 - 24">15 - 24</SelectItem>
+                      <SelectItem value="gte_25">≥ 25</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="exits_experience"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Exits & Monetizations</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select number" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">0</SelectItem>
+                      <SelectItem value="1 - 4">1 - 4</SelectItem>
+                      <SelectItem value="5 - 9">5 - 9</SelectItem>
+                      <SelectItem value="10 - 14">10 - 14</SelectItem>
+                      <SelectItem value="15 - 24">15 - 24</SelectItem>
+                      <SelectItem value="gte_25">≥ 25</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
         </div>
       </div>
     </div>
   );
+
 
   const renderSection3 = () => (
     <div className="space-y-6">
@@ -1279,6 +1275,7 @@ const Survey2022 = () => {
                     <SelectItem value="11 - 20 Enterprises">11 - 20 Enterprises</SelectItem>
                     <SelectItem value="21 - 30 Enterprises">21 - 30 Enterprises</SelectItem>
                     <SelectItem value="> 30 Enterprises">&gt; 30 Enterprises</SelectItem>
+
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -1324,9 +1321,9 @@ const Survey2022 = () => {
                     <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
                       <SelectItem value="N/A - 100% of our capital is concessionary">N/A - 100% of our capital is concessionary</SelectItem>
                       <SelectItem value="lte_5_percent">&le; 5%</SelectItem>
-                      <SelectItem value="6 – 9%">6 – 9%</SelectItem>
-                      <SelectItem value="10 – 14%">10 – 14%</SelectItem>
-                      <SelectItem value="15 – 19%">15 – 19%</SelectItem>
+                      <SelectItem value="6 - 9%">6 - 9%</SelectItem>
+                      <SelectItem value="10 - 14%">10 - 14%</SelectItem>
+                      <SelectItem value="15 - 19%">15 - 19%</SelectItem>
                       <SelectItem value="gte_20_percent">&ge; 20%</SelectItem>
                       <SelectItem value="Other">Other (please specify)</SelectItem>
                     </SelectContent>
@@ -1466,61 +1463,78 @@ const Survey2022 = () => {
                 'Development finance institutions (DFIs)',
                 'International impact investors',
                 'Donors / Bilateral Agencies / Foundations'
-              ].map((category) => (
-                <div key={category} className="flex items-center justify-between space-x-4 py-2 border-b border-gray-100">
-                  <div className="flex-1">
-                    <span className="text-sm font-normal">{category}</span>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <FormField
-                      control={form.control}
-                      name={`lp_capital_sources.${category}.existing`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs font-normal">Existing (%)</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              min="0"
-                              max="100"
-                              step="0.1"
-                              {...field}
-                              onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                              value={field.value || ''}
-                              placeholder="0"
-                              className="h-8 w-20"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
+              ].map((category) => {
+                const existing = form.watch(`lp_capital_sources.${category}.existing`) || 0;
+                const targeted = form.watch(`lp_capital_sources.${category}.targeted`) || 0;
+                const total = (typeof existing === 'number' ? existing : 0) + (typeof targeted === 'number' ? targeted : 0);
+                const isValid = Math.abs(total - 100) < 0.1;
+                
+                return (
+                  <div key={category} className="flex items-center justify-between space-x-4 py-2 border-b border-gray-100">
+                    <div className="flex-1">
+                      <span className="text-sm font-normal">{category}</span>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <FormField
+                        control={form.control}
+                        name={`lp_capital_sources.${category}.existing`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-normal">Existing (%)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min="0"
+                                max="100"
+                                step="0.1"
+                                {...field}
+                                onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                value={field.value || ''}
+                                placeholder="0"
+                                className="h-8 w-20"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`lp_capital_sources.${category}.targeted`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-normal">Targeted (%)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min="0"
+                                max="100"
+                                step="0.1"
+                                {...field}
+                                onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                value={field.value || ''}
+                                placeholder="0"
+                                className="h-8 w-20"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="text-center w-20">
+                      <span className={`text-sm font-medium ${isValid ? 'text-green-600' : 'text-red-600'}`}>
+                        {total.toFixed(1)}%
+                      </span>
+                      {!isValid && (
+                        <div className="text-xs text-red-600 mt-1">
+                          {total < 100 ? `Need ${(100 - total).toFixed(1)}%` : `${(total - 100).toFixed(1)}% over`}
+                        </div>
                       )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name={`lp_capital_sources.${category}.targeted`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs font-normal">Targeted (%)</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              min="0"
-                              max="100"
-                              step="0.1"
-                              {...field}
-                              onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                              value={field.value || ''}
-                              placeholder="0"
-                              className="h-8 w-20"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               
               {/* Other category integrated inline */}
               <div className="flex items-center justify-between space-x-4 py-2 border-b border-gray-100">
@@ -1591,6 +1605,27 @@ const Survey2022 = () => {
                     )}
                   />
                 </div>
+                <div className="text-center w-20">
+                  {form.watch('lp_capital_sources_other_selected') && (() => {
+                    const existing = form.watch('lp_capital_sources.Other.existing') || 0;
+                    const targeted = form.watch('lp_capital_sources.Other.targeted') || 0;
+                    const total = (typeof existing === 'number' ? existing : 0) + (typeof targeted === 'number' ? targeted : 0);
+                    const isValid = Math.abs(total - 100) < 0.1;
+                    
+                    return (
+                      <>
+                        <span className={`text-sm font-medium ${isValid ? 'text-green-600' : 'text-red-600'}`}>
+                          {total.toFixed(1)}%
+                        </span>
+                        {!isValid && (
+                          <div className="text-xs text-red-600 mt-1">
+                            {total < 100 ? `Need ${(100 - total).toFixed(1)}%` : `${(total - 100).toFixed(1)}% over`}
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
               </div>
               
               {/* Description field for Other when selected */}
@@ -1612,41 +1647,6 @@ const Survey2022 = () => {
                 </div>
               )}
             </div>
-              
-              {/* Live sum calculation and feedback for each row */}
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-medium mb-3">Row Totals (Existing + Targeted should = 100% for each category):</h4>
-                <div className="space-y-2">
-                  {[
-                    'Local High net worth / Angel Networks / Family offices',
-                    'Domestic institutional capital (e.g. pension funds, asset mgt. firms, etc.)',
-                    'Local government agencies',
-                    'International Fund of Fund Vehicles',
-                    'International institutional capital (e.g. pension funds, asset mgt. firms, etc.)',
-                    'Development finance institutions (DFIs)',
-                    'International impact investors',
-                    'Donors / Bilateral Agencies / Foundations',
-                    'Other'
-                  ].map((category) => {
-                    const existing = form.watch(`lp_capital_sources.${category}.existing`) || 0;
-                    const targeted = form.watch(`lp_capital_sources.${category}.targeted`) || 0;
-                    const rowTotal = (typeof existing === 'number' ? existing : 0) + (typeof targeted === 'number' ? targeted : 0);
-                    const isValid = Math.abs(rowTotal - 100) < 0.1;
-                    
-                    return (
-                      <div key={category} className="flex justify-between items-center text-sm">
-                        <span className="truncate mr-2">{category}:</span>
-                        <span className={`font-semibold ${isValid ? 'text-green-600' : 'text-red-600'}`}>
-                          {rowTotal.toFixed(1)}%
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-                <p className="text-sm text-gray-600 mt-3">
-                  Each row should sum to 100% (Existing % + Targeted % = 100%).
-                </p>
-              </div>
             </div>
           </div>
 
@@ -1880,8 +1880,6 @@ const Survey2022 = () => {
             </div>
           </div>
         </div>
-      </div>
-    </div>
   );
 
   const renderSection4 = () => (
@@ -2165,10 +2163,11 @@ const Survey2022 = () => {
               <p className="text-sm text-gray-600 mt-1 mb-4">(if "other", please indicate in the space provided and target percentage of portfolio)</p>
               
               <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm font-medium border-b pb-2">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm font-medium border-b pb-2">
                   <div>Sector Focus</div>
                   <div>Current Percentage Outstanding to this sector</div>
                   <div>Fund Target Percentage Allocation to this Sector</div>
+                  <div className="text-center">Total</div>
                 </div>
                 
                 {[
@@ -2177,51 +2176,68 @@ const Survey2022 = () => {
                   '#3 Sector Focus',
                   '#4 Sector Focus',
                   '#5 Sector Focus'
-                ].map((sectorRank) => (
-                  <div key={sectorRank} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-                    <div className="text-sm font-normal">{sectorRank}</div>
-                    <div>
-          <FormField
-            control={form.control}
-                        name={`sector_activities.${sectorRank}.current`}
-            render={({ field }) => (
-              <FormItem>
-                            <FormControl>
-                              <Input 
-                                {...field} 
-                                type="number" 
-                                placeholder="%" 
-                                className="h-8"
-                                onChange={(e) => field.onChange(Number(e.target.value))}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
+                ].map((sectorRank) => {
+                  const current = form.watch(`sector_activities.${sectorRank}.current`) || 0;
+                  const target = form.watch(`sector_activities.${sectorRank}.target`) || 0;
+                  const total = (typeof current === 'number' ? current : 0) + (typeof target === 'number' ? target : 0);
+                  const isValid = Math.abs(total - 100) < 0.1;
+                  
+                  return (
+                    <div key={sectorRank} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                      <div className="text-sm font-normal">{sectorRank}</div>
+                      <div>
+                        <FormField
+                          control={form.control}
+                          name={`sector_activities.${sectorRank}.current`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input 
+                                  {...field} 
+                                  type="number" 
+                                  placeholder="%" 
+                                  className="h-8"
+                                  onChange={(e) => field.onChange(Number(e.target.value))}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div>
+                        <FormField
+                          control={form.control}
+                          name={`sector_activities.${sectorRank}.target`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input 
+                                  {...field} 
+                                  type="number" 
+                                  placeholder="%" 
+                                  className="h-8"
+                                  onChange={(e) => field.onChange(Number(e.target.value))}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="text-center">
+                        <span className={`text-sm font-medium ${isValid ? 'text-green-600' : 'text-red-600'}`}>
+                          {total}%
+                        </span>
+                        {!isValid && (
+                          <div className="text-xs text-red-600 mt-1">
+                            {total < 100 ? `Need ${100 - total}%` : `${total - 100}% over`}
+                          </div>
                         )}
-                      />
+                      </div>
                     </div>
-                    <div>
-                      <FormField
-                        control={form.control}
-                        name={`sector_activities.${sectorRank}.target`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Input 
-                                {...field} 
-                                type="number" 
-                                placeholder="%" 
-                                className="h-8"
-                                onChange={(e) => field.onChange(Number(e.target.value))}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
                 
                 {/* Other sector with description and percentages */}
                 <div className="space-y-3">
@@ -2259,7 +2275,7 @@ const Survey2022 = () => {
                         )}
                       />
                       
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
                         <div className="text-sm font-normal">Other Sector</div>
                         <div>
                           <FormField
@@ -2300,6 +2316,27 @@ const Survey2022 = () => {
                               </FormItem>
                             )}
                           />
+                        </div>
+                        <div className="text-center">
+                          {(() => {
+                            const current = form.watch('sector_activities.Other.current') || 0;
+                            const target = form.watch('sector_activities.Other.target') || 0;
+                            const total = (typeof current === 'number' ? current : 0) + (typeof target === 'number' ? target : 0);
+                            const isValid = Math.abs(total - 100) < 0.1;
+                            
+                            return (
+                              <>
+                                <span className={`text-sm font-medium ${isValid ? 'text-green-600' : 'text-red-600'}`}>
+                                  {total}%
+                                </span>
+                                {!isValid && (
+                                  <div className="text-xs text-red-600 mt-1">
+                                    {total < 100 ? `Need ${100 - total}%` : `${total - 100}% over`}
+                                  </div>
+                                )}
+                              </>
+                            );
+                          })()}
                         </div>
                       </div>
                     </div>
@@ -2780,7 +2817,7 @@ const Survey2022 = () => {
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="< $100,000" id="size-under-100k" />
                         <Label htmlFor="size-under-100k" className="text-sm font-normal">
-                          &lt; $100,000
+                        &lt; $100,000
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -2822,7 +2859,7 @@ const Survey2022 = () => {
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="> $10,000,000" id="size-over-10m" />
                         <Label htmlFor="size-over-10m" className="text-sm font-normal">
-                          &gt; $10,000,000
+                        &gt; $10,000,000
                         </Label>
                       </div>
                     </RadioGroup>
@@ -2872,11 +2909,11 @@ const Survey2022 = () => {
                   </SelectTrigger>
                           </FormControl>
                   <SelectContent>
-                            <SelectItem value="1">1</SelectItem>
+                            <SelectItem value="1">1 (Lowest need)</SelectItem>
                             <SelectItem value="2">2</SelectItem>
                             <SelectItem value="3">3</SelectItem>
                             <SelectItem value="4">4</SelectItem>
-                            <SelectItem value="5">5</SelectItem>
+                            <SelectItem value="5">5 (Highest need)</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -2920,11 +2957,11 @@ const Survey2022 = () => {
                   </SelectTrigger>
                             </FormControl>
                   <SelectContent>
-                              <SelectItem value="1">1</SelectItem>
+                              <SelectItem value="1">1 (Lowest need)</SelectItem>
                               <SelectItem value="2">2</SelectItem>
                               <SelectItem value="3">3</SelectItem>
                               <SelectItem value="4">4</SelectItem>
-                              <SelectItem value="5">5</SelectItem>
+                              <SelectItem value="5">5 (Highest need)</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -2974,7 +3011,7 @@ const Survey2022 = () => {
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="< 1 year" id="timeframe-under-1yr" />
                         <Label htmlFor="timeframe-under-1yr" className="text-sm font-normal">
-                          &lt; 1 year
+                        &lt; 1 year
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -3255,7 +3292,7 @@ const Survey2022 = () => {
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="gt_5" id="exits-over-5" />
                         <Label htmlFor="exits-over-5" className="text-sm font-normal">
-                          &gt; 5
+                        &gt; 5
                         </Label>
                       </div>
                     </RadioGroup>
@@ -3653,11 +3690,11 @@ const Survey2022 = () => {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="1">1</SelectItem>
+                            <SelectItem value="1">1 (Lowest need)</SelectItem>
                             <SelectItem value="2">2</SelectItem>
                             <SelectItem value="3">3</SelectItem>
                             <SelectItem value="4">4</SelectItem>
-                            <SelectItem value="5">5</SelectItem>
+                            <SelectItem value="5">5 (Highest need)</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -3701,11 +3738,11 @@ const Survey2022 = () => {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="1">1</SelectItem>
+                              <SelectItem value="1">1 (Lowest need)</SelectItem>
                               <SelectItem value="2">2</SelectItem>
                               <SelectItem value="3">3</SelectItem>
                               <SelectItem value="4">4</SelectItem>
-                              <SelectItem value="5">5</SelectItem>
+                              <SelectItem value="5">5 (Highest need)</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -4044,7 +4081,7 @@ const Survey2022 = () => {
         <div className="bg-gray-100 rounded-full h-2 mb-4">
           <div 
             className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-300"
-            style={{ width: `${(currentSection / totalSections) * 100}%` }}
+            style={{ width: `${calculateProgress()}%` }}
           ></div>
         </div>
         <p className="text-sm text-gray-600">
@@ -4174,7 +4211,7 @@ const Survey2022 = () => {
   return (
     <SidebarLayout>
       <div className="min-h-screen bg-gray-50 pb-16">
-        <div className={`max-w-6xl mx-auto ${!showIntro ? 'pr-80' : ''}` }>
+        <div className={`max-w-6xl mx-auto ${!showIntro ? 'pr-80' : ''}`}>
         {/* Back Button hidden on intro */}
         {!showIntro && null}
 
@@ -4208,7 +4245,7 @@ const Survey2022 = () => {
                   <div className="bg-gray-200 rounded-full h-2">
                     <div 
                       className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${(currentSection / totalSections) * 100}%` }}
+                      style={{ width: `${calculateProgress()}%` }}
                     ></div>
                   </div>
                 </div>
@@ -4229,7 +4266,7 @@ const Survey2022 = () => {
                   disabled={currentSection === 1}
                   className="px-6 py-2 border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  ← Previous
+                  &larr; Previous
                 </Button>
                 
                 <div className="flex items-center space-x-4">
@@ -4240,7 +4277,7 @@ const Survey2022 = () => {
                     variant="outline"
                     className="px-6 py-2 border-green-300 text-green-700 hover:bg-green-50 disabled:opacity-50"
                   >
-                    {loading ? 'Saving...' : '💾 Save Draft'}
+                    {loading ? 'Saving...' : '&floppy; Save Draft'}
                   </Button>
                   
                   {currentSection < totalSections ? (
@@ -4249,7 +4286,7 @@ const Survey2022 = () => {
                       onClick={handleNext}
                       className="px-8 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                     >
-                      Next →
+                      Next &rarr;
                     </Button>
                   ) : (
                     <Button 
@@ -4257,7 +4294,7 @@ const Survey2022 = () => {
                       disabled={loading}
                       className="px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {loading ? 'Submitting...' : '🎉 Submit Survey'}
+                      {loading ? 'Submitting...' : '&party; Submit Survey'}
                     </Button>
                   )}
                 </div>
@@ -4266,10 +4303,10 @@ const Survey2022 = () => {
           </form>
         </Form>
         )}
-        </div>
         
         {/* Right Sidebar with Section Navigation */}
         {!showIntro && renderSectionSidebar()}
+        </div>
       </div>
     </SidebarLayout>
   );
