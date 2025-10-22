@@ -30,7 +30,6 @@ import { useEffect, useState } from "react";
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from "@/components/ui/badge";
 import AIAssistant from './AIAssistant';
-import AIAssistant from './AIAssistant';
 
 interface ActivityItem {
   id: string;

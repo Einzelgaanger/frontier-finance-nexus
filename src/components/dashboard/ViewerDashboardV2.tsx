@@ -13,7 +13,6 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { FileText, Upload, Link, Plus, CheckCircle } from 'lucide-react';
 import { CountrySelector } from '@/components/survey/CountrySelector';
-import AIAssistant from './AIAssistant';
 
 const ViewerDashboardV2 = () => {
   const { user } = useAuth();
@@ -878,8 +877,7 @@ const ViewerDashboardV2 = () => {
           </div>
         </div>
 
-        {/* AI Assistant Section - Only show when not in application mode */}
-        {!showApplicationForm && <AIAssistant />}
+        {/* AI Assistant Section - Removed, now available in dedicated PortIQ page */}
       </div>
     </div>
   );
