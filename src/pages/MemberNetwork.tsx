@@ -755,15 +755,20 @@ const MemberNetwork = React.memo(() => {
               </div>
               
               <div className="flex items-center space-x-3">
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={() => navigate('/survey')}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-                >
-                  <FileText className="w-4 h-4 mr-2" />
-                  Surveys
-                </Button>
+                <div className="flex items-center space-x-2">
+                  <FileText className="w-4 h-4 text-purple-600" />
+                  <Select onValueChange={(value) => value && navigate(`/survey/${value}`)}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Go to Survey Year" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="2021">2021 Survey</SelectItem>
+                      <SelectItem value="2022">2022 Survey</SelectItem>
+                      <SelectItem value="2023">2023 Survey</SelectItem>
+                      <SelectItem value="2024">2024 Survey</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 
                 <Button
                   variant="outline"

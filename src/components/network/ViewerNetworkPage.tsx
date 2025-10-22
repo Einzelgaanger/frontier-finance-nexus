@@ -270,15 +270,20 @@ const ViewerNetworkPage = () => {
             </div>
             
             <div className="flex items-center gap-3">
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => window.location.href = '/survey'}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                <FileText className="w-4 h-4 mr-2" />
-                Surveys
-              </Button>
+              <div className="flex items-center space-x-2">
+                <FileText className="w-4 h-4 text-purple-600" />
+                <Select onValueChange={(value) => value && (window.location.href = `/survey/${value}`)}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Go to Survey Year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2021">2021 Survey</SelectItem>
+                    <SelectItem value="2022">2022 Survey</SelectItem>
+                    <SelectItem value="2023">2023 Survey</SelectItem>
+                    <SelectItem value="2024">2024 Survey</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               
               <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border border-gray-200">
                 <Calendar className="w-5 h-5 text-gray-500" />

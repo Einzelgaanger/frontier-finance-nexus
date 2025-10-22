@@ -472,7 +472,7 @@ const Survey2021: React.FC = () => {
         className="mt-4 w-full"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Surveys
+        Back to Network
       </Button>
     </div>
   );
@@ -2712,15 +2712,15 @@ const Survey2021: React.FC = () => {
               })}
             </div>
 
-            {/* Back to Surveys Button */}
+            {/* Back to Network Button */}
             <div className="mt-6 pt-6 border-t border-gray-200">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => navigate('/survey')}
+                onClick={() => navigate('/network')}
                 className="w-full"
               >
-                Back to Surveys
+                Back to Network
               </Button>
             </div>
           </div>
@@ -2744,8 +2744,8 @@ const Survey2021: React.FC = () => {
                       <span className="px-2 py-0.5 rounded-full bg-white/80 text-blue-700 border border-blue-200">12–15 min</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" onClick={() => navigate('/survey')}>
-                        Back to Surveys
+                      <Button variant="outline" size="sm" onClick={() => navigate('/network')}>
+                        Back to Network
                       </Button>
                       <Button size="sm" onClick={() => { setShowIntro(false); setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 0); }}>
                         Start Survey
