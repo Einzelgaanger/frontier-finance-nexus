@@ -19,7 +19,7 @@ import {
   ArrowLeft,
   Send,
   User,
-  Sparkles
+  Brain
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -94,7 +94,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
     { 
       name: "PortIQ", 
       href: "/portiq", 
-      icon: Sparkles, 
+      icon: Brain, 
       roles: ["admin", "member", "viewer"],
       description: "AI Assistant for data insights",
       badge: null,

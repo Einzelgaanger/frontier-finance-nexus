@@ -33,13 +33,9 @@ Deno.serve(async (req) => {
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle()
 
-    if (roleError) {
-      throw new Error('Failed to get user role')
-    }
-
-    const userRole = roleData.role
+    const userRole = roleError || !roleData?.role ? 'viewer' : roleData.role
 
     // Get field visibility rules
     const { data: fieldVisibility, error: visError } = await supabaseClient
@@ -125,14 +121,31 @@ If the user asks about data you cannot access due to their role, politely explai
     })
 
     if (!aiResponse.ok) {
-      throw new Error(`AI API error: ${aiResponse.statusText}`)
+      if (aiResponse.status === 429) {
+        return new Response(
+          JSON.stringify({ error: 'AI rate limit exceeded. Please try again shortly.' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+      if (aiResponse.status === 402) {
+        return new Response(
+          JSON.stringify({ error: 'AI usage credits exceeded. Please add credits to your Lovable workspace.' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+      const errText = await aiResponse.text()
+      console.error('AI API error:', aiResponse.status, errText)
+      return new Response(
+        JSON.stringify({ error: 'AI gateway error' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
     const aiData = await aiResponse.json()
     const reply = aiData.choices[0].message.content
 
     return new Response(
-      JSON.stringify({ reply }),
+      JSON.stringify({ reply, response: reply }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
