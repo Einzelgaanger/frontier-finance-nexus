@@ -26,7 +26,7 @@ import ResetPassword from "./pages/ResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import AdminWrapper from "./components/AdminWrapper";
 import AnalyticsWrapper from "./components/AnalyticsWrapper";
-import UserOnboarding from "./components/onboarding/UserOnboarding";
+// Onboarding removed per request
 import SurveyResponseViewer from "./components/survey/SurveyResponseViewer";
 import NotFound from "./pages/NotFound";
 import PortIQ from "./pages/PortIQ";
@@ -98,11 +98,7 @@ const App = () => {
                 <MyProfile />
               </ProtectedRoute>
             } />
-            <Route path="/onboarding" element={
-              <ProtectedRoute>
-                <UserOnboarding />
-              </ProtectedRoute>
-            } />
+            {/* Onboarding route removed */}
             <Route path="/viewer-settings" element={
               <ProtectedRoute requiredRole="viewer">
                 <ViewerSettings />

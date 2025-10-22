@@ -7,7 +7,7 @@ import AdminDashboard from '@/components/dashboard/AdminDashboard';
 import AdminDashboardV2 from '@/components/dashboard/AdminDashboardV2';
 import MemberDashboard from '@/components/dashboard/MemberDashboard';
 import NetworkV2 from '@/pages/NetworkV2';
-import OnboardingCheck from '@/components/OnboardingCheck';
+// Onboarding disabled per request
 import { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 
@@ -40,31 +40,25 @@ const Dashboard = () => {
   // Use sidebar layout for all user types
   if (userRole === 'admin') {
     return (
-      <OnboardingCheck>
-        <SidebarLayout>
-          <AdminDashboardV2 />
-        </SidebarLayout>
-      </OnboardingCheck>
+      <SidebarLayout>
+        <AdminDashboardV2 />
+      </SidebarLayout>
     );
   }
 
   if (userRole === 'member') {
     return (
-      <OnboardingCheck>
-        <SidebarLayout>
-          <MemberDashboard />
-        </SidebarLayout>
-      </OnboardingCheck>
+      <SidebarLayout>
+        <MemberDashboard />
+      </SidebarLayout>
     );
   }
 
   if (userRole === 'viewer') {
     return (
-      <OnboardingCheck>
-        <SidebarLayout>
-          <ViewerDashboard />
-        </SidebarLayout>
-      </OnboardingCheck>
+      <SidebarLayout>
+        <ViewerDashboard />
+      </SidebarLayout>
     );
   }
 
