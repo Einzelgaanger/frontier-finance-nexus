@@ -39,19 +39,14 @@ const PortIQ = () => {
         try {
           const { data, error } = await supabase
             .from('user_profiles')
-            .select('company_name, profile_picture, first_name, last_name')
-            .eq('user_id', user.id)
+            .select('company_name, profile_picture_url, full_name')
+            .eq('id', user.id)
             .single();
           
           if (data && !error) {
-            console.log('User profile data:', data);
-            console.log('Company name:', data.company_name);
-            console.log('Profile picture:', data.profile_picture);
-            console.log('First name:', data.first_name);
             setUserProfile(data);
           } else {
             console.error('Error fetching user profile:', error);
-            console.log('No profile data found for user:', user.id);
           }
         } catch (error) {
           console.error('Error fetching user profile:', error);
@@ -195,12 +190,12 @@ const PortIQ = () => {
                           <Avatar className="w-8 h-8 flex-shrink-0">
                             {message.role === 'user' ? (
                               <>
-                                <AvatarImage src={userProfile?.profile_picture} />
+                                <AvatarImage src={userProfile?.profile_picture_url} />
                                 <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs">
                                   {userProfile?.company_name 
                                     ? userProfile.company_name.charAt(0).toUpperCase() 
-                                    : userProfile?.first_name 
-                                    ? userProfile.first_name.charAt(0).toUpperCase() 
+                                    : userProfile?.full_name 
+                                    ? userProfile.full_name.charAt(0).toUpperCase() 
                                     : user?.email?.charAt(0).toUpperCase() || 'U'}
                                 </AvatarFallback>
                               </>
@@ -219,7 +214,7 @@ const PortIQ = () => {
                             {/* Name */}
                             <div className={`text-xs font-medium mb-1 ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
                               {message.role === 'user' 
-                                ? (userProfile?.company_name || userProfile?.first_name || user?.email?.split('@')[0] || 'You')
+                                ? (userProfile?.company_name || userProfile?.full_name || user?.email?.split('@')[0] || 'You')
                                 : 'PortIQ'
                               }
                             </div>

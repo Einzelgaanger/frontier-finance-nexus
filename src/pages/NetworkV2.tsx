@@ -133,7 +133,7 @@ const NetworkV2 = React.memo(() => {
 
       // Fetch user profiles, roles and survey data
       const [userProfilesResult, userRolesResult, survey2021Result, survey2022Result, survey2023Result, survey2024Result] = await Promise.all([
-        supabase.from('user_profiles').select('id, user_id, company_name, email, full_name, role_title, profile_picture_url, user_role, is_active, created_at'),
+        supabase.from('user_profiles').select('id, company_name, email, full_name, role_title, profile_picture_url, user_role, is_active, created_at'),
         supabase.from('user_roles' as any).select('user_id, role'),
         supabase.from('survey_responses_2021').select('id, user_id, email_address, firm_name, participant_name, role_title, company_name, completed_at'),
         supabase.from('survey_responses_2022').select('id, user_id, email_address, organisation_name, participant_name, role_title, completed_at'),

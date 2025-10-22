@@ -156,7 +156,7 @@ const AdminDashboardV2 = () => {
         supabase.from('user_roles').select('user_id, role, created_at'),
         supabase.from('membership_requests').select('id, status, created_at, vehicle_name'),
         supabase.from('profiles').select('id, created_at'),
-        supabase.from('user_profiles').select('user_id, created_at, company_name'),
+        supabase.from('user_profiles').select('id, created_at, company_name'),
         supabase.from('network_users').select('user_id, role, created_at')
       ]);
 
