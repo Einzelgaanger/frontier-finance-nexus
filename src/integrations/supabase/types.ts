@@ -1549,6 +1549,7 @@ export type Database = {
           company_id: string | null
           company_name: string
           created_at: string | null
+          description: string | null
           email: string
           email_verified: boolean | null
           full_name: string | null
@@ -1561,11 +1562,13 @@ export type Database = {
           role_title: string | null
           updated_at: string | null
           user_role: string
+          website: string | null
         }
         Insert: {
           company_id?: string | null
           company_name: string
           created_at?: string | null
+          description?: string | null
           email: string
           email_verified?: boolean | null
           full_name?: string | null
@@ -1578,11 +1581,13 @@ export type Database = {
           role_title?: string | null
           updated_at?: string | null
           user_role?: string
+          website?: string | null
         }
         Update: {
           company_id?: string | null
           company_name?: string
           created_at?: string | null
+          description?: string | null
           email?: string
           email_verified?: boolean | null
           full_name?: string | null
@@ -1595,6 +1600,7 @@ export type Database = {
           role_title?: string | null
           updated_at?: string | null
           user_role?: string
+          website?: string | null
         }
         Relationships: []
       }
@@ -1636,10 +1642,7 @@ export type Database = {
         }
         Returns: undefined
       }
-      get_user_role: {
-        Args: { _user_id: string }
-        Returns: string
-      }
+      get_user_role: { Args: { _user_id: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never

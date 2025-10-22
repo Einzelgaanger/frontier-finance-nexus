@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import SidebarLayout from '@/components/layout/SidebarLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -17,10 +18,9 @@ export default function MyProfile() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [profile, setProfile] = useState({
-    full_name: '',
     company_name: '',
-    role_title: '',
-    phone: '',
+    description: '',
+    website: '',
     profile_picture_url: ''
   });
 
@@ -43,10 +43,9 @@ export default function MyProfile() {
 
       if (data) {
         setProfile({
-          full_name: data.full_name || '',
           company_name: data.company_name || '',
-          role_title: data.role_title || '',
-          phone: data.phone || '',
+          description: data.description || '',
+          website: data.website || '',
           profile_picture_url: data.profile_picture_url || ''
         });
       }
@@ -125,10 +124,9 @@ export default function MyProfile() {
       const { error } = await supabase
         .from('user_profiles')
         .update({
-          full_name: profile.full_name,
           company_name: profile.company_name,
-          role_title: profile.role_title,
-          phone: profile.phone,
+          description: profile.description,
+          website: profile.website,
           profile_picture_url: profile.profile_picture_url
         })
         .eq('id', user.id);
@@ -166,9 +164,9 @@ export default function MyProfile() {
       <div className="container max-w-2xl mx-auto py-8 px-4">
         <Card>
           <CardHeader>
-            <CardTitle>My Profile</CardTitle>
+            <CardTitle>Company Profile</CardTitle>
             <CardDescription>
-              Update your profile information
+              Update your company information
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -221,21 +219,12 @@ export default function MyProfile() {
                   type="email"
                   value={user?.email || ''}
                   disabled
+                  className="bg-muted"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="full_name">Full Name</Label>
-                <Input
-                  id="full_name"
-                  value={profile.full_name}
-                  onChange={(e) => setProfile(prev => ({ ...prev, full_name: e.target.value }))}
-                  placeholder="Enter your full name"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="company_name">Company Name</Label>
+                <Label htmlFor="company_name">Company Name *</Label>
                 <Input
                   id="company_name"
                   value={profile.company_name}
@@ -245,23 +234,24 @@ export default function MyProfile() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="role_title">Role / Job Title</Label>
-                <Input
-                  id="role_title"
-                  value={profile.role_title}
-                  onChange={(e) => setProfile(prev => ({ ...prev, role_title: e.target.value }))}
-                  placeholder="Enter your role or job title"
+                <Label htmlFor="description">Company Description</Label>
+                <Textarea
+                  id="description"
+                  value={profile.description}
+                  onChange={(e) => setProfile(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Brief description of your company"
+                  rows={4}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
+                <Label htmlFor="website">Company Website</Label>
                 <Input
-                  id="phone"
-                  type="tel"
-                  value={profile.phone}
-                  onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
-                  placeholder="Enter your phone number"
+                  id="website"
+                  type="url"
+                  value={profile.website}
+                  onChange={(e) => setProfile(prev => ({ ...prev, website: e.target.value }))}
+                  placeholder="https://example.com"
                 />
               </div>
             </div>

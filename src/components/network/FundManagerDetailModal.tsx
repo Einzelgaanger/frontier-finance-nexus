@@ -1,303 +1,210 @@
-import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, Calendar, FileText } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { Calendar, Building, Mail, User, ChevronRight } from 'lucide-react';
 
-interface FundManagerDetailModalProps {
+export interface FundManagerDetailModalProps {
   userId: string;
+  companyName: string;
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onClose: () => void;
 }
 
-interface SurveyResponse {
-  year: string;
-  form_data: any;
-  completed_at: string;
-  submission_status: string;
+interface SurveyYear {
+  year: number;
+  data: any;
 }
 
-const FundManagerDetailModal: React.FC<FundManagerDetailModalProps> = ({
-  userId,
-  open,
-  onOpenChange,
-}) => {
+export default function FundManagerDetailModal({ userId, companyName, open, onClose }: FundManagerDetailModalProps) {
   const { userRole } = useAuth();
+  const [surveys, setSurveys] = useState<SurveyYear[]>([]);
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<any>(null);
-  const [surveys, setSurveys] = useState<SurveyResponse[]>([]);
-  const [selectedYear, setSelectedYear] = useState<string>('2024');
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
 
   useEffect(() => {
     if (open && userId) {
-      fetchFundManagerData();
+      fetchSurveys();
     }
   }, [open, userId]);
 
-  const fetchFundManagerData = async () => {
+  const fetchSurveys = async () => {
     setLoading(true);
-    try {
-      // Fetch profile
-      const { data: profileData } = await supabase
-        .from('user_profiles' as any)
-        .select('*')
-        .eq('id', userId)
-        .single();
+    const years = [2021, 2022, 2023, 2024];
+    const surveyData: SurveyYear[] = [];
 
-      setProfile(profileData as any);
+    for (const year of years) {
+      try {
+        const { data, error } = await supabase
+          .from(`survey_responses_${year}` as any)
+          .select('*')
+          .eq('user_id', userId)
+          .eq('submission_status', 'completed')
+          .maybeSingle();
 
-      // Fetch all survey responses for this user
-      const surveyData: SurveyResponse[] = [];
-
-      // Fetch 2021 survey
-      const { data: survey2021 } = await supabase
-        .from('survey_responses_2021' as any)
-        .select('*')
-        .eq('user_id', userId)
-        .eq('submission_status', 'completed')
-        .maybeSingle();
-
-      if (survey2021) {
-        const data = survey2021 as any;
-        surveyData.push({
-          year: '2021',
-          form_data: data.form_data,
-          completed_at: data.completed_at,
-          submission_status: data.submission_status,
-        });
+        if (data && !error) {
+          surveyData.push({ year, data });
+        }
+      } catch (error) {
+        console.error(`Error fetching ${year} survey:`, error);
       }
-
-      // Fetch 2022 survey
-      const { data: survey2022 } = await supabase
-        .from('survey_responses_2022' as any)
-        .select('*')
-        .eq('user_id', userId)
-        .eq('submission_status', 'completed')
-        .maybeSingle();
-
-      if (survey2022) {
-        const data = survey2022 as any;
-        surveyData.push({
-          year: '2022',
-          form_data: data.form_data,
-          completed_at: data.completed_at,
-          submission_status: data.submission_status,
-        });
-      }
-
-      // Fetch 2023 survey
-      const { data: survey2023 } = await supabase
-        .from('survey_responses_2023' as any)
-        .select('*')
-        .eq('user_id', userId)
-        .eq('submission_status', 'completed')
-        .maybeSingle();
-
-      if (survey2023) {
-        const data = survey2023 as any;
-        surveyData.push({
-          year: '2023',
-          form_data: data.form_data,
-          completed_at: data.completed_at,
-          submission_status: data.submission_status,
-        });
-      }
-
-      // Fetch 2024 survey
-      const { data: survey2024 } = await supabase
-        .from('survey_responses_2024' as any)
-        .select('*')
-        .eq('user_id', userId)
-        .eq('submission_status', 'completed')
-        .maybeSingle();
-
-      if (survey2024) {
-        const data = survey2024 as any;
-        surveyData.push({
-          year: '2024',
-          form_data: data.form_data,
-          completed_at: data.completed_at,
-          submission_status: data.submission_status,
-        });
-      }
-
-      setSurveys(surveyData);
-      if (surveyData.length > 0) {
-        setSelectedYear(surveyData[surveyData.length - 1].year);
-      }
-    } catch (error) {
-      console.error('Error fetching fund manager data:', error);
-    } finally {
-      setLoading(false);
     }
+
+    setSurveys(surveyData);
+    if (surveyData.length > 0) {
+      setSelectedYear(surveyData[0].year);
+    }
+    setLoading(false);
   };
 
-  const renderSurveySection = (formData: any, sectionKey: string, sectionTitle: string) => {
-    if (!formData || !formData[sectionKey]) return null;
+  const getSectionData = (surveyData: any, year: number) => {
+    // Define sections based on year - show first 4 for members, all for admins
+    const allSections = {
+      2021: [
+        { id: 1, title: 'Background Information', fields: ['email_address', 'firm_name', 'participant_name', 'role_title', 'team_based', 'geographic_focus', 'fund_stage'] },
+        { id: 2, title: 'Investment Thesis & Capital', fields: ['investment_vehicle_type', 'current_fund_size', 'target_fund_size', 'investment_timeframe'] },
+        { id: 3, title: 'Portfolio & Team', fields: ['investment_forms', 'target_sectors', 'carried_interest_principals', 'current_ftes'] },
+        { id: 4, title: 'Portfolio Development', fields: ['investment_monetization', 'exits_achieved'] },
+        { id: 5, title: 'COVID-19 Impact', fields: ['covid_impact_aggregate', 'covid_government_support'] },
+        { id: 6, title: 'Network Feedback', fields: ['network_value_rating', 'communication_platform'] },
+        { id: 7, title: 'Convening Objectives', fields: ['participate_mentoring_program', 'additional_comments'] },
+      ],
+      2022: [
+        { id: 1, title: 'Organization Details', fields: ['name', 'organisation', 'email', 'role_title'] },
+        { id: 2, title: 'Fund Information', fields: ['legal_domicile', 'fund_operations', 'current_funds_raised', 'target_fund_size'] },
+        { id: 3, title: 'Investment Strategy', fields: ['financial_instruments', 'sector_activities', 'business_stages'] },
+        { id: 4, title: 'Team & Operations', fields: ['current_ftes', 'principals_count', 'team_based'] },
+        { id: 5, title: 'Portfolio Performance', fields: ['investments_made_to_date', 'equity_exits_achieved', 'revenue_growth_recent_12_months'] },
+        { id: 6, title: 'Market Factors', fields: ['domestic_factors_concerns', 'international_factors_concerns'] },
+      ],
+      2023: [
+        { id: 1, title: 'Basic Information', fields: ['email_address', 'organisation_name', 'fund_name', 'funds_raising_investing'] },
+        { id: 2, title: 'Fund Structure', fields: ['legal_domicile', 'fund_type_status', 'current_funds_raised', 'target_fund_size'] },
+        { id: 3, title: 'Investment Approach', fields: ['financial_instruments', 'sector_focus', 'business_stages'] },
+        { id: 4, title: 'Team Composition', fields: ['fte_staff_current', 'principals_count', 'team_based'] },
+        { id: 5, title: 'Performance Metrics', fields: ['revenue_growth_historical', 'cash_flow_growth_historical', 'jobs_impact_historical_direct'] },
+        { id: 6, title: 'Strategic Priorities', fields: ['fund_priorities', 'concerns_ranking'] },
+      ],
+      2024: [
+        { id: 1, title: 'Organization Profile', fields: ['email_address', 'organisation_name', 'fund_name', 'funds_raising_investing'] },
+        { id: 2, title: 'Fund Details', fields: ['legal_domicile', 'fund_type_status', 'hard_commitments_current', 'target_fund_size_current'] },
+        { id: 3, title: 'Investment Focus', fields: ['sector_target_allocation', 'business_stages', 'financial_instruments_ranking'] },
+        { id: 4, title: 'Operations', fields: ['fte_staff_current', 'principals_total', 'team_based'] },
+        { id: 5, title: 'Portfolio Outcomes', fields: ['equity_investments_made', 'portfolio_revenue_growth_12m', 'direct_jobs_current'] },
+        { id: 6, title: 'Strategic Focus', fields: ['fund_priorities_next_12m', 'fundraising_barriers'] },
+      ],
+    };
 
-    const data = formData[sectionKey];
+    const sections = allSections[year as keyof typeof allSections] || [];
     
-    return (
-      <Card className="mb-4">
-        <CardHeader>
-          <CardTitle className="text-lg">{sectionTitle}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {Object.entries(data).map(([key, value]) => {
-              if (value === null || value === undefined || value === '') return null;
-              
-              return (
-                <div key={key} className="flex justify-between border-b pb-2">
-                  <span className="font-medium text-gray-700">
-                    {key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}:
-                  </span>
-                  <span className="text-gray-900">
-                    {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-    );
+    // Return first 4 sections for members, all for admins
+    return userRole === 'admin' ? sections : sections.slice(0, 4);
   };
 
-  const renderSurveyData = (survey: SurveyResponse) => {
-    const isAdmin = userRole === 'admin';
-    const isMember = userRole === 'member';
-    const formData = survey.form_data;
-
-    // For members, only show first 4 sections
-    const sectionsToShow = isAdmin ? 8 : isMember ? 4 : 0;
-
-    if (!formData) {
-      return <div className="text-center py-8 text-gray-500">No survey data available</div>;
-    }
-
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-blue-600" />
-            <span className="text-sm text-gray-600">
-              Completed: {new Date(survey.completed_at).toLocaleDateString()}
-            </span>
-          </div>
-          <Badge variant="secondary">
-            {survey.year}
-          </Badge>
-        </div>
-
-        {/* Basic Information - Always visible */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Basic Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {formData.email_address && (
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-gray-500" />
-                <span className="text-gray-900">{formData.email_address}</span>
-              </div>
-            )}
-            {formData.firm_name && (
-              <div className="flex items-center gap-2">
-                <Building className="w-4 h-4 text-gray-500" />
-                <span className="text-gray-900">{formData.firm_name}</span>
-              </div>
-            )}
-            {formData.organisation_name && (
-              <div className="flex items-center gap-2">
-                <Building className="w-4 h-4 text-gray-500" />
-                <span className="text-gray-900">{formData.organisation_name}</span>
-              </div>
-            )}
-            {formData.fund_name && (
-              <div className="flex items-center gap-2">
-                <User className="w-4 h-4 text-gray-500" />
-                <span className="text-gray-900">{formData.fund_name}</span>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Additional sections based on role */}
-        {sectionsToShow > 0 && (
-          <div className="space-y-4">
-            <div className="text-sm text-gray-600 flex items-center gap-2">
-              <ChevronRight className="w-4 h-4" />
-              {isAdmin ? 'Full access to all sections' : `Access to first ${sectionsToShow} sections`}
-            </div>
-            
-            {/* Display form data in a readable format */}
-            <div className="grid gap-4">
-              {Object.entries(formData).slice(0, sectionsToShow * 5).map(([key, value]) => {
-                if (value === null || value === undefined || value === '' || key === 'email_address' || key === 'firm_name' || key === 'organisation_name' || key === 'fund_name') return null;
-                
-                return (
-                  <div key={key} className="flex justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="font-medium text-gray-700">
-                      {key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
-                    </span>
-                    <span className="text-gray-900">
-                      {typeof value === 'object' 
-                        ? JSON.stringify(value, null, 2).substring(0, 100) + '...'
-                        : String(value).substring(0, 100)}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
-    );
+  const formatFieldValue = (value: any): string => {
+    if (value === null || value === undefined) return 'N/A';
+    if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+    if (Array.isArray(value)) return value.join(', ') || 'N/A';
+    if (typeof value === 'object') return JSON.stringify(value, null, 2);
+    return String(value);
   };
+
+  const formatFieldName = (field: string): string => {
+    return field
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
+  if (!open) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl">
-            {profile?.first_name} {profile?.last_name}
+          <DialogTitle className="text-2xl flex items-center gap-2">
+            <FileText className="w-6 h-6" />
+            {companyName} - Survey Responses
           </DialogTitle>
-          <p className="text-gray-600">{profile?.email}</p>
         </DialogHeader>
 
         {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin" />
           </div>
         ) : surveys.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-600">No completed surveys found for this fund manager.</p>
+            <Calendar className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">User has no surveys</p>
           </div>
         ) : (
-          <Tabs value={selectedYear} onValueChange={setSelectedYear} className="w-full">
-            <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${surveys.length}, 1fr)` }}>
+          <div className="space-y-6">
+            {/* Year Selection */}
+            <div className="flex gap-2 flex-wrap">
               {surveys.map((survey) => (
-                <TabsTrigger key={survey.year} value={survey.year}>
+                <Badge
+                  key={survey.year}
+                  variant={selectedYear === survey.year ? 'default' : 'outline'}
+                  className="cursor-pointer px-4 py-2"
+                  onClick={() => setSelectedYear(survey.year)}
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
                   {survey.year}
-                </TabsTrigger>
+                </Badge>
               ))}
-            </TabsList>
+            </div>
 
-            {surveys.map((survey) => (
-              <TabsContent key={survey.year} value={survey.year} className="mt-6">
-                {renderSurveyData(survey)}
-              </TabsContent>
-            ))}
-          </Tabs>
+            {/* Section Tabs */}
+            {selectedYear && (
+              <Tabs defaultValue="section-1" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  {getSectionData(
+                    surveys.find(s => s.year === selectedYear)?.data,
+                    selectedYear
+                  ).map((section) => (
+                    <TabsTrigger key={section.id} value={`section-${section.id}`}>
+                      Section {section.id}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+
+                {getSectionData(
+                  surveys.find(s => s.year === selectedYear)?.data,
+                  selectedYear
+                ).map((section) => {
+                  const surveyData = surveys.find(s => s.year === selectedYear)?.data;
+                  return (
+                    <TabsContent key={section.id} value={`section-${section.id}`}>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>{section.title}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            {section.fields.map((field) => (
+                              <div key={field} className="border-b pb-3 last:border-b-0">
+                                <p className="font-medium text-sm text-muted-foreground mb-1">
+                                  {formatFieldName(field)}
+                                </p>
+                                <p className="text-sm whitespace-pre-wrap">
+                                  {formatFieldValue(surveyData?.[field])}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </TabsContent>
+                  );
+                })}
+              </Tabs>
+            )}
+          </div>
         )}
       </DialogContent>
     </Dialog>
   );
-};
-
-export default FundManagerDetailModal;
+}

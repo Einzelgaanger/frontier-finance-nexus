@@ -197,8 +197,9 @@ const AdminFundManagers: React.FC = () => {
       {selectedManager && (
         <FundManagerDetailModal
           userId={selectedManager}
+          companyName="Fund Manager"
           open={modalOpen}
-          onOpenChange={setModalOpen}
+          onClose={() => setModalOpen(false)}
         />
       )}
     </div>
