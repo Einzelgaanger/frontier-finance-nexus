@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SidebarLayout from '@/components/layout/SidebarLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,6 +18,19 @@ const PortIQ = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
+  // SEO: dynamic title and description
+  useEffect(() => {
+    document.title = 'PortIQ – AI Assistant for CFF Network';
+    const desc = 'Ask PortIQ about fund data and surveys. Role-aware access with professional insights.';
+    let meta = document.querySelector('meta[name="description"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'description');
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute('content', desc);
+  }, []);
+
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
 
@@ -33,8 +46,11 @@ const PortIQ = () => {
 
       if (error) throw error;
 
-      if (data?.response) {
-        setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
+      const resText = (data as any)?.reply ?? (data as any)?.response;
+      if (resText) {
+        setMessages(prev => [...prev, { role: 'assistant', content: resText }]);
+      } else {
+        throw new Error('Empty response from AI');
       }
     } catch (error: any) {
       console.error('Error sending message:', error);
@@ -70,7 +86,7 @@ const PortIQ = () => {
             <div className="flex items-center justify-center gap-3">
               <div className="relative">
                 <div className="w-16 h-16 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-xl">
-                  <Sparkles className="w-8 h-8 text-white" />
+                  <Brain className="w-8 h-8 text-white" />
                 </div>
                 <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
               </div>
@@ -123,7 +139,7 @@ const PortIQ = () => {
                 {messages.length === 0 ? (
                   <div className="text-center py-12 space-y-4">
                     <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto">
-                      <Sparkles className="w-10 h-10 text-blue-600" />
+                      <Brain className="w-10 h-10 text-blue-600" />
                     </div>
                     <div>
                       <h3 className="text-xl font-semibold text-gray-800 mb-2">Welcome to PortIQ!</h3>
