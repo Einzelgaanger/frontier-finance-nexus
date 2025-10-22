@@ -72,9 +72,9 @@ const PortIQ = () => {
   };
 
   const quickPrompts = [
-    { icon: TrendingUp, text: "Show me key investment trends", color: "from-blue-500 to-cyan-500" },
-    { icon: Brain, text: "Analyze survey data patterns", color: "from-purple-500 to-pink-500" },
-    { icon: Zap, text: "What are top performing sectors?", color: "from-orange-500 to-red-500" },
+    { icon: TrendingUp, text: "What sectors are targeted in 2024 surveys?", color: "from-blue-500 to-cyan-500" },
+    { icon: Brain, text: "Show me my points and engagement streak", color: "from-purple-500 to-pink-500" },
+    { icon: Zap, text: "Compare fund sizes between 2023 and 2024", color: "from-orange-500 to-red-500" },
   ];
 
   return (
@@ -95,8 +95,8 @@ const PortIQ = () => {
               <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
                 PortIQ
               </h1>
-              <p className="text-lg text-gray-600 mt-2">Your Intelligent Portal Assistant</p>
-              <p className="text-sm text-gray-500">Powered by AI to help you navigate fund data and insights</p>
+              <p className="text-lg text-gray-600 mt-2">Your Intelligent Network Assistant</p>
+              <p className="text-sm text-gray-500">AI-powered insights across surveys, engagement, applications, and network data</p>
             </div>
           </div>
 
@@ -130,7 +130,7 @@ const PortIQ = () => {
                 Chat with PortIQ
               </CardTitle>
               <CardDescription>
-                Ask questions about fund data, surveys, and market insights
+                Ask about surveys, applications, blogs, network profiles, your engagement, and more
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6">
@@ -189,7 +189,7 @@ const PortIQ = () => {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Ask me anything about fund data, surveys, or market insights..."
+                  placeholder="Ask about surveys, network data, your points, applications, trends, and more..."
                   rows={3}
                   className="resize-none border-2 border-gray-200 focus:border-blue-400 focus:ring-blue-400/20 bg-white shadow-sm"
                   disabled={loading}
@@ -215,22 +215,22 @@ const PortIQ = () => {
             <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
               <CardContent className="p-4 text-center">
                 <Brain className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                <h3 className="font-semibold text-blue-900">Smart Analysis</h3>
-                <p className="text-xs text-blue-700 mt-1">AI-powered data insights</p>
+                <h3 className="font-semibold text-blue-900">Multi-Table Access</h3>
+                <p className="text-xs text-blue-700 mt-1">Surveys, apps, blogs, profiles, credits</p>
               </CardContent>
             </Card>
             <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
               <CardContent className="p-4 text-center">
                 <Sparkles className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-                <h3 className="font-semibold text-purple-900">Instant Answers</h3>
-                <p className="text-xs text-purple-700 mt-1">Get responses in seconds</p>
+                <h3 className="font-semibold text-purple-900">Role-Based Security</h3>
+                <p className="text-xs text-purple-700 mt-1">See only what you're permitted</p>
               </CardContent>
             </Card>
             <Card className="bg-gradient-to-br from-pink-50 to-pink-100 border-pink-200">
               <CardContent className="p-4 text-center">
                 <TrendingUp className="w-8 h-8 text-pink-600 mx-auto mb-2" />
-                <h3 className="font-semibold text-pink-900">Market Trends</h3>
-                <p className="text-xs text-pink-700 mt-1">Stay ahead of the curve</p>
+                <h3 className="font-semibold text-pink-900">Smart Insights</h3>
+                <p className="text-xs text-pink-700 mt-1">Trends, comparisons, recommendations</p>
               </CardContent>
             </Card>
           </div>

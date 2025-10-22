@@ -149,10 +149,10 @@ const AdminDashboardV2 = () => {
         userProfilesResult,
         networkUsersResult
       ] = await Promise.all([
-        supabase.from('survey_2021_responses').select('id, user_id, created_at, firm_name, participant_name'),
-        supabase.from('survey_2022_responses').select('id, user_id, created_at'),
-        supabase.from('survey_2023_responses').select('id, user_id, created_at'),
-        supabase.from('survey_2024_responses').select('id, user_id, created_at'),
+        supabase.from('survey_responses_2021').select('id, user_id, created_at, firm_name, participant_name'),
+        supabase.from('survey_responses_2022').select('id, user_id, created_at'),
+        supabase.from('survey_responses_2023').select('id, user_id, created_at'),
+        supabase.from('survey_responses_2024').select('id, user_id, created_at'),
         supabase.from('user_roles').select('user_id, role, created_at'),
         supabase.from('membership_requests').select('id, status, created_at, vehicle_name'),
         supabase.from('profiles').select('id, created_at'),

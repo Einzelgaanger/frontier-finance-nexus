@@ -199,7 +199,7 @@ const ReadOnlySurvey2021: React.FC = () => {
         // Fallback fetch if hook didn't provide it
         const fetchSurvey = async () => {
           const { data: response, error } = await supabase
-            .from('survey_2021_responses')
+            .from('survey_responses_2021')
             .select('*')
             .eq('user_id', user.id)
             .maybeSingle();

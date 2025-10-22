@@ -419,7 +419,7 @@ const MemberNetworkCards = () => {
         
         // Fallback: If member_surveys is empty, try to get data from survey tables
         const [survey2021Result, surveyResult] = await Promise.all([
-          supabase.from('survey_2021_responses').select('user_id, firm_name, participant_name, geographic_focus, investment_vehicle_type, fund_stage, current_ftes'),
+          supabase.from('survey_responses_2021').select('user_id, firm_name, participant_name, geographic_focus, investment_vehicle_type, fund_stage, current_ftes'),
           supabase.from('survey_responses').select('user_id')
         ]);
 

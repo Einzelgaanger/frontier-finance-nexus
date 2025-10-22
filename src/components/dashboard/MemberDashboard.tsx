@@ -12,6 +12,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { Leaderboard } from './Leaderboard';
 
 const MemberDashboard = () => {
   const { user } = useAuth();
@@ -168,8 +169,9 @@ const MemberDashboard = () => {
             </div>
           </div>
 
-          {/* Benefits Cards */}
+          {/* Benefits Cards and Leaderboard */}
           <div className="lg:col-span-2 space-y-6">
+            <Leaderboard />
             {/* Global Network */}
             <div className="group relative overflow-hidden rounded-lg bg-[#f5f5dc] border-2 border-blue-200 hover:border-blue-400 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg cursor-pointer">
               <div className="relative p-4">

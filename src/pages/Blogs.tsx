@@ -10,6 +10,7 @@ import { PlusCircle, Image, Video, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { CreateBlogModal } from "@/components/blogs/CreateBlogModal";
 import { format } from "date-fns";
+import { getBadge } from "@/utils/badgeSystem";
 
 interface Blog {
   id: string;
@@ -24,6 +25,7 @@ interface Blog {
     full_name: string;
     company_name: string;
     profile_picture_url: string | null;
+    total_points?: number;
   };
 }
 
@@ -57,18 +59,28 @@ export default function Blogs() {
 
       if (blogsError) throw blogsError;
 
-      // Fetch author profiles
+      // Fetch author profiles and credits
       const userIds = [...new Set(blogsData?.map(blog => blog.user_id) || [])];
-      const { data: profiles } = await supabase
-        .from("user_profiles")
-        .select("id, full_name, company_name, profile_picture_url")
-        .in("id", userIds);
+      const [profilesRes, creditsRes] = await Promise.all([
+        supabase
+          .from("user_profiles")
+          .select("id, full_name, company_name, profile_picture_url")
+          .in("id", userIds),
+        supabase
+          .from("user_credits")
+          .select("user_id, total_points")
+          .in("user_id", userIds)
+      ]);
 
-      const blogsWithAuthors = (blogsData?.map(blog => ({
-        ...blog,
-        media_type: blog.media_type as 'text' | 'image' | 'video' | null,
-        author: profiles?.find(p => p.id === blog.user_id)
-      })) || []) as Blog[];
+      const blogsWithAuthors = (blogsData?.map(blog => {
+        const profile = profilesRes.data?.find(p => p.id === blog.user_id);
+        const credit = creditsRes.data?.find(c => c.user_id === blog.user_id);
+        return {
+          ...blog,
+          media_type: blog.media_type as 'text' | 'image' | 'video' | null,
+          author: profile ? { ...profile, total_points: credit?.total_points || 0 } : undefined
+        };
+      }) || []) as Blog[];
 
       setBlogs(blogsWithAuthors);
     } catch (error: any) {
@@ -143,7 +155,14 @@ export default function Blogs() {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-semibold text-sm">{blog.author?.full_name || "Unknown"}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-sm">{blog.author?.full_name || "Unknown"}</p>
+                          {blog.author?.total_points !== undefined && (
+                            <span className="text-lg">
+                              {getBadge(blog.author.total_points).icon}
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-muted-foreground">{blog.author?.company_name}</p>
                       </div>
                     </div>
