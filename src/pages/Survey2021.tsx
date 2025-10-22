@@ -151,7 +151,6 @@ const Survey2021: React.FC = () => {
     getLastSection,
     clearSavedData,
     setupAutoSave,
-    getSavedFormData,
     saveFormData,
   } = useSurveyPersistence({ surveyKey: 'survey2021' });
 
@@ -257,24 +256,9 @@ const Survey2021: React.FC = () => {
     },
   });
 
-  // Load saved form data and section on component mount
+  // Load saved section on component mount (no form data restoration)
   useEffect(() => {
-    const savedData = getSavedFormData();
     const savedSection = getLastSection();
-    
-    if (savedData) {
-      // Restore form data
-      Object.keys(savedData).forEach(key => {
-        if (savedData[key] !== undefined && savedData[key] !== null) {
-          form.setValue(key as keyof Survey2021FormData, savedData[key]);
-        }
-      });
-      
-      toast({
-        title: "Form Restored",
-        description: "Your previous progress has been restored.",
-      });
-    }
     
     if (savedSection && savedSection > 1) {
       setCurrentSection(savedSection);
@@ -479,7 +463,7 @@ const Survey2021: React.FC = () => {
         name="email_address"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Email address *</FormLabel>
+            <FormLabel>1. Email address</FormLabel>
             <FormControl>
               <Input {...field} type="email" placeholder="your.email@example.com" />
             </FormControl>
@@ -492,7 +476,7 @@ const Survey2021: React.FC = () => {
         name="firm_name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Name of firm *</FormLabel>
+            <FormLabel>2. Name of firm</FormLabel>
             <FormControl>
               <Input {...field} placeholder="Enter your firm name" />
             </FormControl>
@@ -505,7 +489,7 @@ const Survey2021: React.FC = () => {
         name="participant_name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Name of participant *</FormLabel>
+            <FormLabel>3. Name of participant</FormLabel>
             <FormControl>
               <Input {...field} placeholder="Enter participant name" />
             </FormControl>
@@ -518,7 +502,7 @@ const Survey2021: React.FC = () => {
         name="role_title"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Role / title of participant *</FormLabel>
+            <FormLabel>4. Role / title of participant</FormLabel>
             <FormControl>
               <Input {...field} placeholder="Enter your role/title" />
             </FormControl>
@@ -528,7 +512,7 @@ const Survey2021: React.FC = () => {
       />
 
       <div>
-        <Label>Where is your team based? *</Label>
+        <Label>5. Where is your team based?</Label>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
             "US/Europe", "Asia - South Asia", "Asia - Central Asia", "Asia - South East Asia",
@@ -569,7 +553,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label>What is the geographic focus of your fund/vehicle? *</Label>
+        <Label>6. What is the geographic focus of your fund/vehicle?</Label>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
             "US/Europe", "Asia - South Asia", "Asia - Central Asia", "Asia - South East Asia",
@@ -610,7 +594,7 @@ const Survey2021: React.FC = () => {
       </div>
 
       <div>
-        <Label htmlFor="fund_stage" >What is the stage of your current fund/vehicle's operations? *</Label>
+        <Label htmlFor="fund_stage" >7. What is the stage of your current fund/vehicle's operations?</Label>
         <Select onValueChange={(value) => {
           form.setValue("fund_stage", value);
           // Clear the "Other" field if not selecting "Other"
@@ -654,15 +638,15 @@ const Survey2021: React.FC = () => {
         )}
       </div>
 
-      {/* Question 7: Timeline */}
+      {/* Question 8: Timeline */}
       <div className="space-y-4">
         <div>
-          <Label >7. When did your current fund/investment vehicle achieve each of the following?</Label>
+          <Label >8. When did your current fund/investment vehicle achieve each of the following?</Label>
         </div>
         
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <Label htmlFor="legal_entity_date" className="text-sm font-medium text-gray-700">Legal entity *</Label>
+            <Label htmlFor="legal_entity_date" className="text-sm font-medium text-gray-700">Legal entity</Label>
             <Select onValueChange={(value) => form.setValue("legal_entity_date", value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select date" />
@@ -687,7 +671,7 @@ const Survey2021: React.FC = () => {
           </div>
 
           <div>
-            <Label htmlFor="first_close_date" className="text-sm font-medium text-gray-700">1st close (or equivalent) *</Label>
+            <Label htmlFor="first_close_date" className="text-sm font-medium text-gray-700">1st close (or equivalent)</Label>
             <Select onValueChange={(value) => form.setValue("first_close_date", value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select date" />
@@ -712,7 +696,7 @@ const Survey2021: React.FC = () => {
           </div>
 
           <div>
-            <Label htmlFor="first_investment_date" className="text-sm font-medium text-gray-700">First investment *</Label>
+            <Label htmlFor="first_investment_date" className="text-sm font-medium text-gray-700">First investment</Label>
             <Select onValueChange={(value) => form.setValue("first_investment_date", value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select date" />
@@ -738,15 +722,15 @@ const Survey2021: React.FC = () => {
         </div>
       </div>
 
-      {/* Question 8: Number of investments */}
+      {/* Question 9: Number of investments */}
       <div className="space-y-4">
         <div>
-          <Label >8. Please specify the number of investments made to date by your current vehicle</Label>
+          <Label >9. Please specify the number of investments made to date by your current vehicle</Label>
         </div>
         
         <div className="grid grid-cols-2 gap-6">
           <div>
-            <Label htmlFor="investments_march_2020">As of March 2020 *</Label>
+            <Label htmlFor="investments_march_2020">As of March 2020</Label>
             <Select onValueChange={(value) => form.setValue("investments_march_2020", value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select count" />
@@ -762,7 +746,7 @@ const Survey2021: React.FC = () => {
             </Select>
           </div>
           <div>
-            <Label htmlFor="investments_december_2020">As of December 2020 *</Label>
+            <Label htmlFor="investments_december_2020">As of December 2020</Label>
             <Select onValueChange={(value) => form.setValue("investments_december_2020", value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select count" />
@@ -780,9 +764,9 @@ const Survey2021: React.FC = () => {
         </div>
       </div>
 
-      {/* Question 9: Optional supplement */}
+      {/* Question 10: Optional supplement */}
       <div>
-        <Label htmlFor="optional_supplement">9. Optional supplement - if no direct investments made to date</Label>
+        <Label htmlFor="optional_supplement">10. Optional supplement - if no direct investments made to date</Label>
         <Textarea
           id="optional_supplement"
           {...form.register("optional_supplement")}
@@ -795,10 +779,10 @@ const Survey2021: React.FC = () => {
 
   const renderSection2 = () => (
     <div className="space-y-6">
-      {/* Question 10: Type of investment vehicle */}
+      {/* Question 11: Type of investment vehicle */}
       <div className="space-y-4">
         <div>
-          <Label >10. Type of investment vehicle *</Label>
+          <Label >11. Type of investment vehicle</Label>
         </div>
         
         <div className="grid grid-cols-2 gap-3 mt-2">
@@ -2482,9 +2466,92 @@ const Survey2021: React.FC = () => {
   return (
     <SidebarLayout>
       <div className="min-h-screen bg-gray-50 pb-16">
-        <div className={`max-w-6xl mx-auto ${!showIntro ? 'pr-72' : ''}`}>
+        <div className={`max-w-6xl mx-auto ${!showIntro ? 'pr-80' : ''}`}>
         {/* Back Button (hidden on intro to reclaim space) */}
         {!showIntro && null}
+        
+        {/* Enhanced Right Sidebar */}
+        {!showIntro && (
+          <div 
+            className="w-72 bg-white border-l border-gray-200 p-6 fixed right-0 top-20 h-[calc(100vh-5rem)] overflow-hidden flex flex-col shadow-lg"
+            style={{
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+            }}
+          >
+            <div className="mb-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Survey Progress</h3>
+              <div className="bg-gray-100 rounded-full h-2 mb-4">
+                <div 
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
+              <p className="text-sm text-gray-600">
+                Section {currentSection} of {totalSections}
+              </p>
+            </div>
+            
+            <div 
+              className="space-y-3 overflow-y-auto flex-1 hide-scrollbar"
+              style={{
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+              }}
+            >
+              <h4 className="text-sm font-semibold text-gray-700 mb-3">Sections</h4>
+              {Array.from({ length: totalSections }, (_, idx) => idx + 1).map((sectionNumber) => {
+                const isActive = currentSection === sectionNumber;
+                const isCompleted = sectionNumber < currentSection;
+                
+                return (
+                  <button
+                    key={sectionNumber}
+                    onClick={() => setCurrentSection(sectionNumber)}
+                    className={[
+                      'w-full flex items-center space-x-3 p-3 rounded-lg text-left transition-all duration-200',
+                      isActive
+                        ? 'bg-blue-50 border border-blue-200 text-blue-900'
+                        : isCompleted
+                        ? 'bg-green-50 border border-green-200 text-green-900 hover:bg-green-100'
+                        : 'bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100'
+                    ].join(' ')}
+                  >
+                    <div className={[
+                      'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-200',
+                      isActive
+                        ? 'bg-white text-blue-600'
+                        : isCompleted
+                        ? 'bg-green-500 text-white'
+                        : 'bg-gray-200 text-gray-600'
+                    ].join(' ')}>
+                      {isCompleted ? '✓' : sectionNumber}
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold leading-tight">{getSectionTitle(sectionNumber)}</div>
+                      {isCompleted && (
+                        <div className="text-xs text-green-600 mt-1">Completed</div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Back to Surveys Button */}
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/survey')}
+                className="w-full"
+              >
+                Back to Surveys
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div>
 
@@ -2559,66 +2626,84 @@ const Survey2021: React.FC = () => {
         {!showIntro && (
         <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          {/* Enhanced Progress Bar and Section Header */}
+          <Card className="bg-white p-6 rounded-lg border shadow-sm">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Section {currentSection}: {getSectionTitle(currentSection)}
+                  </h2>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {currentSection} of {totalSections} sections
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm font-medium text-gray-900">{Math.round(progress)}% Complete</div>
+                  <div className="text-xs text-gray-500">Survey Progress</div>
+                </div>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3">
+                <div 
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
+            </div>
+          </Card>
+
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold">
-                Section {currentSection}: {getSectionTitle(currentSection)}
-              </h2>
-            </div>
-            <Progress value={progress} className="w-full [&>div]:bg-red-500" />
-            <div className="space-y-6">
-              {renderCurrentSection()}
-            </div>
+            {renderCurrentSection()}
           </div>
 
-          {/* Navigation Buttons */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentSection === 1}
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Previous
-            </Button>
-
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 sm:justify-end">
+          {/* Enhanced Navigation Buttons */}
+          <Card className="bg-white p-6 rounded-lg border shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <Button
                 type="button"
                 variant="outline"
-                onClick={saveDraft}
-                disabled={saving}
+                onClick={handlePrevious}
+                disabled={currentSection === 1}
+                className="px-6 py-2 border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
               >
-                {saving ? 'Saving...' : 'Save Draft'}
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Previous
               </Button>
-              {currentSection < totalSections ? (
+
+              <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
                 <Button
                   type="button"
-                  onClick={handleNext}
+                  variant="outline"
+                  onClick={saveDraft}
+                  disabled={saving}
+                  className="px-6 py-2 border-green-300 text-green-700 hover:bg-green-50 disabled:opacity-50"
                 >
-                  Next
-                  <ArrowRight className="w-4 h-4 ml-2" />
+                  {saving ? 'Saving...' : '💾 Save Draft'}
                 </Button>
-              ) : (
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105"
-                >
-                  <Send className="w-4 h-4 mr-2" />
-                  {loading ? 'Submitting...' : 'Submit Survey'}
-                </Button>
-              )}
+                {currentSection < totalSections ? (
+                  <Button
+                    type="button"
+                    onClick={handleNext}
+                    className="px-8 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    Next &rarr;
+                  </Button>
+                ) : (
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? 'Submitting...' : '🎉 Submit Survey'}
+                  </Button>
+                )}
+              </div>
             </div>
-          </div>
+          </Card>
         </form>
         </Form>
         )}
         </div>
-        
-        {/* Right Sidebar with Section Navigation */}
-        {!showIntro && renderSectionSidebar()}
       </div>
     </SidebarLayout>
   );
