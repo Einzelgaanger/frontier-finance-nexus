@@ -273,26 +273,6 @@ const ApplicationForm = () => {
   // Show application form (multi-step wizard)
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
-      {/* Header Section */}
-      <div className="text-center space-y-4">
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl p-8 shadow-lg">
-          <h1 className="text-4xl font-bold mb-4">Join the CFF Network</h1>
-          <p className="text-xl text-blue-100">
-            Connect with global fund managers and emerging market professionals
-          </p>
-        </div>
-      </div>
-
-      {/* Progress */}
-      <Card className="shadow-sm">
-        <CardContent className="p-5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="text-sm text-gray-700">Step {currentStep} of {totalSteps}</div>
-            <div className="text-sm font-medium text-gray-900">{percentComplete}% complete</div>
-          </div>
-          <Progress value={percentComplete} />
-        </CardContent>
-      </Card>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {currentStep === 1 && (
