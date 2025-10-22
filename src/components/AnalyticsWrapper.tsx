@@ -1,7 +1,5 @@
 import { useAuth } from '@/hooks/useAuth';
-import SidebarLayout from '@/components/layout/SidebarLayout';
-import Analytics from '@/pages/Analytics';
-import AnalyticsV2 from '@/pages/AnalyticsV2';
+import AnalyticsV3 from '@/pages/AnalyticsV3';
 
 const AnalyticsWrapper = () => {
   const { userRole, loading } = useAuth();
@@ -15,12 +13,8 @@ const AnalyticsWrapper = () => {
     );
   }
 
-  // Use AnalyticsV2 for admin users, Analytics for others
-  if (userRole === 'admin') {
-    return <AnalyticsV2 />;
-  }
-
-  return <Analytics />;
+  // All authenticated users can access analytics with role-based field visibility
+  return <AnalyticsV3 />;
 };
 
 export default AnalyticsWrapper;

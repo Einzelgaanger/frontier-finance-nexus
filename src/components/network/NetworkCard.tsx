@@ -301,6 +301,17 @@ export function NetworkCard({ manager, userRole, showDetails = false }: NetworkC
               </div>
             </div>
             <div className="flex items-center space-x-2">
+              {manager.role_badge && (
+                <Badge className={`
+                  ${manager.role_badge === 'admin' ? 'bg-red-500/90 border-red-300' : ''}
+                  ${manager.role_badge === 'member' ? 'bg-green-500/90 border-green-300' : ''}
+                  ${manager.role_badge === 'viewer' ? 'bg-blue-500/90 border-blue-300' : ''}
+                  text-white border-white/30 hover:bg-white/30 capitalize
+                `}>
+                  <Shield className="w-3 h-3 mr-1" />
+                  {manager.role_badge}
+                </Badge>
+              )}
               {manager.has_survey && (
                 <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30">
                   <CheckCircle className="w-3 h-3 mr-1" />

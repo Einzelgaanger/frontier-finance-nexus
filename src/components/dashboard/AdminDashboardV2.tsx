@@ -47,6 +47,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import AIAssistant from './AIAssistant';
 
 interface StatCard {
   title: string;
@@ -731,6 +732,9 @@ const AdminDashboardV2 = () => {
               </div>
             </div>
           </div>
+
+          {/* AI Assistant Section */}
+          <AIAssistant />
         </div>
       </div>
     </div>

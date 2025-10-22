@@ -33,7 +33,7 @@ const AdminFundManagers: React.FC = () => {
     try {
       // Fetch all profiles
       const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
+        .from('user_profiles' as any)
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -41,54 +41,54 @@ const AdminFundManagers: React.FC = () => {
 
       // For each profile, check how many completed surveys they have
       const managersWithSurveys = await Promise.all(
-        (profiles || []).map(async (profile) => {
+        (profiles || []).map(async (profile: any) => {
           let surveyCount = 0;
 
           // Check 2021 surveys
           const { data: survey2021 } = await supabase
-            .from('survey_2021_responses')
+            .from('survey_responses_2021' as any)
             .select('id')
             .eq('user_id', profile.id)
             .eq('submission_status', 'completed')
-            .single();
+            .maybeSingle();
           if (survey2021) surveyCount++;
 
           // Check 2022 surveys
           const { data: survey2022 } = await supabase
-            .from('survey_2022_responses')
+            .from('survey_responses_2022' as any)
             .select('id')
             .eq('user_id', profile.id)
             .eq('submission_status', 'completed')
-            .single();
+            .maybeSingle();
           if (survey2022) surveyCount++;
 
           // Check 2023 surveys
           const { data: survey2023 } = await supabase
-            .from('survey_2023_responses')
+            .from('survey_responses_2023' as any)
             .select('id')
             .eq('user_id', profile.id)
             .eq('submission_status', 'completed')
-            .single();
+            .maybeSingle();
           if (survey2023) surveyCount++;
 
           // Check 2024 surveys
           const { data: survey2024 } = await supabase
-            .from('survey_2024_responses')
+            .from('survey_responses_2024' as any)
             .select('id')
             .eq('user_id', profile.id)
             .eq('submission_status', 'completed')
-            .single();
+            .maybeSingle();
           if (survey2024) surveyCount++;
 
           return {
             ...profile,
             user_id: profile.id,
             survey_count: surveyCount,
-          };
+          } as any;
         })
       );
 
-      setFundManagers(managersWithSurveys);
+      setFundManagers(managersWithSurveys as any);
     } catch (error) {
       console.error('Error fetching fund managers:', error);
     } finally {

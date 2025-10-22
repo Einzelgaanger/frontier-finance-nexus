@@ -3,73 +3,41 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Progress } from '@/components/ui/progress';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { logApplicationSubmitted } from '@/utils/activityLogger';
-import { FileText, Upload, Link, Plus, CheckCircle, Send, Clock, AlertCircle } from 'lucide-react';
-import { CountrySelector } from '@/components/survey/CountrySelector';
+import { Send, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 
 const ApplicationForm = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [currentSection, setCurrentSection] = useState(1);
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [existingApplication, setExistingApplication] = useState<any>(null);
   const [checkingApplication, setCheckingApplication] = useState(true);
-  
-  const [formData, setFormData] = useState({
-    // Background Information
-    applicant_name: '',
-    email: user?.email || '',
-    vehicle_name: '',
-    organization_website: '',
-    domicile_countries: [] as string[],
-    
-    // Team Information
-    role_job_title: '',
-    team_overview: '',
-    
-    // Vehicle Information
-    investment_thesis: '',
-    typical_check_size: '',
-    number_of_investments: '',
-    amount_raised_to_date: '',
-    supporting_documents: [] as string[],
-    supporting_document_links: [] as string[],
-    
-    // Network Expectations
-    expectations_from_network: '',
-    how_heard_about_network: '',
-    topics_of_interest: [] as string[],
-  });
+  const [existingApplication, setExistingApplication] = useState<any>(null);
+  const [companyName, setCompanyName] = useState('');
+  const [applicationText, setApplicationText] = useState('');
 
-  const topics = [
-    'Investment Opportunities',
-    'Market Research',
-    'Due Diligence',
-    'Portfolio Management',
-    'Fundraising',
-    'Networking',
-    'Industry Insights',
-    'Technology Trends',
-    'Regulatory Updates',
-    'ESG Investing'
-  ];
-
-  // Check for existing application
+  // Check for existing application and get company name
   useEffect(() => {
     const checkExistingApplication = async () => {
       if (!user?.id) return;
       
       try {
+        // Get user profile for company name
+        const { data: profileData } = await supabase
+          .from('user_profiles' as any)
+          .select('company_name')
+          .eq('id', user.id)
+          .single();
+
+        if (profileData) {
+          setCompanyName((profileData as any).company_name || '');
+        }
+
+        // Check for existing application
         const { data, error } = await supabase
-          .from('membership_requests')
+          .from('applications' as any)
           .select('*')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
@@ -95,150 +63,12 @@ const ApplicationForm = () => {
     checkExistingApplication();
   }, [user?.id, toast]);
 
-  const checkSizes = [
-    'Under $100K',
-    '$100K - $500K',
-    '$500K - $1M',
-    '$1M - $5M',
-    '$5M - $10M',
-    '$10M - $25M',
-    '$25M - $50M',
-    'Over $50M'
-  ];
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  const investmentRanges = [
-    '1-5 investments',
-    '6-10 investments',
-    '11-20 investments',
-    '21-50 investments',
-    '51-100 investments',
-    'Over 100 investments'
-  ];
-
-  const howHeardOptions = [
-    'ESCP Alumni Network',
-    'LinkedIn',
-    'Industry Conference',
-    'Referral from existing member',
-    'Website',
-    'Social Media',
-    'Other'
-  ];
-
-  const sections = [
-    { id: 1, title: 'Background Information', description: 'Tell us about yourself and your organization' },
-    { id: 2, title: 'Team Information', description: 'Share details about your team' },
-    { id: 3, title: 'Vehicle Information', description: 'Describe your investment vehicle' },
-    { id: 4, title: 'Network Expectations', description: 'What you hope to gain from the network' }
-  ];
-
-  const totalSections = sections.length;
-
-  const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleArrayChange = (field: string, value: string, checked: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: checked 
-        ? [...prev[field as keyof typeof prev] as string[], value]
-        : (prev[field as keyof typeof prev] as string[]).filter(item => item !== value)
-    }));
-  };
-
-  const handleFileUpload = async (file: File) => {
-    if (!file) return;
-    
-    setUploading(true);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user?.id}-${Date.now()}.${fileExt}`;
-      const filePath = `supporting-documents/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('documents')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage
-        .from('documents')
-        .getPublicUrl(filePath);
-
-      handleInputChange('supporting_documents', [...formData.supporting_documents, data.publicUrl]);
-      
+    if (!applicationText.trim() || !companyName.trim()) {
       toast({
-        title: "File uploaded successfully",
-        description: "Your document has been uploaded.",
-      });
-    } catch (error) {
-      console.error('Error uploading file:', error);
-      toast({
-        title: "Upload failed",
-        description: "There was an error uploading your file. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const addDocumentLink = () => {
-    const link = prompt('Enter document link:');
-    if (link) {
-      handleInputChange('supporting_document_links', [...formData.supporting_document_links, link]);
-    }
-  };
-
-  const removeDocument = (index: number, type: 'documents' | 'links') => {
-    if (type === 'documents') {
-      const newDocs = formData.supporting_documents.filter((_, i) => i !== index);
-      handleInputChange('supporting_documents', newDocs);
-    } else {
-      const newLinks = formData.supporting_document_links.filter((_, i) => i !== index);
-      handleInputChange('supporting_document_links', newLinks);
-    }
-  };
-
-  const validateSection = (section: number): boolean => {
-    switch (section) {
-      case 1:
-        return !!(formData.applicant_name && formData.vehicle_name && formData.domicile_countries.length > 0);
-      case 2:
-        return !!(formData.role_job_title && formData.team_overview);
-      case 3:
-        return !!(formData.investment_thesis && formData.typical_check_size && formData.number_of_investments && formData.amount_raised_to_date);
-      case 4:
-        return !!(formData.expectations_from_network && formData.how_heard_about_network && formData.topics_of_interest.length > 0);
-      default:
-        return false;
-    }
-  };
-
-  const nextSection = () => {
-    if (validateSection(currentSection)) {
-      setCurrentSection(prev => Math.min(prev + 1, totalSections));
-    } else {
-      toast({
-        title: "Please complete required fields",
-        description: "All required fields in this section must be filled before proceeding.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const prevSection = () => {
-    setCurrentSection(prev => Math.max(prev - 1, 1));
-  };
-
-  const handleSubmit = async () => {
-    if (!validateSection(4)) {
-      toast({
-        title: "Please complete all sections",
+        title: "Please complete all fields",
         description: "All required fields must be filled before submitting.",
         variant: "destructive",
       });
@@ -247,47 +77,25 @@ const ApplicationForm = () => {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('membership_requests')
+      const { error } = await supabase
+        .from('applications' as any)
         .insert([{
           user_id: user?.id,
-          email: formData.email,
-          applicant_name: formData.applicant_name,
-          vehicle_name: formData.vehicle_name,
-          vehicle_website: formData.organization_website,
-          domicile_country: formData.domicile_countries.join(', '),
-          role_job_title: formData.role_job_title,
-          team_size: formData.team_overview,
-          thesis: formData.investment_thesis,
-          ticket_size: formData.typical_check_size,
-          portfolio_investments: formData.number_of_investments,
-          capital_raised: formData.amount_raised_to_date,
-          supporting_documents: JSON.stringify(formData.supporting_documents),
-          expectations: formData.expectations_from_network,
-          how_heard_about_network: formData.how_heard_about_network,
-          information_sharing: JSON.stringify(formData.topics_of_interest),
+          email: user?.email,
+          company_name: companyName,
+          application_text: applicationText,
           status: 'pending'
-        }])
-        .select();
+        }]);
 
       if (error) throw error;
 
-      // Log the application submission
-      if (data && data.length > 0) {
-        await logApplicationSubmitted(
-          data[0].id,
-          formData.applicant_name,
-          formData.vehicle_name
-        );
-      }
-
-      setShowSuccessMessage(true);
-      setExistingApplication(data[0]);
       toast({
         title: "Application submitted successfully!",
-        description: "Your membership application has been submitted for review.",
-        variant: "default",
+        description: "Your membership application has been submitted for review. You'll receive an email notification once it's reviewed.",
       });
+
+      // Refresh to show pending status
+      window.location.reload();
     } catch (error) {
       console.error('Error submitting application:', error);
       toast({
@@ -300,14 +108,12 @@ const ApplicationForm = () => {
     }
   };
 
-  const progress = (currentSection / totalSections) * 100;
-
   // Show loading state while checking application status
   if (checkingApplication) {
     return (
-      <div className="max-w-2xl mx-auto p-6">
+      <div className="max-w-3xl mx-auto p-6">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Checking application status...</p>
         </div>
       </div>
@@ -317,27 +123,33 @@ const ApplicationForm = () => {
   // Show pending application status
   if (existingApplication && existingApplication.status === 'pending') {
     return (
-      <div className="max-w-2xl mx-auto p-6">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Clock className="w-8 h-8 text-white" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Application Pending</h2>
-          <p className="text-gray-600 mb-4">
-            Your membership application is currently under review. Our team will get back to you within 5-7 business days.
-          </p>
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
-            <p className="text-sm text-orange-800">
-              <strong>Application Details:</strong><br />
-              Submitted on: {new Date(existingApplication.created_at).toLocaleDateString()}<br />
-              Vehicle: {existingApplication.vehicle_name}<br />
-              Status: Pending Review
+      <div className="max-w-3xl mx-auto p-6">
+        <Card className="border-orange-200 bg-orange-50/50">
+          <CardHeader className="text-center">
+            <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Clock className="w-8 h-8 text-white" />
+            </div>
+            <CardTitle className="text-2xl">Application Pending Review</CardTitle>
+            <CardDescription>
+              Your membership application is currently under review
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-white border border-orange-200 rounded-lg p-4">
+              <p className="text-sm text-gray-600 mb-2">
+                <strong>Application Details:</strong>
+              </p>
+              <div className="space-y-1 text-sm">
+                <p><strong>Submitted:</strong> {new Date(existingApplication.created_at).toLocaleDateString()}</p>
+                <p><strong>Company:</strong> {existingApplication.company_name}</p>
+                <p><strong>Status:</strong> <span className="text-orange-600 font-semibold">Pending Review</span></p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 text-center">
+              Our team will review your application within 5-7 business days. You'll receive an email notification once a decision has been made.
             </p>
-          </div>
-          <p className="text-sm text-gray-500">
-            You cannot submit another application while this one is pending.
-          </p>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -345,420 +157,184 @@ const ApplicationForm = () => {
   // Show approved application status
   if (existingApplication && existingApplication.status === 'approved') {
     return (
-      <div className="max-w-2xl mx-auto p-6">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-8 h-8 text-white" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Application Approved!</h2>
-          <p className="text-gray-600 mb-4">
-            Congratulations! Your membership application has been approved. You are now a member of the CFF Network.
-          </p>
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-            <p className="text-sm text-green-800">
-              <strong>Application Details:</strong><br />
-              Approved on: {new Date(existingApplication.updated_at || existingApplication.created_at).toLocaleDateString()}<br />
-              Vehicle: {existingApplication.vehicle_name}<br />
-              Status: Approved
-            </p>
-          </div>
-          <p className="text-sm text-gray-500">
-            You now have full access to the network features.
-          </p>
-        </div>
+      <div className="max-w-3xl mx-auto p-6">
+        <Card className="border-green-200 bg-green-50/50">
+          <CardHeader className="text-center">
+            <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-8 h-8 text-white" />
+            </div>
+            <CardTitle className="text-2xl">Application Approved!</CardTitle>
+            <CardDescription>
+              Congratulations! You are now a CFF Network member
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-white border border-green-200 rounded-lg p-4">
+              <p className="text-sm text-gray-600 mb-3">
+                <strong>You now have access to:</strong>
+              </p>
+              <ul className="space-y-2 text-sm text-gray-700">
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span>Complete survey questionnaires</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span>Full network directory with detailed profiles</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span>Industry analytics and insights</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span>Member-only resources and events</span>
+                </li>
+              </ul>
+            </div>
+            {existingApplication.admin_notes && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-gray-600 mb-2">
+                  <strong>Message from Admin:</strong>
+                </p>
+                <p className="text-sm text-gray-700">{existingApplication.admin_notes}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
-  // Show rejected application status - allow resubmission
+  // Show rejected application status
   if (existingApplication && existingApplication.status === 'rejected') {
     return (
-      <div className="max-w-2xl mx-auto p-6">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertCircle className="w-8 h-8 text-white" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Application Not Approved</h2>
-          <p className="text-gray-600 mb-4">
-            Unfortunately, your previous application was not approved. You may submit a new application.
-          </p>
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-sm text-red-800">
-              <strong>Previous Application:</strong><br />
-              Submitted on: {new Date(existingApplication.created_at).toLocaleDateString()}<br />
-              Vehicle: {existingApplication.vehicle_name}<br />
-              Status: Rejected
+      <div className="max-w-3xl mx-auto p-6">
+        <Card className="border-red-200 bg-red-50/50">
+          <CardHeader className="text-center">
+            <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <XCircle className="w-8 h-8 text-white" />
+            </div>
+            <CardTitle className="text-2xl">Application Not Approved</CardTitle>
+            <CardDescription>
+              Your membership application was not approved at this time
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {existingApplication.admin_notes && (
+              <div className="bg-white border border-red-200 rounded-lg p-4">
+                <p className="text-sm text-gray-600 mb-2">
+                  <strong>Admin Notes:</strong>
+                </p>
+                <p className="text-sm text-gray-700">{existingApplication.admin_notes}</p>
+              </div>
+            )}
+            <p className="text-sm text-gray-600 text-center">
+              You can still access the network directory as a viewer. If you have any questions, please contact us.
             </p>
-          </div>
-          <Button 
-            onClick={() => setExistingApplication(null)}
-            className="bg-gray-800 text-white hover:bg-gray-700"
-          >
-            Submit New Application
-          </Button>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
-  if (showSuccessMessage) {
-    return (
-      <div className="max-w-2xl mx-auto p-6">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-8 h-8 text-white" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Application Submitted!</h2>
-          <p className="text-gray-600 mb-6">
-            Thank you for submitting your membership application. Our team will review your application and get back to you within 5-7 business days.
-          </p>
-          <Button 
-            onClick={() => setShowSuccessMessage(false)}
-            className="bg-gray-800 text-white hover:bg-gray-700"
-          >
-            Submit Another Application
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
+  // Show application form
   return (
-    <div className="w-full min-h-screen bg-gradient-to-br from-[#f5f5dc] to-[#f0f0e6]">
-      {/* Main Content */}
-      <div className="px-8 py-4">
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${
-                currentSection === 1 ? 'bg-blue-500' : 
-                currentSection === 2 ? 'bg-green-500' : 
-                currentSection === 3 ? 'bg-purple-500' : 'bg-orange-500'
-              }`}>
-                <span className="text-white font-bold">{currentSection}</span>
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold text-gray-800">{sections[currentSection - 1].title}</h2>
-                <p className="text-gray-600 text-sm">{sections[currentSection - 1].description}</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              {currentSection > 1 && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={prevSection}
-                  className="px-4 border-gray-300 text-gray-700 hover:bg-gray-50"
-                >
-                  Previous
-                </Button>
-              )}
-              {currentSection < totalSections ? (
-                <Button
-                  type="button"
-                  onClick={nextSection}
-                  className={`px-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 ${
-                    currentSection === 1 ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700' :
-                    currentSection === 2 ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700' :
-                    'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700'
-                  }`}
-                >
-                  Next
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  onClick={handleSubmit}
-                  disabled={loading}
-                  className="px-6 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-orange-500/25 transition-all duration-300 transform hover:-translate-y-1 hover:scale-105"
-                >
-                  {loading ? 'Submitting...' : 'Submit Application'}
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Section 1: Background Information */}
-        {currentSection === 1 && (
-          <div className="bg-white/60 rounded-xl border-2 border-blue-200 p-5 shadow-lg">
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="applicant_name" className="text-gray-700 font-medium text-sm">Full Name *</Label>
-                    <Input
-                      id="applicant_name"
-                      value={formData.applicant_name}
-                      onChange={(e) => handleInputChange('applicant_name', e.target.value)}
-                      className="mt-2 border-blue-200 focus:border-blue-500 focus:ring-blue-500/20"
-                      placeholder="Enter your full name"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="email" className="text-gray-700 font-medium text-sm">Email Address *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      className="mt-2 border-blue-200 focus:border-blue-500 focus:ring-blue-500/20"
-                      placeholder="Enter your email"
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="vehicle_name" className="text-gray-700 font-medium text-sm">Vehicle/Fund Name *</Label>
-                    <Input
-                      id="vehicle_name"
-                      value={formData.vehicle_name}
-                      onChange={(e) => handleInputChange('vehicle_name', e.target.value)}
-                      className="mt-2 border-blue-200 focus:border-blue-500 focus:ring-blue-500/20"
-                      placeholder="Enter your fund/vehicle name"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="organization_website" className="text-gray-700 font-medium text-sm">Organization Website</Label>
-                    <Input
-                      id="organization_website"
-                      value={formData.organization_website}
-                      onChange={(e) => handleInputChange('organization_website', e.target.value)}
-                      className="mt-2 border-blue-200 focus:border-blue-500 focus:ring-blue-500/20"
-                      placeholder="https://your-website.com"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t border-blue-200 pt-4">
-                <Label className="text-gray-700 font-medium text-sm">Domicile Countries *</Label>
-                <div className="mt-2">
-                  <CountrySelector
-                    value={formData.domicile_countries || []}
-                    onChange={(countries) => handleInputChange('domicile_countries', countries)}
-                    label=""
-                  />
+    <div className="max-w-3xl mx-auto p-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl">Apply for CFF Network Membership</CardTitle>
+          <CardDescription>
+            Join our global community of fund managers and emerging market professionals
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-blue-800">
+                  <p className="font-semibold mb-2">Membership Benefits:</p>
+                  <ul className="space-y-1 ml-4 list-disc">
+                    <li>Complete and access survey data</li>
+                    <li>View detailed fund manager profiles</li>
+                    <li>Access industry analytics and insights</li>
+                    <li>Connect with 200+ fund managers across 25+ countries</li>
+                  </ul>
                 </div>
               </div>
             </div>
-          </div>
-        )}
 
-        {/* Section 2: Team Information */}
-        {currentSection === 2 && (
-          <div className="bg-white/60 rounded-xl border-2 border-green-200 p-5 shadow-lg">
             <div className="space-y-4">
               <div>
-                <Label htmlFor="role_job_title" className="text-gray-700 font-medium">Your Role/Job Title *</Label>
+                <Label htmlFor="company_name">
+                  Company/Fund Name <span className="text-red-500">*</span>
+                </Label>
                 <Input
-                  id="role_job_title"
-                  value={formData.role_job_title}
-                  onChange={(e) => handleInputChange('role_job_title', e.target.value)}
-                  className="mt-2 border-green-200 focus:border-green-500 focus:ring-green-500/20"
-                  placeholder="e.g., Managing Partner, Investment Director"
+                  id="company_name"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  placeholder="Enter your company or fund name"
+                  required
+                  className="mt-1"
                 />
               </div>
 
               <div>
-                <Label htmlFor="team_overview" className="text-gray-700 font-medium">Team Overview *</Label>
+                <Label htmlFor="email">
+                  Email <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={user?.email || ''}
+                  disabled
+                  className="mt-1 bg-gray-50"
+                />
+                <p className="text-xs text-gray-500 mt-1">This is your account email</p>
+              </div>
+
+              <div>
+                <Label htmlFor="application_text">
+                  Why do you want to join CFF Network? <span className="text-red-500">*</span>
+                </Label>
                 <Textarea
-                  id="team_overview"
-                  value={formData.team_overview}
-                  onChange={(e) => handleInputChange('team_overview', e.target.value)}
-                  className="mt-2 border-green-200 focus:border-green-500 focus:ring-green-500/20"
-                  placeholder="Describe your team structure, experience, and background"
-                  rows={4}
+                  id="application_text"
+                  value={applicationText}
+                  onChange={(e) => setApplicationText(e.target.value)}
+                  placeholder="Tell us about your fund/organization, your investment focus, and how you plan to contribute to and benefit from the CFF Network community..."
+                  rows={8}
+                  required
+                  className="mt-1"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Minimum 100 characters ({applicationText.length}/100)
+                </p>
               </div>
             </div>
-          </div>
-        )}
 
-      {/* Section 3: Vehicle Information */}
-      {currentSection === 3 && (
-        <div className="space-y-6">
-          <div>
-            <Label htmlFor="investment_thesis" className="text-black font-medium">Investment Thesis *</Label>
-            <Textarea
-              id="investment_thesis"
-              value={formData.investment_thesis}
-              onChange={(e) => handleInputChange('investment_thesis', e.target.value)}
-              className="border-black focus:ring-black"
-              placeholder="Describe your investment strategy and focus areas"
-              rows={4}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="typical_check_size" className="text-black font-medium">Typical Check Size *</Label>
-              <Select value={formData.typical_check_size} onValueChange={(value) => handleInputChange('typical_check_size', value)}>
-                <SelectTrigger className="border-black focus:ring-black">
-                  <SelectValue placeholder="Select check size range" />
-                </SelectTrigger>
-                <SelectContent>
-                  {checkSizes.map((size) => (
-                    <SelectItem key={size} value={size}>{size}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex gap-4 pt-4">
+              <Button
+                type="submit"
+                disabled={loading || applicationText.length < 100}
+                className="flex-1"
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4 mr-2" />
+                    Submit Application
+                  </>
+                )}
+              </Button>
             </div>
-            <div>
-              <Label htmlFor="number_of_investments" className="text-black font-medium">Number of Investments *</Label>
-              <Select value={formData.number_of_investments} onValueChange={(value) => handleInputChange('number_of_investments', value)}>
-                <SelectTrigger className="border-black focus:ring-black">
-                  <SelectValue placeholder="Select investment range" />
-                </SelectTrigger>
-                <SelectContent>
-                  {investmentRanges.map((range) => (
-                    <SelectItem key={range} value={range}>{range}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="amount_raised_to_date" className="text-black font-medium">Amount Raised to Date *</Label>
-            <Input
-              id="amount_raised_to_date"
-              value={formData.amount_raised_to_date}
-              onChange={(e) => handleInputChange('amount_raised_to_date', e.target.value)}
-              className="border-black focus:ring-black"
-              placeholder="e.g., $50M, €30M, £25M"
-            />
-          </div>
-
-          <div>
-            <Label className="text-black font-medium">Supporting Documents</Label>
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="file"
-                  id="file-upload"
-                  onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
-                  className="hidden"
-                  accept=".pdf,.doc,.docx,.txt"
-                  aria-label="Upload supporting documents"
-                  title="Upload supporting documents"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => document.getElementById('file-upload')?.click()}
-                  disabled={uploading}
-                  className="border-black text-black hover:bg-black/10"
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  {uploading ? 'Uploading...' : 'Upload Document'}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={addDocumentLink}
-                  className="border-black text-black hover:bg-black/10"
-                >
-                  <Link className="w-4 h-4 mr-2" />
-                  Add Link
-                </Button>
-              </div>
-
-              {formData.supporting_documents.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-black">Uploaded Documents:</p>
-                  {formData.supporting_documents.map((doc, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-gray-100 rounded border">
-                      <span className="text-sm text-black truncate">{doc.split('/').pop()}</span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeDocument(index, 'documents')}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {formData.supporting_document_links.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-black">Document Links:</p>
-                  {formData.supporting_document_links.map((link, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-gray-100 rounded border">
-                      <a href={link} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline truncate">
-                        {link}
-                      </a>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeDocument(index, 'links')}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Section 4: Network Expectations */}
-      {currentSection === 4 && (
-        <div className="space-y-6">
-          <div>
-            <Label htmlFor="expectations_from_network" className="text-black font-medium">What do you expect from the network? *</Label>
-            <Textarea
-              id="expectations_from_network"
-              value={formData.expectations_from_network}
-              onChange={(e) => handleInputChange('expectations_from_network', e.target.value)}
-              className="border-black focus:ring-black"
-              placeholder="Describe what you hope to gain from joining the ESCP Network"
-              rows={4}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="how_heard_about_network" className="text-black font-medium">How did you hear about the network? *</Label>
-            <Select value={formData.how_heard_about_network} onValueChange={(value) => handleInputChange('how_heard_about_network', value)}>
-              <SelectTrigger className="border-black focus:ring-black">
-                <SelectValue placeholder="Select how you heard about us" />
-              </SelectTrigger>
-              <SelectContent>
-                {howHeardOptions.map((option) => (
-                  <SelectItem key={option} value={option}>{option}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label className="text-black font-medium">Topics of Interest *</Label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
-              {topics.map((topic) => (
-                <div key={topic} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={topic}
-                    checked={formData.topics_of_interest.includes(topic)}
-                    onCheckedChange={(checked) => handleArrayChange('topics_of_interest', topic, checked as boolean)}
-                  />
-                  <Label htmlFor={topic} className="text-sm text-black">{topic}</Label>
-                </div>
-              ))}
-            </div>
-          </div>
-          </div>
-          )}
-
-      </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 };

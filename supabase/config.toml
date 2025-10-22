@@ -1,1 +1,10 @@
 project_id = "qiqxdivyyjcbegdlptuq"
+
+[functions.send-auth-email]
+verify_jwt = false
+
+[functions.send-application-status]
+verify_jwt = true
+
+[functions.ai-chat]
+verify_jwt = true

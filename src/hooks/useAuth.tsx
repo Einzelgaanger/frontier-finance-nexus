@@ -30,7 +30,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Use the safe SECURITY DEFINER function to get role (bypasses RLS)
       const { data, error } = await supabase
-        .rpc('get_user_role_safe', { user_uuid: userId });
+        .rpc('get_user_role', { _user_id: userId });
 
       if (error) {
         console.error('Error fetching user role:', error);

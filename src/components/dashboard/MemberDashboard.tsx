@@ -12,6 +12,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import AIAssistant from './AIAssistant';
 
 const MemberDashboard = () => {
   const { user } = useAuth();
@@ -39,10 +40,10 @@ const MemberDashboard = () => {
         
         // Fetch surveys completed count from all survey tables
         const [survey2021, survey2022, survey2023, survey2024] = await Promise.all([
-          supabase.from('survey_2021_responses').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-          supabase.from('survey_2022_responses').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-          supabase.from('survey_2023_responses').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-          supabase.from('survey_2024_responses').select('*', { count: 'exact', head: true }).eq('user_id', user.id)
+          supabase.from('survey_responses_2021' as any).select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+          supabase.from('survey_responses_2022' as any).select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+          supabase.from('survey_responses_2023' as any).select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+          supabase.from('survey_responses_2024' as any).select('*', { count: 'exact', head: true }).eq('user_id', user.id)
         ]);
         
         const surveysCount = (survey2021.count || 0) + (survey2022.count || 0) + (survey2023.count || 0) + (survey2024.count || 0);
@@ -228,6 +229,9 @@ const MemberDashboard = () => {
             </div>
           </div>
         </div>
+
+        {/* AI Assistant Section */}
+        <AIAssistant />
       </div>
     </div>
   );

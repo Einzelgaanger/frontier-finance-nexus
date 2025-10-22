@@ -48,13 +48,13 @@ export default function SurveyViewer() {
   const fetchManagerName = async () => {
     try {
       const { data } = await supabase
-        .from('profiles')
-        .select('first_name, last_name')
+        .from('user_profiles' as any)
+        .select('full_name, company_name')
         .eq('id', userId)
         .single();
       
       if (data) {
-        setManagerName(`${data.first_name} ${data.last_name}`);
+        setManagerName((data as any).full_name || (data as any).company_name || 'Unknown');
       }
     } catch (error) {
       console.error('Error fetching manager name:', error);
@@ -64,14 +64,18 @@ export default function SurveyViewer() {
   const fetchFieldVisibility = async () => {
     try {
       const { data, error } = await supabase
-        .from('data_field_visibility')
-        .select('field_name, visibility_level');
+        .from('field_visibility' as any)
+        .select('field_name, field_category, admin_visible, member_visible, viewer_visible')
+        .eq('survey_year', parseInt(year));
 
       if (error) throw error;
 
       const visibilityMap: Record<string, string> = {};
-      data?.forEach((item: FieldVisibility) => {
-        visibilityMap[item.field_name] = item.visibility_level;
+      (data as any)?.forEach((item: any) => {
+        // Determine visibility level based on role
+        if (item.admin_visible) visibilityMap[item.field_name] = 'admin';
+        else if (item.member_visible) visibilityMap[item.field_name] = 'member';
+        else if (item.viewer_visible) visibilityMap[item.field_name] = 'viewer';
       });
       
       setFieldVisibility(visibilityMap);
@@ -83,16 +87,16 @@ export default function SurveyViewer() {
   const fetchSurveyData = async () => {
     try {
       setLoading(true);
-      const tableName = `survey_${year}_responses`;
+      const tableName = `survey_responses_${year}` as any;
       
       const { data, error } = await supabase
         .from(tableName)
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
-      setSurveyData(data);
+      setSurveyData(data as any);
     } catch (error) {
       console.error('Error fetching survey data:', error);
     } finally {

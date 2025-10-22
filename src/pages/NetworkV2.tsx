@@ -131,9 +131,10 @@ const NetworkV2 = React.memo(() => {
       }
       console.log('Fetching network data...');
 
-      // Fetch user profiles and survey data - avoid tables with RLS recursion issues
-      const [userProfilesResult, survey2021Result, survey2022Result, survey2023Result, survey2024Result] = await Promise.all([
+      // Fetch user profiles, roles and survey data
+      const [userProfilesResult, userRolesResult, survey2021Result, survey2022Result, survey2023Result, survey2024Result] = await Promise.all([
         supabase.from('user_profiles').select('id, user_id, company_name, email, full_name, role_title, profile_picture_url, user_role, is_active, created_at'),
+        supabase.from('user_roles' as any).select('user_id, role'),
         supabase.from('survey_responses_2021').select('id, user_id, email_address, firm_name, participant_name, role_title, company_name, completed_at'),
         supabase.from('survey_responses_2022').select('id, user_id, email_address, organisation_name, participant_name, role_title, completed_at'),
         supabase.from('survey_responses_2023').select('id, user_id, email_address, organisation_name, completed_at'),
@@ -157,12 +158,19 @@ const NetworkV2 = React.memo(() => {
         console.warn('Could not fetch 2024 survey data:', survey2024Result.error);
       }
 
-      // Get all users from user_profiles
+      // Get all users from user_profiles and roles
       const allUserProfiles = userProfilesResult.data || [];
+      const allUserRoles = userRolesResult.data || [];
       const survey2021Users = survey2021Result.data || [];
       const survey2022Users = survey2022Result.data || [];
       const survey2023Users = survey2023Result.data || [];
       const survey2024Users = survey2024Result.data || [];
+
+      // Create a map of user roles for quick lookup
+      const rolesMap = new Map();
+      allUserRoles.forEach(roleRecord => {
+        rolesMap.set(roleRecord.user_id, roleRecord.role);
+      });
 
       // Create a map of survey data for enhanced profiles
       const surveyDataMap = new Map();
@@ -183,7 +191,7 @@ const NetworkV2 = React.memo(() => {
         const fullName = userProfile.full_name || 'Network User';
         const roleTitle = userProfile.role_title || 'Network Member';
         const profilePhoto = userProfile.profile_picture_url || '';
-        const userRole = userProfile.user_role || 'viewer';
+        const userRole = rolesMap.get(userProfile.user_id) || 'viewer'; // Get role from user_roles table
         const isActive = userProfile.is_active !== false;
         
         return {

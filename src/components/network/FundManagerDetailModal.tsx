@@ -43,81 +43,85 @@ const FundManagerDetailModal: React.FC<FundManagerDetailModalProps> = ({
     try {
       // Fetch profile
       const { data: profileData } = await supabase
-        .from('profiles')
+        .from('user_profiles' as any)
         .select('*')
         .eq('id', userId)
         .single();
 
-      setProfile(profileData);
+      setProfile(profileData as any);
 
       // Fetch all survey responses for this user
       const surveyData: SurveyResponse[] = [];
 
       // Fetch 2021 survey
       const { data: survey2021 } = await supabase
-        .from('survey_2021_responses')
+        .from('survey_responses_2021' as any)
         .select('*')
         .eq('user_id', userId)
         .eq('submission_status', 'completed')
-        .single();
+        .maybeSingle();
 
       if (survey2021) {
+        const data = survey2021 as any;
         surveyData.push({
           year: '2021',
-          form_data: survey2021.form_data,
-          completed_at: survey2021.completed_at,
-          submission_status: survey2021.submission_status,
+          form_data: data.form_data,
+          completed_at: data.completed_at,
+          submission_status: data.submission_status,
         });
       }
 
       // Fetch 2022 survey
       const { data: survey2022 } = await supabase
-        .from('survey_2022_responses')
+        .from('survey_responses_2022' as any)
         .select('*')
         .eq('user_id', userId)
         .eq('submission_status', 'completed')
-        .single();
+        .maybeSingle();
 
       if (survey2022) {
+        const data = survey2022 as any;
         surveyData.push({
           year: '2022',
-          form_data: survey2022.form_data,
-          completed_at: survey2022.completed_at,
-          submission_status: survey2022.submission_status,
+          form_data: data.form_data,
+          completed_at: data.completed_at,
+          submission_status: data.submission_status,
         });
       }
 
       // Fetch 2023 survey
       const { data: survey2023 } = await supabase
-        .from('survey_2023_responses')
+        .from('survey_responses_2023' as any)
         .select('*')
         .eq('user_id', userId)
         .eq('submission_status', 'completed')
-        .single();
+        .maybeSingle();
 
       if (survey2023) {
+        const data = survey2023 as any;
         surveyData.push({
           year: '2023',
-          form_data: survey2023.form_data,
-          completed_at: survey2023.completed_at,
-          submission_status: survey2023.submission_status,
+          form_data: data.form_data,
+          completed_at: data.completed_at,
+          submission_status: data.submission_status,
         });
       }
 
       // Fetch 2024 survey
       const { data: survey2024 } = await supabase
-        .from('survey_2024_responses')
+        .from('survey_responses_2024' as any)
         .select('*')
         .eq('user_id', userId)
         .eq('submission_status', 'completed')
-        .single();
+        .maybeSingle();
 
       if (survey2024) {
+        const data = survey2024 as any;
         surveyData.push({
           year: '2024',
-          form_data: survey2024.form_data,
-          completed_at: survey2024.completed_at,
-          submission_status: survey2024.submission_status,
+          form_data: data.form_data,
+          completed_at: data.completed_at,
+          submission_status: data.submission_status,
         });
       }
 
