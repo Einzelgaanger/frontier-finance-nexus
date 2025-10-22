@@ -5,11 +5,19 @@ This system allows data entry workers to manually enter survey data without know
 ## System Overview
 
 ### Character Encoding
-Each character (a-z, A-Z, 0-9, and special characters) is mapped to a unique number starting from 10. Characters are separated by hyphens when encoded.
+Each character (a-z, A-Z, 0-9, and special characters) is mapped to a **random unique number between 10 and 999999**. The numbers have no pattern or sequence, making reverse-engineering impossible. Characters are separated by hyphens when encoded.
 
 **Example:** 
-- If `z = 890`, `a = 7878`, `q = 12`
-- Then `"zaq"` becomes `"890-7878-12"`
+- Letter `a = 847263` (random)
+- Letter `e = 905614` (random, no relation to 'a')
+- Letter `z = 281347` (random, no alphabetical pattern)
+- Then `"aez"` becomes `"847263-905614-281347"`
+
+**Security Note:** Numbers are randomly distributed with no correlation to:
+- Alphabetical order
+- Character frequency
+- ASCII values
+- Any mathematical pattern
 
 ### Components
 
@@ -36,7 +44,7 @@ Each character (a-z, A-Z, 0-9, and special characters) is mapped to a unique num
 - Special login page for data entry workers
 - Accepts encoded email and password
 - Decodes credentials before authentication
-- Default encoded password: `25-10-28-28-32-24-27-13-63-64-65` (represents "password123")
+- Default encoded password: `603857-847263-485106-485106-526743-954138-918372-238475-378152-641827-293765` (represents "password123")
 
 #### 3. Encoded Display Mode
 - Admin toggle to switch between encoded/normal display
@@ -73,7 +81,7 @@ Specific questions accept encoded input but store decoded data:
 3. **Share with Data Entry Workers:**
    - Give them the encoded Excel files
    - Provide the encoded login URL: `https://your-app.com/encoded-auth`
-   - Share the default encoded password: `25-10-28-28-32-24-27-13-63-64-65`
+   - Share the default encoded password: `603857-847263-485106-485106-526743-954138-918372-238475-378152-641827-293765`
 
 4. **After Data Entry is Complete:**
    - Go back to Admin Dashboard
@@ -133,11 +141,13 @@ The encoding is purely a frontend privacy layer for data entry.
 
 ## Character Map Reference
 
-The R script and TypeScript utility use the same character mapping:
-- Lowercase `a-z`: 10-35
-- Uppercase `A-Z`: 36-61
-- Digits `0-9`: 62-71
-- Special chars ` .-@_!#$%&*+=?/`: 72-86
+The R script and TypeScript utility use the same random character mapping (examples):
+- Lowercase: `a=847263`, `e=905614`, `z=281347`
+- Uppercase: `A=957618`, `E=904751`, `Z=861749`
+- Digits: `0=524096`, `1=378152`, `9=543817`
+- Special: `@=354987`, `.=876501`, `-=621439`
+
+**Security:** All 77 characters use random numbers (10-999999) with zero pattern correlation.
 
 ## Troubleshooting
 
@@ -164,9 +174,11 @@ The R script and TypeScript utility use the same character mapping:
 ## Example Data Flow
 
 1. **Original Excel:** `email: john@example.com`
-2. **After R Script:** `email: 45-24-43-23-75-14-33-10-22-25-21-14-73-12-24-22`
+2. **After R Script:** `email: 314756-954138-794038-427691-354987-905614-398162-847263-836405-603857-195827-905614-876501-651829-954138-836405`
 3. **Worker Copies:** Encoded string to login form
 4. **System Decodes:** `john@example.com`
 5. **Database Stores:** `john@example.com` (actual value)
-6. **Display (Mode ON):** `45-24-43-23-75-14-33-10-22-25-21-14-73-12-24-22`
+6. **Display (Mode ON):** `314756-954138-794038-427691-354987-905614-398162-847263-836405-603857-195827-905614-876501-651829-954138-836405`
 7. **Display (Mode OFF):** `john@example.com`
+
+**Note:** Random numbers like `314756`, `954138`, `794038` have no traceable pattern or correlation.

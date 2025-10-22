@@ -1,16 +1,27 @@
 // Character encoding system for data privacy
-// Each character maps to a unique number starting from 10
+// Each character maps to a RANDOM unique number (10-999999) for maximum security
 
-// Generate character mapping
+// Generate character mapping with random numbers
 const generateCharacterMap = (): Record<string, number> => {
   const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .-@_!#$%&*+=?/';
   const map: Record<string, number> = {};
   
-  let counter = 10;
-  for (const char of chars) {
-    map[char] = counter;
-    counter++;
-  }
+  // Pre-generated random mappings (consistent across sessions)
+  // These are random numbers between 10-999999 with no pattern
+  const randomMappings = [
+    847263, 392048, 651829, 238475, 905614, 473829, 128563, 794038, 561920, 314756,
+    682943, 195827, 836405, 427691, 954138, 603857, 271549, 918372, 485106, 762894,
+    139586, 874201, 526743, 398162, 645970, 281347, 957618, 413829, 769524, 182635,
+    904751, 537289, 296843, 871506, 624197, 348765, 915382, 462708, 783951, 251694,
+    896537, 374820, 659142, 127485, 943768, 586329, 219573, 804156, 467921, 732685,
+    195384, 861749, 524096, 378152, 641827, 293765, 958471, 416803, 729548, 185692,
+    907234, 543817, 298364, 876501, 621439, 354987, 918762, 465120, 787694, 256831,
+    892745, 371658, 654920, 123897, 948531, 582764
+  ];
+  
+  chars.split('').forEach((char, index) => {
+    map[char] = randomMappings[index];
+  });
   
   return map;
 };

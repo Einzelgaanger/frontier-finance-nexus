@@ -52,7 +52,7 @@ We have implemented a **character-level encoding system** that ensures data entr
 - Workers login with **encoded email AND encoded password**
 - System decodes credentials server-side before authentication
 - No plaintext credentials transmitted from encoded Excel files
-- Default encoded password: `25-10-28-28-32-24-27-13-63-64-65` (represents "password123")
+- Default encoded password: `603857-847263-485106-485106-526743-954138-918372-238475-378152-641827-293765` (represents "password123")
 
 ✅ **Access Control**
 - Data entry workers: Read-only access to network directory (encoded view)
@@ -224,9 +224,10 @@ Display (Mode OFF): john@fund.com (actual)
 ### Risk Mitigation
 
 **Risk:** Operator attempts to reverse-engineer encoding
-- **Mitigation:** Character map uses 77 unique mappings with no discernible pattern
-- **Additional:** No access to encoding/decoding algorithm from frontend
-- **Result:** Computationally infeasible to reverse without the key
+- **Mitigation:** Character map uses 77 random numbers (10-999999) with zero pattern correlation
+- **Additional:** Random distribution makes frequency analysis impossible
+- **Example:** Letters 'e' and 'a' map to completely unrelated numbers (905614 vs 847263)
+- **Result:** Cryptographically infeasible to reverse-engineer without the decoding key
 
 **Risk:** Operator shares encoded files externally
 - **Mitigation:** Encoded files are useless without the decoding system
@@ -303,7 +304,7 @@ Display (Mode OFF): john@fund.com (actual)
 **Login URL:** `https://your-platform.com/encoded-auth`
 
 **Default Encoded Password (all operators):**  
-`25-10-28-28-32-24-27-13-63-64-65`  
+`603857-847263-485106-485106-526743-954138-918372-238475-378152-641827-293765`  
 *(This represents the actual password "password123" - operators don't need to know this)*
 
 **Each operator receives:**

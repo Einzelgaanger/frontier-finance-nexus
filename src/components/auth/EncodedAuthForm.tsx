@@ -98,8 +98,8 @@ const EncodedAuthForm = () => {
 
             <div className="text-sm text-muted-foreground text-center mt-4">
               <p>Default encoded password:</p>
-              <code className="text-xs bg-muted p-1 rounded">
-                25-10-28-28-32-24-27-13-63-64-65
+              <code className="text-xs bg-muted p-1 rounded break-all">
+                603857-847263-485106-485106-526743-954138-918372-238475-378152-641827-293765
               </code>
             </div>
           </form>
