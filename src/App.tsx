@@ -21,6 +21,7 @@ import Survey2024 from "./pages/Survey2024";
 import MyProfile from "./pages/MyProfile";
 import ViewerSettings from "./pages/ViewerSettings";
 import Application from "./pages/Application";
+import Blogs from "./pages/Blogs";
 import ResetPassword from "./pages/ResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import AdminWrapper from "./components/AdminWrapper";
@@ -127,6 +128,11 @@ const App = () => {
             <Route path="/portiq" element={
               <ProtectedRoute>
                 <PortIQ />
+              </ProtectedRoute>
+            } />
+            <Route path="/blogs" element={
+              <ProtectedRoute>
+                <Blogs />
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />

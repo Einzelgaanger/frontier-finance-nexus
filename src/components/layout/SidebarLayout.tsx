@@ -19,7 +19,8 @@ import {
   ArrowLeft,
   Send,
   User,
-  Brain
+  Brain,
+  BookOpen
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -101,6 +102,15 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
       color: "purple"
     },
     { 
+      name: "Blogs", 
+      href: "/blogs", 
+      icon: BookOpen, 
+      roles: ["admin", "member", "viewer"],
+      description: "Share insights and connect",
+      badge: null,
+      color: "teal"
+    },
+    { 
       name: "Analytics", 
       href: "/analytics", 
       icon: BarChart3, 
@@ -155,6 +165,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
     if (href === "/admin" && location.pathname.startsWith("/admin")) return true;
     if (href === "/portiq" && location.pathname === "/portiq") return true;
     if (href === "/application" && location.pathname === "/application") return true;
+    if (href === "/blogs" && location.pathname === "/blogs") return true;
     return false;
   };
 
