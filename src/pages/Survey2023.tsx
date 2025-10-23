@@ -599,6 +599,15 @@ export default function Survey2023() {
     loadDraft();
   }, [user, form]);
 
+  // Auto-save form data to localStorage whenever form values change
+  useEffect(() => {
+    const subscription = form.watch((formData) => {
+      // Save to localStorage on every change
+      saveFormData(formData);
+    });
+    return () => subscription.unsubscribe();
+  }, [form.watch, saveFormData]);
+
   // Check for existing completed response
   useEffect(() => {
     const checkExistingResponse = async () => {

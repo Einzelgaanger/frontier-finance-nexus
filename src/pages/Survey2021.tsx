@@ -315,6 +315,15 @@ const Survey2021: React.FC = () => {
     loadDraft();
   }, [user, form]);
 
+  // Auto-save form data to localStorage whenever form values change
+  useEffect(() => {
+    const subscription = form.watch((formData) => {
+      // Save to localStorage on every change
+      saveFormData(formData);
+    });
+    return () => subscription.unsubscribe();
+  }, [form.watch, saveFormData]);
+
   // Setup auto-save when form data changes
   useEffect(() => {
     const formData = form.watch();
