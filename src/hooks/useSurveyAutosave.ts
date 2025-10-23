@@ -40,49 +40,8 @@ export function useSurveyAutosave({
         .eq('user_id', userId)
         .maybeSingle();
 
-      // Ensure required non-null fields are populated for drafts
-      const { data: authData } = await supabase.auth.getUser();
-      const userEmail = authData?.user?.email;
-
-      let requiredFields: Record<string, any> = {};
-      switch (surveyYear) {
-        case '2021':
-          requiredFields = {
-            email_address: formData?.email_address || userEmail || `draft+${userId}@placeholder.local`,
-            firm_name: formData?.firm_name || 'Draft',
-            participant_name: formData?.participant_name || 'Draft',
-            role_title: formData?.role_title || 'Draft',
-          };
-          break;
-        case '2022':
-          requiredFields = {
-            name: formData?.name || 'Draft',
-            role_title: formData?.role_title || 'Draft',
-            email: formData?.email || userEmail || `draft+${userId}@placeholder.local`,
-            organisation: formData?.organisation || 'Draft',
-          };
-          break;
-        case '2023':
-          requiredFields = {
-            email_address: formData?.email_address || userEmail || `draft+${userId}@placeholder.local`,
-            organisation_name: formData?.organisation_name || 'Draft',
-            funds_raising_investing: formData?.funds_raising_investing || 'Draft',
-            fund_name: formData?.fund_name || 'Draft',
-          };
-          break;
-        case '2024':
-          requiredFields = {
-            email_address: formData?.email_address || userEmail || `draft+${userId}@placeholder.local`,
-            organisation_name: formData?.organisation_name || 'Draft',
-            funds_raising_investing: formData?.funds_raising_investing || 'Draft',
-            fund_name: formData?.fund_name || 'Draft',
-          };
-          break;
-      }
-
       const surveyData = {
         user_id: userId,
-        ...requiredFields,
         form_data: formData,
         submission_status: 'draft',
         updated_at: new Date().toISOString(),

@@ -4435,7 +4435,7 @@ const Survey2022 = () => {
             {/* Enhanced Navigation Buttons */}
             <Card className="bg-white p-6 rounded-lg border shadow-sm">
               <div className="flex items-center justify-between">
-                <Button
+                <Button 
                   type="button"
                   variant="outline"
                   onClick={handlePrevious}
@@ -4445,17 +4445,7 @@ const Survey2022 = () => {
                   &larr; Previous
                 </Button>
                 
-                <div className="flex items-center space-x-4">
-                  <Button 
-                    type="button"
-                    onClick={handleSaveDraft} 
-                    disabled={loading}
-                    variant="outline"
-                    className="px-6 py-2 border-green-300 text-green-700 hover:bg-green-50 disabled:opacity-50"
-                  >
-                    {loading ? 'Saving...' : '💾 Save Draft'}
-                  </Button>
-                  
+                <div className="flex gap-3">
                   {currentSection < totalSections ? (
                     <Button 
                       type="button" 
@@ -4474,8 +4464,8 @@ const Survey2022 = () => {
                     </Button>
                   )}
                 </div>
-              </div>
-            </Card>
+                </div>
+              </Card>
           </form>
         </Form>
         )}

@@ -4905,7 +4905,7 @@ const renderSection7 = () => (
 						{/* Navigation Buttons */}
 						<div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
 							<div className="flex justify-between items-center">
-								<Button
+								<Button 
 									type="button"
 									variant="outline"
 									onClick={handlePrevious}
@@ -4915,17 +4915,7 @@ const renderSection7 = () => (
 									← Previous
 								</Button>
 								
-								<div className="flex items-center space-x-4">
-									<Button 
-										type="button"
-										onClick={saveDraft} 
-										disabled={saving} 
-										variant="outline"
-										className="px-6 py-2 border-green-300 text-green-700 hover:bg-green-50 disabled:opacity-50"
-									>
-										{saving ? 'Saving...' : '💾 Save Draft'}
-									</Button>
-									
+								<div className="flex gap-3">
 									{currentSection < totalSections ? (
 										<Button 
 											type="button" 
@@ -4944,8 +4934,8 @@ const renderSection7 = () => (
 										</Button>
 									)}
 								</div>
+								</div>
 							</div>
-						</div>
 					</form>
 				</Form>
 				)}
