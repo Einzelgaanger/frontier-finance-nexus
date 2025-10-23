@@ -748,11 +748,7 @@ const Survey2021: React.FC = () => {
                     <SelectValue placeholder="Select fund stage" />
                   </SelectTrigger>
                   <SelectContent>
-          <SelectTrigger>
-            <SelectValue placeholder="Select fund stage" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Open ended - fundraising and heading towards equivalent of 1st close">Open ended - fundraising and heading towards equivalent of 1st close</SelectItem>
+                    <SelectItem value="Open ended - fundraising and heading towards equivalent of 1st close">Open ended - fundraising and heading towards equivalent of 1st close</SelectItem>
             <SelectItem value="Open-ended - achieved equivalent of 1st close with sufficient committed funds to cover fund economics">Open-ended - achieved equivalent of 1st close with sufficient committed funds to cover fund economics</SelectItem>
             <SelectItem value="Closed ended - fundraising">Closed ended - fundraising</SelectItem>
             <SelectItem value="Closed ended - completed first close">Closed ended - completed first close</SelectItem>
@@ -1961,17 +1957,22 @@ const Survey2021: React.FC = () => {
             <FormItem>
               <FormControl>
                 <Select onValueChange={field.onChange} value={field.value}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select count" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="0">0</SelectItem>
-            <SelectItem value="1">1</SelectItem>
-            <SelectItem value="2-3">2-3</SelectItem>
-            <SelectItem value="4-5">4-5</SelectItem>
-            <SelectItem value="5+">5+</SelectItem>
-          </SelectContent>
-        </Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select count" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">0</SelectItem>
+                    <SelectItem value="1">1</SelectItem>
+                    <SelectItem value="2-3">2-3</SelectItem>
+                    <SelectItem value="4-5">4-5</SelectItem>
+                    <SelectItem value="5+">5+</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </div>
 
       <div>
@@ -1983,26 +1984,21 @@ const Survey2021: React.FC = () => {
             <FormItem>
               <FormControl>
                 <Select onValueChange={field.onChange} value={field.value}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select count" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="< or = 2">&lt; or = 2</SelectItem>
-            <SelectItem value="3-5">3-5</SelectItem>
-            <SelectItem value="6-10">6-10</SelectItem>
-                  <SelectItem value="10+">10+</SelectItem>
-                </SelectContent>
-              </Select>
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select count" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="< or = 2">&lt; or = 2</SelectItem>
+                    <SelectItem value="3-5">3-5</SelectItem>
+                    <SelectItem value="6-10">6-10</SelectItem>
+                    <SelectItem value="10+">10+</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </div>
     </div>
   );
