@@ -410,8 +410,8 @@ const Survey2022 = () => {
         description: "Thank you for completing the 2022 survey!",
       });
       
-      // Navigate to home dashboard
-      navigate('/');
+      // Navigate to dashboard
+      navigate('/dashboard');
       
     } catch (error) {
       console.error('Error submitting survey:', error);

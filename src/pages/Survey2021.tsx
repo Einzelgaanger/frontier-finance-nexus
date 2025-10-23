@@ -522,8 +522,8 @@ const Survey2021: React.FC = () => {
         description: "Thank you for completing the 2021 survey!",
       });
       
-      // Navigate to home dashboard
-      navigate('/');
+      // Navigate to dashboard
+      navigate('/dashboard');
       
     } catch (error) {
       console.error('Error submitting survey:', error);
@@ -731,13 +731,23 @@ const Survey2021: React.FC = () => {
 
       <div>
         <Label htmlFor="fund_stage" >7. What is the stage of your current fund/vehicle's operations?</Label>
-        <Select onValueChange={(value) => {
-          form.setValue("fund_stage", value);
-          // Clear the "Other" field if not selecting "Other"
-          if (value !== "Other") {
-            form.setValue("fund_stage_other", "");
-          }
-        }}>
+        <FormField
+          control={form.control}
+          name="fund_stage"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Select onValueChange={(value) => {
+                  field.onChange(value);
+                  // Clear the "Other" field if not selecting "Other"
+                  if (value !== "Other") {
+                    form.setValue("fund_stage_other", "");
+                  }
+                }} value={field.value}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select fund stage" />
+                  </SelectTrigger>
+                  <SelectContent>
           <SelectTrigger>
             <SelectValue placeholder="Select fund stage" />
           </SelectTrigger>
@@ -749,9 +759,14 @@ const Survey2021: React.FC = () => {
             <SelectItem value="Closed ended - completed second close">Closed ended - completed second close</SelectItem>
             <SelectItem value="Second fund/vehicle">Second fund/vehicle</SelectItem>
             <SelectItem value="Third or later fund/vehicle">Third or later fund/vehicle</SelectItem>
-            <SelectItem value="Other">Other</SelectItem>
-          </SelectContent>
-        </Select>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         
         {/* Only show "Other" input when "Other" is selected */}
         {form.watch("fund_stage") === "Other" && (
@@ -783,7 +798,13 @@ const Survey2021: React.FC = () => {
         <div className="grid grid-cols-3 gap-4">
           <div>
             <Label htmlFor="legal_entity_date" className="text-sm font-medium text-gray-700">Legal entity</Label>
-            <Select onValueChange={(value) => form.setValue("legal_entity_date", value)}>
+            <FormField
+              control={form.control}
+              name="legal_entity_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
               <SelectTrigger>
                 <SelectValue placeholder="Select date" />
               </SelectTrigger>
@@ -801,14 +822,25 @@ const Survey2021: React.FC = () => {
                 <SelectItem value="2018">2018</SelectItem>
                 <SelectItem value="2019">2019</SelectItem>
                 <SelectItem value="2020">2020</SelectItem>
-                <SelectItem value="2021">2021</SelectItem>
-              </SelectContent>
-            </Select>
+                      <SelectItem value="2021">2021</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           </div>
 
           <div>
             <Label htmlFor="first_close_date" className="text-sm font-medium text-gray-700">1st close (or equivalent)</Label>
-            <Select onValueChange={(value) => form.setValue("first_close_date", value)}>
+            <FormField
+              control={form.control}
+              name="first_close_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
               <SelectTrigger>
                 <SelectValue placeholder="Select date" />
               </SelectTrigger>
@@ -826,14 +858,25 @@ const Survey2021: React.FC = () => {
                 <SelectItem value="2018">2018</SelectItem>
                 <SelectItem value="2019">2019</SelectItem>
                 <SelectItem value="2020">2020</SelectItem>
-                <SelectItem value="2021">2021</SelectItem>
-              </SelectContent>
-            </Select>
+                      <SelectItem value="2021">2021</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           </div>
 
           <div>
             <Label htmlFor="first_investment_date" className="text-sm font-medium text-gray-700">First investment</Label>
-            <Select onValueChange={(value) => form.setValue("first_investment_date", value)}>
+            <FormField
+              control={form.control}
+              name="first_investment_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
               <SelectTrigger>
                 <SelectValue placeholder="Select date" />
               </SelectTrigger>
@@ -851,9 +894,14 @@ const Survey2021: React.FC = () => {
                 <SelectItem value="2018">2018</SelectItem>
                 <SelectItem value="2019">2019</SelectItem>
                 <SelectItem value="2020">2020</SelectItem>
-                <SelectItem value="2021">2021</SelectItem>
-              </SelectContent>
-            </Select>
+                      <SelectItem value="2021">2021</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           </div>
         </div>
       </div>
@@ -867,7 +915,13 @@ const Survey2021: React.FC = () => {
         <div className="grid grid-cols-2 gap-6">
           <div>
             <Label htmlFor="investments_march_2020">As of March 2020</Label>
-            <Select onValueChange={(value) => form.setValue("investments_march_2020", value)}>
+            <FormField
+              control={form.control}
+              name="investments_march_2020"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
               <SelectTrigger>
                 <SelectValue placeholder="Select count" />
               </SelectTrigger>
@@ -877,13 +931,24 @@ const Survey2021: React.FC = () => {
                 <SelectItem value="5-9">5-9</SelectItem>
                 <SelectItem value="10-14">10-14</SelectItem>
                 <SelectItem value="15-24">15-24</SelectItem>
-                <SelectItem value="25+">25+</SelectItem>
-              </SelectContent>
-            </Select>
+                      <SelectItem value="25+">25+</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           </div>
           <div>
             <Label htmlFor="investments_december_2020">As of December 2020</Label>
-            <Select onValueChange={(value) => form.setValue("investments_december_2020", value)}>
+            <FormField
+              control={form.control}
+              name="investments_december_2020"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
               <SelectTrigger>
                 <SelectValue placeholder="Select count" />
               </SelectTrigger>
@@ -893,9 +958,14 @@ const Survey2021: React.FC = () => {
                 <SelectItem value="5-9">5-9</SelectItem>
                 <SelectItem value="10-14">10-14</SelectItem>
                 <SelectItem value="15-24">15-24</SelectItem>
-                <SelectItem value="25+">25+</SelectItem>
-              </SelectContent>
-            </Select>
+                      <SelectItem value="25+">25+</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           </div>
         </div>
       </div>
@@ -1007,12 +1077,18 @@ const Survey2021: React.FC = () => {
           <Label >13. Typical investment timeframe</Label>
         </div>
         
-        <Select onValueChange={(value) => {
-          form.setValue("investment_timeframe", value);
-          if (value !== "Other") {
-            form.setValue("investment_timeframe_other", "");
-          }
-        }}>
+        <FormField
+          control={form.control}
+          name="investment_timeframe"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Select onValueChange={(value) => {
+                  field.onChange(value);
+                  if (value !== "Other") {
+                    form.setValue("investment_timeframe_other", "");
+                  }
+                }} value={field.value}>
           <SelectTrigger>
             <SelectValue placeholder="Select timeframe" />
           </SelectTrigger>
@@ -1022,9 +1098,14 @@ const Survey2021: React.FC = () => {
             <SelectItem value="4-5 years">4-5 years</SelectItem>
             <SelectItem value="6-7 years">6-7 years</SelectItem>
             <SelectItem value="8+ years">8+ years</SelectItem>
-            <SelectItem value="Other">Other</SelectItem>
-          </SelectContent>
-        </Select>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         {form.watch("investment_timeframe") === "Other" && (
           <div className="mt-3">
             <Label htmlFor="investment_timeframe_other">Please specify other timeframe:</Label>
@@ -1268,12 +1349,18 @@ const Survey2021: React.FC = () => {
           <Label >19. How would you frame the impact vs financial return orientation of your capital vehicle?</Label>
         </div>
         
-        <Select onValueChange={(value) => {
-          form.setValue("impact_vs_financial_orientation", value);
-          if (value !== "Other") {
-            form.setValue("impact_vs_financial_orientation_other", "");
-          }
-        }}>
+        <FormField
+          control={form.control}
+          name="impact_vs_financial_orientation"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Select onValueChange={(value) => {
+                  field.onChange(value);
+                  if (value !== "Other") {
+                    form.setValue("impact_vs_financial_orientation_other", "");
+                  }
+                }} value={field.value}>
           <SelectTrigger>
             <SelectValue placeholder="Select orientation" />
           </SelectTrigger>
@@ -1283,9 +1370,14 @@ const Survey2021: React.FC = () => {
             <SelectItem value="Balanced impact/financial return">Balanced impact/financial return</SelectItem>
             <SelectItem value="Impact investing (positive screening)">Impact investing (positive screening)</SelectItem>
             <SelectItem value="Impact first investing (impact outcomes intentionally)">Impact first investing (impact outcomes intentionally)</SelectItem>
-            <SelectItem value="Other">Other</SelectItem>
-          </SelectContent>
-        </Select>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         {form.watch("impact_vs_financial_orientation") === "Other" && (
           <div className="mt-3">
             <Label htmlFor="impact_vs_financial_orientation_other">Please specify other orientation:</Label>
@@ -1706,7 +1798,13 @@ const Survey2021: React.FC = () => {
         <div className="grid grid-cols-2 gap-6">
           <div>
             <Label htmlFor="investment_size_your_amount">Your investment amount at time of initial investment</Label>
-            <Select onValueChange={(value) => form.setValue("investment_size_your_amount", value)}>
+            <FormField
+              control={form.control}
+              name="investment_size_your_amount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
               <SelectTrigger>
                 <SelectValue placeholder="Select amount" />
               </SelectTrigger>
@@ -1716,13 +1814,24 @@ const Survey2021: React.FC = () => {
                 <SelectItem value="$200,000 - $499,000">$200,000 - $499,000</SelectItem>
                 <SelectItem value="$500,000 - $999,000">$500,000 - $999,000</SelectItem>
                 <SelectItem value="$1,000,000 - $1,999,000">$1,000,000 - $1,999,000</SelectItem>
-                <SelectItem value="≥ $2,000,000">≥ $2,000,000</SelectItem>
-              </SelectContent>
-            </Select>
+                      <SelectItem value="≥ $2,000,000">≥ $2,000,000</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           </div>
           <div>
             <Label htmlFor="investment_size_total_raise">Total raise by portfolio company</Label>
-            <Select onValueChange={(value) => form.setValue("investment_size_total_raise", value)}>
+            <FormField
+              control={form.control}
+              name="investment_size_total_raise"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
               <SelectTrigger>
                 <SelectValue placeholder="Select amount" />
               </SelectTrigger>
@@ -1732,9 +1841,14 @@ const Survey2021: React.FC = () => {
                 <SelectItem value="$200,000 - $499,000">$200,000 - $499,000</SelectItem>
                 <SelectItem value="$500,000 - $999,000">$500,000 - $999,000</SelectItem>
                 <SelectItem value="$1,000,000 - $1,999,000">$1,000,000 - $1,999,000</SelectItem>
-                <SelectItem value="≥ $2,000,000">≥ $2,000,000</SelectItem>
-              </SelectContent>
-            </Select>
+                      <SelectItem value="≥ $2,000,000">≥ $2,000,000</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           </div>
         </div>
       </div>
@@ -1840,7 +1954,13 @@ const Survey2021: React.FC = () => {
 
       <div>
         <Label htmlFor="carried_interest_principals">28. Number of current carried-interest/equity-interest principals</Label>
-        <Select onValueChange={(value) => form.setValue("carried_interest_principals", value)}>
+        <FormField
+          control={form.control}
+          name="carried_interest_principals"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Select onValueChange={field.onChange} value={field.value}>
           <SelectTrigger>
             <SelectValue placeholder="Select count" />
           </SelectTrigger>
@@ -1856,7 +1976,13 @@ const Survey2021: React.FC = () => {
 
       <div>
         <Label htmlFor="current_ftes">29. Number of current Full Time Equivalent staff members (FTEs) including principals</Label>
-        <Select onValueChange={(value) => form.setValue("current_ftes", value)}>
+        <FormField
+          control={form.control}
+          name="current_ftes"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Select onValueChange={field.onChange} value={field.value}>
           <SelectTrigger>
             <SelectValue placeholder="Select count" />
           </SelectTrigger>
@@ -1864,9 +1990,19 @@ const Survey2021: React.FC = () => {
             <SelectItem value="< or = 2">&lt; or = 2</SelectItem>
             <SelectItem value="3-5">3-5</SelectItem>
             <SelectItem value="6-10">6-10</SelectItem>
-            <SelectItem value="10+">10+</SelectItem>
-          </SelectContent>
-        </Select>
+                  <SelectItem value="10+">10+</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
       </div>
     </div>
   );

@@ -801,8 +801,8 @@ export default function Survey2023() {
         description: "Thank you for completing the 2023 MSME Financing Survey.",
       });
 
-      // Navigate to home dashboard
-      navigate('/');
+      // Navigate to dashboard
+      navigate('/dashboard');
     } catch (error) {
       toast({
         title: "Error submitting survey",
