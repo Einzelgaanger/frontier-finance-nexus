@@ -751,6 +751,33 @@ export default function Survey2024() {
 		return () => clearTimeout(timeoutId);
 	}, [user, form, form.watch()]);
 
+	// Navigation handlers
+	const handleNext = () => {
+		if (currentSection < totalSections) {
+			const nextSection = currentSection + 1;
+			setCurrentSection(nextSection);
+			saveCurrentSection(nextSection);
+			
+			// Scroll to top of page for better UX
+			setTimeout(() => {
+				window.scrollTo({ top: 0, behavior: 'smooth' });
+			}, 100);
+		}
+	};
+
+	const handlePrevious = () => {
+		if (currentSection > 1) {
+			const prevSection = currentSection - 1;
+			setCurrentSection(prevSection);
+			saveCurrentSection(prevSection);
+			
+			// Save scroll position before moving to previous section
+			setTimeout(() => {
+				saveScrollPosition();
+			}, 100);
+		}
+	};
+
 	// Handle form submission
 	const handleSubmit = async (data: any) => {
 		if (!user) return;
@@ -798,8 +825,6 @@ export default function Survey2024() {
       }
 
       if (submitError) throw submitError;
-
-			if (error) throw error;
 
 			// Clear saved data
 			clearSavedData();
