@@ -63,6 +63,13 @@ const ViewerDashboardV2 = () => {
     'Networking Events'
   ];
 
+  const surveyYears = [
+    { year: '2021', path: '/survey/2021', available: true },
+    { year: '2022', path: '/survey/2022', available: true },
+    { year: '2023', path: '/survey/2023', available: true },
+    { year: '2024', path: '/survey/2024', available: true }
+  ];
+
   const uploadToDatabase = async (file: File, userId: string) => {
     return new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
@@ -691,8 +698,8 @@ const ViewerDashboardV2 = () => {
               </div>
             </div>
 
-            {/* Survey Access */}
-            <div className="group relative overflow-hidden rounded-lg bg-[#f5f5dc] border-2 border-green-200 hover:border-green-400 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg cursor-pointer">
+            {/* Survey Access with Year Buttons */}
+            <div className="group relative overflow-hidden rounded-lg bg-[#f5f5dc] border-2 border-green-200 hover:border-green-400 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg">
               <div className="relative p-4">
                 <div className="flex items-center space-x-3 mb-3">
                   <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-sm group-hover:scale-110 transition-all duration-300">
@@ -702,10 +709,26 @@ const ViewerDashboardV2 = () => {
                   </div>
                   <h3 className="text-base font-semibold text-gray-800 group-hover:text-green-600 transition-colors duration-300">Market Intelligence</h3>
                 </div>
-                <p className="text-xs text-gray-600 group-hover:text-gray-700 transition-colors duration-300 leading-relaxed mb-2">
+                <p className="text-xs text-gray-600 group-hover:text-gray-700 transition-colors duration-300 leading-relaxed mb-3">
                   Access comprehensive survey data and market insights from 2021-2024.
                 </p>
-                <div className="flex items-center justify-between text-xs text-gray-500">
+                
+                {/* Survey Year Buttons */}
+                <div className="grid grid-cols-4 gap-2 mb-2">
+                  {surveyYears.map((survey) => (
+                    <Button
+                      key={survey.year}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(survey.path)}
+                      className="h-8 text-xs font-medium bg-white/80 hover:bg-green-50 hover:text-green-700 hover:border-green-400 transition-all"
+                    >
+                      {survey.year}
+                    </Button>
+                  ))}
+                </div>
+                
+                <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
                   <span>4 Years Data</span>
                   <span>Trend Analysis</span>
                 </div>

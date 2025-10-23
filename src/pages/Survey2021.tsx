@@ -158,13 +158,6 @@ const Survey2021: React.FC = () => {
     saveFormData,
   } = useSurveyPersistence({ surveyKey: 'survey2021' });
 
-  const { saveStatus, saveDraft: autoSaveDraft } = useSurveyAutosave({
-    userId: user?.id,
-    surveyYear: '2021',
-    watch: form.watch,
-    enabled: !!user && !loading,
-  });
-
   const totalSections = 7;
   const progress = (currentSection / totalSections) * 100;
 
@@ -267,6 +260,14 @@ const Survey2021: React.FC = () => {
       present_demystifying_session_other_enabled: false,
       additional_comments: '',
     },
+  });
+
+  // Initialize autosave AFTER form is created
+  const { saveStatus, saveDraft: autoSaveDraft } = useSurveyAutosave({
+    userId: user?.id,
+    surveyYear: '2021',
+    watch: form.watch,
+    enabled: !!user && !loading,
   });
 
   // Load saved section on component mount (no form data restoration)

@@ -157,13 +157,6 @@ const Survey2022 = () => {
     saveFormData,
   } = useSurveyPersistence({ surveyKey: 'survey2022' });
 
-  const { saveStatus, saveDraft: autoSaveDraft } = useSurveyAutosave({
-    userId: user?.id,
-    surveyYear: '2022',
-    watch: form.watch,
-    enabled: !!user && !loading,
-  });
-
   const form = useForm<Survey2022FormData>({
     resolver: zodResolver(survey2022Schema),
     defaultValues: {
@@ -188,6 +181,14 @@ const Survey2022 = () => {
       team_based_other: '',
       receive_results: false,
     },
+  });
+
+  // Initialize autosave AFTER form is created
+  const { saveStatus, saveDraft: autoSaveDraft } = useSurveyAutosave({
+    userId: user?.id,
+    surveyYear: '2022',
+    watch: form.watch,
+    enabled: !!user && !loading,
   });
 
   // Scroll to top when component mounts

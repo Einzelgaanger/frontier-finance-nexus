@@ -247,13 +247,6 @@ export default function Survey2023() {
     saveFormData,
   } = useSurveyPersistence({ surveyKey: 'survey2023' });
 
-  const { saveStatus, saveDraft: autoSaveDraft } = useSurveyAutosave({
-    userId: user?.id,
-    surveyYear: '2023',
-    watch: form.watch,
-    enabled: !!user && !loading && !isCompleted,
-  });
-
   const form = useForm<Survey2023FormData>({
     resolver: zodResolver(survey2023Schema),
     defaultValues: {
@@ -558,6 +551,14 @@ export default function Survey2023() {
       convening_gatherings_other: '',
       receive_results: false,
     },
+  });
+
+  // Initialize autosave AFTER form is created
+  const { saveStatus, saveDraft: autoSaveDraft } = useSurveyAutosave({
+    userId: user?.id,
+    surveyYear: '2023',
+    watch: form.watch,
+    enabled: !!user && !loading && !isCompleted,
   });
 
   // Scroll to top when component mounts
