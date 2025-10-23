@@ -682,17 +682,27 @@ export default function Survey2024() {
 					
 					if (error) throw error;
 				}
-			} catch (dbError) {
-				console.warn('Database save failed, using localStorage only:', dbError);
-				// Database save failed, but localStorage save succeeded
-			}
-			
-		} catch (error) {
-			console.error('Error saving draft:', error);
-		} finally {
-			setSaving(false);
-		}
-	};
+      } catch (dbError) {
+        console.warn('Database save failed, using localStorage only:', dbError);
+        // Database save failed, but localStorage save succeeded
+      }
+      
+      toast({
+        title: "Draft Saved",
+        description: "Your 2024 survey draft has been saved.",
+      });
+      
+    } catch (error) {
+      console.error('Error saving draft:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save draft. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
 
 	// Auto-save draft every 5 seconds
 	useEffect(() => {
@@ -741,26 +751,47 @@ export default function Survey2024() {
 		
 		setLoading(true);
 		try {
-			const { error } = await supabase
-				.from('survey_responses_2024')
-				.upsert({
-					user_id: user.id,
-					email_address: data.email_address,
-					organisation_name: data.organisation_name,
-					fund_name: data.fund_name,
-					funds_raising_investing: data.funds_raising_investing,
-					legal_entity_achieved: data.legal_entity_achieved,
-					first_close_achieved: data.first_close_achieved,
-					first_investment_achieved: data.first_investment_achieved,
-					geographic_markets: data.geographic_markets || [],
-					geographic_markets_other: data.geographic_markets_other,
-					team_based: data.team_based || [],
-					team_based_other: data.team_based_other,
-					form_data: data,
-					submission_status: 'completed',
-					completed_at: new Date().toISOString(),
-					updated_at: new Date().toISOString()
-				}, { onConflict: 'user_id' });
+      // Manual upsert to avoid unique constraint issues on user_id
+      const { data: existing } = await supabase
+        .from('survey_responses_2024')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      const recordData = {
+        user_id: user.id,
+        email_address: data.email_address,
+        organisation_name: data.organisation_name,
+        fund_name: data.fund_name,
+        funds_raising_investing: data.funds_raising_investing,
+        legal_entity_achieved: data.legal_entity_achieved,
+        first_close_achieved: data.first_close_achieved,
+        first_investment_achieved: data.first_investment_achieved,
+        geographic_markets: data.geographic_markets || [],
+        geographic_markets_other: data.geographic_markets_other,
+        team_based: data.team_based || [],
+        team_based_other: data.team_based_other,
+        form_data: data,
+        submission_status: 'completed',
+        completed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      let submitError;
+      if (existing) {
+        const { error: updateError } = await supabase
+          .from('survey_responses_2024')
+          .update(recordData)
+          .eq('id', existing.id);
+        submitError = updateError;
+      } else {
+        const { error: insertError } = await supabase
+          .from('survey_responses_2024')
+          .insert(recordData);
+        submitError = insertError;
+      }
+
+      if (submitError) throw submitError;
 
 			if (error) throw error;
 
