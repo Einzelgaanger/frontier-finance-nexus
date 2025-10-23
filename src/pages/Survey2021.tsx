@@ -160,6 +160,7 @@ const Survey2021: React.FC = () => {
   const progress = (currentSection / totalSections) * 100;
 
   const form = useForm<Survey2021FormData>({
+    shouldUnregister: false,
     defaultValues: {
       email_address: '',
       firm_name: '',

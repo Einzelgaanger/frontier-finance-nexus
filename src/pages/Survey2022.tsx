@@ -157,6 +157,7 @@ const Survey2022 = () => {
   } = useSurveyPersistence({ surveyKey: 'survey2022' });
 
   const form = useForm<Survey2022FormData>({
+    shouldUnregister: false,
     defaultValues: {
       name: '',
       role_title: '',

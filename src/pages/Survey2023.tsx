@@ -246,6 +246,7 @@ export default function Survey2023() {
   } = useSurveyPersistence({ surveyKey: 'survey2023' });
 
   const form = useForm<Survey2023FormData>({
+    shouldUnregister: false,
     defaultValues: {
       // Section 1: Introduction & Context
       email_address: '',
