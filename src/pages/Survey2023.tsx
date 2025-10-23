@@ -15,6 +15,7 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { useSurveyPersistence } from '@/hooks/useSurveyPersistence';
 import { useAuth } from '@/hooks/useAuth';
+import { useSurveyAutosave } from '@/hooks/useSurveyAutosave';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft } from 'lucide-react';
@@ -245,6 +246,13 @@ export default function Survey2023() {
     getSavedFormData,
     saveFormData,
   } = useSurveyPersistence({ surveyKey: 'survey2023' });
+
+  const { saveStatus, saveDraft: autoSaveDraft } = useSurveyAutosave({
+    userId: user?.id,
+    surveyYear: '2023',
+    watch: form.watch,
+    enabled: !!user && !loading && !isCompleted,
+  });
 
   const form = useForm<Survey2023FormData>({
     resolver: zodResolver(survey2023Schema),
@@ -4785,7 +4793,21 @@ Which of the following would you be prepared to make available? [note: we are cu
                 <div className="text-2xl font-bold text-blue-600">
                   {currentSection}/{totalSections}
                 </div>
-                <div className="text-xs text-gray-500">Progress</div>
+                {/* Autosave status */}
+                <div className="text-xs">
+                  {saveStatus === 'saving' && (
+                    <span className="text-gray-500 animate-pulse">Saving...</span>
+                  )}
+                  {saveStatus === 'saved' && (
+                    <span className="text-green-600">✓ Saved</span>
+                  )}
+                  {saveStatus === 'error' && (
+                    <span className="text-red-600">Error saving</span>
+                  )}
+                  {saveStatus === 'idle' && (
+                    <span className="text-gray-500">Progress</span>
+                  )}
+                </div>
               </div>
             </div>
             <div className="mt-4">

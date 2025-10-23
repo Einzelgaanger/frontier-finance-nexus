@@ -18,6 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useSurveyPersistence } from '@/hooks/useSurveyPersistence';
+import { useSurveyAutosave } from '@/hooks/useSurveyAutosave';
 import { ArrowLeft, ArrowRight, Save, Send } from 'lucide-react';
 import SidebarLayout from '@/components/layout/SidebarLayout';
 import Header from '@/components/layout/Header';
@@ -155,6 +156,13 @@ const Survey2022 = () => {
     getSavedFormData,
     saveFormData,
   } = useSurveyPersistence({ surveyKey: 'survey2022' });
+
+  const { saveStatus, saveDraft: autoSaveDraft } = useSurveyAutosave({
+    userId: user?.id,
+    surveyYear: '2022',
+    watch: form.watch,
+    enabled: !!user && !loading,
+  });
 
   const form = useForm<Survey2022FormData>({
     resolver: zodResolver(survey2022Schema),
@@ -4399,7 +4407,21 @@ const Survey2022 = () => {
                     <div className="text-2xl font-bold text-blue-600">
                       {currentSection}/{totalSections}
                     </div>
-                    <div className="text-xs text-gray-500">Progress</div>
+                    {/* Autosave status */}
+                    <div className="text-xs">
+                      {saveStatus === 'saving' && (
+                        <span className="text-gray-500 animate-pulse">Saving...</span>
+                      )}
+                      {saveStatus === 'saved' && (
+                        <span className="text-green-600">✓ Saved</span>
+                      )}
+                      {saveStatus === 'error' && (
+                        <span className="text-red-600">Error saving</span>
+                      )}
+                      {saveStatus === 'idle' && (
+                        <span className="text-gray-500">Progress</span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="mt-4">

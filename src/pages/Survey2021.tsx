@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useSurveyPersistence } from '@/hooks/useSurveyPersistence';
 import { useSurveyStatus } from '@/hooks/useSurveyStatus';
+import { useSurveyAutosave } from '@/hooks/useSurveyAutosave';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -156,6 +157,13 @@ const Survey2021: React.FC = () => {
     getSavedFormData,
     saveFormData,
   } = useSurveyPersistence({ surveyKey: 'survey2021' });
+
+  const { saveStatus, saveDraft: autoSaveDraft } = useSurveyAutosave({
+    userId: user?.id,
+    surveyYear: '2021',
+    watch: form.watch,
+    enabled: !!user && !loading,
+  });
 
   const totalSections = 7;
   const progress = (currentSection / totalSections) * 100;
@@ -3065,6 +3073,18 @@ const Survey2021: React.FC = () => {
                   className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-300"
                   style={{ width: `${progress}%` }}
                 ></div>
+              </div>
+              {/* Autosave status indicator */}
+              <div className="flex items-center justify-end gap-2 text-xs">
+                {saveStatus === 'saving' && (
+                  <span className="text-gray-500 animate-pulse">Saving...</span>
+                )}
+                {saveStatus === 'saved' && (
+                  <span className="text-green-600">✓ Saved</span>
+                )}
+                {saveStatus === 'error' && (
+                  <span className="text-red-600">Error saving</span>
+                )}
               </div>
             </div>
           </Card>

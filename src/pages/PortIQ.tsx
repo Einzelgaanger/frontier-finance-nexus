@@ -193,19 +193,18 @@ const PortIQ = () => {
         setLoading(false);
         
         // Save assistant message to DB (async, don't wait)
-        supabase.from('chat_messages' as any).insert({
+        void supabase.from('chat_messages' as any).insert({
           conversation_id: conversationId,
           user_id: user.id,
           role: 'assistant',
           content: resText
-        }).then(() => {}).catch(console.error);
+        });
 
         // Update conversation timestamp (async, don't wait)
-        supabase
+        void supabase
           .from('chat_conversations' as any)
           .update({ updated_at: new Date().toISOString() })
-          .eq('id', conversationId)
-          .then(() => {}).catch(console.error);
+          .eq('id', conversationId);
       } else {
         throw new Error('Empty response from AI');
       }
