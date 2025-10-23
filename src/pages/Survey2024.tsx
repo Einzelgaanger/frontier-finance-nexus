@@ -563,7 +563,7 @@ export default function Survey2024() {
 		userId: user?.id,
 		surveyYear: '2024',
 		watch: form.watch,
-		enabled: !!user && !loading,
+		enabled: !!user,
 	});
 
 	// Scroll to top when component mounts

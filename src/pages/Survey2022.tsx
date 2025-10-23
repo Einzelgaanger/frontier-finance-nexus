@@ -188,7 +188,7 @@ const Survey2022 = () => {
     userId: user?.id,
     surveyYear: '2022',
     watch: form.watch,
-    enabled: !!user && !loading,
+    enabled: !!user,
   });
 
   // Scroll to top when component mounts

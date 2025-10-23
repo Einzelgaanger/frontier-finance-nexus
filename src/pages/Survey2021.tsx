@@ -267,7 +267,7 @@ const Survey2021: React.FC = () => {
     userId: user?.id,
     surveyYear: '2021',
     watch: form.watch,
-    enabled: !!user && !loading,
+    enabled: !!user,
   });
 
   // Load saved section on component mount (no form data restoration)
