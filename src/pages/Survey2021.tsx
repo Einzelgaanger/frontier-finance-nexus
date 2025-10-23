@@ -637,7 +637,6 @@ const Survey2021: React.FC = () => {
 
       if (submitError) throw submitError;
 
-      if (error) throw error;
       
       // Clear saved data after successful submission
       clearSavedData();

@@ -541,7 +541,6 @@ const Survey2022 = () => {
 
       if (submitError) throw submitError;
 
-      if (error) throw error;
       
       toast({
         title: "Survey Submitted",

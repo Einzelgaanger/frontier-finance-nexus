@@ -918,7 +918,6 @@ export default function Survey2023() {
 
       if (submitError) throw submitError;
 
-      if (error) throw error;
       
       // Mark as completed
       setIsCompleted(true);
