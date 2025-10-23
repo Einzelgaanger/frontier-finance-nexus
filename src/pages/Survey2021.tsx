@@ -2022,10 +2022,13 @@ const Survey2021: React.FC = () => {
             <div key={need} className="p-3 border border-gray-200 rounded-lg">
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-medium pr-3">{need}</Label>
-                <Select onValueChange={(value) => {
-                  const current = form.watch("portfolio_needs_ranking") || {};
-                  form.setValue("portfolio_needs_ranking", { ...current, [need]: value });
-                }}>
+                <Select
+                  onValueChange={(value) => {
+                    const current = form.watch("portfolio_needs_ranking") || {};
+                    form.setValue("portfolio_needs_ranking", { ...current, [need]: value });
+                  }}
+                  value={(form.watch("portfolio_needs_ranking") || {})[need] ?? undefined}
+                >
                   <SelectTrigger className="w-20">
                     <SelectValue placeholder="-" />
                   </SelectTrigger>
@@ -2073,10 +2076,13 @@ const Survey2021: React.FC = () => {
                 </div>
                 <div className="flex items-center space-x-3">
                   <Label className="text-sm font-normal text-gray-800">Rank:</Label>
-                  <Select onValueChange={(value) => {
-                    const current = form.watch('portfolio_needs_ranking') || {};
-                    form.setValue('portfolio_needs_ranking', { ...current, ['Other']: value });
-                  }}>
+                  <Select
+                    onValueChange={(value) => {
+                      const current = form.watch('portfolio_needs_ranking') || {};
+                      form.setValue('portfolio_needs_ranking', { ...current, ['Other']: value });
+                    }}
+                    value={(form.watch('portfolio_needs_ranking') || {})['Other'] ?? undefined}
+                  >
                     <SelectTrigger className="w-20">
                       <SelectValue placeholder="-" />
                     </SelectTrigger>
@@ -2196,10 +2202,13 @@ const Survey2021: React.FC = () => {
           ].map((capability) => (
             <div key={capability} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
               <Label className="text-sm font-medium">{capability}</Label>
-              <Select onValueChange={(value) => {
-                const current = form.watch("fund_capabilities_ranking") || {};
-                form.setValue("fund_capabilities_ranking", { ...current, [capability]: value });
-              }}>
+              <Select
+                onValueChange={(value) => {
+                  const current = form.watch("fund_capabilities_ranking") || {};
+                  form.setValue("fund_capabilities_ranking", { ...current, [capability]: value });
+                }}
+                value={(form.watch("fund_capabilities_ranking") || {})[capability] ?? undefined}
+              >
                 <SelectTrigger className="w-20">
                   <SelectValue placeholder="-" />
                 </SelectTrigger>
@@ -2488,10 +2497,13 @@ const Survey2021: React.FC = () => {
           ].map(group => (
             <div key={group} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
               <Label className="text-sm font-medium">{group}</Label>
-              <Select onValueChange={(value) => {
-                const current = form.watch('working_groups_ranking') || {};
-                form.setValue('working_groups_ranking', { ...current, [group]: value });
-              }}>
+              <Select
+                onValueChange={(value) => {
+                  const current = form.watch('working_groups_ranking') || {};
+                  form.setValue('working_groups_ranking', { ...current, [group]: value });
+                }}
+                value={(form.watch('working_groups_ranking') || {})[group] ?? undefined}
+              >
                 <SelectTrigger className="w-24">
                   <SelectValue placeholder="-" />
                 </SelectTrigger>
@@ -2539,10 +2551,13 @@ const Survey2021: React.FC = () => {
           ].map(webinar => (
             <div key={webinar} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
               <Label className="text-sm font-medium">{webinar}</Label>
-              <Select onValueChange={(value) => {
-                const current = form.watch('webinar_content_ranking') || {};
-                form.setValue('webinar_content_ranking', { ...current, [webinar]: value });
-              }}>
+              <Select
+                onValueChange={(value) => {
+                  const current = form.watch('webinar_content_ranking') || {};
+                  form.setValue('webinar_content_ranking', { ...current, [webinar]: value });
+                }}
+                value={(form.watch('webinar_content_ranking') || {})[webinar] ?? undefined}
+              >
                 <SelectTrigger className="w-24">
                   <SelectValue placeholder="-" />
                 </SelectTrigger>
@@ -2618,10 +2633,13 @@ const Survey2021: React.FC = () => {
           ].map((area) => (
             <div key={area} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
               <Label className="text-sm font-medium">{area}</Label>
-              <Select onValueChange={(value) => {
-                const current = form.watch("network_value_areas") || {};
-                form.setValue("network_value_areas", { ...current, [area]: value });
-              }}>
+              <Select
+                onValueChange={(value) => {
+                  const current = form.watch("network_value_areas") || {};
+                  form.setValue("network_value_areas", { ...current, [area]: value });
+                }}
+                value={(form.watch("network_value_areas") || {})[area] ?? undefined}
+              >
                 <SelectTrigger className="w-20">
                   <SelectValue placeholder="-" />
                 </SelectTrigger>
@@ -2708,10 +2726,13 @@ const Survey2021: React.FC = () => {
           ].map((initiative) => (
             <div key={initiative} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
               <Label className="text-sm font-medium">{initiative}</Label>
-              <Select onValueChange={(value) => {
-                const current = form.watch("convening_initiatives_ranking") || {};
-                form.setValue("convening_initiatives_ranking", { ...current, [initiative]: value });
-              }}>
+              <Select
+                onValueChange={(value) => {
+                  const current = form.watch("convening_initiatives_ranking") || {};
+                  form.setValue("convening_initiatives_ranking", { ...current, [initiative]: value });
+                }}
+                value={(form.watch("convening_initiatives_ranking") || {})[initiative] ?? undefined}
+              >
                 <SelectTrigger className="w-20">
                   <SelectValue placeholder="-" />
                 </SelectTrigger>

@@ -1461,13 +1461,16 @@ export default function Survey2024() {
 									</div>
 									<div className="flex-shrink-0">
 										{opt.key !== 'other' && (
-											<Select onValueChange={(value) => {
-												const current = form.getValues('team_experience_investments') || {};
-												form.setValue('team_experience_investments', { ...current, [opt.key]: value });
-											}}>
-												<FormControl>
-													<SelectTrigger className="w-48">
-														<SelectValue placeholder="Select one" />
+												<Select
+													onValueChange={(value) => {
+														const current = form.getValues('team_experience_investments') || {};
+														form.setValue('team_experience_investments', { ...current, [opt.key]: value });
+													}}
+													value={(form.watch('team_experience_investments') || {})[opt.key] ?? undefined}
+												>
+													<FormControl>
+														<SelectTrigger className="w-48">
+															<SelectValue placeholder="Select one" />
 													</SelectTrigger>
 												</FormControl>
 												<SelectContent>
@@ -1479,13 +1482,16 @@ export default function Survey2024() {
 										)}
 										{opt.key === 'other' && (form.watch('team_experience_investments') || {})['other_enabled'] === 'true' && (
 											<div className="mt-3">
-												<Select onValueChange={(value) => {
-													const current = form.getValues('team_experience_investments') || {};
-													form.setValue('team_experience_investments', { ...current, other: value });
-												}}>
-													<FormControl>
-														<SelectTrigger className="w-48">
-															<SelectValue placeholder="Classify other (select one)" />
+													<Select
+														onValueChange={(value) => {
+															const current = form.getValues('team_experience_investments') || {};
+															form.setValue('team_experience_investments', { ...current, other: value });
+														}}
+														value={(form.watch('team_experience_investments') || {})['other'] ?? undefined}
+													>
+														<FormControl>
+															<SelectTrigger className="w-48">
+																<SelectValue placeholder="Classify other (select one)" />
 														</SelectTrigger>
 													</FormControl>
 													<SelectContent>
@@ -1523,13 +1529,16 @@ export default function Survey2024() {
 										<FormLabel className="text-sm font-normal text-gray-900 leading-tight">{opt.label}</FormLabel>
 									</div>
 									<div className="flex-shrink-0">
-										<Select onValueChange={(value) => {
-											const current = form.getValues('team_experience_transactions') || {};
-											form.setValue('team_experience_transactions', { ...current, [opt.key]: value });
-										}}>
-											<FormControl>
-												<SelectTrigger className="w-48">
-													<SelectValue placeholder="Select one" />
+													<Select
+														onValueChange={(value) => {
+															const current = form.getValues('team_experience_transactions') || {};
+															form.setValue('team_experience_transactions', { ...current, [opt.key]: value });
+														}}
+														value={(form.watch('team_experience_transactions') || {})[opt.key] ?? undefined}
+													>
+														<FormControl>
+															<SelectTrigger className="w-48">
+																<SelectValue placeholder="Select one" />
 												</SelectTrigger>
 											</FormControl>
 											<SelectContent>
@@ -1681,13 +1690,16 @@ export default function Survey2024() {
 										<FormLabel className="text-sm font-normal">{row.label}</FormLabel>
 									</div>
 									<div>
-										<Select onValueChange={(value) => {
-											const current = form.getValues('regulatory_impact') || {};
-											form.setValue('regulatory_impact', { ...current, [row.key]: value });
-										}}>
-							<FormControl>
-								<SelectTrigger>
-													<SelectValue placeholder="Select one" />
+													<Select
+														onValueChange={(value) => {
+															const current = form.getValues('regulatory_impact') || {};
+															form.setValue('regulatory_impact', { ...current, [row.key]: value });
+													}}
+													value={(form.watch('regulatory_impact') || {})[row.key] ?? undefined}
+												>
+												<FormControl>
+													<SelectTrigger>
+															<SelectValue placeholder="Select one" />
 								</SelectTrigger>
 							</FormControl>
 							<SelectContent>
@@ -1732,9 +1744,12 @@ export default function Survey2024() {
 													form.setValue('regulatory_impact', { ...current, other_label: e.target.value });
 												}}
 											/>
-											<Select onValueChange={(value) => {
-												const current = form.getValues('regulatory_impact') || {};
-												form.setValue('regulatory_impact', { ...current, other: value });
+													<Select
+														onValueChange={(value) => {
+															const current = form.getValues('regulatory_impact') || {};
+															form.setValue('regulatory_impact', { ...current, other: value });
+													}}
+													value={(form.watch('regulatory_impact') || {})['other'] ?? undefined}
 											}}>
 												<FormControl>
 													<SelectTrigger>
@@ -1777,9 +1792,12 @@ export default function Survey2024() {
 										<FormLabel className="text-sm font-normal">{row.label}</FormLabel>
 									</div>
 									<div>
-										<Select onValueChange={(value) => {
-											form.setValue(row.key as any, value);
-										}}>
+													<Select
+														onValueChange={(value) => {
+															form.setValue(row.key as any, value);
+														}}
+														value={form.watch(row.key as any) ?? undefined}
+													>
 							<FormControl>
 								<SelectTrigger>
 													<SelectValue placeholder="Select one" />
