@@ -447,21 +447,18 @@ const Survey2021: React.FC = () => {
           .eq('user_id', user.id)
           .maybeSingle();
 
-        // Only save to database if we have required fields filled
-        const hasRequiredFields = formData.email_address && formData.firm_name;
-        
-        if (!hasRequiredFields) {
-          // Skip database save if required fields are missing
-          console.log('Skipping database save - required fields missing');
-          return;
-        }
+        // Ensure required non-null columns for drafts have values
+        const effectiveEmail = formData.email_address || user?.email || `draft+${user.id}@placeholder.local`;
+        const effectiveFirm = formData.firm_name || 'Draft';
+        const effectiveParticipant = formData.participant_name || 'Draft';
+        const effectiveRole = formData.role_title || 'Draft';
 
         const recordData = {
           user_id: user.id,
-          email_address: formData.email_address,
-          firm_name: formData.firm_name,
-          participant_name: formData.participant_name || '',
-          role_title: formData.role_title || '',
+          email_address: effectiveEmail,
+          firm_name: effectiveFirm,
+          participant_name: effectiveParticipant,
+          role_title: effectiveRole,
           team_based: formData.team_based || [],
           team_based_other: formData.team_based_other || '',
           geographic_focus: formData.geographic_focus || [],

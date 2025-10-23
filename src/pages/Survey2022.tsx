@@ -286,21 +286,18 @@ const Survey2022 = () => {
           .eq('user_id', user.id)
           .maybeSingle();
         
-        // Only save to database if we have required fields filled
-        const hasRequiredFields = formData.email && formData.organisation;
-        
-        if (!hasRequiredFields) {
-          // Skip database save if required fields are missing
-          console.log('Skipping database save - required fields missing');
-          return;
-        }
+        // Ensure required non-null columns for drafts have values
+        const effectiveEmail = formData.email || user?.email || `draft+${user.id}@placeholder.local`;
+        const effectiveOrg = formData.organisation || 'Draft';
+        const effectiveName = formData.name || 'Draft';
+        const effectiveRole = formData.role_title || 'Draft';
         
         const surveyData = {
           user_id: user.id,
-          name: formData.name || '',
-          role_title: formData.role_title || '',
-          email: formData.email,
-          organisation: formData.organisation,
+          name: effectiveName,
+          role_title: effectiveRole,
+          email: effectiveEmail,
+          organisation: effectiveOrg,
           legal_entity_date: formData.legal_entity_date || '',
           first_close_date: formData.first_close_date || '',
           first_investment_date: formData.first_investment_date || '',

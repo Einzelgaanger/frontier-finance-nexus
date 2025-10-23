@@ -648,21 +648,18 @@ export default function Survey2024() {
 					.eq('user_id', user.id)
 					.maybeSingle();
 				
-				// Only save to database if we have required fields filled
-				const hasRequiredFields = formData.email_address && formData.organisation_name;
-				
-				if (!hasRequiredFields) {
-					// Skip database save if required fields are missing
-					console.log('Skipping database save - required fields missing');
-					return;
-				}
+				// Ensure required non-null columns for drafts have values
+				const effectiveEmail = formData.email_address || user?.email || `draft+${user.id}@placeholder.local`;
+				const effectiveOrg = formData.organisation_name || 'Draft';
+				const effectiveFund = formData.fund_name || 'Draft';
+				const effectiveFRI = formData.funds_raising_investing || 'Draft';
 				
 				const surveyData = {
 					user_id: user.id,
-					email_address: formData.email_address,
-					organisation_name: formData.organisation_name,
-					fund_name: formData.fund_name || '',
-					funds_raising_investing: formData.funds_raising_investing || '',
+					email_address: effectiveEmail,
+					organisation_name: effectiveOrg,
+					fund_name: effectiveFund,
+					funds_raising_investing: effectiveFRI,
 					legal_entity_achieved: formData.legal_entity_achieved || '',
 					first_close_achieved: formData.first_close_achieved || '',
 					first_investment_achieved: formData.first_investment_achieved || '',
