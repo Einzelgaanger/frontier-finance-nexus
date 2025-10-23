@@ -288,17 +288,18 @@ const Survey2021: React.FC = () => {
       if (!user) return;
       
       try {
-        // Try to load from database first
-        const { data: dbDraft } = await supabase
+        // Load latest submission regardless of status (draft or completed)
+        const { data: latestSubmission } = await supabase
           .from('survey_responses_2021')
           .select('*')
           .eq('user_id', user.id)
-          .eq('submission_status', 'draft')
+          .order('updated_at', { ascending: false })
+          .limit(1)
           .maybeSingle();
 
-				if (dbDraft && dbDraft.form_data) {
+				if (latestSubmission && latestSubmission.form_data) {
 					// Load from database
-					const savedData = dbDraft.form_data;
+					const savedData = latestSubmission.form_data;
 					Object.keys(savedData).forEach(key => {
 						if (savedData[key] !== undefined && savedData[key] !== null) {
 							form.setValue(key as any, savedData[key], { shouldDirty: true, shouldTouch: true });

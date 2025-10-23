@@ -90,31 +90,41 @@ const ApplicationForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Allow partial submissions - validate only critical fields
-    if (!formData.applicant_name || !formData.email || !formData.vehicle_name) {
-      toast({
-        title: "Missing Critical Information",
-        description: "Please fill in your name, email, and fund/vehicle name.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    // Allow partial submissions - no required field validation
     setLoading(true);
 
     try {
-      const { data, error } = await supabase
+      // Check if application already exists
+      const { data: existing } = await supabase
         .from('applications')
-        .insert([
-          {
-            user_id: user?.id,
-            email: user?.email,
-            company_name: companyName,
-            application_text: applicationText,
-            status: 'pending',
-            ...formData
-          },
-        ]);
+        .select('id')
+        .eq('user_id', user?.id)
+        .maybeSingle();
+
+      const applicationData = {
+        user_id: user?.id,
+        email: user?.email,
+        company_name: companyName || 'Not provided',
+        application_text: applicationText || '',
+        status: 'pending',
+        ...formData
+      };
+
+      let error;
+      if (existing) {
+        // Update existing application
+        const { error: updateError } = await supabase
+          .from('applications')
+          .update(applicationData)
+          .eq('id', existing.id);
+        error = updateError;
+      } else {
+        // Insert new application
+        const { error: insertError } = await supabase
+          .from('applications')
+          .insert([applicationData]);
+        error = insertError;
+      }
 
       if (error) throw error;
 
@@ -287,21 +297,20 @@ const ApplicationForm = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="applicant_name" className="text-sm font-medium text-gray-700">
-                    Full Name <span className="text-red-500">*</span>
+                    Full Name
                   </Label>
                   <Input
                     id="applicant_name"
                     value={formData.applicant_name}
                     onChange={(e) => setFormData(prev => ({ ...prev, applicant_name: e.target.value }))}
                     placeholder="Enter your full name"
-                    required
                     className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                    Email Address <span className="text-red-500">*</span>
+                    Email Address
                   </Label>
                   <Input
                     id="email"
@@ -314,21 +323,20 @@ const ApplicationForm = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="vehicle_name" className="text-sm font-medium text-gray-700">
-                    Fund/Vehicle Name <span className="text-red-500">*</span>
+                    Fund/Vehicle Name
                   </Label>
                   <Input
                     id="vehicle_name"
                     value={formData.vehicle_name}
                     onChange={(e) => setFormData(prev => ({ ...prev, vehicle_name: e.target.value }))}
                     placeholder="Enter your fund or vehicle name"
-                    required
                     className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="organization_website" className="text-sm font-medium text-gray-700">
-                    Website <span className="text-red-500">*</span>
+                    Website
                   </Label>
                   <Input
                     id="organization_website"
@@ -336,7 +344,6 @@ const ApplicationForm = () => {
                     value={formData.organization_website}
                     onChange={(e) => setFormData(prev => ({ ...prev, organization_website: e.target.value }))}
                     placeholder="https://example.com"
-                    required
                     className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
@@ -360,7 +367,7 @@ const ApplicationForm = () => {
               <div className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="role_job_title" className="text-sm font-medium text-gray-700">
-                    Role & Relevant Experience <span className="text-red-500">*</span>
+                    Role & Relevant Experience
                   </Label>
                   <Textarea
                     id="role_job_title"
@@ -368,14 +375,13 @@ const ApplicationForm = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, role_job_title: e.target.value }))}
                     rows={4}
                     placeholder="Describe your role, responsibilities, and relevant experience in the investment space"
-                    required
                     className="border-gray-300 focus:border-green-500 focus:ring-green-500"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="team_overview" className="text-sm font-medium text-gray-700">
-                    Team Structure & Co-founders <span className="text-red-500">*</span>
+                    Team Structure & Co-founders
                   </Label>
                   <Textarea
                     id="team_overview"
@@ -383,7 +389,6 @@ const ApplicationForm = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, team_overview: e.target.value }))}
                     rows={4}
                     placeholder="Describe your team size, structure, key co-founders, and their backgrounds"
-                    required
                     className="border-gray-300 focus:border-green-500 focus:ring-green-500"
                   />
                 </div>
@@ -407,7 +412,7 @@ const ApplicationForm = () => {
               <div className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="investment_thesis" className="text-sm font-medium text-gray-700">
-                    Investment Thesis <span className="text-red-500">*</span>
+                    Investment Thesis
                   </Label>
                   <Textarea
                     id="investment_thesis"
@@ -415,7 +420,6 @@ const ApplicationForm = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, investment_thesis: e.target.value }))}
                     rows={5}
                     placeholder="Describe your investment strategy, focus areas, target sectors, and investment criteria"
-                    required
                     className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                   />
                 </div>
@@ -423,42 +427,39 @@ const ApplicationForm = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="typical_check_size" className="text-sm font-medium text-gray-700">
-                      Average Investment Size <span className="text-red-500">*</span>
+                      Average Investment Size
                     </Label>
                     <Input
                       id="typical_check_size"
                       value={formData.typical_check_size}
                       onChange={(e) => setFormData(prev => ({ ...prev, typical_check_size: e.target.value }))}
                       placeholder="e.g., $100K - $500K"
-                      required
                       className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                     />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="number_of_investments" className="text-sm font-medium text-gray-700">
-                      Number of Investments <span className="text-red-500">*</span>
+                      Number of Investments
                     </Label>
                     <Input
                       id="number_of_investments"
                       value={formData.number_of_investments}
                       onChange={(e) => setFormData(prev => ({ ...prev, number_of_investments: e.target.value }))}
                       placeholder="e.g., 15"
-                      required
                       className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                     />
                   </div>
 
                   <div className="md:col-span-2 space-y-2">
                     <Label htmlFor="amount_raised_to_date" className="text-sm font-medium text-gray-700">
-                      Total Capital Raised <span className="text-red-500">*</span>
+                      Total Capital Raised
                     </Label>
                     <Input
                       id="amount_raised_to_date"
                       value={formData.amount_raised_to_date}
                       onChange={(e) => setFormData(prev => ({ ...prev, amount_raised_to_date: e.target.value }))}
                       placeholder="e.g., $5M (include soft + hard commitments and self-contribution)"
-                      required
                       className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                     />
                   </div>
@@ -483,7 +484,7 @@ const ApplicationForm = () => {
               <div className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="expectations_from_network" className="text-sm font-medium text-gray-700">
-                    What do you hope to gain from the CFF Network? <span className="text-red-500">*</span>
+                    What do you hope to gain from the CFF Network?
                   </Label>
                   <Textarea
                     id="expectations_from_network"
@@ -491,21 +492,19 @@ const ApplicationForm = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, expectations_from_network: e.target.value }))}
                     rows={5}
                     placeholder="Describe your expectations, goals, and what you hope to contribute to and gain from the network"
-                    required
                     className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="how_heard_about_network" className="text-sm font-medium text-gray-700">
-                    How did you hear about the CFF Network? <span className="text-red-500">*</span>
+                    How did you hear about the CFF Network?
                   </Label>
                   <Input
                     id="how_heard_about_network"
                     value={formData.how_heard_about_network}
                     onChange={(e) => setFormData(prev => ({ ...prev, how_heard_about_network: e.target.value }))}
                     placeholder="e.g., Referral from member, LinkedIn, Conference, Media, etc."
-                    required
                     className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
                   />
                 </div>
