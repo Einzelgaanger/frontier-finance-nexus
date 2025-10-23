@@ -76,19 +76,45 @@ Deno.serve(async (req) => {
         .select('*')
         .eq('submission_status', 'completed')
 
-      if (!error && data) {
+      if (!error && data && data.length > 0) {
         const yearFields = visibleFields.filter(f => f.table_name === `survey_responses_${year}`)
         
-        dataContext.surveys[year] = data.map(response => {
-          const filtered: any = {}
-          yearFields.forEach(field => {
-            if (response[field.field_name] !== undefined) {
-              filtered[field.field_name] = response[field.field_name]
+        // If there are specific visible fields for this table, filter to those
+        // Otherwise, provide a summary with basic metadata
+        if (yearFields.length > 0) {
+          dataContext.surveys[year] = data.map(response => {
+            const filtered: any = {
+              id: response.id,
+              email_address: response.email_address || response.email,
+              organisation_name: response.organisation_name || response.organization_name || response.firm_name,
+              fund_name: response.fund_name
             }
+            yearFields.forEach(field => {
+              if (response[field.field_name] !== undefined) {
+                filtered[field.field_name] = response[field.field_name]
+              }
+            })
+            return filtered
           })
-          return filtered
-        })
+        } else {
+          // Provide summary info even if no specific fields visible
+          dataContext.surveys[year] = {
+            count: data.length,
+            sample_fund_names: data.slice(0, 5).map((r: any) => r.fund_name || r.organisation_name || r.firm_name).filter(Boolean)
+          }
+        }
       }
+    }
+
+    // Add survey summary
+    dataContext.survey_summary = {
+      total_responses: Object.values(dataContext.surveys).reduce((acc: number, yearData: any) => {
+        return acc + (Array.isArray(yearData) ? yearData.length : (yearData?.count || 0))
+      }, 0),
+      years_with_data: Object.keys(dataContext.surveys).filter(year => {
+        const yearData = dataContext.surveys[year]
+        return Array.isArray(yearData) ? yearData.length > 0 : (yearData?.count || 0) > 0
+      })
     }
 
     // ============================================================================
@@ -207,6 +233,11 @@ You are PortIQ, the AI assistant for the CFF (Capital for the Continent) Network
 **Member**: Access to extended fund information, network profiles, team details, investment strategies, blogs, and their own gamification data.
 **Viewer**: Access to basic public information about funds and their own profile.
 
+# DATABASE STATUS
+${dataContext.survey_summary ? `
+**Survey Data Available**: ${dataContext.survey_summary.total_responses} total completed survey responses across ${dataContext.survey_summary.years_with_data.join(', ')}.
+` : 'No survey data available.'}
+
 # AVAILABLE DATA CONTEXT
 You have access to the following data based on the user's role (${userRole}):
 
@@ -214,13 +245,26 @@ ${JSON.stringify(dataContext, null, 2)}
 
 # VISIBLE FIELDS BY TABLE
 The user can access these specific fields:
-${visibleFields.map(f => `- ${f.table_name}.${f.field_name} (${f.field_category})${f.survey_year ? ` [${f.survey_year}]` : ''}`).join('\n')}
+${visibleFields.length > 0 ? visibleFields.map(f => `- ${f.table_name}.${f.field_name} (${f.field_category})${f.survey_year ? ` [${f.survey_year}]` : ''}`).join('\n') : 'Limited field visibility for viewer role.'}
+
+# IMPORTANT FORMATTING RULES
+1. **Use markdown formatting** for all responses:
+   - **Bold** important terms with **double asterisks**
+   - Use bullet points with - or *
+   - Use numbered lists with 1. 2. 3.
+   - Use ### for section headings
+   - Use \`code\` for field names or technical terms
+   
+2. **Structure your responses**:
+   - Start with a brief summary
+   - Use sections for different aspects
+   - End with actionable insights or suggestions
 
 # INSTRUCTIONS
 1. **Answer using available data**: Base your responses on the data context provided above. Be specific and cite numbers when relevant.
 
 2. **Handle restricted data gracefully**: If the user asks about data they cannot access, politely explain:
-   - "I don't have access to that information with your current ${userRole} role."
+   - "I don't have access to that information with your current **${userRole}** role."
    - For viewers: Suggest they contact an admin about member access.
    - For members: Explain that financial details are admin-only.
 
@@ -239,14 +283,34 @@ ${visibleFields.map(f => `- ${f.table_name}.${f.field_name} (${f.field_category}
 
 6. **Be conversational and helpful**: Keep answers clear, concise, and actionable. Use bullet points for lists. Highlight interesting insights.
 
-7. **Suggest follow-up queries**: After answering, suggest related questions the user might find interesting based on their role.
+7. **Suggest follow-up queries**: After answering, suggest 2-3 related questions the user might find interesting based on their role.
 
-# EXAMPLES
-- "Show me all funds targeting agriculture in the 2024 survey"
-- "What's my current streak and how do I earn more points?"
-- "Compare fund sizes between 2023 and 2024 surveys"
-- "List all pending applications with investment thesis" (admin only)
-- "Which members have the most blog posts?"
+# EXAMPLES OF WELL-FORMATTED RESPONSES
+
+**Example 1: Survey Data Query**
+### Survey Data Overview
+
+I found **${dataContext.survey_summary?.total_responses || 0}** completed survey responses in the database across multiple years.
+
+**Available Years:**
+${dataContext.survey_summary?.years_with_data?.map((y: string) => `- **${y}**: Survey data available`).join('\n') || '- No data currently available'}
+
+**What you can ask:**
+- Specific fund information by year
+- Geographic distribution of funds
+- Sector focus trends
+- Investment strategies and sizes
+
+**Example 2: Restricted Access**
+I understand you're looking for **financial details**, but as a **${userRole}**, I only have access to basic fund information. For detailed financial data like fund sizes, IRR targets, or LP commitments, you would need **member** or **admin** access.
+
+**What I can help with:**
+- Fund names and organizations
+- General investment focus
+- Geographic markets
+- Public information
+
+Would you like to know more about what information is available to you?
 `
 
     // Call Lovable AI
