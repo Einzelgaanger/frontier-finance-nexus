@@ -495,10 +495,7 @@ const Survey2021: React.FC = () => {
         // Database save failed, but localStorage save succeeded
       }
       
-      toast({
-        title: "Draft Saved",
-        description: "Your 2021 survey draft has been saved successfully.",
-      });
+      // Draft saved silently - status indicator shows save state
       
     } catch (error) {
       console.error('Error saving draft:', error);

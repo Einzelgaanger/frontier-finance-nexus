@@ -107,7 +107,7 @@ export function useSurveyAutosave({
       setLastSaveTime(new Date());
       lastSavedDataRef.current = JSON.stringify(formData);
 
-      // Reset to idle after 2 seconds
+      // Reset to idle after 2 seconds (no toast notification)
       setTimeout(() => setSaveStatus('idle'), 2000);
 
       return { success: true };

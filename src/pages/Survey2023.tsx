@@ -729,10 +729,7 @@ export default function Survey2023() {
         // Database save failed, but localStorage save succeeded
       }
       
-      toast({
-        title: "Draft Saved",
-        description: "Your 2023 survey draft has been saved.",
-      });
+      // Draft saved silently - status indicator shows save state
       
     } catch (error) {
       console.error('Error saving draft:', error);

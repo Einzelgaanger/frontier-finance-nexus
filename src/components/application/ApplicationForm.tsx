@@ -90,14 +90,11 @@ const ApplicationForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate all required fields
-    if (!companyName || !applicationText || !formData.applicant_name || !formData.vehicle_name || 
-        !formData.organization_website || !formData.role_job_title || !formData.team_overview ||
-        !formData.investment_thesis || !formData.typical_check_size || !formData.number_of_investments ||
-        !formData.amount_raised_to_date || !formData.expectations_from_network || !formData.how_heard_about_network) {
+    // Allow partial submissions - validate only critical fields
+    if (!formData.applicant_name || !formData.email || !formData.vehicle_name) {
       toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields.",
+        title: "Missing Critical Information",
+        description: "Please fill in your name, email, and fund/vehicle name.",
         variant: "destructive",
       });
       return;

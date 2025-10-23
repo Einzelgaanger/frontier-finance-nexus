@@ -396,11 +396,7 @@ const Survey2022 = () => {
     try {
       // Save current form data as draft
       const formData = form.getValues();
-      // You can implement draft saving logic here
-      toast({
-        title: "Draft Saved",
-        description: "Your progress has been saved as a draft.",
-      });
+      // Draft saving handled by autosave hook - no toast notification
     } catch (error) {
       toast({
         title: "Error",
