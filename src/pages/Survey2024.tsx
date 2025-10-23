@@ -581,7 +581,7 @@ export default function Survey2024() {
 					const savedData = dbDraft.form_data;
 					Object.keys(savedData).forEach(key => {
 						if (savedData[key] !== undefined && savedData[key] !== null) {
-							form.setValue(key as any, savedData[key]);
+							form.setValue(key as any, savedData[key], { shouldDirty: true, shouldTouch: true });
 						}
 					});
 					return;
@@ -592,7 +592,7 @@ export default function Survey2024() {
 				if (savedData) {
 					Object.keys(savedData).forEach(key => {
 						if (savedData[key] !== undefined && savedData[key] !== null) {
-							form.setValue(key as any, savedData[key]);
+							form.setValue(key as any, savedData[key], { shouldDirty: true, shouldTouch: true });
 						}
 					});
 				}
@@ -603,6 +603,186 @@ export default function Survey2024() {
 
 		loadDraft();
 	}, [user, form]);
+
+	// Save draft function
+	const saveDraft = async () => {
+		if (!user) return;
+		
+		setSaving(true);
+		try {
+			// Enhanced form data capture for all field types
+			const formData = form.getValues();
+			
+			// Additional capture for complex nested objects and dynamic fields
+			const enhancedFormData = {
+				...formData,
+				// Ensure all nested objects are captured
+				pipeline_sources_quality: form.getValues('pipeline_sources_quality') || {},
+				sgb_financing_trends: form.getValues('sgb_financing_trends') || {},
+				post_investment_priorities: form.getValues('post_investment_priorities') || {},
+				technical_assistance_funding: form.getValues('technical_assistance_funding') || {},
+				unique_offerings: form.getValues('unique_offerings') || {},
+				gender_lens_investing: form.getValues('gender_lens_investing') || {},
+				// Capture all form state including touched/dirty fields
+				_formState: form.formState,
+			};
+			
+			// Always save to localStorage as fallback
+			saveFormData(enhancedFormData);
+			
+			// Try to save to database
+			try {
+				// Check if draft already exists
+				const { data: existing } = await supabase
+					.from('survey_responses_2024')
+					.select('id')
+					.eq('user_id', user.id)
+					.maybeSingle();
+				
+				const surveyData = {
+					user_id: user.id,
+					email_address: formData.email_address,
+					organisation_name: formData.organisation_name,
+					fund_name: formData.fund_name,
+					funds_raising_investing: formData.funds_raising_investing,
+					legal_entity_achieved: formData.legal_entity_achieved,
+					first_close_achieved: formData.first_close_achieved,
+					first_investment_achieved: formData.first_investment_achieved,
+					geographic_markets: formData.geographic_markets || [],
+					geographic_markets_other: formData.geographic_markets_other,
+					team_based: formData.team_based || [],
+					team_based_other: formData.team_based_other,
+					form_data: formData,
+					submission_status: 'draft',
+					updated_at: new Date().toISOString()
+				};
+
+				if (existing) {
+					// Update existing draft
+					const { error } = await supabase
+						.from('survey_responses_2024')
+						.update(surveyData)
+						.eq('id', existing.id);
+					
+					if (error) throw error;
+				} else {
+					// Insert new draft
+					const { error } = await supabase
+						.from('survey_responses_2024')
+						.insert(surveyData);
+					
+					if (error) throw error;
+				}
+			} catch (dbError) {
+				console.warn('Database save failed, using localStorage only:', dbError);
+				// Database save failed, but localStorage save succeeded
+			}
+			
+		} catch (error) {
+			console.error('Error saving draft:', error);
+		} finally {
+			setSaving(false);
+		}
+	};
+
+	// Auto-save draft every 5 seconds
+	useEffect(() => {
+		if (!user) return;
+		
+		const interval = setInterval(() => {
+			saveDraft();
+		}, 5000);
+		
+		return () => clearInterval(interval);
+	}, [user]);
+
+	// Watch all form changes and save immediately
+	useEffect(() => {
+		if (!user) return;
+		
+		// Watch specific complex fields that might not trigger general form changes
+		const watchFields = [
+			'pipeline_sources_quality',
+			'sgb_financing_trends',
+			'post_investment_priorities',
+			'technical_assistance_funding',
+			'unique_offerings',
+			'gender_lens_investing'
+		];
+		
+		const subscriptions = watchFields.map(field => 
+			form.watch(field as any, (value) => {
+				const timeoutId = setTimeout(() => {
+					saveDraft();
+				}, 1000); // Faster save for critical fields
+				return () => clearTimeout(timeoutId);
+			})
+		);
+		
+		// General form watching
+		const generalSubscription = form.watch((value) => {
+			const timeoutId = setTimeout(() => {
+				saveDraft();
+			}, 2000); // Save 2 seconds after last change
+			
+			return () => clearTimeout(timeoutId);
+		});
+		
+		return () => {
+			subscriptions.forEach(sub => sub.unsubscribe());
+			generalSubscription.unsubscribe();
+		};
+	}, [user, form]);
+
+	// Handle form submission
+	const handleSubmit = async (data: any) => {
+		if (!user) return;
+		
+		setLoading(true);
+		try {
+			const { error } = await supabase
+				.from('survey_responses_2024')
+				.upsert({
+					user_id: user.id,
+					email_address: data.email_address,
+					organisation_name: data.organisation_name,
+					fund_name: data.fund_name,
+					funds_raising_investing: data.funds_raising_investing,
+					legal_entity_achieved: data.legal_entity_achieved,
+					first_close_achieved: data.first_close_achieved,
+					first_investment_achieved: data.first_investment_achieved,
+					geographic_markets: data.geographic_markets || [],
+					geographic_markets_other: data.geographic_markets_other,
+					team_based: data.team_based || [],
+					team_based_other: data.team_based_other,
+					form_data: data,
+					submission_status: 'completed',
+					completed_at: new Date().toISOString(),
+					updated_at: new Date().toISOString()
+				}, { onConflict: 'user_id' });
+
+			if (error) throw error;
+
+			// Clear saved data
+			clearSavedData();
+
+			toast({
+				title: "Survey Submitted!",
+				description: "Thank you for completing the 2024 survey.",
+			});
+
+			navigate('/network');
+		} catch (error) {
+			console.error('Error submitting survey:', error);
+			toast({
+				title: "Error",
+				description: "Failed to submit survey. Please try again.",
+				variant: "destructive",
+			});
+		} finally {
+			setLoading(false);
+		}
+	};
 
 	const getSectionTitle = (section: number) => {
 		const titles = {

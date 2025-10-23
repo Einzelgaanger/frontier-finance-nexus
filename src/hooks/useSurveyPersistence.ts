@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 interface SurveyPersistenceOptions {
@@ -77,8 +77,66 @@ export const useSurveyPersistence = ({
     localStorage.removeItem(`${surveyKey}_formData`);
   };
 
+  // Clean form data to ensure all field types are properly serialized
+  const cleanFormData = useCallback((data: Record<string, unknown>): Record<string, unknown> => {
+    if (!data || typeof data !== 'object') return {};
+    
+    // Handle arrays separately
+    if (Array.isArray(data)) {
+      return data.filter(v => v !== undefined && v !== null) as unknown as Record<string, unknown>;
+    }
+    
+    const cleaned: Record<string, unknown> = {};
+    
+    for (const key in data) {
+      const value = data[key];
+      
+      // Handle undefined/null
+      if (value === undefined) {
+        cleaned[key] = null;
+      }
+      // Handle arrays (checkboxes, multi-select)
+      else if (Array.isArray(value)) {
+        cleaned[key] = value.filter(v => v !== undefined && v !== null);
+      }
+      // Handle nested objects (record fields, ranking questions)
+      else if (value !== null && typeof value === 'object') {
+        cleaned[key] = cleanFormData(value as Record<string, unknown>);
+      }
+      // Handle primitives
+      else {
+        cleaned[key] = value;
+      }
+    }
+    
+    return cleaned;
+  }, []);
+
+  // Deep comparison helper to check if form data has actually changed
+  const hasFormDataChanged = useCallback((newData: Record<string, unknown>, oldData: Record<string, unknown> | null): boolean => {
+    if (newData === oldData) return false;
+    if (!newData || !oldData) return true;
+    
+    try {
+      return JSON.stringify(newData) !== JSON.stringify(oldData);
+    } catch (error) {
+      return true;
+    }
+  }, []);
+
+  // Get saved form data
+  const getSavedFormData = useCallback(() => {
+    try {
+      const saved = localStorage.getItem(`${surveyKey}_formData`);
+      return saved ? JSON.parse(saved) : null;
+    } catch (error) {
+      console.warn('Failed to load saved form data:', error);
+      return null;
+    }
+  }, [surveyKey]);
+
   // Auto-save form data
-  const setupAutoSave = (formData: any) => {
+  const setupAutoSave = (formData: Record<string, unknown>) => {
     if (!autoSave) return;
 
     const interval = setInterval(() => {
@@ -92,25 +150,26 @@ export const useSurveyPersistence = ({
     return () => clearInterval(interval);
   };
 
-  // Get saved form data
-  const getSavedFormData = () => {
+  // Save form data manually with validation
+  const saveFormData = useCallback((formData: Record<string, unknown>) => {
     try {
-      const saved = localStorage.getItem(`${surveyKey}_formData`);
-      return saved ? JSON.parse(saved) : null;
-    } catch (error) {
-      console.warn('Failed to load saved form data:', error);
-      return null;
-    }
-  };
-
-  // Save form data manually
-  const saveFormData = (formData: any) => {
-    try {
-      localStorage.setItem(`${surveyKey}_formData`, JSON.stringify(formData));
+      // Get existing data to compare
+      const existingData = getSavedFormData();
+      
+      // Only save if data has actually changed
+      if (!hasFormDataChanged(formData, existingData)) {
+        return false; // No changes, skip save
+      }
+      
+      // Clean and normalize the data before saving
+      const cleanedData = cleanFormData(formData);
+      localStorage.setItem(`${surveyKey}_formData`, JSON.stringify(cleanedData));
+      return true; // Successfully saved
     } catch (error) {
       console.warn('Failed to save form data:', error);
+      return false;
     }
-  };
+  }, [surveyKey, hasFormDataChanged, cleanFormData, getSavedFormData]);
 
   return {
     saveCurrentSection,
@@ -121,5 +180,6 @@ export const useSurveyPersistence = ({
     getSavedFormData,
     saveFormData,
     scrollPositionRef,
+    hasFormDataChanged,
   };
-}; 
+};

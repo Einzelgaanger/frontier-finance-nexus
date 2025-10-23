@@ -287,26 +287,26 @@ const Survey2021: React.FC = () => {
           .eq('submission_status', 'draft')
           .maybeSingle();
 
-        if (dbDraft && dbDraft.form_data) {
-          // Load from database
-          const savedData = dbDraft.form_data;
-          Object.keys(savedData).forEach(key => {
-            if (savedData[key] !== undefined && savedData[key] !== null) {
-              form.setValue(key as any, savedData[key]);
-            }
-          });
-          return;
-        }
+				if (dbDraft && dbDraft.form_data) {
+					// Load from database
+					const savedData = dbDraft.form_data;
+					Object.keys(savedData).forEach(key => {
+						if (savedData[key] !== undefined && savedData[key] !== null) {
+							form.setValue(key as any, savedData[key], { shouldDirty: true, shouldTouch: true });
+						}
+					});
+					return;
+				}
 
-        // Fallback to localStorage
-        const savedData = getSavedFormData();
-        if (savedData) {
-          Object.keys(savedData).forEach(key => {
-            if (savedData[key] !== undefined && savedData[key] !== null) {
-              form.setValue(key as any, savedData[key]);
-            }
-          });
-        }
+				// Fallback to localStorage
+				const savedData = getSavedFormData();
+				if (savedData) {
+					Object.keys(savedData).forEach(key => {
+						if (savedData[key] !== undefined && savedData[key] !== null) {
+							form.setValue(key as any, savedData[key], { shouldDirty: true, shouldTouch: true });
+						}
+					});
+				}
       } catch (error) {
         console.warn('Failed to load draft:', error);
       }
@@ -322,6 +322,43 @@ const Survey2021: React.FC = () => {
     
     return cleanup;
   }, [form.watch()]);
+
+  // Watch all form changes and save immediately
+  useEffect(() => {
+    if (!user) return;
+    
+    // Watch specific complex fields that might not trigger general form changes
+    const watchFields = [
+      'top_sdg_1',
+      'top_sdg_2', 
+      'top_sdg_3',
+      'other_sdgs',
+      'convening_initiatives_other_ranking'
+    ];
+    
+    const subscriptions = watchFields.map(field => 
+      form.watch(field as any, (value) => {
+        const timeoutId = setTimeout(() => {
+          saveDraft();
+        }, 1000); // Faster save for critical fields
+        return () => clearTimeout(timeoutId);
+      })
+    );
+    
+    // General form watching
+    const generalSubscription = form.watch((value) => {
+      const timeoutId = setTimeout(() => {
+        saveDraft();
+      }, 2000); // Save 2 seconds after last change
+      
+      return () => clearTimeout(timeoutId);
+    });
+    
+    return () => {
+      subscriptions.forEach(sub => sub.unsubscribe());
+      generalSubscription.unsubscribe();
+    };
+  }, [user, form]);
 
   // Save section and scroll position when section changes
   useEffect(() => {
@@ -381,55 +418,75 @@ const Survey2021: React.FC = () => {
     
     setSaving(true);
     try {
+      // Enhanced form data capture for all field types
       const formData = form.getValues();
       
-      // Save to localStorage as backup
-      saveFormData(formData);
-      
-      // Check if record exists
-      const { data: existingRecord } = await supabase
-        .from('survey_responses_2021')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      const recordData = {
-        user_id: user.id,
-        email_address: formData.email_address,
-        firm_name: formData.firm_name,
-        participant_name: formData.participant_name,
-        role_title: formData.role_title,
-        team_based: formData.team_based || [],
-        team_based_other: formData.team_based_other,
-        geographic_focus: formData.geographic_focus || [],
-        geographic_focus_other: formData.geographic_focus_other,
-        fund_stage: formData.fund_stage,
-        fund_stage_other: formData.fund_stage_other,
-        legal_entity_date: formData.legal_entity_date,
-        first_close_date: formData.first_close_date,
-        first_investment_date: formData.first_investment_date,
-        form_data: formData,
-        submission_status: 'draft',
-        updated_at: new Date().toISOString(),
+      // Additional capture for complex nested objects and dynamic fields
+      const enhancedFormData = {
+        ...formData,
+        // Ensure all nested objects are captured
+        top_sdg_1: form.getValues('top_sdg_1'),
+        top_sdg_2: form.getValues('top_sdg_2'),
+        top_sdg_3: form.getValues('top_sdg_3'),
+        other_sdgs: form.getValues('other_sdgs') || [],
+        convening_initiatives_other_ranking: form.getValues('convening_initiatives_other_ranking'),
+        // Capture all form state including touched/dirty fields
+        _formState: form.formState,
       };
+      
+      // Save to localStorage as backup
+      saveFormData(enhancedFormData);
+      
+      // Try to save to database
+      try {
+        // Check if record exists
+        const { data: existingRecord } = await supabase
+          .from('survey_responses_2021')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
 
-      let error;
-      if (existingRecord) {
-        // Update existing record
-        const { error: updateError } = await supabase
-          .from('survey_responses_2021')
-          .update(recordData)
-          .eq('user_id', user.id);
-        error = updateError;
-      } else {
-        // Insert new record
-        const { error: insertError } = await supabase
-          .from('survey_responses_2021')
-          .insert(recordData);
-        error = insertError;
+        const recordData = {
+          user_id: user.id,
+          email_address: formData.email_address,
+          firm_name: formData.firm_name,
+          participant_name: formData.participant_name,
+          role_title: formData.role_title,
+          team_based: formData.team_based || [],
+          team_based_other: formData.team_based_other,
+          geographic_focus: formData.geographic_focus || [],
+          geographic_focus_other: formData.geographic_focus_other,
+          fund_stage: formData.fund_stage,
+          fund_stage_other: formData.fund_stage_other,
+          legal_entity_date: formData.legal_entity_date,
+          first_close_date: formData.first_close_date,
+          first_investment_date: formData.first_investment_date,
+          form_data: formData,
+          submission_status: 'draft',
+          updated_at: new Date().toISOString(),
+        };
+
+        let error;
+        if (existingRecord) {
+          // Update existing record
+          const { error: updateError } = await supabase
+            .from('survey_responses_2021')
+            .update(recordData)
+            .eq('user_id', user.id);
+          error = updateError;
+        } else {
+          // Insert new record
+          const { error: insertError } = await supabase
+            .from('survey_responses_2021')
+            .insert(recordData);
+          error = insertError;
+        }
+
+        if (error) throw error;
+      } catch (dbError) {
+        console.warn('Database save failed, using localStorage only:', dbError);
+        // Database save failed, but localStorage save succeeded
       }
-
-      if (error) throw error;
       
       toast({
         title: "Draft Saved",

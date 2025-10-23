@@ -206,7 +206,7 @@ const Survey2022 = () => {
           const savedData = dbDraft.form_data;
           Object.keys(savedData).forEach(key => {
             if (savedData[key] !== undefined && savedData[key] !== null) {
-              form.setValue(key as any, savedData[key]);
+              form.setValue(key as any, savedData[key], { shouldDirty: true, shouldTouch: true });
             }
           });
           return;
@@ -217,7 +217,7 @@ const Survey2022 = () => {
         if (savedData) {
           Object.keys(savedData).forEach(key => {
             if (savedData[key] !== undefined && savedData[key] !== null) {
-              form.setValue(key as any, savedData[key]);
+              form.setValue(key as any, savedData[key], { shouldDirty: true, shouldTouch: true });
             }
           });
         }
@@ -250,48 +250,70 @@ const Survey2022 = () => {
     
     setSaving(true);
     try {
+      // Enhanced form data capture for all field types
       const formData = form.getValues();
       
-      // Check if draft already exists
-      const { data: existing } = await supabase
-        .from('survey_responses_2022')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
-      const surveyData = {
-        user_id: user.id,
-        name: formData.name,
-        role_title: formData.role_title,
-        email: formData.email,
-        organisation: formData.organisation,
-        legal_entity_date: formData.legal_entity_date,
-        first_close_date: formData.first_close_date,
-        first_investment_date: formData.first_investment_date,
-        geographic_markets: formData.geographic_markets || [],
-        geographic_markets_other: formData.geographic_markets_other,
-        team_based: formData.team_based || [],
-        team_based_other: formData.team_based_other,
-        form_data: formData,
-        submission_status: 'draft',
-        updated_at: new Date().toISOString(),
+      // Additional capture for complex nested objects and dynamic fields
+      const enhancedFormData = {
+        ...formData,
+        // Ensure all nested objects are captured
+        business_stages: form.getValues('business_stages') || {},
+        fundraising_constraints: form.getValues('fundraising_constraints') || {},
+        financing_needs: form.getValues('financing_needs') || {},
+        sector_activities: form.getValues('sector_activities') || {},
+        // Capture all form state including touched/dirty fields
+        _formState: form.formState,
       };
+      
+      // Always save to localStorage as fallback
+      saveFormData(enhancedFormData);
+      
+      // Try to save to database
+      try {
+        // Check if draft already exists
+        const { data: existing } = await supabase
+          .from('survey_responses_2022')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        const surveyData = {
+          user_id: user.id,
+          name: formData.name,
+          role_title: formData.role_title,
+          email: formData.email,
+          organisation: formData.organisation,
+          legal_entity_date: formData.legal_entity_date,
+          first_close_date: formData.first_close_date,
+          first_investment_date: formData.first_investment_date,
+          geographic_markets: formData.geographic_markets || [],
+          geographic_markets_other: formData.geographic_markets_other,
+          team_based: formData.team_based || [],
+          team_based_other: formData.team_based_other,
+          form_data: formData,
+          submission_status: 'draft',
+          updated_at: new Date().toISOString(),
+        };
 
-      if (existing) {
-        // Update existing draft
-        const { error } = await supabase
-          .from('survey_responses_2022')
-          .update(surveyData)
-          .eq('id', existing.id);
-        
-        if (error) throw error;
-      } else {
-        // Insert new draft
-        const { error } = await supabase
-          .from('survey_responses_2022')
-          .insert(surveyData);
-        
-        if (error) throw error;
+        if (existing) {
+          // Update existing draft
+          const { error } = await supabase
+            .from('survey_responses_2022')
+            .update(surveyData)
+            .eq('id', existing.id);
+          
+          if (error) throw error;
+        } else {
+          // Insert new draft
+          const { error } = await supabase
+            .from('survey_responses_2022')
+            .insert(surveyData);
+          
+          if (error) throw error;
+        }
+      } catch (dbError) {
+        console.warn('Database save failed, using localStorage only:', dbError);
+        // Database save failed, but localStorage save succeeded
       }
       
     } catch (error) {
@@ -301,13 +323,46 @@ const Survey2022 = () => {
     }
   };
 
-  // Auto-save draft every 1 second
-  setupAutoSave({
-    onSave: saveDraft,
-    data: form.watch(),
-    interval: 1000,
-    enabled: !!user
-  });
+  // Auto-save draft every 5 seconds
+  useEffect(() => {
+    if (!user) return;
+    
+    const interval = setInterval(() => {
+      saveDraft();
+    }, 5000); // Save every 5 seconds instead of 1 second
+    
+    return () => clearInterval(interval);
+  }, [user]);
+
+  // Watch all form changes and save immediately
+  useEffect(() => {
+    if (!user) return;
+    
+    // Watch specific complex fields that might not trigger general form changes
+    const watchFields = [
+      'business_stages',
+      'fundraising_constraints', 
+      'financing_needs',
+      'sector_activities',
+      'business_stages_other_selected',
+      'business_stages_other_description'
+    ];
+    
+    // Watch each field individually and save on change
+    watchFields.forEach(field => {
+      form.watch(field as any);
+    });
+    
+    // General form watching - this will trigger on any form change
+    const watchedValues = form.watch();
+    
+    // Save when any watched value changes
+    const timeoutId = setTimeout(() => {
+      saveDraft();
+    }, 2000); // Save 2 seconds after last change
+    
+    return () => clearTimeout(timeoutId);
+  }, [user, form, form.watch()]);
 
 
 
