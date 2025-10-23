@@ -153,6 +153,7 @@ const Survey2021: React.FC = () => {
     getLastSection,
     clearSavedData,
     setupAutoSave,
+    getSavedFormData,
     saveFormData,
   } = useSurveyPersistence({ surveyKey: 'survey2021' });
 
@@ -284,7 +285,7 @@ const Survey2021: React.FC = () => {
           .select('*')
           .eq('user_id', user.id)
           .eq('submission_status', 'draft')
-          .single();
+          .maybeSingle();
 
         if (dbDraft && dbDraft.form_data) {
           // Load from database

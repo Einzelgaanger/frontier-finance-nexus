@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useSurveyPersistence } from '@/hooks/useSurveyPersistence';
 import { ArrowLeft, ArrowRight, Save, Send } from 'lucide-react';
 import SidebarLayout from '@/components/layout/SidebarLayout';
 import Header from '@/components/layout/Header';
@@ -144,6 +145,43 @@ const Survey2022 = () => {
   const { toast } = useToast();
   const [currentSection, setCurrentSection] = useState(1);
 
+  // Initialize persistence hook
+  const {
+    saveCurrentSection,
+    saveScrollPosition,
+    getLastSection,
+    clearSavedData,
+    setupAutoSave,
+    getSavedFormData,
+    saveFormData,
+  } = useSurveyPersistence({ surveyKey: 'survey2022' });
+
+  const form = useForm<Survey2022FormData>({
+    resolver: zodResolver(survey2022Schema),
+    defaultValues: {
+      name: '',
+      role_title: '',
+      email: '',
+      organisation: '',
+      legal_entity_date: '',
+      first_close_date: '',
+      first_investment_date: '',
+      geographic_markets: [],
+      geographic_markets_other: '',
+      fund_stage: '',
+      fund_stage_other: '',
+      investment_stage: '',
+      investment_size: '',
+      investment_type: '',
+      sector_focus: '',
+      geographic_focus: '',
+      value_add_services: '',
+      team_based: [],
+      team_based_other: '',
+      receive_results: false,
+    },
+  });
+
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -161,7 +199,7 @@ const Survey2022 = () => {
           .select('*')
           .eq('user_id', user.id)
           .eq('submission_status', 'draft')
-          .single();
+          .maybeSingle();
 
         if (dbDraft && dbDraft.form_data) {
           // Load from database
@@ -193,123 +231,6 @@ const Survey2022 = () => {
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-
-  const form = useForm<Survey2022FormData>({
-    resolver: zodResolver(survey2022Schema),
-    defaultValues: {
-      name: '',
-      role_title: '',
-      email: '',
-      organisation: '',
-      legal_entity_date: '',
-      first_close_date: '',
-      first_investment_date: '',
-      geographic_markets: [],
-      geographic_markets_other: '',
-      team_based: [],
-      team_based_other: '',
-      current_ftes: '',
-      ye2023_ftes: '',
-      principals_count: '',
-      gp_experience: {},
-      gp_experience_other_selected: false,
-      gp_experience_other_description: '',
-      gender_orientation: [],
-      gender_orientation_other: '',
-      investments_experience: '',
-      exits_experience: '',
-      legal_domicile: '',
-      legal_domicile_other: '',
-      currency_investments: '',
-      currency_lp_commitments: '',
-      fund_operations: '',
-      fund_operations_other: '',
-      current_funds_raised: '',
-      current_amount_invested: '',
-      target_fund_size: '',
-      target_investments: '',
-      follow_on_permitted: '',
-      target_irr: '',
-      target_irr_other: '',
-      concessionary_capital: [],
-      concessionary_capital_other: '',
-      lp_capital_sources: {},
-      lp_capital_sources_other_description: '',
-      gp_commitment: '',
-      management_fee: '',
-      management_fee_other: '',
-      carried_interest_hurdle: '',
-      carried_interest_hurdle_other: '',
-      fundraising_constraints: {},
-      fundraising_constraints_other_selected: false,
-      fundraising_constraints_other_description: '',
-      business_stages: {},
-      business_stages_other_selected: false,
-      business_stages_other_description: '',
-      enterprise_types: [],
-      financing_needs: {},
-      financing_needs_other_selected: false,
-      financing_needs_other_description: '',
-      sector_activities: {},
-      sector_activities_other_selected: false,
-      sector_activities_other_description: '',
-      financial_instruments: {},
-      financial_instruments_other_selected: false,
-      financial_instruments_other_description: '',
-      sdg_targets: {},
-      gender_lens_investing: {},
-      gender_lens_investing_other_selected: false,
-      gender_lens_investing_other_description: '',
-      technology_role_investment_thesis: '',
-      pipeline_sourcing: {},
-      pipeline_sourcing_other_selected: false,
-      pipeline_sourcing_other_description: '',
-      average_investment_size_per_company: '',
-      portfolio_value_creation_priorities: {},
-      portfolio_value_creation_other_selected: false,
-      portfolio_value_creation_other_description: '',
-      typical_investment_timeframe: '',
-      investment_monetization_exit_forms: [],
-      investment_monetization_exit_forms_other: '',
-      equity_exits_achieved: '',
-      debt_repayments_achieved: '',
-      investments_made_to_date: '',
-      other_investments_supplement: '',
-      anticipated_exits_12_months: '',
-      revenue_growth_recent_12_months: '',
-      cash_flow_growth_recent_12_months: '',
-      revenue_growth_next_12_months: '',
-      cash_flow_growth_next_12_months: '',
-      portfolio_performance_other_selected: false,
-      revenue_growth_other: '',
-      cash_flow_growth_other: '',
-      portfolio_performance_other_description: '',
-      direct_jobs_created_cumulative: '',
-      direct_jobs_anticipated_change: '',
-      indirect_jobs_created_cumulative: '',
-      indirect_jobs_anticipated_change: '',
-      jobs_impact_other_selected: false,
-      other_jobs_created_cumulative: '',
-      other_jobs_anticipated_change: '',
-      jobs_impact_other_description: '',
-      fund_priority_areas: {},
-      fund_priority_areas_other_selected: false,
-      fund_priority_areas_other_description: '',
-      domestic_factors_concerns: {},
-      domestic_factors_concerns_other_selected: false,
-      domestic_factors_concerns_other_description: '',
-      international_factors_concerns: {},
-      international_factors_concerns_other_selected: false,
-      international_factors_concerns_other_description: '',
-      investment_stage: 'seed',
-      investment_size: '0_100k',
-      investment_type: 'equity',
-      sector_focus: 'technology',
-      geographic_focus: 'africa',
-      value_add_services: 'strategic_guidance',
-      receive_results: false,
-    }
-  });
 
   const totalSections = 7;
   const [showIntro, setShowIntro] = useState(true);
@@ -381,7 +302,7 @@ const Survey2022 = () => {
   };
 
   // Auto-save draft every 1 second
-  useAutoSave({
+  setupAutoSave({
     onSave: saveDraft,
     data: form.watch(),
     interval: 1000,

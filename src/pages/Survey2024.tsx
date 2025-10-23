@@ -15,6 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
+import { useSurveyPersistence } from '@/hooks/useSurveyPersistence';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -174,6 +175,388 @@ export default function Survey2024() {
 	const totalSections = 8;
 	const { toast } = useToast();
 
+	// Initialize persistence hook
+	const {
+		saveCurrentSection,
+		saveScrollPosition,
+		getLastSection,
+		clearSavedData,
+		setupAutoSave,
+		getSavedFormData,
+		saveFormData,
+	} = useSurveyPersistence({ surveyKey: 'survey2024' });
+
+	const form = useForm<Survey2024FormData>({
+		resolver: zodResolver(survey2024Schema),
+		reValidateMode: 'onSubmit',
+		defaultValues: {
+			// Section 1: Introduction & Context
+			email_address: '',
+			firm_name: '',
+			participant_name: '',
+			role_title: '',
+			team_based: [],
+			team_based_other: '',
+			geographic_focus: [],
+			geographic_focus_other: '',
+			fund_stage: '',
+			fund_stage_other: '',
+			legal_entity_date: '',
+			first_close_date: '',
+			first_investment_date: '',
+			// Section 2: Investment Thesis & Capital Construct
+			investment_stage: '',
+			investment_size: '',
+			investment_type: '',
+			sector_focus: '',
+			geographic_focus: '',
+			value_add_services: '',
+			// Section 3: Portfolio Construction and Team
+			current_ftes: '',
+			ye2024_ftes: '',
+			principals_count: '',
+			gp_experience: {},
+			gp_experience_other_selected: false,
+			gp_experience_other_description: '',
+			gender_orientation: [],
+			gender_orientation_other: '',
+			investments_experience: '',
+			exits_experience: '',
+			// Section 4: Portfolio Development & Investment Return Monetization
+			legal_domicile: '',
+			legal_domicile_other: '',
+			currency_investments: '',
+			currency_lp_commitments: '',
+			fund_operations: '',
+			fund_operations_other: '',
+			current_funds_raised: '',
+			current_amount_invested: '',
+			target_fund_size: '',
+			target_investments: '',
+			follow_on_permitted: '',
+			target_irr: '',
+			target_irr_other: '',
+			concessionary_capital: [],
+			concessionary_capital_other: '',
+			lp_capital_sources: {},
+			lp_capital_sources_other_description: '',
+			gp_commitment: '',
+			management_fee: '',
+			management_fee_other: '',
+			carried_interest_hurdle: '',
+			carried_interest_hurdle_other: '',
+			carried_interest_percentage: '',
+			carried_interest_percentage_other: '',
+			key_terms_other: '',
+			key_terms_other_description: '',
+			// Section 5: Impact of COVID-19 on Vehicle and Portfolio
+			portfolio_performance: {},
+			portfolio_performance_other_selected: false,
+			revenue_growth_other: '',
+			cash_flow_growth_other: '',
+			portfolio_performance_other_description: '',
+			direct_jobs_created_cumulative: '',
+			direct_jobs_anticipated_change: '',
+			indirect_jobs_created_cumulative: '',
+			indirect_jobs_anticipated_change: '',
+			jobs_impact_other_selected: false,
+			other_jobs_created_cumulative: '',
+			other_jobs_anticipated_change: '',
+			jobs_impact_other_description: '',
+			fund_priority_areas: {},
+			fund_priority_areas_other_selected: false,
+			fund_priority_areas_other_description: '',
+			domestic_factors_concerns: {},
+			domestic_factors_concerns_other_selected: false,
+			domestic_factors_concerns_other_description: '',
+			international_factors_concerns: {},
+			international_factors_concerns_other_selected: false,
+			international_factors_concerns_other_description: '',
+			// Section 6: Feedback on ESCP Network Membership to date
+			network_value: '',
+			network_improvements: '',
+			network_events: '',
+			network_events_other: '',
+			network_communication: '',
+			network_communication_other: '',
+			network_support: '',
+			network_support_other: '',
+			network_impact: '',
+			network_impact_other: '',
+			network_recommendations: '',
+			// Section 7: 2024 Convening Objectives & Goals
+			convening_objectives: [],
+			convening_objectives_other: '',
+			convening_format: '',
+			convening_format_other: '',
+			convening_topics: [],
+			convening_topics_other: '',
+			convening_speakers: '',
+			convening_speakers_other: '',
+			convening_networking: '',
+			convening_networking_other: '',
+			convening_outcomes: '',
+			convening_outcomes_other: '',
+			convening_follow_up: '',
+			convening_follow_up_other: '',
+			convening_commitments: '',
+			convening_commitments_other: '',
+			convening_impact: '',
+			convening_impact_other: '',
+			convening_success: '',
+			convening_success_other: '',
+			convening_challenges: '',
+			convening_challenges_other: '',
+			convening_opportunities: '',
+			convening_opportunities_other: '',
+			convening_priorities: '',
+			convening_priorities_other: '',
+			convening_goals: '',
+			convening_goals_other: '',
+			convening_vision: '',
+			convening_vision_other: '',
+			convening_mission: '',
+			convening_mission_other: '',
+			convening_values: '',
+			convening_values_other: '',
+			convening_principles: '',
+			convening_principles_other: '',
+			convening_standards: '',
+			convening_standards_other: '',
+			convening_guidelines: '',
+			convening_guidelines_other: '',
+			convening_policies: '',
+			convening_policies_other: '',
+			convening_procedures: '',
+			convening_procedures_other: '',
+			convening_processes: '',
+			convening_processes_other: '',
+			convening_systems: '',
+			convening_systems_other: '',
+			convening_structures: '',
+			convening_structures_other: '',
+			convening_frameworks: '',
+			convening_frameworks_other: '',
+			convening_models: '',
+			convening_models_other: '',
+			convening_approaches: '',
+			convening_approaches_other: '',
+			convening_methods: '',
+			convening_methods_other: '',
+			convening_techniques: '',
+			convening_techniques_other: '',
+			convening_strategies: '',
+			convening_strategies_other: '',
+			convening_tactics: '',
+			convening_tactics_other: '',
+			convening_plans: '',
+			convening_plans_other: '',
+			convening_programs: '',
+			convening_programs_other: '',
+			convening_initiatives: '',
+			convening_initiatives_other: '',
+			convening_projects: '',
+			convening_projects_other: '',
+			convening_activities: '',
+			convening_activities_other: '',
+			convening_events: '',
+			convening_events_other: '',
+			convening_meetings: '',
+			convening_meetings_other: '',
+			convening_sessions: '',
+			convening_sessions_other: '',
+			convening_workshops: '',
+			convening_workshops_other: '',
+			convening_seminars: '',
+			convening_seminars_other: '',
+			convening_conferences: '',
+			convening_conferences_other: '',
+			convening_symposia: '',
+			convening_symposia_other: '',
+			convening_forums: '',
+			convening_forums_other: '',
+			convening_roundtables: '',
+			convening_roundtables_other: '',
+			convening_panels: '',
+			convening_panels_other: '',
+			convening_discussions: '',
+			convening_discussions_other: '',
+			convening_dialogues: '',
+			convening_dialogues_other: '',
+			convening_conversations: '',
+			convening_conversations_other: '',
+			convening_exchanges: '',
+			convening_exchanges_other: '',
+			convening_interactions: '',
+			convening_interactions_other: '',
+			convening_engagements: '',
+			convening_engagements_other: '',
+			convening_collaborations: '',
+			convening_collaborations_other: '',
+			convening_partnerships: '',
+			convening_partnerships_other: '',
+			convening_alliances: '',
+			convening_alliances_other: '',
+			convening_coalitions: '',
+			convening_coalitions_other: '',
+			convening_networks: '',
+			convening_networks_other: '',
+			convening_communities: '',
+			convening_communities_other: '',
+			convening_groups: '',
+			convening_groups_other: '',
+			convening_teams: '',
+			convening_teams_other: '',
+			convening_organizations: '',
+			convening_organizations_other: '',
+			convening_institutions: '',
+			convening_institutions_other: '',
+			convening_entities: '',
+			convening_entities_other: '',
+			convening_bodies: '',
+			convening_bodies_other: '',
+			convening_committees: '',
+			convening_committees_other: '',
+			convening_boards: '',
+			convening_boards_other: '',
+			convening_councils: '',
+			convening_councils_other: '',
+			convening_assemblies: '',
+			convening_assemblies_other: '',
+			convening_gatherings: '',
+			convening_gatherings_other: '',
+			convening_meetings: '',
+			convening_meetings_other: '',
+			convening_sessions: '',
+			convening_sessions_other: '',
+			convening_workshops: '',
+			convening_workshops_other: '',
+			convening_seminars: '',
+			convening_seminars_other: '',
+			convening_conferences: '',
+			convening_conferences_other: '',
+			convening_symposia: '',
+			convening_symposia_other: '',
+			convening_forums: '',
+			convening_forums_other: '',
+			convening_roundtables: '',
+			convening_roundtables_other: '',
+			convening_panels: '',
+			convening_panels_other: '',
+			convening_discussions: '',
+			convening_discussions_other: '',
+			convening_dialogues: '',
+			convening_dialogues_other: '',
+			convening_conversations: '',
+			convening_conversations_other: '',
+			convening_exchanges: '',
+			convening_exchanges_other: '',
+			convening_interactions: '',
+			convening_interactions_other: '',
+			convening_engagements: '',
+			convening_engagements_other: '',
+			convening_collaborations: '',
+			convening_collaborations_other: '',
+			convening_partnerships: '',
+			convening_partnerships_other: '',
+			convening_alliances: '',
+			convening_alliances_other: '',
+			convening_coalitions: '',
+			convening_coalitions_other: '',
+			convening_networks: '',
+			convening_networks_other: '',
+			convening_communities: '',
+			convening_communities_other: '',
+			convening_groups: '',
+			convening_groups_other: '',
+			convening_teams: '',
+			convening_teams_other: '',
+			convening_organizations: '',
+			convening_organizations_other: '',
+			convening_institutions: '',
+			convening_institutions_other: '',
+			convening_entities: '',
+			convening_entities_other: '',
+			convening_bodies: '',
+			convening_bodies_other: '',
+			convening_committees: '',
+			convening_committees_other: '',
+			convening_boards: '',
+			convening_boards_other: '',
+			convening_councils: '',
+			convening_councils_other: '',
+			convening_assemblies: '',
+			convening_assemblies_other: '',
+			convening_gatherings: '',
+			convening_gatherings_other: '',
+			convening_meetings: '',
+			convening_meetings_other: '',
+			convening_sessions: '',
+			convening_sessions_other: '',
+			convening_workshops: '',
+			convening_workshops_other: '',
+			convening_seminars: '',
+			convening_seminars_other: '',
+			convening_conferences: '',
+			convening_conferences_other: '',
+			convening_symposia: '',
+			convening_symposia_other: '',
+			convening_forums: '',
+			convening_forums_other: '',
+			convening_roundtables: '',
+			convening_roundtables_other: '',
+			convening_panels: '',
+			convening_panels_other: '',
+			convening_discussions: '',
+			convening_discussions_other: '',
+			convening_dialogues: '',
+			convening_dialogues_other: '',
+			convening_conversations: '',
+			convening_conversations_other: '',
+			convening_exchanges: '',
+			convening_exchanges_other: '',
+			convening_interactions: '',
+			convening_interactions_other: '',
+			convening_engagements: '',
+			convening_engagements_other: '',
+			convening_collaborations: '',
+			convening_collaborations_other: '',
+			convening_partnerships: '',
+			convening_partnerships_other: '',
+			convening_alliances: '',
+			convening_alliances_other: '',
+			convening_coalitions: '',
+			convening_coalitions_other: '',
+			convening_networks: '',
+			convening_networks_other: '',
+			convening_communities: '',
+			convening_communities_other: '',
+			convening_groups: '',
+			convening_groups_other: '',
+			convening_teams: '',
+			convening_teams_other: '',
+			convening_organizations: '',
+			convening_organizations_other: '',
+			convening_institutions: '',
+			convening_institutions_other: '',
+			convening_entities: '',
+			convening_entities_other: '',
+			convening_bodies: '',
+			convening_bodies_other: '',
+			convening_committees: '',
+			convening_committees_other: '',
+			convening_boards: '',
+			convening_boards_other: '',
+			convening_councils: '',
+			convening_councils_other: '',
+			convening_assemblies: '',
+			convening_assemblies_other: '',
+			convening_gatherings: '',
+			convening_gatherings_other: '',
+			receive_results: false,
+		},
+	});
+
 	// Scroll to top when component mounts
 	useEffect(() => {
 		window.scrollTo(0, 0);
@@ -185,13 +568,13 @@ export default function Survey2024() {
 			if (!user) return;
 			
 			try {
-				// Try to load from database first
-				const { data: dbDraft } = await supabase
-					.from('survey_responses_2024')
-					.select('*')
-					.eq('user_id', user.id)
-					.eq('submission_status', 'draft')
-					.single();
+			// Try to load from database first
+			const { data: dbDraft } = await supabase
+				.from('survey_responses_2024')
+				.select('*')
+				.eq('user_id', user.id)
+				.eq('submission_status', 'draft')
+				.maybeSingle();
 
 				if (dbDraft && dbDraft.form_data) {
 					// Load from database
@@ -220,378 +603,6 @@ export default function Survey2024() {
 
 		loadDraft();
 	}, [user, form]);
-
-	const form = useForm<Survey2024FormData>({
-		resolver: zodResolver(survey2024Schema),
-		reValidateMode: 'onSubmit',
-		defaultValues: {
-			// Section 1: Introduction & Context
-			email_address: '',
-			investment_networks: [],
-			investment_networks_other: '',
-			organisation_name: '',
-			funds_raising_investing: '',
-			fund_name: '',
-			
-			// Section 2: Organizational Background and Team
-			legal_entity_achieved: '',
-			first_close_achieved: '',
-			first_investment_achieved: '',
-			geographic_markets: [],
-			geographic_markets_other: '',
-			team_based: [],
-			team_based_other: '',
-			fte_staff_2023_actual: 0,
-			fte_staff_current: 0,
-			fte_staff_2025_forecast: 0,
-			investment_approval: [],
-			investment_approval_other: '',
-			principals_total: 0,
-			principals_women: 0,
-			gender_inclusion: [],
-			gender_inclusion_other: '',
-			team_experience_investments: {},
-			team_experience_exits: {},
-
-			// Section 3: Vehicle Construct
-			legal_domicile: [],
-			legal_domicile_other: '',
-			domicile_reason: [],
-			domicile_reason_other: '',
-			regulatory_impact: {},
-			regulatory_impact_other: '',
-			currency_investments: '',
-			currency_lp_commitments: '',
-			currency_hedging_strategy: '',
-			currency_hedging_details: '',
-			fund_type_status: '',
-			fund_type_status_other: '',
-			hard_commitments_2022: 0,
-			hard_commitments_current: 0,
-			amount_invested_2022: 0,
-			amount_invested_current: 0,
-			target_fund_size_2022: 0,
-			target_fund_size_current: 0,
-			target_number_investments: 0,
-			follow_on_permitted: '',
-			concessionary_capital: [],
-			concessionary_capital_other: '',
-			existing_lp_sources: {},
-			existing_lp_sources_other_description: '',
-			target_lp_sources: {},
-			target_lp_sources_other_description: '',
-			gp_financial_commitment: [],
-			gp_financial_commitment_other: '',
-			gp_management_fee: '',
-			gp_management_fee_other: '',
-			hurdle_rate_currency: '',
-			hurdle_rate_currency_other: '',
-			hurdle_rate_percentage: 0,
-			target_return_above_govt_debt: 0,
-			fundraising_barriers: {},
-			fundraising_barriers_other_description: '',
-
-			// Section 4: Investment Thesis
-			business_stages: {},
-			revenue_growth_mix: {},
-			financing_needs: {},
-			sector_target_allocation: {},
-			investment_considerations: {},
-			investment_considerations_other: '',
-			financial_instruments_ranking: {},
-			top_sdgs: [],
-			additional_sdgs: '',
-			gender_lens_investing: {},
-
-			// Section 5: Pipeline Sourcing and Portfolio Construction
-			pipeline_sources_quality: {},
-			pipeline_sources_quality_other_enabled: false,
-			pipeline_sources_quality_other_description: '',
-			pipeline_sources_quality_other_score: 0,
-			sgb_financing_trends: {},
-			typical_investment_size: '',
-
-			// Section 6: Portfolio Value Creation and Exits
-			post_investment_priorities: {},
-			post_investment_priorities_other_enabled: false,
-			post_investment_priorities_other_description: '',
-			post_investment_priorities_other_score: 0,
-			technical_assistance_funding: {},
-			business_development_approach: [],
-			business_development_approach_other_enabled: false,
-			business_development_approach_other: '',
-			unique_offerings: {},
-			unique_offerings_other_enabled: false,
-			unique_offerings_other_description: '',
-			unique_offerings_other_score: 0,
-			typical_investment_timeframe: '',
-			investment_monetisation_forms: [],
-			investment_monetisation_other_enabled: false,
-			investment_monetisation_other: '',
-
-		// Section 7: Performance to Date and Current Outlook
-			equity_investments_made: 0,
-			debt_investments_made: 0,
-			equity_exits_achieved: 0,
-			debt_repayments_achieved: 0,
-			equity_exits_anticipated: 0,
-			debt_repayments_anticipated: 0,
-			other_investments_supplement: '',
-			portfolio_revenue_growth_12m: 0,
-			portfolio_revenue_growth_next_12m: 0,
-			portfolio_cashflow_growth_12m: 0,
-			portfolio_cashflow_growth_next_12m: 0,
-			portfolio_performance_other_enabled: false,
-			portfolio_performance_other_description: '',
-			portfolio_performance_other_category: '',
-			portfolio_performance_other_value: 0,
-			direct_jobs_current: 0,
-			indirect_jobs_current: 0,
-			direct_jobs_anticipated: 0,
-			indirect_jobs_anticipated: 0,
-			employment_impact_other_enabled: false,
-			employment_impact_other_description: '',
-			employment_impact_other_category: '',
-			employment_impact_other_value: 0,
-			fund_priorities_other_enabled: false,
-			fund_priorities_other_description: '',
-			fund_priorities_other_category: '',
-			data_sharing_willingness: [],
-			data_sharing_other_enabled: false,
-			data_sharing_other: '',
-			survey_sender: '',
-			receive_results: false,
-		}
-	});
-
-	const handleNext = () => {
-		if (currentSection < totalSections) {
-			setCurrentSection(currentSection + 1);
-			
-			// Scroll to top of page for better UX
-			setTimeout(() => {
-				window.scrollTo({ top: 0, behavior: 'smooth' });
-			}, 100);
-		}
-	};
-
-	const handlePrevious = () => {
-		if (currentSection > 1) {
-			setCurrentSection(currentSection - 1);
-		}
-	};
-
-	const saveDraft = async () => {
-		if (!user) return;
-		
-		setSaving(true);
-		try {
-			const formData = form.getValues();
-			
-			// Check if draft already exists
-			const { data: existing } = await supabase
-				.from('survey_responses_2024')
-				.select('id')
-				.eq('user_id', user.id)
-				.maybeSingle();
-			
-			const surveyData = {
-				user_id: user.id,
-				email_address: formData.email_address || '',
-				organisation_name: formData.organisation_name || '',
-				funds_raising_investing: formData.funds_raising_investing || '',
-				fund_name: formData.fund_name || '',
-				investment_networks: formData.investment_networks || [],
-				investment_networks_other: formData.investment_networks_other,
-				form_data: formData,
-				submission_status: 'draft',
-				updated_at: new Date().toISOString()
-			};
-
-			if (existing) {
-				// Update existing draft
-				const { error } = await supabase
-					.from('survey_responses_2024')
-					.update(surveyData)
-					.eq('id', existing.id);
-				
-				if (error) throw error;
-			} else {
-				// Insert new draft
-				const { error } = await supabase
-					.from('survey_responses_2024')
-					.insert(surveyData);
-				
-				if (error) throw error;
-			}
-			
-		} catch (error) {
-			console.error('Save draft error:', error);
-		} finally {
-			setSaving(false);
-		}
-	};
-
-	// Auto-save draft every 1 second
-	useAutoSave({
-		onSave: saveDraft,
-		data: form.watch(),
-		interval: 1000,
-		enabled: !!user
-	});
-
-	const handleSubmit = async (data: Survey2024FormData) => {
-		if (!user) return;
-		
-		setLoading(true);
-		try {
-			const { error } = await supabase
-				.from('survey_responses_2024')
-				.upsert({
-					user_id: user.id,
-					email_address: data.email_address || '',
-					investment_networks: data.investment_networks || [],
-					investment_networks_other: data.investment_networks_other,
-					organisation_name: data.organisation_name || '',
-					funds_raising_investing: data.funds_raising_investing || '',
-					fund_name: data.fund_name || '',
-					legal_entity_achieved: data.legal_entity_achieved,
-					first_close_achieved: data.first_close_achieved,
-					first_investment_achieved: data.first_investment_achieved,
-					geographic_markets: data.geographic_markets || [],
-					geographic_markets_other: data.geographic_markets_other,
-					team_based: data.team_based || [],
-					team_based_other: data.team_based_other,
-					fte_staff_2023_actual: data.fte_staff_2023_actual,
-					fte_staff_current: data.fte_staff_current,
-					fte_staff_2025_forecast: data.fte_staff_2025_forecast,
-					investment_approval: data.investment_approval || [],
-					investment_approval_other: data.investment_approval_other,
-					principals_total: data.principals_total,
-					principals_women: data.principals_women,
-					gender_inclusion: data.gender_inclusion || [],
-					gender_inclusion_other: data.gender_inclusion_other,
-					team_experience_investments: data.team_experience_investments || {},
-					team_experience_exits: data.team_experience_exits || {},
-					legal_domicile: data.legal_domicile || [],
-					legal_domicile_other: data.legal_domicile_other,
-					domicile_reason: data.domicile_reason || [],
-					domicile_reason_other: data.domicile_reason_other,
-					regulatory_impact: data.regulatory_impact || {},
-					regulatory_impact_other: data.regulatory_impact_other,
-					currency_investments: data.currency_investments,
-					currency_lp_commitments: data.currency_lp_commitments,
-					currency_hedging_strategy: data.currency_hedging_strategy,
-					currency_hedging_details: data.currency_hedging_details,
-					fund_type_status: data.fund_type_status,
-					fund_type_status_other: data.fund_type_status_other,
-					hard_commitments_2022: data.hard_commitments_2022,
-					hard_commitments_current: data.hard_commitments_current,
-					amount_invested_2022: data.amount_invested_2022,
-					amount_invested_current: data.amount_invested_current,
-					target_fund_size_2022: data.target_fund_size_2022,
-					target_fund_size_current: data.target_fund_size_current,
-					target_number_investments: data.target_number_investments,
-					follow_on_permitted: data.follow_on_permitted,
-					concessionary_capital: data.concessionary_capital || [],
-					concessionary_capital_other: data.concessionary_capital_other,
-					existing_lp_sources: data.existing_lp_sources || {},
-					existing_lp_sources_other_description: data.existing_lp_sources_other_description,
-					target_lp_sources: data.target_lp_sources || {},
-					target_lp_sources_other_description: data.target_lp_sources_other_description,
-					gp_financial_commitment: data.gp_financial_commitment || [],
-					gp_financial_commitment_other: data.gp_financial_commitment_other,
-					gp_management_fee: data.gp_management_fee,
-					gp_management_fee_other: data.gp_management_fee_other,
-					hurdle_rate_currency: data.hurdle_rate_currency,
-					hurdle_rate_currency_other: data.hurdle_rate_currency_other,
-					hurdle_rate_percentage: data.hurdle_rate_percentage,
-					target_return_above_govt_debt: data.target_return_above_govt_debt,
-					fundraising_barriers: data.fundraising_barriers || {},
-					fundraising_barriers_other_description: data.fundraising_barriers_other_description,
-					business_stages: data.business_stages || {},
-					revenue_growth_mix: data.revenue_growth_mix || {},
-					financing_needs: data.financing_needs || {},
-					sector_target_allocation: data.sector_target_allocation || {},
-					investment_considerations: data.investment_considerations || {},
-					investment_considerations_other: data.investment_considerations_other,
-					financial_instruments_ranking: data.financial_instruments_ranking || {},
-					top_sdgs: data.top_sdgs || [],
-					additional_sdgs: data.additional_sdgs,
-					gender_lens_investing: data.gender_lens_investing || {},
-					pipeline_sources_quality: data.pipeline_sources_quality || {},
-					pipeline_sources_quality_other_description: data.pipeline_sources_quality_other_description,
-					pipeline_sources_quality_other_score: data.pipeline_sources_quality_other_score,
-					sgb_financing_trends: data.sgb_financing_trends || {},
-					typical_investment_size: data.typical_investment_size,
-					post_investment_priorities: data.post_investment_priorities || {},
-					post_investment_priorities_other_description: data.post_investment_priorities_other_description,
-					post_investment_priorities_other_score: data.post_investment_priorities_other_score,
-					technical_assistance_funding: data.technical_assistance_funding || {},
-					business_development_approach: data.business_development_approach || [],
-					business_development_approach_other: data.business_development_approach_other,
-					unique_offerings: data.unique_offerings || {},
-					unique_offerings_other_description: data.unique_offerings_other_description,
-					unique_offerings_other_score: data.unique_offerings_other_score,
-					typical_investment_timeframe: data.typical_investment_timeframe,
-					investment_monetisation_forms: data.investment_monetisation_forms || [],
-					investment_monetisation_other: data.investment_monetisation_other,
-					equity_investments_made: data.equity_investments_made,
-					debt_investments_made: data.debt_investments_made,
-					equity_exits_achieved: data.equity_exits_achieved,
-					debt_repayments_achieved: data.debt_repayments_achieved,
-					equity_exits_anticipated: data.equity_exits_anticipated,
-					debt_repayments_anticipated: data.debt_repayments_anticipated,
-					other_investments_supplement: data.other_investments_supplement,
-					portfolio_revenue_growth_12m: data.portfolio_revenue_growth_12m,
-					portfolio_revenue_growth_next_12m: data.portfolio_revenue_growth_next_12m,
-					portfolio_cashflow_growth_12m: data.portfolio_cashflow_growth_12m,
-					portfolio_cashflow_growth_next_12m: data.portfolio_cashflow_growth_next_12m,
-					portfolio_performance_other_description: data.portfolio_performance_other_description,
-					portfolio_performance_other_category: data.portfolio_performance_other_category,
-					portfolio_performance_other_value: data.portfolio_performance_other_value,
-					direct_jobs_current: data.direct_jobs_current,
-					indirect_jobs_current: data.indirect_jobs_current,
-					direct_jobs_anticipated: data.direct_jobs_anticipated,
-					indirect_jobs_anticipated: data.indirect_jobs_anticipated,
-					employment_impact_other_description: data.employment_impact_other_description,
-					employment_impact_other_category: data.employment_impact_other_category,
-					employment_impact_other_value: data.employment_impact_other_value,
-					fund_priorities_next_12m: data.fund_priorities_next_12m || {},
-					fund_priorities_other_description: data.fund_priorities_other_description,
-					fund_priorities_other_category: data.fund_priorities_other_category,
-					data_sharing_willingness: data.data_sharing_willingness || [],
-					data_sharing_other: data.data_sharing_other,
-					survey_sender: data.survey_sender,
-					receive_results: data.receive_results || false,
-					form_data: data,
-					submission_status: 'completed',
-					completed_at: new Date().toISOString(),
-					updated_at: new Date().toISOString()
-				}, {
-					onConflict: 'user_id'
-				});
-
-			if (error) {
-				console.error('Supabase error:', error);
-				throw error;
-			}
-			
-			toast({
-				title: "Survey submitted successfully",
-				description: "Thank you for completing the 2024 MSME Financing Survey.",
-			});
-		} catch (error) {
-			console.error('Submit error:', error);
-			toast({
-				title: "Error submitting survey",
-				description: "Please try again.",
-				variant: "destructive",
-			});
-		} finally {
-			setLoading(false);
-		}
-	};
 
 	const getSectionTitle = (section: number) => {
 		const titles = {
