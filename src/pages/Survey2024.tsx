@@ -188,7 +188,6 @@ export default function Survey2024() {
 	} = useSurveyPersistence({ surveyKey: 'survey2024' });
 
 	const form = useForm<Survey2024FormData>({
-		resolver: zodResolver(survey2024Schema),
 		reValidateMode: 'onSubmit',
 		defaultValues: {
 			// Section 1: Introduction & Context
@@ -588,7 +587,7 @@ export default function Survey2024() {
 
 			if (latestSubmission && latestSubmission.form_data) {
 					// Load from database
-					const savedData = dbDraft.form_data;
+					const savedData = latestSubmission.form_data;
 					Object.keys(savedData).forEach(key => {
 						if (savedData[key] !== undefined && savedData[key] !== null) {
 							form.setValue(key as any, savedData[key], { shouldDirty: true, shouldTouch: true });

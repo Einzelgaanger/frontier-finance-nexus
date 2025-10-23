@@ -158,7 +158,6 @@ const Survey2022 = () => {
   } = useSurveyPersistence({ surveyKey: 'survey2022' });
 
   const form = useForm<Survey2022FormData>({
-    resolver: zodResolver(survey2022Schema),
     defaultValues: {
       name: '',
       role_title: '',
@@ -213,7 +212,7 @@ const Survey2022 = () => {
 
         if (latestSubmission && latestSubmission.form_data) {
           // Load from database
-          const savedData = dbDraft.form_data;
+          const savedData = latestSubmission.form_data;
           Object.keys(savedData).forEach(key => {
             if (savedData[key] !== undefined && savedData[key] !== null) {
               form.setValue(key as any, savedData[key], { shouldDirty: true, shouldTouch: true });

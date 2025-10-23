@@ -162,7 +162,6 @@ const Survey2021: React.FC = () => {
   const progress = (currentSection / totalSections) * 100;
 
   const form = useForm<Survey2021FormData>({
-    resolver: zodResolver(survey2021Schema),
     defaultValues: {
       email_address: '',
       firm_name: '',
@@ -382,12 +381,7 @@ const Survey2021: React.FC = () => {
     }
   }, [currentSection, showIntro]);
 
-  // Check if survey is completed and show read-only version
-  const surveyCompleted = isSurveyCompleted('2021');
-  
-  if (surveyCompleted) {
-    return <ReadOnlySurvey2021 />;
-  }
+  // Allow editing after submission; do not switch to read-only view
 
   const handleNext = () => {
     if (currentSection < totalSections) {

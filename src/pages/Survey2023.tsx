@@ -248,7 +248,6 @@ export default function Survey2023() {
   } = useSurveyPersistence({ surveyKey: 'survey2023' });
 
   const form = useForm<Survey2023FormData>({
-    resolver: zodResolver(survey2023Schema),
     defaultValues: {
       // Section 1: Introduction & Context
       email_address: '',
@@ -583,7 +582,7 @@ export default function Survey2023() {
 
         if (latestSubmission && latestSubmission.form_data) {
           // Load from database
-          const savedData = dbDraft.form_data;
+          const savedData = latestSubmission.form_data;
           Object.keys(savedData).forEach(key => {
             if (savedData[key] !== undefined && savedData[key] !== null) {
               form.setValue(key as any, savedData[key], { shouldDirty: true, shouldTouch: true });
@@ -625,7 +624,6 @@ export default function Survey2023() {
 
         if (data && !error) {
           setIsCompleted(true);
-          setIsReadOnly(true);
           // Populate form with existing data
           form.reset(data);
         }
@@ -922,13 +920,12 @@ export default function Survey2023() {
 
       if (error) throw error;
       
-      // Mark as completed and read-only
+      // Mark as completed
       setIsCompleted(true);
-      setIsReadOnly(true);
       
       toast({
         title: "Survey submitted successfully",
-        description: "Thank you for completing the 2023 MSME Financing Survey. You can now view your responses in read-only mode.",
+        description: "Thank you for completing the 2023 MSME Financing Survey.",
       });
     } catch (error) {
       toast({
