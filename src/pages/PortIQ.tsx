@@ -331,7 +331,7 @@ const PortIQ = () => {
                             
                             {/* Message bubble */}
                             <div
-                              className={`rounded-2xl px-4 py-3 break-words ${
+                              className={`rounded-2xl px-4 py-3 max-w-[500px] ${
                                 message.role === 'user'
                                   ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
                                   : 'bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 text-gray-800 shadow-lg border border-blue-200/50 backdrop-blur-sm'
@@ -342,7 +342,7 @@ const PortIQ = () => {
                                   <ReactMarkdown>{message.content}</ReactMarkdown>
                                 </div>
                               ) : (
-                                <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
+                                <div className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">{message.content}</div>
                               )}
                             </div>
                           </div>

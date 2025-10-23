@@ -8,7 +8,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useSurveyPersistence } from '@/hooks/useSurveyPersistence';
 import { useSurveyStatus } from '@/hooks/useSurveyStatus';
-import { useSurveyAutosave } from '@/hooks/useSurveyAutosave';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -144,7 +143,6 @@ const Survey2021: React.FC = () => {
   const { isSurveyCompleted } = useSurveyStatus();
   const [currentSection, setCurrentSection] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
 
   // Initialize persistence hook
@@ -261,13 +259,6 @@ const Survey2021: React.FC = () => {
     },
   });
 
-  // Initialize autosave AFTER form is created
-  const { saveStatus, saveDraft: autoSaveDraft } = useSurveyAutosave({
-    userId: user?.id,
-    surveyYear: '2021',
-    watch: form.watch,
-    enabled: !!user,
-  });
 
   // Load saved section on component mount (no form data restoration)
   useEffect(() => {
@@ -332,34 +323,6 @@ const Survey2021: React.FC = () => {
     return cleanup;
   }, [form.watch()]);
 
-  // Watch all form changes and save immediately
-  useEffect(() => {
-    if (!user) return;
-    
-    // Watch specific complex fields that might not trigger general form changes
-    const watchFields = [
-      'top_sdg_1',
-      'top_sdg_2', 
-      'top_sdg_3',
-      'other_sdgs',
-      'convening_initiatives_other_ranking'
-    ];
-    
-    // Watch each field individually and save on change
-    watchFields.forEach(field => {
-      form.watch(field as any);
-    });
-    
-    // General form watching - this will trigger on any form change
-    const watchedValues = form.watch();
-    
-    // Save when any watched value changes
-    const timeoutId = setTimeout(() => {
-      saveDraft();
-    }, 2000); // Save 2 seconds after last change
-    
-    return () => clearTimeout(timeoutId);
-  }, [user, form, form.watch()]);
 
   // Save section and scroll position when section changes
   useEffect(() => {
@@ -409,100 +372,6 @@ const Survey2021: React.FC = () => {
     }
   };
 
-  const saveDraft = async () => {
-    if (!user) return;
-    
-    setSaving(true);
-    try {
-      // Enhanced form data capture for all field types
-      const formData = form.getValues();
-      
-      // Additional capture for complex nested objects and dynamic fields
-      const enhancedFormData = {
-        ...formData,
-        // Ensure all nested objects are captured
-        top_sdg_1: form.getValues('top_sdg_1'),
-        top_sdg_2: form.getValues('top_sdg_2'),
-        top_sdg_3: form.getValues('top_sdg_3'),
-        other_sdgs: form.getValues('other_sdgs') || [],
-        convening_initiatives_other_ranking: form.getValues('convening_initiatives_other_ranking'),
-        // Capture all form state including touched/dirty fields
-        _formState: form.formState,
-      };
-      
-      // Save to localStorage as backup
-      saveFormData(enhancedFormData);
-      
-      // Try to save to database
-      try {
-        // Check if record exists
-        const { data: existingRecord } = await supabase
-          .from('survey_responses_2021')
-          .select('id')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        // Ensure required non-null columns for drafts have values
-        const effectiveEmail = formData.email_address || user?.email || `draft+${user.id}@placeholder.local`;
-        const effectiveFirm = formData.firm_name || 'Draft';
-        const effectiveParticipant = formData.participant_name || 'Draft';
-        const effectiveRole = formData.role_title || 'Draft';
-
-        const recordData = {
-          user_id: user.id,
-          email_address: effectiveEmail,
-          firm_name: effectiveFirm,
-          participant_name: effectiveParticipant,
-          role_title: effectiveRole,
-          team_based: formData.team_based || [],
-          team_based_other: formData.team_based_other || '',
-          geographic_focus: formData.geographic_focus || [],
-          geographic_focus_other: formData.geographic_focus_other || '',
-          fund_stage: formData.fund_stage || '',
-          fund_stage_other: formData.fund_stage_other || '',
-          legal_entity_date: formData.legal_entity_date || '',
-          first_close_date: formData.first_close_date || '',
-          first_investment_date: formData.first_investment_date || '',
-          form_data: formData,
-          submission_status: 'draft',
-          updated_at: new Date().toISOString(),
-        };
-
-        let error;
-        if (existingRecord) {
-          // Update existing record
-          const { error: updateError } = await supabase
-            .from('survey_responses_2021')
-            .update(recordData)
-            .eq('user_id', user.id);
-          error = updateError;
-        } else {
-          // Insert new record
-          const { error: insertError } = await supabase
-            .from('survey_responses_2021')
-            .insert(recordData);
-          error = insertError;
-        }
-
-        if (error) throw error;
-      } catch (dbError) {
-        console.warn('Database save failed, using localStorage only:', dbError);
-        // Database save failed, but localStorage save succeeded
-      }
-      
-      // Draft saved silently - status indicator shows save state
-      
-    } catch (error) {
-      console.error('Error saving draft:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save draft. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const handleSubmit = async (data: Survey2021FormData) => {
     if (!user) return;
@@ -638,17 +507,13 @@ const Survey2021: React.FC = () => {
       if (submitError) throw submitError;
 
       
-      // Clear saved data after successful submission
-      clearSavedData();
-      
       toast({
         title: "Survey Submitted",
         description: "Thank you for completing the 2021 survey!",
       });
       
-      // Reset form and go back to first section
-      form.reset();
-      setCurrentSection(1);
+      // Navigate to home dashboard
+      navigate('/');
       
     } catch (error) {
       console.error('Error submitting survey:', error);
@@ -3062,18 +2927,6 @@ const Survey2021: React.FC = () => {
                   className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-300"
                   style={{ width: `${progress}%` }}
                 ></div>
-              </div>
-              {/* Autosave status indicator */}
-              <div className="flex items-center justify-end gap-2 text-xs">
-                {saveStatus === 'saving' && (
-                  <span className="text-gray-500 animate-pulse">Saving...</span>
-                )}
-                {saveStatus === 'saved' && (
-                  <span className="text-green-600">✓ Saved</span>
-                )}
-                {saveStatus === 'error' && (
-                  <span className="text-red-600">Error saving</span>
-                )}
               </div>
             </div>
           </Card>

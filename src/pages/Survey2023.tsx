@@ -15,7 +15,6 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { useSurveyPersistence } from '@/hooks/useSurveyPersistence';
 import { useAuth } from '@/hooks/useAuth';
-import { useSurveyAutosave } from '@/hooks/useSurveyAutosave';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft } from 'lucide-react';
@@ -229,7 +228,6 @@ export default function Survey2023() {
   const { user } = useAuth();
   const [currentSection, setCurrentSection] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [isReadOnly, setIsReadOnly] = useState(false);
   const totalSections = 8;
@@ -552,13 +550,6 @@ export default function Survey2023() {
     },
   });
 
-  // Initialize autosave AFTER form is created
-  const { saveStatus, saveDraft: autoSaveDraft } = useSurveyAutosave({
-    userId: user?.id,
-    surveyYear: '2023',
-    watch: form.watch,
-    enabled: !!user,
-  });
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -652,133 +643,6 @@ export default function Survey2023() {
     }
   };
 
-  const saveDraft = async () => {
-    if (!user) return;
-    
-    setSaving(true);
-    try {
-      // Enhanced form data capture for all field types
-      const formData = form.getValues();
-      
-      // Additional capture for complex nested objects and dynamic fields
-      const enhancedFormData = {
-        ...formData,
-        // Ensure all nested objects are captured
-        team_experience_investments: form.getValues('team_experience_investments') || {},
-        team_experience_exits: form.getValues('team_experience_exits') || {},
-        lp_capital_sources: form.getValues('lp_capital_sources') || {},
-        // Capture all form state including touched/dirty fields
-        _formState: form.formState,
-      };
-      
-      // Always save to localStorage as fallback
-      saveFormData(enhancedFormData);
-      
-      // Try to save to database
-      try {
-        // Check if draft already exists
-        const { data: existing } = await supabase
-          .from('survey_responses_2023')
-          .select('id')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        
-        // Ensure required non-null columns for drafts have values
-        const effectiveEmail = formData.email_address || user?.email || `draft+${user.id}@placeholder.local`;
-        const effectiveOrg = formData.organisation_name || 'Draft';
-        const effectiveFund = formData.fund_name || 'Draft';
-        const effectiveFRI = formData.funds_raising_investing || 'Draft';
-        
-        const surveyData = {
-          user_id: user.id,
-          email_address: effectiveEmail,
-          organisation_name: effectiveOrg,
-          fund_name: effectiveFund,
-          funds_raising_investing: effectiveFRI,
-          legal_entity_achieved: formData.legal_entity_achieved || '',
-          first_close_achieved: formData.first_close_achieved || '',
-          first_investment_achieved: formData.first_investment_achieved || '',
-          geographic_markets: formData.geographic_markets || [],
-          geographic_markets_other: formData.geographic_markets_other || '',
-          team_based: formData.team_based || [],
-          team_based_other: formData.team_based_other || '',
-          form_data: formData,
-          submission_status: 'draft',
-          updated_at: new Date().toISOString()
-        };
-
-        if (existing) {
-          // Update existing draft
-          const { error } = await supabase
-            .from('survey_responses_2023')
-            .update(surveyData)
-            .eq('id', existing.id);
-          
-          if (error) throw error;
-        } else {
-          // Insert new draft
-          const { error } = await supabase
-            .from('survey_responses_2023')
-            .insert(surveyData);
-          
-          if (error) throw error;
-        }
-      } catch (dbError) {
-        console.warn('Database save failed, using localStorage only:', dbError);
-        // Database save failed, but localStorage save succeeded
-      }
-      
-      // Draft saved silently - status indicator shows save state
-      
-    } catch (error) {
-      console.error('Error saving draft:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save draft. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // Auto-save draft every 5 seconds
-  useEffect(() => {
-    if (!user || isCompleted) return;
-    
-    const interval = setInterval(() => {
-      saveDraft();
-    }, 5000); // Save every 5 seconds instead of 1 second
-    
-    return () => clearInterval(interval);
-  }, [user, isCompleted]);
-
-  // Watch all form changes and save immediately
-  useEffect(() => {
-    if (!user || isCompleted) return;
-    
-    // Watch specific complex fields that might not trigger general form changes
-    const watchFields = [
-      'team_experience_investments',
-      'team_experience_exits',
-      'lp_capital_sources'
-    ];
-    
-    // Watch each field individually and save on change
-    watchFields.forEach(field => {
-      form.watch(field as any);
-    });
-    
-    // General form watching - this will trigger on any form change
-    const watchedValues = form.watch();
-    
-    // Save when any watched value changes
-    const timeoutId = setTimeout(() => {
-      saveDraft();
-    }, 2000); // Save 2 seconds after last change
-    
-    return () => clearTimeout(timeoutId);
-  }, [user, form, isCompleted, form.watch()]);
 
   const handleSubmit = async (data: Survey2023FormData) => {
     if (!user) return;
@@ -926,6 +790,9 @@ export default function Survey2023() {
         title: "Survey submitted successfully",
         description: "Thank you for completing the 2023 MSME Financing Survey.",
       });
+
+      // Navigate to home dashboard
+      navigate('/');
     } catch (error) {
       toast({
         title: "Error submitting survey",
@@ -4785,21 +4652,7 @@ Which of the following would you be prepared to make available? [note: we are cu
                 <div className="text-2xl font-bold text-blue-600">
                   {currentSection}/{totalSections}
                 </div>
-                {/* Autosave status */}
-                <div className="text-xs">
-                  {saveStatus === 'saving' && (
-                    <span className="text-gray-500 animate-pulse">Saving...</span>
-                  )}
-                  {saveStatus === 'saved' && (
-                    <span className="text-green-600">✓ Saved</span>
-                  )}
-                  {saveStatus === 'error' && (
-                    <span className="text-red-600">Error saving</span>
-                  )}
-                  {saveStatus === 'idle' && (
-                    <span className="text-gray-500">Progress</span>
-                  )}
-                </div>
+                <div className="text-xs text-gray-500">Progress</div>
               </div>
             </div>
             <div className="mt-4">

@@ -679,15 +679,13 @@ export default function Survey2024() {
 
       if (submitError) throw submitError;
 
-			// Clear saved data
-			clearSavedData();
-
 			toast({
 				title: "Survey Submitted!",
 				description: "Thank you for completing the 2024 survey.",
 			});
 
-			navigate('/network');
+			// Navigate to home dashboard
+			navigate('/');
 		} catch (error) {
 			console.error('Error submitting survey:', error);
 			toast({
