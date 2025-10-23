@@ -1748,9 +1748,9 @@ export default function Survey2024() {
 														onValueChange={(value) => {
 															const current = form.getValues('regulatory_impact') || {};
 															form.setValue('regulatory_impact', { ...current, other: value });
-													}}
-													value={(form.watch('regulatory_impact') || {})['other'] ?? undefined}
-											}}>
+														}}
+														value={(form.watch('regulatory_impact') || {})['other'] ?? undefined}
+													>
 												<FormControl>
 													<SelectTrigger>
 														<SelectValue placeholder="Select impact level" />
