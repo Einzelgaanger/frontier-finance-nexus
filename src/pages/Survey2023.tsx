@@ -479,12 +479,14 @@ export default function Survey2023() {
   });
 
   const handleSubmit = async (data: Survey2023FormData) => {
+    if (!user) return;
+    
     setLoading(true);
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('survey_responses_2023')
         .upsert({
-          user_id: (await supabase.auth.getUser()).data.user?.id,
+          user_id: user.id,
           email_address: data.email_address,
           organisation_name: data.organisation_name,
           fund_name: data.fund_name,
@@ -591,6 +593,8 @@ export default function Survey2023() {
           completed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           submission_status: 'completed'
+        }, {
+          onConflict: 'user_id'
         });
 
       if (error) throw error;

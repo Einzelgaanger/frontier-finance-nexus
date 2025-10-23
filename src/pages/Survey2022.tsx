@@ -489,6 +489,8 @@ const Survey2022 = () => {
           submission_status: 'completed',
           completed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id'
         });
 
       if (error) throw error;

@@ -399,12 +399,14 @@ export default function Survey2024() {
 	});
 
 	const handleSubmit = async (data: Survey2024FormData) => {
+		if (!user) return;
+		
 		setLoading(true);
 		try {
 			const { error } = await supabase
 				.from('survey_responses_2024')
 				.upsert({
-					user_id: user?.id || '',
+					user_id: user.id,
 					email_address: data.email_address || '',
 					investment_networks: data.investment_networks || [],
 					investment_networks_other: data.investment_networks_other,
@@ -524,6 +526,8 @@ export default function Survey2024() {
 					submission_status: 'completed',
 					completed_at: new Date().toISOString(),
 					updated_at: new Date().toISOString()
+				}, {
+					onConflict: 'user_id'
 				});
 
 			if (error) {
