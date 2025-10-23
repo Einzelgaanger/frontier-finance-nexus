@@ -340,45 +340,63 @@ export default function Survey2024() {
 	};
 
 	const saveDraft = async () => {
+		if (!user) return;
+		
 		setSaving(true);
 		try {
 			const formData = form.getValues();
 			
-			const { error } = await supabase
+			// Check if draft already exists
+			const { data: existing } = await supabase
 				.from('survey_responses_2024')
-				.upsert({
-					user_id: user?.id || '',
-					email_address: formData.email_address || '',
-					organisation_name: formData.organisation_name || '',
-					funds_raising_investing: formData.funds_raising_investing || '',
-					fund_name: formData.fund_name || '',
-					investment_networks: formData.investment_networks || [],
-					investment_networks_other: formData.investment_networks_other,
-					form_data: formData,
-					submission_status: 'draft',
-					updated_at: new Date().toISOString()
-				});
+				.select('id')
+				.eq('user_id', user.id)
+				.maybeSingle();
+			
+			const surveyData = {
+				user_id: user.id,
+				email_address: formData.email_address || '',
+				organisation_name: formData.organisation_name || '',
+				funds_raising_investing: formData.funds_raising_investing || '',
+				fund_name: formData.fund_name || '',
+				investment_networks: formData.investment_networks || [],
+				investment_networks_other: formData.investment_networks_other,
+				form_data: formData,
+				submission_status: 'draft',
+				updated_at: new Date().toISOString()
+			};
 
-			if (error) {
-				console.error('Supabase error:', error);
-				throw error;
+			if (existing) {
+				// Update existing draft
+				const { error } = await supabase
+					.from('survey_responses_2024')
+					.update(surveyData)
+					.eq('id', existing.id);
+				
+				if (error) throw error;
+			} else {
+				// Insert new draft
+				const { error } = await supabase
+					.from('survey_responses_2024')
+					.insert(surveyData);
+				
+				if (error) throw error;
 			}
 			
-			toast({
-				title: "Draft saved successfully",
-				description: "Your progress has been saved.",
-			});
 		} catch (error) {
 			console.error('Save draft error:', error);
-			toast({
-				title: "Error saving draft",
-				description: "Please try again.",
-				variant: "destructive",
-			});
 		} finally {
 			setSaving(false);
 		}
 	};
+
+	// Auto-save draft every 1 second
+	useAutoSave({
+		onSave: saveDraft,
+		data: form.watch(),
+		interval: 1000,
+		enabled: !!user
+	});
 
 	const handleSubmit = async (data: Survey2024FormData) => {
 		setLoading(true);

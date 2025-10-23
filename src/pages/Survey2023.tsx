@@ -415,46 +415,68 @@ export default function Survey2023() {
   };
 
   const saveDraft = async () => {
+    if (!user) return;
+    
     setSaving(true);
     try {
       const formData = form.getValues();
-      const { data: { user } } = await supabase.auth.getUser();
       
-      const { error } = await supabase
+      // Check if draft already exists
+      const { data: existing } = await supabase
         .from('survey_responses_2023')
-        .upsert({
-          user_id: user?.id,
-          email_address: formData.email_address,
-          organisation_name: formData.organisation_name,
-          fund_name: formData.fund_name,
-          funds_raising_investing: formData.funds_raising_investing,
-          legal_entity_achieved: formData.legal_entity_achieved,
-          first_close_achieved: formData.first_close_achieved,
-          first_investment_achieved: formData.first_investment_achieved,
-          geographic_markets: formData.geographic_markets || [],
-          geographic_markets_other: formData.geographic_markets_other,
-          team_based: formData.team_based || [],
-          team_based_other: formData.team_based_other,
-          form_data: formData,
-          submission_status: 'draft',
-          updated_at: new Date().toISOString()
-        });
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      const surveyData = {
+        user_id: user.id,
+        email_address: formData.email_address,
+        organisation_name: formData.organisation_name,
+        fund_name: formData.fund_name,
+        funds_raising_investing: formData.funds_raising_investing,
+        legal_entity_achieved: formData.legal_entity_achieved,
+        first_close_achieved: formData.first_close_achieved,
+        first_investment_achieved: formData.first_investment_achieved,
+        geographic_markets: formData.geographic_markets || [],
+        geographic_markets_other: formData.geographic_markets_other,
+        team_based: formData.team_based || [],
+        team_based_other: formData.team_based_other,
+        form_data: formData,
+        submission_status: 'draft',
+        updated_at: new Date().toISOString()
+      };
 
-      if (error) throw error;
-      toast({
-        title: "Draft saved successfully",
-        description: "Your progress has been saved.",
-      });
+      if (existing) {
+        // Update existing draft
+        const { error } = await supabase
+          .from('survey_responses_2023')
+          .update(surveyData)
+          .eq('id', existing.id);
+        
+        if (error) throw error;
+      } else {
+        // Insert new draft
+        const { error } = await supabase
+          .from('survey_responses_2023')
+          .insert(surveyData);
+        
+        if (error) throw error;
+      }
+      
     } catch (error) {
-      toast({
-        title: "Error saving draft",
-        description: "Please try again.",
-        variant: "destructive",
-      });
+      console.error('Error saving draft:', error);
     } finally {
       setSaving(false);
     }
   };
+
+  // Auto-save draft every 1 second
+  useAutoSave({
+    onSave: saveDraft,
+    data: form.watch(),
+    interval: 1000,
+    enabled: !!user && !isCompleted
+  });
 
   const handleSubmit = async (data: Survey2023FormData) => {
     setLoading(true);

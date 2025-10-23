@@ -289,43 +289,62 @@ const Survey2022 = () => {
     try {
       const formData = form.getValues();
       
-      const { error } = await supabase
+      // Check if draft already exists
+      const { data: existing } = await supabase
         .from('survey_responses_2022')
-        .upsert({
-          user_id: user.id,
-          name: formData.name,
-          role_title: formData.role_title,
-          email: formData.email,
-          organisation: formData.organisation,
-          legal_entity_date: formData.legal_entity_date,
-          first_close_date: formData.first_close_date,
-          first_investment_date: formData.first_investment_date,
-          geographic_markets: formData.geographic_markets || [],
-          geographic_markets_other: formData.geographic_markets_other,
-          team_based: formData.team_based || [],
-          team_based_other: formData.team_based_other,
-          form_data: formData,
-          submission_status: 'draft',
-          updated_at: new Date().toISOString(),
-        });
-
-      if (error) throw error;
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
       
-      toast({
-        title: "Draft Saved",
-        description: "Your survey progress has been saved.",
-      });
+      const surveyData = {
+        user_id: user.id,
+        name: formData.name,
+        role_title: formData.role_title,
+        email: formData.email,
+        organisation: formData.organisation,
+        legal_entity_date: formData.legal_entity_date,
+        first_close_date: formData.first_close_date,
+        first_investment_date: formData.first_investment_date,
+        geographic_markets: formData.geographic_markets || [],
+        geographic_markets_other: formData.geographic_markets_other,
+        team_based: formData.team_based || [],
+        team_based_other: formData.team_based_other,
+        form_data: formData,
+        submission_status: 'draft',
+        updated_at: new Date().toISOString(),
+      };
+
+      if (existing) {
+        // Update existing draft
+        const { error } = await supabase
+          .from('survey_responses_2022')
+          .update(surveyData)
+          .eq('id', existing.id);
+        
+        if (error) throw error;
+      } else {
+        // Insert new draft
+        const { error } = await supabase
+          .from('survey_responses_2022')
+          .insert(surveyData);
+        
+        if (error) throw error;
+      }
+      
     } catch (error) {
       console.error('Error saving draft:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save draft. Please try again.",
-        variant: "destructive"
-      });
     } finally {
       setSaving(false);
     }
   };
+
+  // Auto-save draft every 1 second
+  useAutoSave({
+    onSave: saveDraft,
+    data: form.watch(),
+    interval: 1000,
+    enabled: !!user
+  });
 
 
 

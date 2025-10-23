@@ -348,7 +348,7 @@ const Survey2021: React.FC = () => {
         .from('survey_responses_2021')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       const recordData = {
         user_id: user.id,
