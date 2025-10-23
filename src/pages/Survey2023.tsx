@@ -237,6 +237,48 @@ export default function Survey2023() {
     window.scrollTo(0, 0);
   }, []);
 
+  // Load saved draft on component mount
+  useEffect(() => {
+    const loadDraft = async () => {
+      if (!user) return;
+      
+      try {
+        // Try to load from database first
+        const { data: dbDraft } = await supabase
+          .from('survey_responses_2023')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('submission_status', 'draft')
+          .single();
+
+        if (dbDraft && dbDraft.form_data) {
+          // Load from database
+          const savedData = dbDraft.form_data;
+          Object.keys(savedData).forEach(key => {
+            if (savedData[key] !== undefined && savedData[key] !== null) {
+              form.setValue(key as any, savedData[key]);
+            }
+          });
+          return;
+        }
+
+        // Fallback to localStorage
+        const savedData = getSavedFormData();
+        if (savedData) {
+          Object.keys(savedData).forEach(key => {
+            if (savedData[key] !== undefined && savedData[key] !== null) {
+              form.setValue(key as any, savedData[key]);
+            }
+          });
+        }
+      } catch (error) {
+        console.warn('Failed to load draft:', error);
+      }
+    };
+
+    loadDraft();
+  }, [user, form]);
+
   // Check for existing completed response
   const form = useForm<Survey2023FormData>({
     resolver: zodResolver(survey2023Schema),

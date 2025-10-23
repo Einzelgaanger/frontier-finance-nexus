@@ -272,6 +272,48 @@ const Survey2021: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
+  // Load saved draft on component mount
+  useEffect(() => {
+    const loadDraft = async () => {
+      if (!user) return;
+      
+      try {
+        // Try to load from database first
+        const { data: dbDraft } = await supabase
+          .from('survey_responses_2021')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('submission_status', 'draft')
+          .single();
+
+        if (dbDraft && dbDraft.form_data) {
+          // Load from database
+          const savedData = dbDraft.form_data;
+          Object.keys(savedData).forEach(key => {
+            if (savedData[key] !== undefined && savedData[key] !== null) {
+              form.setValue(key as any, savedData[key]);
+            }
+          });
+          return;
+        }
+
+        // Fallback to localStorage
+        const savedData = getSavedFormData();
+        if (savedData) {
+          Object.keys(savedData).forEach(key => {
+            if (savedData[key] !== undefined && savedData[key] !== null) {
+              form.setValue(key as any, savedData[key]);
+            }
+          });
+        }
+      } catch (error) {
+        console.warn('Failed to load draft:', error);
+      }
+    };
+
+    loadDraft();
+  }, [user, form]);
+
   // Setup auto-save when form data changes
   useEffect(() => {
     const formData = form.watch();

@@ -34,6 +34,13 @@ const PortIQ = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Reset textarea height when input is cleared
+  useEffect(() => {
+    if (!input.trim()) {
+      resetTextareaHeight();
+    }
+  }, [input]);
+
   // Fetch user profile and load conversation history
   useEffect(() => {
     const initialize = async () => {
@@ -115,11 +122,46 @@ const PortIQ = () => {
     meta.setAttribute('content', desc);
   }, []);
 
+  const resetTextareaHeight = () => {
+    const textarea = document.querySelector('textarea[placeholder*="Ask about surveys"]') as HTMLTextAreaElement;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = '36px'; // Reset to original height
+    }
+  };
+
+  const truncateMessage = (message: string): string => {
+    // Calculate max length based on 3/4 of screen width
+    // Assuming average character width of ~8px, and 3/4 of screen width
+    const screenWidth = window.innerWidth;
+    const maxWidth = screenWidth * 0.75; // 3/4 of screen width
+    const avgCharWidth = 8; // Approximate character width in pixels
+    const maxLength = Math.floor(maxWidth / avgCharWidth);
+    
+    // Only truncate if message is much longer than max length (be very lenient)
+    if (message.length <= maxLength * 1.5) return message;
+    
+    // Try to truncate at word boundary first
+    const truncatedAtWord = message.substring(0, maxLength).lastIndexOf(' ');
+    
+    // Only truncate if we found a good word boundary (at least 30% of max length)
+    if (truncatedAtWord > maxLength * 0.3) {
+      return message.substring(0, truncatedAtWord) + '...';
+    } else {
+      // If no good word boundary, truncate at exact length with hyphen
+      return message.substring(0, maxLength - 1) + '-';
+    }
+  };
+
   const sendMessage = async () => {
     if (!input.trim() || loading || !conversationId || !user) return;
 
-    const userMessage = input.trim();
+    const originalMessage = input.trim();
+    const userMessage = truncateMessage(originalMessage);
     setInput('');
+    
+    // Reset textarea height immediately
+    resetTextareaHeight();
     
     // Optimistically add user message
     const userMsg: Message = { role: 'user', content: userMessage };
@@ -147,24 +189,29 @@ const PortIQ = () => {
         const assistantMsg: Message = { role: 'assistant', content: resText };
         setMessages(prev => [...prev, assistantMsg]);
         
-        // Save assistant message to DB
-        await supabase.from('chat_messages' as any).insert({
+        // Stop loading immediately when we get the response
+        setLoading(false);
+        
+        // Save assistant message to DB (async, don't wait)
+        supabase.from('chat_messages' as any).insert({
           conversation_id: conversationId,
           user_id: user.id,
           role: 'assistant',
           content: resText
-        });
+        }).then(() => {}).catch(console.error);
 
-        // Update conversation timestamp
-        await supabase
+        // Update conversation timestamp (async, don't wait)
+        supabase
           .from('chat_conversations' as any)
           .update({ updated_at: new Date().toISOString() })
-          .eq('id', conversationId);
+          .eq('id', conversationId)
+          .then(() => {}).catch(console.error);
       } else {
         throw new Error('Empty response from AI');
       }
     } catch (error: any) {
       console.error('Error sending message:', error);
+      setLoading(false); // Stop loading on error
       toast({
         title: "Error",
         description: error.message || "Failed to send message",
@@ -172,8 +219,6 @@ const PortIQ = () => {
       });
       // Remove optimistic user message on error
       setMessages(prev => prev.slice(0, -1));
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -251,7 +296,7 @@ const PortIQ = () => {
                         className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
                         style={{ animationDelay: `${index * 100}ms` }}
                       >
-                        <div className={`flex ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'} items-start gap-3 max-w-[80%]`}>
+                        <div className={`flex ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'} items-start gap-3 max-w-[80%] w-full`}>
                           {/* Avatar */}
                           <Avatar className="w-8 h-8 flex-shrink-0">
                             {message.role === 'user' ? (
@@ -287,7 +332,7 @@ const PortIQ = () => {
                             
                             {/* Message bubble */}
                             <div
-                              className={`rounded-2xl px-4 py-3 ${
+                              className={`rounded-2xl px-4 py-3 break-words ${
                                 message.role === 'user'
                                   ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
                                   : 'bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 text-gray-800 shadow-lg border border-blue-200/50 backdrop-blur-sm'
@@ -298,7 +343,7 @@ const PortIQ = () => {
                                   <ReactMarkdown>{message.content}</ReactMarkdown>
                                 </div>
                               ) : (
-                                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                                <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
                               )}
                             </div>
                           </div>
@@ -340,14 +385,20 @@ const PortIQ = () => {
               
               {/* Truly Floating Input Area */}
               <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-30">
-                <div className="relative bg-white rounded-2xl border border-gray-300 shadow-lg w-[600px] h-10 focus-within:border-blue-400 focus-within:shadow-xl">
+                <div className="relative bg-white rounded-2xl border border-gray-300 shadow-lg w-[600px] min-h-[40px] max-h-[200px] focus-within:border-blue-400 focus-within:shadow-xl">
                   <Textarea
                     value={input}
-                    onChange={(e) => setInput(e.target.value)}
+                    onChange={(e) => {
+                      setInput(e.target.value);
+                      // Auto-resize textarea
+                      const textarea = e.target;
+                      textarea.style.height = 'auto';
+                      textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+                    }}
                     onKeyPress={handleKeyPress}
                     placeholder="Ask about surveys, network data, your points, applications, trends, and more..."
                     rows={1}
-                    className="resize-none !border-0 !focus:ring-0 !focus:border-0 !focus-visible:ring-0 !focus-visible:outline-none !ring-0 !ring-offset-0 bg-transparent pr-12 py-2 pl-4 h-full"
+                    className="resize-none !border-0 !focus:ring-0 !focus:border-0 !focus-visible:ring-0 !focus-visible:outline-none !ring-0 !ring-offset-0 bg-transparent pr-12 py-2 pl-4 min-h-[36px] max-h-[184px] overflow-y-auto scrollbar-hide"
                     disabled={loading}
                   />
                   <Button
