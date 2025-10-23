@@ -639,19 +639,28 @@ export default function Survey2024() {
 					.eq('user_id', user.id)
 					.maybeSingle();
 				
+				// Only save to database if we have required fields filled
+				const hasRequiredFields = formData.email_address && formData.organisation_name;
+				
+				if (!hasRequiredFields) {
+					// Skip database save if required fields are missing
+					console.log('Skipping database save - required fields missing');
+					return;
+				}
+				
 				const surveyData = {
 					user_id: user.id,
 					email_address: formData.email_address,
 					organisation_name: formData.organisation_name,
-					fund_name: formData.fund_name,
-					funds_raising_investing: formData.funds_raising_investing,
-					legal_entity_achieved: formData.legal_entity_achieved,
-					first_close_achieved: formData.first_close_achieved,
-					first_investment_achieved: formData.first_investment_achieved,
+					fund_name: formData.fund_name || '',
+					funds_raising_investing: formData.funds_raising_investing || '',
+					legal_entity_achieved: formData.legal_entity_achieved || '',
+					first_close_achieved: formData.first_close_achieved || '',
+					first_investment_achieved: formData.first_investment_achieved || '',
 					geographic_markets: formData.geographic_markets || [],
-					geographic_markets_other: formData.geographic_markets_other,
+					geographic_markets_other: formData.geographic_markets_other || '',
 					team_based: formData.team_based || [],
-					team_based_other: formData.team_based_other,
+					team_based_other: formData.team_based_other || '',
 					form_data: formData,
 					submission_status: 'draft',
 					updated_at: new Date().toISOString()
@@ -710,29 +719,21 @@ export default function Survey2024() {
 			'gender_lens_investing'
 		];
 		
-		const subscriptions = watchFields.map(field => 
-			form.watch(field as any, (value) => {
-				const timeoutId = setTimeout(() => {
-					saveDraft();
-				}, 1000); // Faster save for critical fields
-				return () => clearTimeout(timeoutId);
-			})
-		);
-		
-		// General form watching
-		const generalSubscription = form.watch((value) => {
-			const timeoutId = setTimeout(() => {
-				saveDraft();
-			}, 2000); // Save 2 seconds after last change
-			
-			return () => clearTimeout(timeoutId);
+		// Watch each field individually and save on change
+		watchFields.forEach(field => {
+			form.watch(field as any);
 		});
 		
-		return () => {
-			subscriptions.forEach(sub => sub.unsubscribe());
-			generalSubscription.unsubscribe();
-		};
-	}, [user, form]);
+		// General form watching - this will trigger on any form change
+		const watchedValues = form.watch();
+		
+		// Save when any watched value changes
+		const timeoutId = setTimeout(() => {
+			saveDraft();
+		}, 2000); // Save 2 seconds after last change
+		
+		return () => clearTimeout(timeoutId);
+	}, [user, form, form.watch()]);
 
 	// Handle form submission
 	const handleSubmit = async (data: any) => {

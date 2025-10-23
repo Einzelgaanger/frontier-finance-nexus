@@ -277,19 +277,28 @@ const Survey2022 = () => {
           .eq('user_id', user.id)
           .maybeSingle();
         
+        // Only save to database if we have required fields filled
+        const hasRequiredFields = formData.email && formData.organisation;
+        
+        if (!hasRequiredFields) {
+          // Skip database save if required fields are missing
+          console.log('Skipping database save - required fields missing');
+          return;
+        }
+        
         const surveyData = {
           user_id: user.id,
-          name: formData.name,
-          role_title: formData.role_title,
+          name: formData.name || '',
+          role_title: formData.role_title || '',
           email: formData.email,
           organisation: formData.organisation,
-          legal_entity_date: formData.legal_entity_date,
-          first_close_date: formData.first_close_date,
-          first_investment_date: formData.first_investment_date,
+          legal_entity_date: formData.legal_entity_date || '',
+          first_close_date: formData.first_close_date || '',
+          first_investment_date: formData.first_investment_date || '',
           geographic_markets: formData.geographic_markets || [],
-          geographic_markets_other: formData.geographic_markets_other,
+          geographic_markets_other: formData.geographic_markets_other || '',
           team_based: formData.team_based || [],
-          team_based_other: formData.team_based_other,
+          team_based_other: formData.team_based_other || '',
           form_data: formData,
           submission_status: 'draft',
           updated_at: new Date().toISOString(),

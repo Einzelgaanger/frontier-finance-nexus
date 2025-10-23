@@ -336,29 +336,21 @@ const Survey2021: React.FC = () => {
       'convening_initiatives_other_ranking'
     ];
     
-    const subscriptions = watchFields.map(field => 
-      form.watch(field as any, (value) => {
-        const timeoutId = setTimeout(() => {
-          saveDraft();
-        }, 1000); // Faster save for critical fields
-        return () => clearTimeout(timeoutId);
-      })
-    );
-    
-    // General form watching
-    const generalSubscription = form.watch((value) => {
-      const timeoutId = setTimeout(() => {
-        saveDraft();
-      }, 2000); // Save 2 seconds after last change
-      
-      return () => clearTimeout(timeoutId);
+    // Watch each field individually and save on change
+    watchFields.forEach(field => {
+      form.watch(field as any);
     });
     
-    return () => {
-      subscriptions.forEach(sub => sub.unsubscribe());
-      generalSubscription.unsubscribe();
-    };
-  }, [user, form]);
+    // General form watching - this will trigger on any form change
+    const watchedValues = form.watch();
+    
+    // Save when any watched value changes
+    const timeoutId = setTimeout(() => {
+      saveDraft();
+    }, 2000); // Save 2 seconds after last change
+    
+    return () => clearTimeout(timeoutId);
+  }, [user, form, form.watch()]);
 
   // Save section and scroll position when section changes
   useEffect(() => {
@@ -446,21 +438,30 @@ const Survey2021: React.FC = () => {
           .eq('user_id', user.id)
           .maybeSingle();
 
+        // Only save to database if we have required fields filled
+        const hasRequiredFields = formData.email_address && formData.firm_name;
+        
+        if (!hasRequiredFields) {
+          // Skip database save if required fields are missing
+          console.log('Skipping database save - required fields missing');
+          return;
+        }
+
         const recordData = {
           user_id: user.id,
           email_address: formData.email_address,
           firm_name: formData.firm_name,
-          participant_name: formData.participant_name,
-          role_title: formData.role_title,
+          participant_name: formData.participant_name || '',
+          role_title: formData.role_title || '',
           team_based: formData.team_based || [],
-          team_based_other: formData.team_based_other,
+          team_based_other: formData.team_based_other || '',
           geographic_focus: formData.geographic_focus || [],
-          geographic_focus_other: formData.geographic_focus_other,
-          fund_stage: formData.fund_stage,
-          fund_stage_other: formData.fund_stage_other,
-          legal_entity_date: formData.legal_entity_date,
-          first_close_date: formData.first_close_date,
-          first_investment_date: formData.first_investment_date,
+          geographic_focus_other: formData.geographic_focus_other || '',
+          fund_stage: formData.fund_stage || '',
+          fund_stage_other: formData.fund_stage_other || '',
+          legal_entity_date: formData.legal_entity_date || '',
+          first_close_date: formData.first_close_date || '',
+          first_investment_date: formData.first_investment_date || '',
           form_data: formData,
           submission_status: 'draft',
           updated_at: new Date().toISOString(),
