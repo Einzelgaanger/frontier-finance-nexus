@@ -178,6 +178,7 @@ const Survey2022 = () => {
       value_add_services: '',
       team_based: [],
       team_based_other: '',
+      gp_experience: {},
       receive_results: false,
     },
   });
@@ -895,7 +896,7 @@ const Survey2022 = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-sm font-normal">Applicability</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select applicability" />
                         </SelectTrigger>
