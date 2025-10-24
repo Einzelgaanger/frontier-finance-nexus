@@ -191,259 +191,143 @@ export default function Survey2024() {
 		defaultValues: {
 			// Section 1: Introduction & Context
 			email_address: '',
-			firm_name: '',
-			participant_name: '',
-			role_title: '',
+			investment_networks: [],
+			investment_networks_other: '',
+			organisation_name: '',
+			funds_raising_investing: '',
+			fund_name: '',
+			
+			// Section 2: Organizational Background and Team
+			legal_entity_achieved: '',
+			first_close_achieved: '',
+			first_investment_achieved: '',
+			geographic_markets: [],
+			geographic_markets_other: '',
 			team_based: [],
 			team_based_other: '',
-			geographic_focus: [],
-			geographic_focus_other: '',
-			fund_stage: '',
-			fund_stage_other: '',
-			legal_entity_date: '',
-			first_close_date: '',
-			first_investment_date: '',
-			// Section 2: Investment Thesis & Capital Construct
-			investment_stage: '',
-			investment_size: '',
-			investment_type: '',
-			sector_focus: '',
-			geographic_focus: '',
-			value_add_services: '',
-			// Section 3: Portfolio Construction and Team
-			current_ftes: '',
-			ye2024_ftes: '',
-			principals_count: '',
-			gp_experience: {},
-			gp_experience_other_selected: false,
-			gp_experience_other_description: '',
-			gender_orientation: [],
-			gender_orientation_other: '',
-			investments_experience: '',
-			exits_experience: '',
-			// Section 4: Portfolio Development & Investment Return Monetization
-			legal_domicile: '',
+			fte_staff_2023_actual: undefined,
+			fte_staff_current: undefined,
+			fte_staff_2025_forecast: undefined,
+			investment_approval: [],
+			investment_approval_other: '',
+			principals_total: undefined,
+			principals_women: undefined,
+			gender_inclusion: [],
+			gender_inclusion_other: '',
+			team_experience_investments: {},
+			team_experience_exits: {},
+			
+			// Section 3: Vehicle Construct
+			legal_domicile: [],
 			legal_domicile_other: '',
+			domicile_reason: [],
+			domicile_reason_other: '',
+			regulatory_impact: {},
+			regulatory_impact_other: '',
 			currency_investments: '',
 			currency_lp_commitments: '',
-			fund_operations: '',
-			fund_operations_other: '',
-			current_funds_raised: '',
-			current_amount_invested: '',
-			target_fund_size: '',
-			target_investments: '',
+			currency_hedging_strategy: '',
+			currency_hedging_details: '',
+			fund_type_status: '',
+			fund_type_status_other: '',
+			hard_commitments_2022: undefined,
+			hard_commitments_current: undefined,
+			amount_invested_2022: undefined,
+			amount_invested_current: undefined,
+			target_fund_size_2022: undefined,
+			target_fund_size_current: undefined,
+			target_number_investments: undefined,
 			follow_on_permitted: '',
-			target_irr: '',
-			target_irr_other: '',
 			concessionary_capital: [],
 			concessionary_capital_other: '',
-			lp_capital_sources: {},
-			lp_capital_sources_other_description: '',
-			gp_commitment: '',
-			management_fee: '',
-			management_fee_other: '',
-			carried_interest_hurdle: '',
-			carried_interest_hurdle_other: '',
-			carried_interest_percentage: '',
-			carried_interest_percentage_other: '',
-			key_terms_other: '',
-			key_terms_other_description: '',
-			// Section 5: Impact of COVID-19 on Vehicle and Portfolio
-			portfolio_performance: {},
-			portfolio_performance_other_selected: false,
-			revenue_growth_other: '',
-			cash_flow_growth_other: '',
+			existing_lp_sources: {},
+			existing_lp_sources_other_description: '',
+			target_lp_sources: {},
+			target_lp_sources_other_description: '',
+			gp_financial_commitment: [],
+			gp_financial_commitment_other: '',
+			gp_management_fee: '',
+			gp_management_fee_other: '',
+			hurdle_rate_currency: '',
+			hurdle_rate_currency_other: '',
+			hurdle_rate_percentage: undefined,
+			target_return_above_govt_debt: undefined,
+			fundraising_barriers: {},
+			fundraising_barriers_other_description: '',
+			
+			// Section 4: Investment Thesis
+			business_stages: {},
+			revenue_growth_mix: {},
+			financing_needs: {},
+			sector_target_allocation: {},
+			investment_considerations: {},
+			investment_considerations_other: '',
+			financial_instruments_ranking: {},
+			top_sdgs: [],
+			additional_sdgs: '',
+			gender_lens_investing: {},
+			
+			// Section 5: Pipeline Sourcing and Portfolio Construction
+			pipeline_sources_quality: {},
+			pipeline_sources_quality_other_enabled: false,
+			pipeline_sources_quality_other_description: '',
+			pipeline_sources_quality_other_score: undefined,
+			sgb_financing_trends: {},
+			typical_investment_size: '',
+			
+			// Section 6: Portfolio Value Creation and Exits
+			post_investment_priorities: {},
+			post_investment_priorities_other_enabled: false,
+			post_investment_priorities_other_description: '',
+			post_investment_priorities_other_score: undefined,
+			technical_assistance_funding: {},
+			business_development_approach: [],
+			business_development_approach_other_enabled: false,
+			business_development_approach_other: '',
+			unique_offerings: {},
+			unique_offerings_other_enabled: false,
+			unique_offerings_other_description: '',
+			unique_offerings_other_score: undefined,
+			typical_investment_timeframe: '',
+			investment_monetisation_forms: [],
+			investment_monetisation_other_enabled: false,
+			investment_monetisation_other: '',
+			
+			// Section 7: Performance to Date and Current Outlook
+			equity_investments_made: undefined,
+			debt_investments_made: undefined,
+			equity_exits_achieved: undefined,
+			debt_repayments_achieved: undefined,
+			equity_exits_anticipated: undefined,
+			debt_repayments_anticipated: undefined,
+			other_investments_supplement: '',
+			portfolio_revenue_growth_12m: undefined,
+			portfolio_revenue_growth_next_12m: undefined,
+			portfolio_cashflow_growth_12m: undefined,
+			portfolio_cashflow_growth_next_12m: undefined,
+			portfolio_performance_other_enabled: false,
 			portfolio_performance_other_description: '',
-			direct_jobs_created_cumulative: '',
-			direct_jobs_anticipated_change: '',
-			indirect_jobs_created_cumulative: '',
-			indirect_jobs_anticipated_change: '',
-			jobs_impact_other_selected: false,
-			other_jobs_created_cumulative: '',
-			other_jobs_anticipated_change: '',
-			jobs_impact_other_description: '',
-			fund_priority_areas: {},
-			fund_priority_areas_other_selected: false,
-			fund_priority_areas_other_description: '',
-			domestic_factors_concerns: {},
-			domestic_factors_concerns_other_selected: false,
-			domestic_factors_concerns_other_description: '',
-			international_factors_concerns: {},
-			international_factors_concerns_other_selected: false,
-			international_factors_concerns_other_description: '',
-			// Section 6: Feedback on ESCP Network Membership to date
-			network_value: '',
-			network_improvements: '',
-			network_events: '',
-			network_events_other: '',
-			network_communication: '',
-			network_communication_other: '',
-			network_support: '',
-			network_support_other: '',
-			network_impact: '',
-			network_impact_other: '',
-			network_recommendations: '',
-			// Section 7: 2024 Convening Objectives & Goals
-			convening_objectives: [],
-			convening_objectives_other: '',
-			convening_format: '',
-			convening_format_other: '',
-			convening_topics: [],
-			convening_topics_other: '',
-			convening_speakers: '',
-			convening_speakers_other: '',
-			convening_networking: '',
-			convening_networking_other: '',
-			convening_outcomes: '',
-			convening_outcomes_other: '',
-			convening_follow_up: '',
-			convening_follow_up_other: '',
-			convening_commitments: '',
-			convening_commitments_other: '',
-			convening_impact: '',
-			convening_impact_other: '',
-			convening_success: '',
-			convening_success_other: '',
-			convening_challenges: '',
-			convening_challenges_other: '',
-			convening_opportunities: '',
-			convening_opportunities_other: '',
-			convening_priorities: '',
-			convening_priorities_other: '',
-			convening_goals: '',
-			convening_goals_other: '',
-			convening_vision: '',
-			convening_vision_other: '',
-			convening_mission: '',
-			convening_mission_other: '',
-			convening_values: '',
-			convening_values_other: '',
-			convening_principles: '',
-			convening_principles_other: '',
-			convening_standards: '',
-			convening_standards_other: '',
-			convening_guidelines: '',
-			convening_guidelines_other: '',
-			convening_policies: '',
-			convening_policies_other: '',
-			convening_procedures: '',
-			convening_procedures_other: '',
-			convening_processes: '',
-			convening_processes_other: '',
-			convening_systems: '',
-			convening_systems_other: '',
-			convening_structures: '',
-			convening_structures_other: '',
-			convening_frameworks: '',
-			convening_frameworks_other: '',
-			convening_models: '',
-			convening_models_other: '',
-			convening_approaches: '',
-			convening_approaches_other: '',
-			convening_methods: '',
-			convening_methods_other: '',
-			convening_techniques: '',
-			convening_techniques_other: '',
-			convening_strategies: '',
-			convening_strategies_other: '',
-			convening_tactics: '',
-			convening_tactics_other: '',
-			convening_plans: '',
-			convening_plans_other: '',
-			convening_programs: '',
-			convening_programs_other: '',
-			convening_initiatives: '',
-			convening_initiatives_other: '',
-			convening_projects: '',
-			convening_projects_other: '',
-			convening_activities: '',
-			convening_activities_other: '',
-			convening_events: '',
-			convening_events_other: '',
-			convening_meetings: '',
-			convening_meetings_other: '',
-			convening_sessions: '',
-			convening_sessions_other: '',
-			convening_workshops: '',
-			convening_workshops_other: '',
-			convening_seminars: '',
-			convening_seminars_other: '',
-			convening_conferences: '',
-			convening_conferences_other: '',
-			convening_symposia: '',
-			convening_symposia_other: '',
-			convening_forums: '',
-			convening_forums_other: '',
-			convening_roundtables: '',
-			convening_roundtables_other: '',
-			convening_panels: '',
-			convening_panels_other: '',
-			convening_discussions: '',
-			convening_discussions_other: '',
-			convening_dialogues: '',
-			convening_dialogues_other: '',
-			convening_conversations: '',
-			convening_conversations_other: '',
-			convening_exchanges: '',
-			convening_exchanges_other: '',
-			convening_interactions: '',
-			convening_interactions_other: '',
-			convening_engagements: '',
-			convening_engagements_other: '',
-			convening_collaborations: '',
-			convening_collaborations_other: '',
-			convening_partnerships: '',
-			convening_partnerships_other: '',
-			convening_alliances: '',
-			convening_alliances_other: '',
-			convening_coalitions: '',
-			convening_coalitions_other: '',
-			convening_networks: '',
-			convening_networks_other: '',
-			convening_communities: '',
-			convening_communities_other: '',
-			convening_groups: '',
-			convening_groups_other: '',
-			convening_teams: '',
-			convening_teams_other: '',
-			convening_organizations: '',
-			convening_organizations_other: '',
-			convening_institutions: '',
-			convening_institutions_other: '',
-			convening_entities: '',
-			convening_entities_other: '',
-			convening_bodies: '',
-			convening_bodies_other: '',
-			convening_committees: '',
-			convening_committees_other: '',
-			convening_boards: '',
-			convening_boards_other: '',
-			convening_councils: '',
-			convening_councils_other: '',
-			convening_assemblies: '',
-			convening_assemblies_other: '',
-			convening_gatherings: '',
-			convening_gatherings_other: '',
-			convening_meetings: '',
-			convening_meetings_other: '',
-			convening_sessions: '',
-			convening_sessions_other: '',
-			convening_workshops: '',
-			convening_workshops_other: '',
-			convening_seminars: '',
-			convening_seminars_other: '',
-			convening_conferences: '',
-			convening_conferences_other: '',
-			convening_symposia: '',
-			convening_symposia_other: '',
-			convening_forums: '',
-			convening_forums_other: '',
-			convening_roundtables: '',
-			convening_roundtables_other: '',
-			convening_panels: '',
-			convening_panels_other: '',
-			convening_discussions: '',
-			convening_discussions_other: '',
+			portfolio_performance_other_category: '',
+			portfolio_performance_other_value: undefined,
+			direct_jobs_current: undefined,
+			indirect_jobs_current: undefined,
+			direct_jobs_anticipated: undefined,
+			indirect_jobs_anticipated: undefined,
+			employment_impact_other_enabled: false,
+			employment_impact_other_description: '',
+			employment_impact_other_category: '',
+			employment_impact_other_value: undefined,
+			fund_priorities_next_12m: {},
+			fund_priorities_other_enabled: false,
+			fund_priorities_other_description: '',
+			fund_priorities_other_category: '',
+			
+			// Section 8: Future Research and Contact Information
+			data_sharing_willingness: [],
+			data_sharing_other_enabled: false,
+			data_sharing_other: '',
+			survey_sender: '',
+			receive_results: false,
 			convening_dialogues: '',
 			convening_dialogues_other: '',
 			convening_conversations: '',
@@ -880,7 +764,7 @@ export default function Survey2024() {
 				name="investment_networks"
 				render={() => (
 					<FormItem>
-						<FormLabel>2. Please check all investment networks or associations that you are a part of. If they are not listed, please include them in the textbox.</FormLabel>
+		<FormLabel>2. Please check all investment networks or associations that you are a part of. If they are not listed, please include them in the textbox.</FormLabel>
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
 							{[
 								'CFF', 'ABAN', 'AVCA', 'AWI', 'Capria Network', 'WAI'
@@ -889,44 +773,48 @@ export default function Survey2024() {
 									key={network}
 									control={form.control}
 									name="investment_networks"
-									render={({ field }) => (
-										<FormItem className="flex flex-row items-start space-x-3 space-y-0">
-											<FormControl>
-												<Checkbox
-													checked={field.value?.includes(network)}
-													onCheckedChange={(checked) => {
-														const current = field.value || [];
-														return checked
-															? field.onChange([...current, network])
-															: field.onChange(current.filter((value) => value !== network))
-													}}
-												/>
-											</FormControl>
-											<FormLabel className="text-sm font-normal">{network}</FormLabel>
-										</FormItem>
-									)}
+									render={({ field }) => {
+										const current = field.value || [];
+										return (
+											<FormItem className="flex flex-row items-start space-x-3 space-y-0">
+												<FormControl>
+													<Checkbox
+														checked={current.includes(network)}
+														onCheckedChange={(checked) => {
+															return checked
+																? field.onChange([...current, network])
+																: field.onChange(current.filter((value) => value !== network))
+														}}
+													/>
+												</FormControl>
+												<FormLabel className="text-sm font-normal">{network}</FormLabel>
+											</FormItem>
+										);
+									}}
 								/>
 							))}
 							{/* Other checkbox */}
 							<FormField
 								control={form.control}
 								name="investment_networks"
-								render={({ field }) => (
-									<FormItem className="flex flex-row items-start space-x-3 space-y-0">
-										<FormControl>
-											<Checkbox
-												checked={(field.value || []).includes('Other')}
-												onCheckedChange={(checked) => {
-													const current = field.value || [];
-													return checked
-														? field.onChange([...current, 'Other'])
-														: field.onChange(current.filter((v) => v !== 'Other'))
-												}}
-											/>
-										</FormControl>
-										<FormLabel className="text-sm font-normal">Other (please specify)</FormLabel>
-									</FormItem>
-								)}
+								render={({ field }) => {
+									const current = field.value || [];
+									return (
+										<FormItem className="flex flex-row items-start space-x-3 space-y-0">
+											<FormControl>
+												<Checkbox
+													checked={current.includes('Other')}
+													onCheckedChange={(checked) => {
+														return checked
+															? field.onChange([...current, 'Other'])
+															: field.onChange(current.filter((v) => v !== 'Other'))
+													}}
+												/>
+											</FormControl>
+											<FormLabel className="text-sm font-normal">Other (please specify)</FormLabel>
+										</FormItem>
+									);
+								}}
 							/>
 						</div>
 
@@ -969,20 +857,20 @@ export default function Survey2024() {
 				name="funds_raising_investing"
 				render={({ field }) => (
 					<FormItem>
-						<FormLabel>4. How many funds are you currently raising and/or investing?</FormLabel>
-						<Select onValueChange={field.onChange} value={field.value}>
-							<FormControl>
-								<SelectTrigger>
-									<SelectValue placeholder="Select number of funds" />
-								</SelectTrigger>
-							</FormControl>
-							<SelectContent>
-								<SelectItem value="1">1</SelectItem>
-								<SelectItem value="2">2</SelectItem>
-								<SelectItem value="≥3">≥3</SelectItem>
-								<SelectItem value="None of the above">None of the above</SelectItem>
-							</SelectContent>
-						</Select>
+					<FormLabel>4. How many funds are you currently raising and/or investing?</FormLabel>
+					<Select onValueChange={field.onChange} value={field.value ?? undefined}>
+						<FormControl>
+							<SelectTrigger>
+								<SelectValue placeholder="Select number of funds" />
+							</SelectTrigger>
+						</FormControl>
+						<SelectContent>
+							<SelectItem value="1">1</SelectItem>
+							<SelectItem value="2">2</SelectItem>
+							<SelectItem value="≥3">≥3</SelectItem>
+							<SelectItem value="None of the above">None of the above</SelectItem>
+						</SelectContent>
+					</Select>
 						<FormMessage />
 					</FormItem>
 				)}
@@ -1016,7 +904,7 @@ export default function Survey2024() {
 						<div className="space-y-4">
 							<div>
 								<FormLabel>Legal Entity</FormLabel>
-								<Select onValueChange={field.onChange} value={field.value}>
+								<Select onValueChange={field.onChange} value={field.value ?? undefined}>
 									<FormControl>
 										<SelectTrigger>
 											<SelectValue placeholder="Select when legal entity was achieved" />
@@ -1042,21 +930,21 @@ export default function Survey2024() {
 				name="first_close_achieved"
 				render={({ field }) => (
 					<FormItem>
-						<FormLabel>First Close (or equivalent)</FormLabel>
-						<Select onValueChange={field.onChange} value={field.value}>
-							<FormControl>
-								<SelectTrigger>
-									<SelectValue placeholder="Select when first close was achieved" />
-								</SelectTrigger>
-							</FormControl>
-							<SelectContent>
-								<SelectItem value="Not Achieved">Not Achieved</SelectItem>
-								<SelectItem value="2019 or earlier">2019 or earlier</SelectItem>
-								<SelectItem value="2020-2023">2020-2023</SelectItem>
-								<SelectItem value="2024">2024</SelectItem>
-								<SelectItem value="Not Applicable">Not Applicable</SelectItem>
-							</SelectContent>
-						</Select>
+					<FormLabel>First Close (or equivalent)</FormLabel>
+					<Select onValueChange={field.onChange} value={field.value ?? undefined}>
+						<FormControl>
+							<SelectTrigger>
+								<SelectValue placeholder="Select when first close was achieved" />
+							</SelectTrigger>
+						</FormControl>
+						<SelectContent>
+							<SelectItem value="Not Achieved">Not Achieved</SelectItem>
+							<SelectItem value="2019 or earlier">2019 or earlier</SelectItem>
+							<SelectItem value="2020-2023">2020-2023</SelectItem>
+							<SelectItem value="2024">2024</SelectItem>
+							<SelectItem value="Not Applicable">Not Applicable</SelectItem>
+						</SelectContent>
+					</Select>
 						<FormMessage />
 					</FormItem>
 				)}
@@ -1067,21 +955,21 @@ export default function Survey2024() {
 				name="first_investment_achieved"
 				render={({ field }) => (
 					<FormItem>
-						<FormLabel>First Investment</FormLabel>
-						<Select onValueChange={field.onChange} value={field.value}>
-							<FormControl>
-								<SelectTrigger>
-									<SelectValue placeholder="Select when first investment was made" />
-								</SelectTrigger>
-							</FormControl>
-							<SelectContent>
-								<SelectItem value="Not Achieved">Not Achieved</SelectItem>
-								<SelectItem value="2019 or earlier">2019 or earlier</SelectItem>
-								<SelectItem value="2020-2023">2020-2023</SelectItem>
-								<SelectItem value="2024">2024</SelectItem>
-								<SelectItem value="Not Applicable">Not Applicable</SelectItem>
-							</SelectContent>
-						</Select>
+					<FormLabel>First Investment</FormLabel>
+					<Select onValueChange={field.onChange} value={field.value ?? undefined}>
+						<FormControl>
+							<SelectTrigger>
+								<SelectValue placeholder="Select when first investment was made" />
+							</SelectTrigger>
+						</FormControl>
+						<SelectContent>
+							<SelectItem value="Not Achieved">Not Achieved</SelectItem>
+							<SelectItem value="2019 or earlier">2019 or earlier</SelectItem>
+							<SelectItem value="2020-2023">2020-2023</SelectItem>
+							<SelectItem value="2024">2024</SelectItem>
+							<SelectItem value="Not Applicable">Not Applicable</SelectItem>
+						</SelectContent>
+					</Select>
 						<FormMessage />
 					</FormItem>
 				)}
@@ -1865,25 +1753,25 @@ export default function Survey2024() {
 				name="fund_type_status"
 				render={({ field }) => (
 					<FormItem>
-						<FormLabel>20. What is the fund type and current status of your most recent fund vehicle's operations? (Please select appropriate response)</FormLabel>
-						<Select onValueChange={field.onChange} value={field.value}>
-							<FormControl>
-								<SelectTrigger>
-									<SelectValue placeholder="Select fund type and status" />
-								</SelectTrigger>
-							</FormControl>
-							<SelectContent>
-								<SelectItem value="Closed ended - fundraising">Closed ended - fundraising</SelectItem>
-								<SelectItem value="Closed ended - completed first close">Closed ended - completed first close</SelectItem>
-								<SelectItem value="Closed ended - completed second close">Closed ended - completed second close</SelectItem>
-								<SelectItem value="Open ended - fundraising and heading towards equivalent of 1st close (i.e. lack sufficient committed funds to cover fund economics)">Open ended - fundraising and heading towards equivalent of 1st close (i.e. lack sufficient committed funds to cover fund economics)</SelectItem>
-								<SelectItem value="Open ended - achieved equivalent of 1st close with sufficient committed funds to cover fund economics">Open ended - achieved equivalent of 1st close with sufficient committed funds to cover fund economics</SelectItem>
-								<SelectItem value="Second fund/vehicle - fund raising">Second fund/vehicle - fund raising</SelectItem>
-								<SelectItem value="Second fund/vehicle - completed first close or equivalent">Second fund/vehicle - completed first close or equivalent</SelectItem>
-								<SelectItem value="Third or later fund/vehicle">Third or later fund/vehicle</SelectItem>
-								<SelectItem value="Other (please specify)">Other (please specify)</SelectItem>
-							</SelectContent>
-						</Select>
+					<FormLabel>20. What is the fund type and current status of your most recent fund vehicle's operations? (Please select appropriate response)</FormLabel>
+					<Select onValueChange={field.onChange} value={field.value ?? undefined}>
+						<FormControl>
+							<SelectTrigger>
+								<SelectValue placeholder="Select fund type and status" />
+							</SelectTrigger>
+						</FormControl>
+						<SelectContent>
+							<SelectItem value="Closed ended - fundraising">Closed ended - fundraising</SelectItem>
+							<SelectItem value="Closed ended - completed first close">Closed ended - completed first close</SelectItem>
+							<SelectItem value="Closed ended - completed second close">Closed ended - completed second close</SelectItem>
+							<SelectItem value="Open ended - fundraising and heading towards equivalent of 1st close (i.e. lack sufficient committed funds to cover fund economics)">Open ended - fundraising and heading towards equivalent of 1st close (i.e. lack sufficient committed funds to cover fund economics)</SelectItem>
+							<SelectItem value="Open ended - achieved equivalent of 1st close with sufficient committed funds to cover fund economics">Open ended - achieved equivalent of 1st close with sufficient committed funds to cover fund economics</SelectItem>
+							<SelectItem value="Second fund/vehicle - fund raising">Second fund/vehicle - fund raising</SelectItem>
+							<SelectItem value="Second fund/vehicle - completed first close or equivalent">Second fund/vehicle - completed first close or equivalent</SelectItem>
+							<SelectItem value="Third or later fund/vehicle">Third or later fund/vehicle</SelectItem>
+							<SelectItem value="Other (please specify)">Other (please specify)</SelectItem>
+						</SelectContent>
+					</Select>
 						{form.watch('fund_type_status') === 'Other (please specify)' && (
 						<FormField
 							control={form.control}
@@ -2528,20 +2416,20 @@ export default function Survey2024() {
 				name="hurdle_rate_currency"
 				render={({ field }) => (
 					<FormItem>
-						<FormLabel>29. In what currency is your hurdle rate determined?</FormLabel>
-						<Select onValueChange={field.onChange} value={field.value}>
-							<FormControl>
-								<SelectTrigger>
-									<SelectValue placeholder="Select one" />
-								</SelectTrigger>
-							</FormControl>
-							<SelectContent>
-								<SelectItem value="Local currency">Local currency</SelectItem>
-								<SelectItem value="USD">USD</SelectItem>
-								<SelectItem value="Euro">Euro</SelectItem>
-								<SelectItem value="Other (please specify)">Other (please specify)</SelectItem>
-							</SelectContent>
-						</Select>
+					<FormLabel>29. In what currency is your hurdle rate determined?</FormLabel>
+					<Select onValueChange={field.onChange} value={field.value ?? undefined}>
+						<FormControl>
+							<SelectTrigger>
+								<SelectValue placeholder="Select one" />
+							</SelectTrigger>
+						</FormControl>
+						<SelectContent>
+							<SelectItem value="Local currency">Local currency</SelectItem>
+							<SelectItem value="USD">USD</SelectItem>
+							<SelectItem value="Euro">Euro</SelectItem>
+							<SelectItem value="Other (please specify)">Other (please specify)</SelectItem>
+						</SelectContent>
+					</Select>
 						{form.watch('hurdle_rate_currency') === 'Other (please specify)' && (
 							<FormField
 								control={form.control}
@@ -3670,50 +3558,52 @@ export default function Survey2024() {
 				name="business_development_approach"
 				render={() => (
 					<FormItem>
-						<FormLabel>46. Which of the following apply to how you provide business development support to portfolio companies?</FormLabel>
-						<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-							{[
-								'Predominantly standardised approach (intervention applies across portfolio)',
-								'Predominantly tailored approach (intervention specific to portfolio company)',
-								'Pre-investment TA',
-								'Post-investment TA',
-								'Predominantly outsourced',
-								'Predominantly delivered by fund manager',
-								'No TA provided',
-							'Other (please specify)'
-							].map((approach) => (
-								<FormField
-									key={approach}
-									control={form.control}
-									name="business_development_approach"
-									render={({ field }) => (
+					<FormLabel>46. Which of the following apply to how you provide business development support to portfolio companies?</FormLabel>
+					<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+						{[
+							'Predominantly standardised approach (intervention applies across portfolio)',
+							'Predominantly tailored approach (intervention specific to portfolio company)',
+							'Pre-investment TA',
+							'Post-investment TA',
+							'Predominantly outsourced',
+							'Predominantly delivered by fund manager',
+							'No TA provided',
+						'Other (please specify)'
+						].map((approach) => (
+							<FormField
+								key={approach}
+								control={form.control}
+								name="business_development_approach"
+								render={({ field }) => {
+									const current = field.value || [];
+									return (
 										<FormItem className="flex flex-row items-start space-x-3 space-y-0">
 											<FormControl>
 												<Checkbox
-											checked={
-												approach === 'Other (please specify)'
-													? (form.watch('business_development_approach_other_enabled') === true)
-													: (field.value || []).includes(approach)
-											}
+													checked={
+														approach === 'Other (please specify)'
+															? (form.watch('business_development_approach_other_enabled') === true)
+															: current.includes(approach)
+													}
 													onCheckedChange={(checked) => {
-												if (approach === 'Other (please specify)') {
-													form.setValue('business_development_approach_other_enabled', !!checked);
-													if (!checked) form.setValue('business_development_approach_other', '');
-													return;
-												}
-												const current = field.value || [];
+														if (approach === 'Other (please specify)') {
+															form.setValue('business_development_approach_other_enabled', !!checked);
+															if (!checked) form.setValue('business_development_approach_other', '');
+															return;
+														}
 														return checked
-													? field.onChange([...current, approach])
-													: field.onChange(current.filter((value: string) => value !== approach))
+															? field.onChange([...current, approach])
+															: field.onChange(current.filter((value: string) => value !== approach))
 													}}
 												/>
 											</FormControl>
 											<FormLabel className="text-sm font-normal">{approach}</FormLabel>
 										</FormItem>
-									)}
-								/>
-							))}
-						</div>
+									);
+								}}
+							/>
+						))}
+					</div>
 						{form.watch('business_development_approach_other_enabled') && (
 						<FormField
 							control={form.control}
@@ -3844,22 +3734,22 @@ export default function Survey2024() {
 				name="typical_investment_timeframe"
 				render={({ field }) => (
 					<FormItem>
-						<FormLabel>48. What is your typical investment timeframe?</FormLabel>
-						<Select onValueChange={field.onChange} value={field.value}>
-							<FormControl>
-								<SelectTrigger>
-									<SelectValue placeholder="Select typical timeframe" />
-								</SelectTrigger>
-							</FormControl>
-							<SelectContent>
-								<SelectItem value="< 1 year">&lt; 1 year</SelectItem>
-								<SelectItem value="1 - 3 years">1 - 3 years</SelectItem>
-								<SelectItem value="4 - 5 years">4 - 5 years</SelectItem>
-								<SelectItem value="6 - 7 years">6 - 7 years</SelectItem>
-								<SelectItem value="8+ years">8+ years</SelectItem>
-								<SelectItem value="Not Applicable">Not Applicable</SelectItem>
-							</SelectContent>
-						</Select>
+					<FormLabel>48. What is your typical investment timeframe?</FormLabel>
+					<Select onValueChange={field.onChange} value={field.value ?? undefined}>
+						<FormControl>
+							<SelectTrigger>
+								<SelectValue placeholder="Select typical timeframe" />
+							</SelectTrigger>
+						</FormControl>
+						<SelectContent>
+							<SelectItem value="< 1 year">&lt; 1 year</SelectItem>
+							<SelectItem value="1 - 3 years">1 - 3 years</SelectItem>
+							<SelectItem value="4 - 5 years">4 - 5 years</SelectItem>
+							<SelectItem value="6 - 7 years">6 - 7 years</SelectItem>
+							<SelectItem value="8+ years">8+ years</SelectItem>
+							<SelectItem value="Not Applicable">Not Applicable</SelectItem>
+						</SelectContent>
+					</Select>
 						<FormMessage />
 					</FormItem>
 				)}
@@ -3871,27 +3761,28 @@ export default function Survey2024() {
 				name="investment_monetisation_forms"
 				render={() => (
 					<FormItem>
-						<FormLabel>49. What is the typical form of investment monetisation/exit?</FormLabel>
-						<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-							{[
-								'Interest income/shared revenues and principal repayment',
-								'Other types of self-liquidating repayment structures',
-								'Dividends',
-								'Strategic sale/merger of company',
-								'Management buyout',
-								'Financial investor take-out',
-							].map((option) => (
-								<FormField
-									key={option}
-									control={form.control}
-									name="investment_monetisation_forms"
-									render={({ field }) => (
+					<FormLabel>49. What is the typical form of investment monetisation/exit?</FormLabel>
+					<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+						{[
+							'Interest income/shared revenues and principal repayment',
+							'Other types of self-liquidating repayment structures',
+							'Dividends',
+							'Strategic sale/merger of company',
+							'Management buyout',
+							'Financial investor take-out',
+						].map((option) => (
+							<FormField
+								key={option}
+								control={form.control}
+								name="investment_monetisation_forms"
+								render={({ field }) => {
+									const current = field.value || [];
+									return (
 										<FormItem className="flex flex-row items-start space-x-3 space-y-0">
 											<FormControl>
 												<Checkbox
-													checked={(field.value || []).includes(option)}
+													checked={current.includes(option)}
 													onCheckedChange={(checked) => {
-														const current = field.value || [];
 														return checked
 															? field.onChange([...current, option])
 															: field.onChange(current.filter((value) => value !== option))
@@ -3900,10 +3791,11 @@ export default function Survey2024() {
 											</FormControl>
 											<FormLabel className="text-sm font-normal">{option}</FormLabel>
 										</FormItem>
-									)}
-								/>
-							))}
-						</div>
+									);
+								}}
+							/>
+						))}
+					</div>
 						<div className="mt-3 space-y-2">
 							<div className="flex items-center space-x-3">
 								<Checkbox
