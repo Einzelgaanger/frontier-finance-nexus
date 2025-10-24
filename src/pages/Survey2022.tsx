@@ -179,6 +179,7 @@ const Survey2022 = () => {
       team_based: [],
       team_based_other: '',
       gp_experience: {},
+      lp_capital_sources: {},
       receive_results: false,
     },
   });
@@ -1513,9 +1514,8 @@ const Survey2022 = () => {
                                 min="0"
                                 max="100"
                                 step="0.1"
-                                {...field}
                                 onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                                value={field.value || ''}
+                                value={field.value ?? ''}
                                 placeholder="0"
                                 className="h-8 w-20"
                               />
@@ -1536,9 +1536,8 @@ const Survey2022 = () => {
                                 min="0"
                                 max="100"
                                 step="0.1"
-                                {...field}
                                 onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                                value={field.value || ''}
+                                value={field.value ?? ''}
                                 placeholder="0"
                                 className="h-8 w-20"
                               />
@@ -1594,9 +1593,8 @@ const Survey2022 = () => {
                             min="0"
                             max="100"
                             step="0.1"
-                            {...field}
                             onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                            value={field.value || ''}
+                            value={field.value ?? ''}
                             placeholder="0"
                             className="h-8 w-20"
                             disabled={!form.watch('lp_capital_sources_other_selected')}
@@ -1618,9 +1616,8 @@ const Survey2022 = () => {
                             min="0"
                             max="100"
                             step="0.1"
-                            {...field}
                             onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                            value={field.value || ''}
+                            value={field.value ?? ''}
                             placeholder="0"
                             className="h-8 w-20"
                             disabled={!form.watch('lp_capital_sources_other_selected')}
