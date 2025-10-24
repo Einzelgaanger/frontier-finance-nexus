@@ -695,8 +695,8 @@ export default function Survey2024() {
 				description: "Thank you for completing the 2024 survey.",
 			});
 
-			// Navigate to home dashboard
-			navigate('/');
+			// Navigate to dashboard
+			navigate('/dashboard');
 		} catch (error) {
 			console.error('Error submitting survey:', error);
 			toast({
@@ -2101,11 +2101,12 @@ export default function Survey2024() {
 										<FormItem className="flex flex-row items-start space-x-3 space-y-0">
 												<FormControl>
 												<Checkbox
-													checked={field.value?.includes(capital)}
+													checked={(field.value || []).includes(capital)}
 													onCheckedChange={(checked) => {
+														const current = field.value || [];
 														return checked
-															? field.onChange([...field.value, capital])
-															: field.onChange(field.value?.filter((value) => value !== capital))
+															? field.onChange([...current, capital])
+															: field.onChange(current.filter((value) => value !== capital))
 													}}
 												/>
 												</FormControl>
@@ -2200,6 +2201,7 @@ export default function Survey2024() {
 										<Input
 											type="number"
 																	placeholder="%"
+																	value={(form.watch('existing_lp_sources') || {})['other_percentage'] ?? ''}
 																	onChange={(e) => {
 																		const value = e.target.value ? parseInt(e.target.value) : undefined;
 																		const current = form.getValues('existing_lp_sources') || {};
@@ -2223,6 +2225,7 @@ export default function Survey2024() {
 										<Input
 											type="number"
 														placeholder="%"
+														value={(form.watch('existing_lp_sources') || {})[row] ?? ''}
 														onChange={(e) => {
 															const value = e.target.value ? parseInt(e.target.value) : undefined;
 															const current = form.getValues('existing_lp_sources') || {};
@@ -2343,6 +2346,7 @@ export default function Survey2024() {
 										<Input
 											type="number"
 											placeholder="%"
+											value={(form.watch('target_lp_sources') || {})['other_percentage'] ?? ''}
 											onChange={(e) => {
 												const value = e.target.value ? parseInt(e.target.value) : undefined;
 																		const current = form.getValues('target_lp_sources') || {};
@@ -2366,6 +2370,7 @@ export default function Survey2024() {
 										<Input
 											type="number"
 											placeholder="%"
+											value={(form.watch('target_lp_sources') || {})[row] ?? ''}
 											onChange={(e) => {
 												const value = e.target.value ? parseInt(e.target.value) : undefined;
 												const current = form.getValues('target_lp_sources') || {};
@@ -2441,11 +2446,12 @@ export default function Survey2024() {
 										<FormItem className="flex flex-row items-start space-x-3 space-y-0">
 											<FormControl>
 												<Checkbox
-													checked={field.value?.includes(commitment)}
+													checked={(field.value || []).includes(commitment)}
 													onCheckedChange={(checked) => {
+														const current = field.value || [];
 														return checked
-															? field.onChange([...field.value, commitment])
-															: field.onChange(field.value?.filter((value) => value !== commitment))
+															? field.onChange([...current, commitment])
+															: field.onChange(current.filter((value) => value !== commitment))
 													}}
 												/>
 											</FormControl>
@@ -3398,6 +3404,7 @@ export default function Survey2024() {
 								<FormItem>
 										<FormLabel className="text-sm font-normal">{trend}</FormLabel>
 									<Select
+										value={(() => { const v = (form.watch('sgb_financing_trends') || {})[trend]; return v == null ? undefined : String(v); })()}
 										onValueChange={(value) => {
 											const score = value ? parseInt(value) : 0;
 											const current = form.getValues('sgb_financing_trends') || {};
@@ -3604,6 +3611,7 @@ export default function Survey2024() {
 													type="number"
 													placeholder="%"
 													className="w-20"
+													value={(form.watch('technical_assistance_funding') || {})[source] ?? ''}
 													onChange={(e) => {
 														const value = e.target.value ? parseInt(e.target.value) : undefined;
 														const current = form.getValues('technical_assistance_funding') || {};
@@ -3685,7 +3693,7 @@ export default function Survey2024() {
 											checked={
 												approach === 'Other (please specify)'
 													? (form.watch('business_development_approach_other_enabled') === true)
-													: field.value?.includes(approach)
+													: (field.value || []).includes(approach)
 											}
 													onCheckedChange={(checked) => {
 												if (approach === 'Other (please specify)') {
@@ -3693,9 +3701,10 @@ export default function Survey2024() {
 													if (!checked) form.setValue('business_development_approach_other', '');
 													return;
 												}
+												const current = field.value || [];
 														return checked
-													? field.onChange([...(field.value || []), approach])
-													: field.onChange((field.value || []).filter((value: string) => value !== approach))
+													? field.onChange([...current, approach])
+													: field.onChange(current.filter((value: string) => value !== approach))
 													}}
 												/>
 											</FormControl>
@@ -3880,11 +3889,12 @@ export default function Survey2024() {
 										<FormItem className="flex flex-row items-start space-x-3 space-y-0">
 											<FormControl>
 												<Checkbox
-													checked={field.value?.includes(option)}
+													checked={(field.value || []).includes(option)}
 													onCheckedChange={(checked) => {
+														const current = field.value || [];
 														return checked
-															? field.onChange([...field.value, option])
-															: field.onChange(field.value?.filter((value) => value !== option))
+															? field.onChange([...current, option])
+															: field.onChange(current.filter((value) => value !== option))
 													}}
 												/>
 											</FormControl>
@@ -4575,11 +4585,12 @@ const renderSection7 = () => (
 										<FormItem className="flex flex-row items-start space-x-3 space-y-0">
 											<FormControl>
 												<Checkbox
-													checked={field.value?.includes(opt)}
+													checked={(field.value || []).includes(opt)}
 													onCheckedChange={(checked) => {
+														const current = field.value || [];
 														return checked
-															? field.onChange([...(field.value || []), opt])
-															: field.onChange((field.value || []).filter((v: string) => v !== opt))
+															? field.onChange([...current, opt])
+															: field.onChange(current.filter((v: string) => v !== opt))
 													}}
 												/>
 											</FormControl>
