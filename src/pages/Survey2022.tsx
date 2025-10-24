@@ -464,33 +464,28 @@ const Survey2022 = () => {
             )}
           />
           
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>3. Email address</FormLabel>
-                <FormControl>
-                  <Input type="email" placeholder="your.email@example.com" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div>
+            <FormLabel>3. Email address</FormLabel>
+            <Input 
+              type="email" 
+              placeholder="your.email@example.com" 
+              onChange={(e) => {
+                form.setValue('email', e.target.value, { shouldDirty: true, shouldTouch: true });
+              }}
+              value={(() => { const v = form.watch('email') as any; return v == null ? '' : String(v); })()}
+            />
+          </div>
           
-          <FormField
-            control={form.control}
-            name="organisation"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>4. Name of organisation</FormLabel>
-                <FormControl>
-                  <Input placeholder="Your organisation name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div>
+            <FormLabel>4. Name of organisation</FormLabel>
+            <Input 
+              placeholder="Your organisation name" 
+              onChange={(e) => {
+                form.setValue('organisation', e.target.value);
+              }}
+              value={form.watch('organisation') ?? ''}
+            />
+          </div>
       </div>
     </div>
   );
@@ -1062,53 +1057,48 @@ const Survey2022 = () => {
   const renderSection3 = () => (
     <div className="space-y-6">
       <div className="space-y-6">
-          <FormField
-            control={form.control}
-            name="legal_domicile"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>13. Where is your legal domicile?</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select legal domicile" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
-                    <SelectItem value="location_pending">Location Pending. Dependent upon Anchor Investor preference</SelectItem>
-                    <SelectItem value="mauritius">Mauritius</SelectItem>
-                    <SelectItem value="netherlands">Netherlands</SelectItem>
-                    <SelectItem value="dutch_antilles">Dutch Antilles</SelectItem>
-                    <SelectItem value="luxembourg">Luxembourg</SelectItem>
-                    <SelectItem value="ireland">Ireland</SelectItem>
-                    <SelectItem value="delaware">Delaware</SelectItem>
-                    <SelectItem value="cayman_island">Cayman Island</SelectItem>
-                    <SelectItem value="kenya">Kenya</SelectItem>
-                    <SelectItem value="senegal">Senegal</SelectItem>
-                    <SelectItem value="nigeria">Nigeria</SelectItem>
-                    <SelectItem value="south_africa">South Africa</SelectItem>
-                    <SelectItem value="ghana">Ghana</SelectItem>
-                    <SelectItem value="other">Other (please specify)</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div>
+            <FormLabel>13. Where is your legal domicile?</FormLabel>
+            <Select 
+              onValueChange={(value) => {
+                form.setValue('legal_domicile', value, { shouldDirty: true, shouldTouch: true });
+              }}
+              value={(() => { const v = form.watch('legal_domicile') as any; return v == null ? undefined : String(v); })()}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select legal domicile" />
+              </SelectTrigger>
+              <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
+                <SelectItem value="location_pending">Location Pending. Dependent upon Anchor Investor preference</SelectItem>
+                <SelectItem value="mauritius">Mauritius</SelectItem>
+                <SelectItem value="netherlands">Netherlands</SelectItem>
+                <SelectItem value="dutch_antilles">Dutch Antilles</SelectItem>
+                <SelectItem value="luxembourg">Luxembourg</SelectItem>
+                <SelectItem value="ireland">Ireland</SelectItem>
+                <SelectItem value="delaware">Delaware</SelectItem>
+                <SelectItem value="cayman_island">Cayman Island</SelectItem>
+                <SelectItem value="kenya">Kenya</SelectItem>
+                <SelectItem value="senegal">Senegal</SelectItem>
+                <SelectItem value="nigeria">Nigeria</SelectItem>
+                <SelectItem value="south_africa">South Africa</SelectItem>
+                <SelectItem value="ghana">Ghana</SelectItem>
+                <SelectItem value="other">Other (please specify)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* Conditional "Other" input field */}
           {form.watch('legal_domicile') === 'other' && (
-            <FormField
-              control={form.control}
-              name="legal_domicile_other"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Please specify other legal domicile</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Specify other legal domicile" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div>
+              <FormLabel>Please specify other legal domicile</FormLabel>
+              <Input 
+                onChange={(e) => {
+                  form.setValue('legal_domicile_other', e.target.value, { shouldDirty: true, shouldTouch: true });
+                }}
+                value={(() => { const v = form.watch('legal_domicile_other') as any; return v == null ? '' : String(v); })()}
+                placeholder="Specify other legal domicile" 
+              />
+            </div>
           )}
 
           <div>
@@ -1119,91 +1109,82 @@ const Survey2022 = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField
-              control={form.control}
-              name="currency_investments"
-              render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Currency for Investments</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select currency" />
-                    </SelectTrigger>
-                      <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
-                        <SelectItem value="Local Currency">Local Currency</SelectItem>
-                        <SelectItem value="Foreign Currency">Foreign Currency</SelectItem>
-                        <SelectItem value="Multiple Currencies">Multiple Currencies</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div>
+              <FormLabel>Currency for Investments</FormLabel>
+              <Select 
+                onValueChange={(value) => {
+                  form.setValue('currency_investments', value, { shouldDirty: true, shouldTouch: true });
+                }}
+                value={(() => { const v = form.watch('currency_investments') as any; return v == null ? undefined : String(v); })()}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
+                  <SelectItem value="Local Currency">Local Currency</SelectItem>
+                  <SelectItem value="Foreign Currency">Foreign Currency</SelectItem>
+                  <SelectItem value="Multiple Currencies">Multiple Currencies</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-            <FormField
-              control={form.control}
-              name="currency_lp_commitments"
-              render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Currency for LP Commitments</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select currency" />
-                    </SelectTrigger>
-                      <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
-                        <SelectItem value="Local Currency">Local Currency</SelectItem>
-                        <SelectItem value="Foreign Currency">Foreign Currency</SelectItem>
-                        <SelectItem value="Multiple Currencies">Multiple Currencies</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div>
+              <FormLabel>Currency for LP Commitments</FormLabel>
+              <Select 
+                onValueChange={(value) => {
+                  form.setValue('currency_lp_commitments', value, { shouldDirty: true, shouldTouch: true });
+                }}
+                value={(() => { const v = form.watch('currency_lp_commitments') as any; return v == null ? undefined : String(v); })()}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
+                  <SelectItem value="Local Currency">Local Currency</SelectItem>
+                  <SelectItem value="Foreign Currency">Foreign Currency</SelectItem>
+                  <SelectItem value="Multiple Currencies">Multiple Currencies</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          <FormField
-            control={form.control}
-            name="fund_operations"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>15. What is the type (closed vs. open ended) and current status of your fund vehicle's operations?</FormLabel>
-                <p className="text-sm text-gray-600 mb-3">(Please select appropriate response)</p>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select fund type and status" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
-                    <SelectItem value="Closed ended - fundraising">Closed ended - fundraising</SelectItem>
-                    <SelectItem value="Closed ended - completed first close">Closed ended - completed first close</SelectItem>
-                    <SelectItem value="Closed ended - completed second close">Closed ended - completed second close</SelectItem>
-                    <SelectItem value="Open ended - fundraising and heading towards equivalent of 1st close (i.e. lack sufficient committed funds to cover fund economics)">Open ended - fundraising and heading towards equivalent of 1st close (i.e. lack sufficient committed funds to cover fund economics)</SelectItem>
-                    <SelectItem value="Open ended - achieved equivalent of 1st close with sufficient committed funds to cover fund economics">Open ended - achieved equivalent of 1st close with sufficient committed funds to cover fund economics</SelectItem>
-                    <SelectItem value="Second fund/vehicle">Second fund/vehicle</SelectItem>
-                    <SelectItem value="Third or later fund/vehicle">Third or later fund/vehicle</SelectItem>
-                    <SelectItem value="Other">Other (please specify)</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div>
+            <FormLabel>15. What is the type (closed vs. open ended) and current status of your fund vehicle's operations?</FormLabel>
+            <p className="text-sm text-gray-600 mb-3">(Please select appropriate response)</p>
+            <Select 
+              onValueChange={(value) => {
+                form.setValue('fund_operations', value, { shouldDirty: true, shouldTouch: true });
+              }}
+              value={(() => { const v = form.watch('fund_operations') as any; return v == null ? undefined : String(v); })()}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select fund type and status" />
+              </SelectTrigger>
+              <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
+                <SelectItem value="Closed ended - fundraising">Closed ended - fundraising</SelectItem>
+                <SelectItem value="Closed ended - completed first close">Closed ended - completed first close</SelectItem>
+                <SelectItem value="Closed ended - completed second close">Closed ended - completed second close</SelectItem>
+                <SelectItem value="Open ended - fundraising and heading towards equivalent of 1st close (i.e. lack sufficient committed funds to cover fund economics)">Open ended - fundraising and heading towards equivalent of 1st close (i.e. lack sufficient committed funds to cover fund economics)</SelectItem>
+                <SelectItem value="Open ended - achieved equivalent of 1st close with sufficient committed funds to cover fund economics">Open ended - achieved equivalent of 1st close with sufficient committed funds to cover fund economics</SelectItem>
+                <SelectItem value="Second fund/vehicle">Second fund/vehicle</SelectItem>
+                <SelectItem value="Third or later fund/vehicle">Third or later fund/vehicle</SelectItem>
+                <SelectItem value="Other">Other (please specify)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* Conditional "Other" input field */}
           {form.watch('fund_operations') === 'Other' && (
-            <FormField
-              control={form.control}
-              name="fund_operations_other"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Please specify other fund type and status</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Specify other fund type and status" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div>
+              <FormLabel>Please specify other fund type and status</FormLabel>
+              <Input 
+                onChange={(e) => {
+                  form.setValue('fund_operations_other', e.target.value, { shouldDirty: true, shouldTouch: true });
+                }}
+                value={(() => { const v = form.watch('fund_operations_other') as any; return v == null ? '' : String(v); })()}
+                placeholder="Specify other fund type and status" 
+              />
+            </div>
           )}
 
           <div className="space-y-4">
@@ -1213,102 +1194,93 @@ const Survey2022 = () => {
             </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <FormField
-              control={form.control}
-              name="current_funds_raised"
-              render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Current Funds Raised</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select amount" />
-                    </SelectTrigger>
-                      <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
-                        <SelectItem value="< $1 million">&lt; $1 million</SelectItem>
-                        <SelectItem value="$1 - 4 million">$1 - 4 million</SelectItem>
-                        <SelectItem value="$5 - 9 million">$5 - 9 million</SelectItem>
-                        <SelectItem value="$10 - 19 million">$10 - 19 million</SelectItem>
-                        <SelectItem value="$20 - 29 million">$20 - 29 million</SelectItem>
-                        <SelectItem value="$30 million or more">$30 million or more</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div>
+              <FormLabel>Current Funds Raised</FormLabel>
+              <Select 
+                onValueChange={(value) => {
+                  form.setValue('current_funds_raised', value, { shouldDirty: true, shouldTouch: true });
+                }}
+                value={(() => { const v = form.watch('current_funds_raised') as any; return v == null ? undefined : String(v); })()}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select amount" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
+                  <SelectItem value="< $1 million">&lt; $1 million</SelectItem>
+                  <SelectItem value="$1 - 4 million">$1 - 4 million</SelectItem>
+                  <SelectItem value="$5 - 9 million">$5 - 9 million</SelectItem>
+                  <SelectItem value="$10 - 19 million">$10 - 19 million</SelectItem>
+                  <SelectItem value="$20 - 29 million">$20 - 29 million</SelectItem>
+                  <SelectItem value="$30 million or more">$30 million or more</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-            <FormField
-              control={form.control}
-              name="current_amount_invested"
-              render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Current Amount Invested by Fund</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select amount" />
-                    </SelectTrigger>
-                      <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
-                        <SelectItem value="< $1 million">&lt; $1 million</SelectItem>
-                        <SelectItem value="$1 - 4 million">$1 - 4 million</SelectItem>
-                        <SelectItem value="$5 - 9 million">$5 - 9 million</SelectItem>
-                        <SelectItem value="$10 - 19 million">$10 - 19 million</SelectItem>
-                        <SelectItem value="$20 - 29 million">$20 - 29 million</SelectItem>
-                        <SelectItem value="$30 million or more">$30 million or more</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div>
+              <FormLabel>Current Amount Invested by Fund</FormLabel>
+              <Select 
+                onValueChange={(value) => {
+                  form.setValue('current_amount_invested', value, { shouldDirty: true, shouldTouch: true });
+                }}
+                value={(() => { const v = form.watch('current_amount_invested') as any; return v == null ? undefined : String(v); })()}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select amount" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
+                  <SelectItem value="< $1 million">&lt; $1 million</SelectItem>
+                  <SelectItem value="$1 - 4 million">$1 - 4 million</SelectItem>
+                  <SelectItem value="$5 - 9 million">$5 - 9 million</SelectItem>
+                  <SelectItem value="$10 - 19 million">$10 - 19 million</SelectItem>
+                  <SelectItem value="$20 - 29 million">$20 - 29 million</SelectItem>
+                  <SelectItem value="$30 million or more">$30 million or more</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-            <FormField
-              control={form.control}
-              name="target_fund_size"
-              render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Target Fund Size</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select amount" />
-                    </SelectTrigger>
-                      <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
-                        <SelectItem value="< $1 million">&lt; $1 million</SelectItem>
-                        <SelectItem value="$1 - 4 million">$1 - 4 million</SelectItem>
-                        <SelectItem value="$5 - 9 million">$5 - 9 million</SelectItem>
-                        <SelectItem value="$10 - 19 million">$10 - 19 million</SelectItem>
-                        <SelectItem value="$20 - 29 million">$20 - 29 million</SelectItem>
-                        <SelectItem value="$30 million or more">$30 million or more</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div>
+              <FormLabel>Target Fund Size</FormLabel>
+              <Select 
+                onValueChange={(value) => {
+                  form.setValue('target_fund_size', value, { shouldDirty: true, shouldTouch: true });
+                }}
+                value={(() => { const v = form.watch('target_fund_size') as any; return v == null ? undefined : String(v); })()}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select amount" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
+                  <SelectItem value="< $1 million">&lt; $1 million</SelectItem>
+                  <SelectItem value="$1 - 4 million">$1 - 4 million</SelectItem>
+                  <SelectItem value="$5 - 9 million">$5 - 9 million</SelectItem>
+                  <SelectItem value="$10 - 19 million">$10 - 19 million</SelectItem>
+                  <SelectItem value="$20 - 29 million">$20 - 29 million</SelectItem>
+                  <SelectItem value="$30 million or more">$30 million or more</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             </div>
           </div>
 
-            <FormField
-              control={form.control}
-              name="target_investments"
-              render={({ field }) => (
-                <FormItem>
-                <FormLabel>17. What is target number of investments / borrowers for your fund?</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger>
-                    <SelectValue placeholder="Select number of enterprises" />
-                    </SelectTrigger>
-                  <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
-                    <SelectItem value="< 10 Enterprises">&lt; 10 Enterprises</SelectItem>
-                    <SelectItem value="11 - 20 Enterprises">11 - 20 Enterprises</SelectItem>
-                    <SelectItem value="21 - 30 Enterprises">21 - 30 Enterprises</SelectItem>
-                    <SelectItem value="> 30 Enterprises">&gt; 30 Enterprises</SelectItem>
-
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div>
+              <FormLabel>17. What is target number of investments / borrowers for your fund?</FormLabel>
+              <Select 
+                onValueChange={(value) => {
+                  form.setValue('target_investments', value, { shouldDirty: true, shouldTouch: true });
+                }}
+                value={(() => { const v = form.watch('target_investments') as any; return v == null ? undefined : String(v); })()}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select number of enterprises" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
+                  <SelectItem value="< 10 Enterprises">&lt; 10 Enterprises</SelectItem>
+                  <SelectItem value="11 - 20 Enterprises">11 - 20 Enterprises</SelectItem>
+                  <SelectItem value="21 - 30 Enterprises">21 - 30 Enterprises</SelectItem>
+                  <SelectItem value="> 30 Enterprises">&gt; 30 Enterprises</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             <FormField
               control={form.control}
@@ -2204,43 +2176,47 @@ const Survey2022 = () => {
                     <div key={sectorRank} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
                       <div className="text-sm font-normal">{sectorRank}</div>
                       <div>
-                        <FormField
-                          control={form.control}
-                          name={`sector_activities.${sectorRank}.current`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input 
-                                  {...field} 
-                                  type="number" 
-                                  placeholder="%" 
-                                  className="h-8"
-                                  onChange={(e) => field.onChange(Number(e.target.value))}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
+                        <Input 
+                          type="number" 
+                          placeholder="%" 
+                          className="h-8"
+                          onChange={(e) => {
+                            const current = form.watch('sector_activities') || {};
+                            form.setValue('sector_activities', {
+                              ...current,
+                              [sectorRank]: {
+                                ...current[sectorRank],
+                                current: Number(e.target.value) || 0
+                              }
+                            }, { shouldDirty: true, shouldTouch: true });
+                          }}
+                          value={(() => {
+                            const current = form.watch('sector_activities') || {};
+                            const sectorData = current[sectorRank] || {};
+                            return sectorData.current ?? '';
+                          })()}
                         />
                       </div>
                       <div>
-                        <FormField
-                          control={form.control}
-                          name={`sector_activities.${sectorRank}.target`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input 
-                                  {...field} 
-                                  type="number" 
-                                  placeholder="%" 
-                                  className="h-8"
-                                  onChange={(e) => field.onChange(Number(e.target.value))}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
+                        <Input 
+                          type="number" 
+                          placeholder="%" 
+                          className="h-8"
+                          onChange={(e) => {
+                            const current = form.watch('sector_activities') || {};
+                            form.setValue('sector_activities', {
+                              ...current,
+                              [sectorRank]: {
+                                ...current[sectorRank],
+                                target: Number(e.target.value) || 0
+                              }
+                            }, { shouldDirty: true, shouldTouch: true });
+                          }}
+                          value={(() => {
+                            const current = form.watch('sector_activities') || {};
+                            const sectorData = current[sectorRank] || {};
+                            return sectorData.target ?? '';
+                          })()}
                         />
                       </div>
                       <div className="text-center">
@@ -2279,60 +2255,61 @@ const Survey2022 = () => {
                   
                   {form.watch('sector_activities_other_selected') && (
                     <div className="space-y-3 ml-6">
-                      <FormField
-                        control={form.control}
-                        name="sector_activities_other_description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm font-normal">Please specify the sector and ranking</FormLabel>
-                            <FormControl>
-                              <Input {...field} placeholder="Describe the other sector and its ranking" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      <div>
+                        <FormLabel className="text-sm font-normal">Please specify the sector and ranking</FormLabel>
+                        <Input 
+                          onChange={(e) => {
+                            form.setValue('sector_activities_other_description', e.target.value, { shouldDirty: true, shouldTouch: true });
+                          }}
+                          value={(() => { const v = form.watch('sector_activities_other_description') as any; return v == null ? '' : String(v); })()}
+                          placeholder="Describe the other sector and its ranking" 
+                        />
+                      </div>
                       
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
                         <div className="text-sm font-normal">Other Sector</div>
                         <div>
-                          <FormField
-                            control={form.control}
-                            name="sector_activities.Other.current"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormControl>
-                                  <Input 
-                                    {...field} 
-                                    type="number" 
-                                    placeholder="%" 
-                                    className="h-8"
-                                    onChange={(e) => field.onChange(Number(e.target.value))}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
+                          <Input 
+                            type="number" 
+                            placeholder="%" 
+                            className="h-8"
+                            onChange={(e) => {
+                              const current = form.watch('sector_activities') || {};
+                              form.setValue('sector_activities', {
+                                ...current,
+                                Other: {
+                                  ...current.Other,
+                                  current: Number(e.target.value) || 0
+                                }
+                              }, { shouldDirty: true, shouldTouch: true });
+                            }}
+                            value={(() => {
+                              const current = form.watch('sector_activities') || {};
+                              const otherData = current.Other || {};
+                              return otherData.current ?? '';
+                            })()}
                           />
                         </div>
                         <div>
-                          <FormField
-                            control={form.control}
-                            name="sector_activities.Other.target"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormControl>
-                                  <Input 
-                                    {...field} 
-                                    type="number" 
-                                    placeholder="%" 
-                                    className="h-8"
-                                    onChange={(e) => field.onChange(Number(e.target.value))}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
+                          <Input 
+                            type="number" 
+                            placeholder="%" 
+                            className="h-8"
+                            onChange={(e) => {
+                              const current = form.watch('sector_activities') || {};
+                              form.setValue('sector_activities', {
+                                ...current,
+                                Other: {
+                                  ...current.Other,
+                                  target: Number(e.target.value) || 0
+                                }
+                              }, { shouldDirty: true, shouldTouch: true });
+                            }}
+                            value={(() => {
+                              const current = form.watch('sector_activities') || {};
+                              const otherData = current.Other || {};
+                              return otherData.target ?? '';
+                            })()}
                           />
                         </div>
                         <div className="text-center">
@@ -2655,47 +2632,43 @@ const Survey2022 = () => {
               <FormLabel>33. How does the role of technology in the business model of your target portfolio enterprises play into your investment thesis?</FormLabel>
               <p className="text-sm text-gray-600 mt-1 mb-4">(Please select the most appropriate answer)</p>
               
-              <FormField
-                control={form.control}
-                name="technology_role_investment_thesis"
-                render={({ field }) => (
-                  <FormItem className="space-y-3">
-                    <FormControl>
-                      <RadioGroup
-                        onValueChange={field.onChange}
-                        value={field.value}
-                        className="flex flex-col space-y-2"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="Not Relevant / Tech is Not an Investment Criteria/Focus" id="tech-not-relevant" />
-                          <Label htmlFor="tech-not-relevant" className="text-sm font-normal">
-                            Not Relevant / "Tech" is Not an Investment Criteria/Focus
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="Beneficial if technology can accelerate growth, yet tech is not driving investment thesis" id="tech-beneficial" />
-                          <Label htmlFor="tech-beneficial" className="text-sm font-normal">
-                            Beneficial if technology can accelerate the enterprise's growth, yet tech is not driving investment thesis
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="Specifically target business that can accelerate performance via being tech-enabled" id="tech-enabled" />
-                          <Label htmlFor="tech-enabled" className="text-sm font-normal">
-                            Specifically target business that can accelerate performance via being "tech-enabled"
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="We consider ourselves tech-oriented investors. All investment assessed based on the technology of the investee enterprise." id="tech-oriented" />
-                          <Label htmlFor="tech-oriented" className="text-sm font-normal">
-                            We consider ourselves tech-oriented investors. All investment assessed based on the technology of the investee enterprise.
-                          </Label>
-                        </div>
-                      </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <FormItem className="space-y-3">
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={(value) => {
+                      form.setValue('technology_role_investment_thesis', value, { shouldDirty: true, shouldTouch: true });
+                    }}
+                    value={(() => { const v = form.watch('technology_role_investment_thesis') as any; return v == null ? undefined : String(v); })()}
+                    className="flex flex-col space-y-2"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="Not Relevant / Tech is Not an Investment Criteria/Focus" id="tech-not-relevant" />
+                      <Label htmlFor="tech-not-relevant" className="text-sm font-normal">
+                        Not Relevant / "Tech" is Not an Investment Criteria/Focus
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="Beneficial if technology can accelerate growth, yet tech is not driving investment thesis" id="tech-beneficial" />
+                      <Label htmlFor="tech-beneficial" className="text-sm font-normal">
+                        Beneficial if technology can accelerate the enterprise's growth, yet tech is not driving investment thesis
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="Specifically target business that can accelerate performance via being tech-enabled" id="tech-enabled" />
+                      <Label htmlFor="tech-enabled" className="text-sm font-normal">
+                        Specifically target business that can accelerate performance via being "tech-enabled"
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="We consider ourselves tech-oriented investors. All investment assessed based on the technology of the investee enterprise." id="tech-oriented" />
+                      <Label htmlFor="tech-oriented" className="text-sm font-normal">
+                        We consider ourselves tech-oriented investors. All investment assessed based on the technology of the investee enterprise.
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             </div>
           </div>
     </div>
@@ -2997,17 +2970,15 @@ const Survey2022 = () => {
           <div>
             <FormLabel>37. Typical investment timeframe?</FormLabel>
             
-            <FormField
-              control={form.control}
-              name="typical_investment_timeframe"
-              render={({ field }) => (
-                <FormItem className="space-y-3 mt-4">
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      className="flex flex-col space-y-2"
-                    >
+            <FormItem className="space-y-3 mt-4">
+              <FormControl>
+                <RadioGroup
+                  onValueChange={(value) => {
+                    form.setValue('typical_investment_timeframe', value, { shouldDirty: true, shouldTouch: true });
+                  }}
+                  value={(() => { const v = form.watch('typical_investment_timeframe') as any; return v == null ? undefined : String(v); })()}
+                  className="flex flex-col space-y-2"
+                >
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="< 1 year" id="timeframe-under-1yr" />
                         <Label htmlFor="timeframe-under-1yr" className="text-sm font-normal">
@@ -3038,12 +3009,9 @@ const Survey2022 = () => {
                           8+ years
                         </Label>
                       </div>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                </RadioGroup>
+              </FormControl>
+            </FormItem>
           </div>
 
           {/* Question 38: Investment Monetization/Exit Forms */}
@@ -3262,17 +3230,15 @@ const Survey2022 = () => {
             <FormLabel>42. How many exits/monetization events do you anticipate in the next 12 months? *</FormLabel>
             <p className="text-sm text-gray-600 mt-1">(Please select appropriate response)</p>
             
-            <FormField
-              control={form.control}
-              name="anticipated_exits_12_months"
-              render={({ field }) => (
-                <FormItem className="space-y-3 mt-4">
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      className="flex flex-col space-y-2"
-                    >
+            <FormItem className="space-y-3 mt-4">
+              <FormControl>
+                <RadioGroup
+                  onValueChange={(value) => {
+                    form.setValue('anticipated_exits_12_months', value, { shouldDirty: true, shouldTouch: true });
+                  }}
+                  value={(() => { const v = form.watch('anticipated_exits_12_months') as any; return v == null ? undefined : String(v); })()}
+                  className="flex flex-col space-y-2"
+                >
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="0" id="exits-0" />
                         <Label htmlFor="exits-0" className="text-sm font-normal">
@@ -3297,12 +3263,9 @@ const Survey2022 = () => {
                         &gt; 5
                         </Label>
                       </div>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                </RadioGroup>
+              </FormControl>
+            </FormItem>
           </div>
 
           {/* Question 43: Portfolio Performance Matrix */}

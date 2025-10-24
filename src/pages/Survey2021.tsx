@@ -229,7 +229,7 @@ const Survey2021: React.FC = () => {
       fund_capabilities_ranking: {},
       fund_capabilities_other: '',
       fund_capabilities_other_enabled: false,
-      covid_impact_aggregate: '',
+      covid_impact_aggregate: undefined,
       covid_impact_portfolio: {},
       covid_government_support: [],
       covid_government_support_other: '',
@@ -2282,7 +2282,17 @@ const Survey2021: React.FC = () => {
     <div className="space-y-6">
       <div>
         <Label htmlFor="covid_impact_aggregate" >34. At an aggregate level, please indicate the impact of COVID-19 on your investment vehicle and operations.</Label>
-        <Select value={form.watch('covid_impact_aggregate') ?? undefined} onValueChange={(value) => form.setValue('covid_impact_aggregate', value)}>
+        <Select 
+          value={(() => {
+            const val = form.watch('covid_impact_aggregate');
+            return val === '' ? undefined : val;
+          })()} 
+          onValueChange={(value) => {
+            form.setValue('covid_impact_aggregate', value);
+            // Force form state update
+            form.trigger('covid_impact_aggregate');
+          }}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Select impact level" />
           </SelectTrigger>

@@ -1042,7 +1042,7 @@ export default function Survey2023() {
         render={({ field }) => (
           <FormItem>
             <FormLabel>3. How many funds are you currently raising and/or investing? *</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
+            <Select onValueChange={field.onChange} value={field.value?.toString()}>
               <FormControl>
                 <SelectTrigger disabled={isReadOnly}>
                   <SelectValue placeholder="Select number of funds" />
@@ -1086,47 +1086,20 @@ export default function Survey2023() {
         </p>
       </div>
       
-      <FormField
-        control={form.control}
-        name="legal_entity_achieved"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>5. Timeline. When did your fund/investment vehicle achieve each of the following? (Please provide a date for each of three points in your fund's evolution)</FormLabel>
-            <div className="space-y-4">
-              <div>
-                <FormLabel className="text-sm font-medium">Legal Entity</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value ?? undefined}>
-            <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select when legal entity was achieved" />
-                    </SelectTrigger>
-            </FormControl>
-                  <SelectContent>
-                    <SelectItem value="Not Achieved">Not Achieved</SelectItem>
-                    <SelectItem value="2017 or earlier">2017 or earlier</SelectItem>
-                    <SelectItem value="2018 - 2022">2018 - 2022</SelectItem>
-                    <SelectItem value="2023">2023</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="first_close_achieved"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>First Close (or equivalent)</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value ?? undefined}>
-            <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select when first close was achieved" />
-                </SelectTrigger>
-            </FormControl>
+      <div>
+        <FormLabel>5. Timeline. When did your fund/investment vehicle achieve each of the following? (Please provide a date for each of three points in your fund's evolution)</FormLabel>
+        <div className="space-y-4">
+          <div>
+            <FormLabel className="text-sm font-medium">Legal Entity</FormLabel>
+            <Select 
+              onValueChange={(value) => {
+                form.setValue('legal_entity_achieved', value);
+              }}
+              value={form.watch('legal_entity_achieved') ?? undefined}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select when legal entity was achieved" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Not Achieved">Not Achieved</SelectItem>
                 <SelectItem value="2017 or earlier">2017 or earlier</SelectItem>
@@ -1134,34 +1107,49 @@ export default function Survey2023() {
                 <SelectItem value="2023">2023</SelectItem>
               </SelectContent>
             </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+          </div>
+        </div>
+      </div>
 
-      <FormField
-        control={form.control}
-        name="first_investment_achieved"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>First Investment</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value ?? undefined}>
-            <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select when first investment was made" />
-                </SelectTrigger>
-            </FormControl>
-              <SelectContent>
-                <SelectItem value="Not Achieved">Not Achieved</SelectItem>
-                <SelectItem value="2017 or earlier">2017 or earlier</SelectItem>
-                <SelectItem value="2018 - 2022">2018 - 2022</SelectItem>
-                <SelectItem value="2023">2023</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      <div>
+        <FormLabel>First Close (or equivalent)</FormLabel>
+        <Select 
+          onValueChange={(value) => {
+            form.setValue('first_close_achieved', value);
+          }}
+          value={form.watch('first_close_achieved') ?? undefined}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select when first close was achieved" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Not Achieved">Not Achieved</SelectItem>
+            <SelectItem value="2017 or earlier">2017 or earlier</SelectItem>
+            <SelectItem value="2018 - 2022">2018 - 2022</SelectItem>
+            <SelectItem value="2023">2023</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <FormLabel>First Investment</FormLabel>
+        <Select 
+          onValueChange={(value) => {
+            form.setValue('first_investment_achieved', value);
+          }}
+          value={form.watch('first_investment_achieved') ?? undefined}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select when first investment was made" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Not Achieved">Not Achieved</SelectItem>
+            <SelectItem value="2017 or earlier">2017 or earlier</SelectItem>
+            <SelectItem value="2018 - 2022">2018 - 2022</SelectItem>
+            <SelectItem value="2023">2023</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       <FormField
         control={form.control}
@@ -1452,27 +1440,22 @@ export default function Survey2023() {
                 <FormLabel className="text-sm font-normal text-gray-900 leading-tight">{experience}</FormLabel>
               </div>
               <div className="flex-shrink-0">
-                <FormField
-                  control={form.control}
-                  name={`team_experience_investments.${experience}`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Select onValueChange={field.onChange} value={field.value ?? undefined}>
-                          <SelectTrigger className="w-48">
-                            <SelectValue placeholder="Select applicable category" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Not Applicable">Not Applicable</SelectItem>
-                            <SelectItem value="Applies to 1 Principal">Applies to 1 Principal</SelectItem>
-                            <SelectItem value="Applies to 2 or more principals">Applies to 2 or more principals</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <Select
+                  onValueChange={(value) => {
+                    const current = form.watch('team_experience_investments') || {};
+                    form.setValue('team_experience_investments', { ...current, [experience]: value });
+                  }}
+                  value={(() => { const v = (form.watch('team_experience_investments') || {})[experience] as any; return v == null ? undefined : String(v); })()}
+                >
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Select applicable category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Not Applicable">Not Applicable</SelectItem>
+                    <SelectItem value="Applies to 1 Principal">Applies to 1 Principal</SelectItem>
+                    <SelectItem value="Applies to 2 or more principals">Applies to 2 or more principals</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           ))}
@@ -1500,46 +1483,38 @@ export default function Survey2023() {
           </div>
           <div className="flex-shrink-0">
             {form.watch('other_experience_selected') && (
-              <FormField
-                control={form.control}
-                name={`team_experience_investments.Other Experience`}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Select onValueChange={field.onChange} value={field.value ?? undefined}>
-                        <SelectTrigger className="w-48">
-                          <SelectValue placeholder="Select applicable category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Not Applicable">Not Applicable</SelectItem>
-                          <SelectItem value="Applies to 1 Principal">Applies to 1 Principal</SelectItem>
-                          <SelectItem value="Applies to 2 or more principals">Applies to 2 or more principals</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <Select
+                onValueChange={(value) => {
+                  const current = form.watch('team_experience_investments') || {};
+                  form.setValue('team_experience_investments', { ...current, 'Other Experience': value });
+                }}
+                value={(() => { const v = (form.watch('team_experience_investments') || {})['Other Experience'] as any; return v == null ? undefined : String(v); })()}
+              >
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Select applicable category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Not Applicable">Not Applicable</SelectItem>
+                  <SelectItem value="Applies to 1 Principal">Applies to 1 Principal</SelectItem>
+                  <SelectItem value="Applies to 2 or more principals">Applies to 2 or more principals</SelectItem>
+                </SelectContent>
+              </Select>
             )}
           </div>
         </div>
 
         {form.watch('other_experience_selected') && (
           <div className="space-y-2">
-            <FormField
-              control={form.control}
-              name="team_experience_other"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm font-normal">Description of other experience</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Describe the other experience type" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div>
+              <FormLabel className="text-sm font-normal">Description of other experience</FormLabel>
+              <Input 
+                onChange={(e) => {
+                  form.setValue('team_experience_other', e.target.value);
+                }}
+                value={form.watch('team_experience_other') ?? ''}
+                placeholder="Describe the other experience type" 
+              />
+            </div>
           </div>
         )}
 
@@ -1842,24 +1817,17 @@ export default function Survey2023() {
         </div>
       </div>
 
-      <FormField
-        control={form.control}
-        name="target_investments_count"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>17. What is target number of investments for your fund?</FormLabel>
-            <FormControl>
-              <Input 
-                type="number" 
-                {...field} 
-                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                placeholder="0" 
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      <div>
+        <FormLabel>17. What is target number of investments for your fund?</FormLabel>
+        <Input 
+          type="number" 
+          onChange={(e) => {
+            form.setValue('target_investments_count', parseInt(e.target.value) || 0);
+          }}
+          value={form.watch('target_investments_count') ?? ''}
+          placeholder="0" 
+        />
+      </div>
 
       <div className="space-y-4">
         <FormLabel>18. Does your LP agreement/governance permit "follow-on" investments?</FormLabel>
@@ -1978,29 +1946,24 @@ export default function Survey2023() {
             <div key={lpCategory} className="flex items-center justify-between py-1 border-b border-gray-100">
               <FormLabel className="text-sm font-normal flex-1 mr-4">{lpCategory}</FormLabel>
               <div className="flex items-center space-x-1 w-20">
-      <FormField
-        control={form.control}
-                  name={`lp_capital_sources_existing.${lpCategory}`}
-        render={({ field }) => (
-          <FormItem>
-            <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="0.1"
-                          placeholder="0"
-                          className="text-right h-8 w-16"
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            field.onChange(value === '' ? '' : parseFloat(value));
-                          }}
-                        />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
+      <Input
+        type="number"
+        min="0"
+        max="100"
+        step="0.1"
+        placeholder="0"
+        className="text-right h-8 w-16"
+        onChange={(e) => {
+          const current = form.watch('lp_capital_sources_existing') || {};
+          form.setValue('lp_capital_sources_existing', {
+            ...current,
+            [lpCategory]: e.target.value === '' ? '' : parseFloat(e.target.value)
+          });
+        }}
+        value={(() => {
+          const current = form.watch('lp_capital_sources_existing') || {};
+          return current[lpCategory] ?? '';
+        })()}
       />
                 <span className="text-sm text-gray-500">%</span>
     </div>
@@ -2047,30 +2010,25 @@ export default function Survey2023() {
             <div key={lpCategory} className="flex items-center justify-between py-1 border-b border-gray-100">
               <FormLabel className="text-sm font-normal flex-1 mr-4">{lpCategory}</FormLabel>
               <div className="flex items-center space-x-1 w-20">
-      <FormField
-        control={form.control}
-                  name={`lp_capital_sources_target.${lpCategory}`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="0.1"
-                          placeholder="0"
-                          className="text-right h-8 w-16"
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            field.onChange(value === '' ? '' : parseFloat(value));
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+      <Input
+        type="number"
+        min="0"
+        max="100"
+        step="0.1"
+        placeholder="0"
+        className="text-right h-8 w-16"
+        onChange={(e) => {
+          const current = form.watch('lp_capital_sources_target') || {};
+          form.setValue('lp_capital_sources_target', {
+            ...current,
+            [lpCategory]: e.target.value === '' ? '' : parseFloat(e.target.value)
+          });
+        }}
+        value={(() => {
+          const current = form.watch('lp_capital_sources_target') || {};
+          return current[lpCategory] ?? '';
+        })()}
+      />
                 <span className="text-sm text-gray-500">%</span>
               </div>
             </div>
@@ -2452,25 +2410,19 @@ export default function Survey2023() {
                 <FormLabel className="text-sm font-normal text-gray-900 leading-tight">{stage.label}</FormLabel>
               </div>
               <div className="flex-shrink-0">
-                <FormField
-                  control={form.control}
-                  name="business_stages"
-                  render={() => (
-                    <FormItem>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="%"
-                          className="w-20"
-                          onChange={(e) => {
-                            const value = e.target.value ? parseInt(e.target.value) : undefined;
-                            const current = form.getValues('business_stages') || {};
-                            form.setValue('business_stages', { ...current, [stage.key]: value ?? 0 });
-                          }}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
+                <Input
+                  type="number"
+                  placeholder="%"
+                  className="w-20"
+                  onChange={(e) => {
+                    const value = e.target.value ? parseInt(e.target.value) : undefined;
+                    const current = form.watch('business_stages') || {};
+                    form.setValue('business_stages', { ...current, [stage.key]: value ?? 0 }, { shouldDirty: true, shouldTouch: true });
+                  }}
+                  value={(() => {
+                    const current = form.watch('business_stages') || {};
+                    return current[stage.key] ?? '';
+                  })()}
                 />
               </div>
             </div>
@@ -2515,25 +2467,19 @@ export default function Survey2023() {
                 <FormLabel className="text-sm font-normal text-gray-900 leading-tight">{label}</FormLabel>
               </div>
               <div className="flex-shrink-0">
-                <FormField
-                  control={form.control}
-                  name="growth_expectations"
-                  render={() => (
-                    <FormItem>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="%"
-                          className="w-20"
-                          onChange={(e) => {
-                            const value = e.target.value ? parseInt(e.target.value) : undefined;
-                            const current = form.getValues('growth_expectations') || {};
-                            form.setValue('growth_expectations', { ...current, [key]: value ?? 0 });
-                          }}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
+                <Input
+                  type="number"
+                  placeholder="%"
+                  className="w-20"
+                  onChange={(e) => {
+                    const value = e.target.value ? parseInt(e.target.value) : undefined;
+                    const current = form.watch('growth_expectations') || {};
+                    form.setValue('growth_expectations', { ...current, [key]: value ?? 0 }, { shouldDirty: true, shouldTouch: true });
+                  }}
+                  value={(() => {
+                    const current = form.watch('growth_expectations') || {};
+                    return current[key] ?? '';
+                  })()}
                 />
               </div>
             </div>
@@ -2579,25 +2525,19 @@ export default function Survey2023() {
                 <FormLabel className="text-sm font-normal text-gray-900 leading-tight">{label}</FormLabel>
               </div>
               <div className="flex-shrink-0">
-                <FormField
-                  control={form.control}
-                  name="financing_needs"
-                  render={() => (
-                    <FormItem>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="%"
-                          className="w-20"
-                          onChange={(e) => {
-                            const value = e.target.value ? parseInt(e.target.value) : undefined;
-                            const current = form.getValues('financing_needs') || {};
-                            form.setValue('financing_needs', { ...current, [key]: value ?? 0 });
-                          }}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
+                <Input
+                  type="number"
+                  placeholder="%"
+                  className="w-20"
+                  onChange={(e) => {
+                    const value = e.target.value ? parseInt(e.target.value) : undefined;
+                    const current = form.watch('financing_needs') || {};
+                    form.setValue('financing_needs', { ...current, [key]: value ?? 0 }, { shouldDirty: true, shouldTouch: true });
+                  }}
+                  value={(() => {
+                    const current = form.watch('financing_needs') || {};
+                    return current[key] ?? '';
+                  })()}
                 />
               </div>
             </div>
@@ -2669,25 +2609,19 @@ export default function Survey2023() {
                   />
                 ) : (
                   <div className="flex items-center space-x-2">
-                    <FormField
-                      control={form.control}
-                      name="sector_focus"
-                      render={() => (
-                        <FormItem>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="%"
-                              className="w-20"
-                              onChange={(e) => {
-                                const value = e.target.value ? parseInt(e.target.value) : undefined;
-                                const current = form.getValues('sector_focus') || {};
-                                form.setValue('sector_focus', { ...current, [key]: value ?? 0 });
-                              }}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
+                    <Input
+                      type="number"
+                      placeholder="%"
+                      className="w-20"
+                      onChange={(e) => {
+                        const value = e.target.value ? parseInt(e.target.value) : undefined;
+                        const current = form.watch('sector_focus') || {};
+                        form.setValue('sector_focus', { ...current, [key]: value ?? 0 }, { shouldDirty: true, shouldTouch: true });
+                      }}
+                      value={(() => {
+                        const current = form.watch('sector_focus') || {};
+                        return current[key] ?? '';
+                      })()}
                     />
                     <span className="text-sm text-gray-500">%</span>
                   </div>
@@ -2807,25 +2741,19 @@ export default function Survey2023() {
                       )}
                     />
                   ) : (
-                    <FormField
-                      control={form.control}
-                      name="financial_instruments"
-                      render={() => (
-                        <FormItem>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="%"
-                              className="w-20"
-                              onChange={(e) => {
-                                const value = e.target.value ? parseInt(e.target.value) : undefined;
-                                const current = form.getValues('financial_instruments') || {};
-                                form.setValue('financial_instruments', { ...current, [key]: value ?? 0 });
-                              }}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
+                    <Input
+                      type="number"
+                      placeholder="%"
+                      className="w-20"
+                      onChange={(e) => {
+                        const value = e.target.value ? parseInt(e.target.value) : undefined;
+                        const current = form.watch('financial_instruments') || {};
+                        form.setValue('financial_instruments', { ...current, [key]: value ?? 0 }, { shouldDirty: true, shouldTouch: true });
+                      }}
+                      value={(() => {
+                        const current = form.watch('financial_instruments') || {};
+                        return current[key] ?? '';
+                      })()}
                     />
                   )}
                 </div>
@@ -2996,27 +2924,28 @@ export default function Survey2023() {
                       )}
                     />
                   ) : (
-                  <FormField
-                    control={form.control}
-                    name={`gender_lens_investing.${criteria}`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <Select onValueChange={field.onChange} value={field.value ?? undefined}>
-                          <FormControl>
-                            <SelectTrigger className="h-8">
-                              <SelectValue placeholder="Select category" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Not Applicable">Not Applicable</SelectItem>
-                            <SelectItem value="Investment Consideration">Investment Consideration</SelectItem>
-                            <SelectItem value="Investment Requirement">Investment Requirement</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <Select 
+                    onValueChange={(value) => {
+                      const current = form.watch('gender_lens_investing') || {};
+                      form.setValue('gender_lens_investing', { ...current, [criteria]: value }, { shouldDirty: true, shouldTouch: true });
+                      // Force form state update
+                      form.trigger('gender_lens_investing');
+                    }}
+                    value={(() => {
+                      const val = form.watch('gender_lens_investing');
+                      const criteriaValue = val?.[criteria];
+                      return criteriaValue === '' ? undefined : criteriaValue;
+                    })()}
+                  >
+                    <SelectTrigger className="h-8">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Not Applicable">Not Applicable</SelectItem>
+                      <SelectItem value="Investment Consideration">Investment Consideration</SelectItem>
+                      <SelectItem value="Investment Requirement">Investment Requirement</SelectItem>
+                    </SelectContent>
+                  </Select>
                   )}
                 </div>
               </div>
@@ -3041,28 +2970,31 @@ export default function Survey2023() {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="gender_lens_investing.Other"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm font-normal">Category for other criteria</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value ?? undefined}>
-              <FormControl>
-                <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                        <SelectItem value="Not Applicable">Not Applicable</SelectItem>
-                        <SelectItem value="Investment Consideration">Investment Consideration</SelectItem>
-                        <SelectItem value="Investment Requirement">Investment Requirement</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+              <div>
+                <FormLabel className="text-sm font-normal">Category for other criteria</FormLabel>
+                <Select 
+                  onValueChange={(value) => {
+                    const current = form.watch('gender_lens_investing') || {};
+                    form.setValue('gender_lens_investing', { ...current, Other: value }, { shouldDirty: true, shouldTouch: true });
+                    // Force form state update
+                    form.trigger('gender_lens_investing');
+                  }}
+                  value={(() => {
+                    const val = form.watch('gender_lens_investing');
+                    const otherValue = val?.Other;
+                    return otherValue === '' ? undefined : otherValue;
+                  })()}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Not Applicable">Not Applicable</SelectItem>
+                    <SelectItem value="Investment Consideration">Investment Consideration</SelectItem>
+                    <SelectItem value="Investment Requirement">Investment Requirement</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         )}
@@ -3109,25 +3041,19 @@ export default function Survey2023() {
                       )}
                     />
                   ) : (
-                    <FormField
-                      control={form.control}
-                      name="pipeline_sourcing"
-                      render={() => (
-                        <FormItem>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="%"
-                              className="w-20"
-                              onChange={(e) => {
-                                const value = e.target.value ? parseInt(e.target.value) : undefined;
-                                const current = form.getValues('pipeline_sourcing') || {};
-                                form.setValue('pipeline_sourcing', { ...current, [key]: value ?? 0 });
-                              }}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
+                    <Input
+                      type="number"
+                      placeholder="%"
+                      className="w-20"
+                      onChange={(e) => {
+                        const value = e.target.value ? parseInt(e.target.value) : undefined;
+                        const current = form.watch('pipeline_sourcing') || {};
+                        form.setValue('pipeline_sourcing', { ...current, [key]: value ?? 0 }, { shouldDirty: true, shouldTouch: true });
+                      }}
+                      value={(() => {
+                        const current = form.watch('pipeline_sourcing') || {};
+                        return current[key] ?? '';
+                      })()}
                     />
                   )}
                 </div>
@@ -3255,30 +3181,25 @@ export default function Survey2023() {
             <div key={fundingType} className="flex items-center justify-between border rounded p-2">
               <FormLabel className="text-sm font-normal flex-1 mr-4">{fundingType}</FormLabel>
               <div className="flex items-center space-x-1 w-20">
-                <FormField
-                  control={form.control}
-                  name={`portfolio_funding_mix.${fundingType}`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                min="0"
-                max="100"
-                          step="0.1"
-                          placeholder="0"
-                          className="text-right h-8 w-16"
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            field.onChange(value === '' ? '' : parseFloat(value));
-                          }}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  placeholder="0"
+                  className="text-right h-8 w-16"
+                  onChange={(e) => {
+                    const current = form.watch('portfolio_funding_mix') || {};
+                    form.setValue('portfolio_funding_mix', {
+                      ...current,
+                      [fundingType]: e.target.value === '' ? '' : parseFloat(e.target.value)
+                    }, { shouldDirty: true, shouldTouch: true });
+                  }}
+                  value={(() => {
+                    const current = form.watch('portfolio_funding_mix') || {};
+                    return current[fundingType] ?? '';
+                  })()}
+                />
                 <span className="text-sm text-gray-500">%</span>
               </div>
             </div>
@@ -3287,19 +3208,16 @@ export default function Survey2023() {
 
         {form.watch('portfolio_funding_mix')?.Other && (
           <div className="mt-4">
-            <FormField
-              control={form.control}
-              name="portfolio_funding_mix_other"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm font-normal">Please specify other funding type</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Describe other funding type" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div>
+              <FormLabel className="text-sm font-normal">Please specify other funding type</FormLabel>
+              <Input
+                onChange={(e) => {
+                  form.setValue('portfolio_funding_mix_other', e.target.value, { shouldDirty: true, shouldTouch: true });
+                }}
+                value={(() => { const v = form.watch('portfolio_funding_mix_other') as any; return v == null ? '' : String(v); })()}
+                placeholder="Describe other funding type"
+              />
+            </div>
           </div>
         )}
         
@@ -3355,32 +3273,24 @@ export default function Survey2023() {
             <div key={area} className="flex items-center justify-between border rounded p-3">
               <FormLabel className="text-sm font-normal flex-1 mr-4">{area}</FormLabel>
               <div className="flex items-center space-x-2">
-      <FormField
-        control={form.control}
-                  name={`portfolio_value_creation_priorities.${area}`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value ?? undefined}
-                        >
-                          <SelectTrigger className="w-20">
-                            <SelectValue placeholder="Rank" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1">1 (Lowest need)</SelectItem>
-                            <SelectItem value="2">2</SelectItem>
-                            <SelectItem value="3">3</SelectItem>
-                            <SelectItem value="4">4</SelectItem>
-                            <SelectItem value="5">5 (Highest need)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+      <Select
+        onValueChange={(value) => {
+          const current = form.watch('portfolio_value_creation_priorities') || {};
+          form.setValue('portfolio_value_creation_priorities', { ...current, [area]: value }, { shouldDirty: true, shouldTouch: true });
+        }}
+        value={(() => { const v = (form.watch('portfolio_value_creation_priorities') || {})[area] as any; return v == null ? undefined : String(v); })()}
+      >
+        <SelectTrigger className="w-20">
+          <SelectValue placeholder="Rank" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="1">1 (Lowest need)</SelectItem>
+          <SelectItem value="2">2</SelectItem>
+          <SelectItem value="3">3</SelectItem>
+          <SelectItem value="4">4</SelectItem>
+          <SelectItem value="5">5 (Highest need)</SelectItem>
+        </SelectContent>
+      </Select>
               </div>
             </div>
           ))}
@@ -3407,33 +3317,25 @@ export default function Survey2023() {
               />
             </div>
             <div className="flex items-center space-x-2">
-              <FormField
-                control={form.control}
-                name="portfolio_value_creation_priorities.Other"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value ?? undefined}
-                        disabled={!form.watch('portfolio_other_selected')}
-                      >
-                        <SelectTrigger className="w-20">
-                          <SelectValue placeholder="Rank" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1">1 (Lowest need)</SelectItem>
-                          <SelectItem value="2">2</SelectItem>
-                          <SelectItem value="3">3</SelectItem>
-                          <SelectItem value="4">4</SelectItem>
-                          <SelectItem value="5">5 (Highest need)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <Select
+                onValueChange={(value) => {
+                  const current = form.watch('portfolio_value_creation_priorities') || {};
+                  form.setValue('portfolio_value_creation_priorities', { ...current, Other: value }, { shouldDirty: true, shouldTouch: true });
+                }}
+                value={(() => { const v = (form.watch('portfolio_value_creation_priorities') || {}).Other as any; return v == null ? undefined : String(v); })()}
+                disabled={!form.watch('portfolio_other_selected')}
+              >
+                <SelectTrigger className="w-20">
+                  <SelectValue placeholder="Rank" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1 (Lowest need)</SelectItem>
+                  <SelectItem value="2">2</SelectItem>
+                  <SelectItem value="3">3</SelectItem>
+                  <SelectItem value="4">4</SelectItem>
+                  <SelectItem value="5">5 (Highest need)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
@@ -3493,25 +3395,19 @@ export default function Survey2023() {
                       )}
                     />
                   ) : (
-                    <FormField
-                      control={form.control}
-                      name="technical_assistance_funding"
-                      render={() => (
-                        <FormItem>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="%"
-                              className="w-20"
-                              onChange={(e) => {
-                                const value = e.target.value ? parseInt(e.target.value) : undefined;
-                                const current = form.getValues('technical_assistance_funding') || {};
-                                form.setValue('technical_assistance_funding', { ...current, [key]: value ?? 0 });
-                              }}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
+                    <Input
+                      type="number"
+                      placeholder="%"
+                      className="w-20"
+                      onChange={(e) => {
+                        const value = e.target.value ? parseInt(e.target.value) : undefined;
+                        const current = form.watch('technical_assistance_funding') || {};
+                        form.setValue('technical_assistance_funding', { ...current, [key]: value ?? 0 }, { shouldDirty: true, shouldTouch: true });
+                      }}
+                      value={(() => {
+                        const current = form.watch('technical_assistance_funding') || {};
+                        return current[key] ?? '';
+                      })()}
                     />
                   )}
                 </div>
@@ -4126,53 +4022,55 @@ export default function Survey2023() {
             <div key={jobType} className="border rounded p-4">
               <h4 className="font-medium mb-3">{jobType}</h4>
               <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name={`jobs_impact.${jobType}.Net increase Jobs as of March 30, 2023`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-normal">Net increase Jobs as of March 30, 2023</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          min="0"
-                          placeholder="0"
-                          className="text-right"
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            field.onChange(value === '' ? '' : parseInt(value));
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div>
+                  <FormLabel className="text-sm font-normal">Net increase Jobs as of March 30, 2023</FormLabel>
+                  <Input
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    className="text-right"
+                    onChange={(e) => {
+                      const current = form.watch('jobs_impact') || {};
+                      form.setValue('jobs_impact', {
+                        ...current,
+                        [jobType]: {
+                          ...current[jobType],
+                          'Net increase Jobs as of March 30, 2023': e.target.value === '' ? '' : parseInt(e.target.value)
+                        }
+                      }, { shouldDirty: true, shouldTouch: true });
+                    }}
+                    value={(() => {
+                      const current = form.watch('jobs_impact') || {};
+                      const jobTypeData = current[jobType] || {};
+                      return jobTypeData['Net increase Jobs as of March 30, 2023'] ?? '';
+                    })()}
+                  />
+                </div>
 
-                <FormField
-                  control={form.control}
-                  name={`jobs_impact.${jobType}.Anticipated net increase Jobs by March 30, 2024`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-normal">Anticipated net increase Jobs by March 30, 2024</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          min="0"
-                          placeholder="0"
-                          className="text-right"
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            field.onChange(value === '' ? '' : parseInt(value));
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div>
+                  <FormLabel className="text-sm font-normal">Anticipated net increase Jobs by March 30, 2024</FormLabel>
+                  <Input
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    className="text-right"
+                    onChange={(e) => {
+                      const current = form.watch('jobs_impact') || {};
+                      form.setValue('jobs_impact', {
+                        ...current,
+                        [jobType]: {
+                          ...current[jobType],
+                          'Anticipated net increase Jobs by March 30, 2024': e.target.value === '' ? '' : parseInt(e.target.value)
+                        }
+                      }, { shouldDirty: true, shouldTouch: true });
+                    }}
+                    value={(() => {
+                      const current = form.watch('jobs_impact') || {};
+                      const jobTypeData = current[jobType] || {};
+                      return jobTypeData['Anticipated net increase Jobs by March 30, 2024'] ?? '';
+                    })()}
+                  />
+                </div>
               </div>
             </div>
           ))}
@@ -4201,68 +4099,67 @@ export default function Survey2023() {
             
             {form.watch('jobs_impact_other_selected') && (
               <div className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="jobs_impact_other_description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-normal">Please specify other job impact type</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Describe other job impact type" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div>
+                  <FormLabel className="text-sm font-normal">Please specify other job impact type</FormLabel>
+                  <Input
+                    onChange={(e) => {
+                      form.setValue('jobs_impact_other_description', e.target.value, { shouldDirty: true, shouldTouch: true });
+                    }}
+                    value={(() => { const v = form.watch('jobs_impact_other_description') as any; return v == null ? '' : String(v); })()}
+                    placeholder="Describe other job impact type"
+                  />
+                </div>
                 
                 <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="jobs_impact.Other.Net increase Jobs as of March 30, 2023"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-normal">Net increase Jobs as of March 30, 2023</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="number"
-                            min="0"
-                            placeholder="0"
-                            className="text-right"
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              field.onChange(value === '' ? '' : parseInt(value));
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div>
+                    <FormLabel className="text-sm font-normal">Net increase Jobs as of March 30, 2023</FormLabel>
+                    <Input
+                      type="number"
+                      min="0"
+                      placeholder="0"
+                      className="text-right"
+                      onChange={(e) => {
+                        const current = form.watch('jobs_impact') || {};
+                        form.setValue('jobs_impact', {
+                          ...current,
+                          Other: {
+                            ...current.Other,
+                            'Net increase Jobs as of March 30, 2023': e.target.value === '' ? '' : parseInt(e.target.value)
+                          }
+                        }, { shouldDirty: true, shouldTouch: true });
+                      }}
+                      value={(() => {
+                        const current = form.watch('jobs_impact') || {};
+                        const otherData = current.Other || {};
+                        return otherData['Net increase Jobs as of March 30, 2023'] ?? '';
+                      })()}
+                    />
+                  </div>
 
-                  <FormField
-                    control={form.control}
-                    name="jobs_impact.Other.Anticipated net increase Jobs by March 30, 2024"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-normal">Anticipated net increase Jobs by March 30, 2024</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="number"
-                            min="0"
-                            placeholder="0"
-                            className="text-right"
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              field.onChange(value === '' ? '' : parseInt(value));
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div>
+                    <FormLabel className="text-sm font-normal">Anticipated net increase Jobs by March 30, 2024</FormLabel>
+                    <Input
+                      type="number"
+                      min="0"
+                      placeholder="0"
+                      className="text-right"
+                      onChange={(e) => {
+                        const current = form.watch('jobs_impact') || {};
+                        form.setValue('jobs_impact', {
+                          ...current,
+                          Other: {
+                            ...current.Other,
+                            'Anticipated net increase Jobs by March 30, 2024': e.target.value === '' ? '' : parseInt(e.target.value)
+                          }
+                        }, { shouldDirty: true, shouldTouch: true });
+                      }}
+                      value={(() => {
+                        const current = form.watch('jobs_impact') || {};
+                        const otherData = current.Other || {};
+                        return otherData['Anticipated net increase Jobs by March 30, 2024'] ?? '';
+                      })()}
+                    />
+                  </div>
                 </div>
               </div>
             )}
@@ -4292,32 +4189,24 @@ export default function Survey2023() {
             <div key={priority} className="flex items-center justify-between border rounded p-3">
               <FormLabel className="text-sm font-normal flex-1 mr-4">{priority}</FormLabel>
               <div className="flex items-center space-x-2">
-                <FormField
-                  control={form.control}
-                  name={`fund_priorities.${priority}`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
-                          <SelectTrigger className="w-20">
-                            <SelectValue placeholder="Rank" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1">1 (Lowest need)</SelectItem>
-                            <SelectItem value="2">2</SelectItem>
-                            <SelectItem value="3">3</SelectItem>
-                            <SelectItem value="4">4</SelectItem>
-                            <SelectItem value="5">5 (Highest need)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <Select
+                  onValueChange={(value) => {
+                    const current = form.watch('fund_priorities') || {};
+                    form.setValue('fund_priorities', { ...current, [priority]: value }, { shouldDirty: true, shouldTouch: true });
+                  }}
+                  value={(() => { const v = (form.watch('fund_priorities') || {})[priority] as any; return v == null ? undefined : String(v); })()}
+                >
+                  <SelectTrigger className="w-20">
+                    <SelectValue placeholder="Rank" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 (Lowest need)</SelectItem>
+                    <SelectItem value="2">2</SelectItem>
+                    <SelectItem value="3">3</SelectItem>
+                    <SelectItem value="4">4</SelectItem>
+                    <SelectItem value="5">5 (Highest need)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           ))}
@@ -4344,33 +4233,25 @@ export default function Survey2023() {
               />
             </div>
             <div className="flex items-center space-x-2">
-              <FormField
-                control={form.control}
-                name="fund_priorities.Other"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                        disabled={!form.watch('fund_priorities_other_selected')}
-                      >
-                        <SelectTrigger className="w-20">
-                          <SelectValue placeholder="Rank" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1">1</SelectItem>
-                          <SelectItem value="2">2</SelectItem>
-                          <SelectItem value="3">3</SelectItem>
-                          <SelectItem value="4">4</SelectItem>
-                          <SelectItem value="5">5</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <Select
+                onValueChange={(value) => {
+                  const current = form.watch('fund_priorities') || {};
+                  form.setValue('fund_priorities', { ...current, Other: value }, { shouldDirty: true, shouldTouch: true });
+                }}
+                value={(() => { const v = (form.watch('fund_priorities') || {}).Other as any; return v == null ? undefined : String(v); })()}
+                disabled={!form.watch('fund_priorities_other_selected')}
+              >
+                <SelectTrigger className="w-20">
+                  <SelectValue placeholder="Rank" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1</SelectItem>
+                  <SelectItem value="2">2</SelectItem>
+                  <SelectItem value="3">3</SelectItem>
+                  <SelectItem value="4">4</SelectItem>
+                  <SelectItem value="5">5</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>

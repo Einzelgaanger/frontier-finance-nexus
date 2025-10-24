@@ -2634,25 +2634,19 @@ export default function Survey2024() {
 								<FormLabel className="text-sm font-normal text-gray-900 leading-tight">{stage.label}</FormLabel>
 							</div>
 							<div className="flex-shrink-0">
-								<FormField
-									control={form.control}
-									name="business_stages"
-									render={() => (
-										<FormItem>
-											<FormControl>
-												<Input
-													type="number"
-													placeholder="%"
-													className="w-20"
-													onChange={(e) => {
-														const value = e.target.value ? parseInt(e.target.value) : undefined;
-														const current = form.getValues('business_stages') || {};
-														form.setValue('business_stages', { ...current, [stage.key]: value ?? 0 });
-													}}
-												/>
-											</FormControl>
-										</FormItem>
-									)}
+								<Input
+									type="number"
+									placeholder="%"
+									className="w-20"
+									onChange={(e) => {
+										const value = e.target.value ? parseInt(e.target.value) : undefined;
+										const current = form.watch('business_stages') || {};
+										form.setValue('business_stages', { ...current, [stage.key]: value ?? 0 }, { shouldDirty: true, shouldTouch: true });
+									}}
+									value={(() => {
+										const current = form.watch('business_stages') || {};
+										return current[stage.key] ?? '';
+									})()}
 								/>
 							</div>
 						</div>
@@ -2697,25 +2691,19 @@ export default function Survey2024() {
 								<FormLabel className="text-sm font-normal text-gray-900 leading-tight">{label}</FormLabel>
 							</div>
 							<div className="flex-shrink-0">
-								<FormField
-									control={form.control}
-									name="revenue_growth_mix"
-									render={() => (
-										<FormItem>
-											<FormControl>
-												<Input
-													type="number"
-													placeholder="%"
-													className="w-20"
-													onChange={(e) => {
-														const value = e.target.value ? parseInt(e.target.value) : undefined;
-														const current = form.getValues('revenue_growth_mix') || {};
-														form.setValue('revenue_growth_mix', { ...current, [key]: value ?? 0 });
-													}}
-												/>
-											</FormControl>
-										</FormItem>
-									)}
+								<Input
+									type="number"
+									placeholder="%"
+									className="w-20"
+									onChange={(e) => {
+										const value = e.target.value ? parseInt(e.target.value) : undefined;
+										const current = form.watch('revenue_growth_mix') || {};
+										form.setValue('revenue_growth_mix', { ...current, [key]: value ?? 0 }, { shouldDirty: true, shouldTouch: true });
+									}}
+									value={(() => {
+										const current = form.watch('revenue_growth_mix') || {};
+										return current[key] ?? '';
+									})()}
 								/>
 							</div>
 						</div>
@@ -2761,25 +2749,19 @@ export default function Survey2024() {
 								<FormLabel className="text-sm font-normal text-gray-900 leading-tight">{row}</FormLabel>
 							</div>
 							<div className="flex-shrink-0">
-								<FormField
-									control={form.control}
-									name="financing_needs"
-									render={() => (
-										<FormItem>
-											<FormControl>
-												<Input
-													type="number"
-													placeholder="%"
-													className="w-20"
-													onChange={(e) => {
-														const value = e.target.value ? parseInt(e.target.value) : undefined;
-														const current = form.getValues('financing_needs') || {};
-														form.setValue('financing_needs', { ...current, [row]: value ?? 0 });
-													}}
-												/>
-											</FormControl>
-										</FormItem>
-									)}
+								<Input
+									type="number"
+									placeholder="%"
+									className="w-20"
+									onChange={(e) => {
+										const value = e.target.value ? parseInt(e.target.value) : undefined;
+										const current = form.watch('financing_needs') || {};
+										form.setValue('financing_needs', { ...current, [row]: value ?? 0 }, { shouldDirty: true, shouldTouch: true });
+									}}
+									value={(() => {
+										const current = form.watch('financing_needs') || {};
+										return current[row] ?? '';
+									})()}
 								/>
 							</div>
 						</div>
@@ -2817,56 +2799,44 @@ export default function Survey2024() {
 						<div key={index} className="flex items-center justify-between space-x-4 py-3 border-b border-gray-100">
 							<div className="flex-1 flex items-center space-x-3">
 								<span className="text-sm font-medium w-8 flex-shrink-0">{index + 1}.</span>
-								<FormField
-									control={form.control}
-									name="sector_target_allocation"
-									render={() => (
-										<FormItem className="flex-1">
-											<FormControl>
-												<Input
-													placeholder="Sector name"
-													onChange={(e) => {
-														const current = form.getValues('sector_target_allocation') || {};
-														const updated = { ...current };
-														if (e.target.value) {
-															updated[`sector_${index + 1}`] = e.target.value;
-														} else {
-															delete updated[`sector_${index + 1}`];
-														}
-														form.setValue('sector_target_allocation', updated);
-													}}
-												/>
-											</FormControl>
-										</FormItem>
-									)}
+								<Input
+									placeholder="Sector name"
+									onChange={(e) => {
+										const current = form.watch('sector_target_allocation') || {};
+										const updated = { ...current };
+										if (e.target.value) {
+											updated[`sector_${index + 1}`] = e.target.value;
+										} else {
+											delete updated[`sector_${index + 1}`];
+										}
+										form.setValue('sector_target_allocation', updated, { shouldDirty: true, shouldTouch: true });
+									}}
+									value={(() => {
+										const current = form.watch('sector_target_allocation') || {};
+										return current[`sector_${index + 1}`] || '';
+									})()}
 								/>
 							</div>
 							<div className="flex-shrink-0">
-								<FormField
-									control={form.control}
-									name="sector_target_allocation"
-									render={() => (
-										<FormItem>
-											<FormControl>
-												<Input
-													type="number"
-													placeholder="%"
-													className="w-20"
-													onChange={(e) => {
-														const value = e.target.value ? parseInt(e.target.value) : undefined;
-														const current = form.getValues('sector_target_allocation') || {};
-														const updated = { ...current };
-														if (value !== undefined) {
-															updated[`percentage_${index + 1}`] = value;
-														} else {
-															delete updated[`percentage_${index + 1}`];
-														}
-														form.setValue('sector_target_allocation', updated);
-													}}
-												/>
-											</FormControl>
-										</FormItem>
-									)}
+								<Input
+									type="number"
+									placeholder="%"
+									className="w-20"
+									onChange={(e) => {
+										const value = e.target.value ? parseInt(e.target.value) : undefined;
+										const current = form.watch('sector_target_allocation') || {};
+										const updated = { ...current };
+										if (value !== undefined) {
+											updated[`percentage_${index + 1}`] = value;
+										} else {
+											delete updated[`percentage_${index + 1}`];
+										}
+										form.setValue('sector_target_allocation', updated, { shouldDirty: true, shouldTouch: true });
+									}}
+									value={(() => {
+										const current = form.watch('sector_target_allocation') || {};
+										return current[`percentage_${index + 1}`] ?? '';
+									})()}
 								/>
 							</div>
 						</div>
@@ -3042,33 +3012,28 @@ export default function Survey2024() {
 								<FormLabel className="text-sm font-normal">{instrument}</FormLabel>
 							</div>
 							<div>
-						<FormField
-							control={form.control}
-							name="financial_instruments_ranking"
-							render={() => (
-								<FormItem>
-									<Select
-										onValueChange={(value) => {
-											const rank = value ? parseInt(value) : 0;
-											const current = form.getValues('financial_instruments_ranking') || {};
-											form.setValue('financial_instruments_ranking', { ...current, [instrument]: rank });
-										}}
-									>
-										<FormControl>
-											<SelectTrigger>
-												<SelectValue placeholder="Select rank or N/A" />
-											</SelectTrigger>
-										</FormControl>
-										<SelectContent>
-											{Array.from({ length: 8 }, (_, i) => i + 1).map((n) => (
-														<SelectItem key={n} value={String(n)}>#{n}</SelectItem>
-											))}
-											<SelectItem value="0">N/A</SelectItem>
-										</SelectContent>
-									</Select>
-								</FormItem>
-							)}
-						/>
+						<Select
+							onValueChange={(value) => {
+								const rank = value ? parseInt(value) : 0;
+								const current = form.watch('financial_instruments_ranking') || {};
+								form.setValue('financial_instruments_ranking', { ...current, [instrument]: rank }, { shouldDirty: true, shouldTouch: true });
+							}}
+							value={(() => {
+								const current = form.watch('financial_instruments_ranking') || {};
+								const rank = current[instrument];
+								return rank ? String(rank) : undefined;
+							})()}
+						>
+							<SelectTrigger>
+								<SelectValue placeholder="Select rank or N/A" />
+							</SelectTrigger>
+							<SelectContent>
+								{Array.from({ length: 8 }, (_, i) => i + 1).map((n) => (
+									<SelectItem key={n} value={String(n)}>#{n}</SelectItem>
+								))}
+								<SelectItem value="0">N/A</SelectItem>
+							</SelectContent>
+						</Select>
 							</div>
 						</div>
 					))}
@@ -3089,28 +3054,32 @@ export default function Survey2024() {
 								<Input
 									placeholder="e.g., SDG 5: Gender Equality"
 									onChange={(e) => {
-										const arr = [...(form.getValues('top_sdgs') || [])];
+										const arr = [...(form.watch('top_sdgs') || [])];
 										arr[idx] = e.target.value;
-										form.setValue('top_sdgs', arr.filter((s) => s && s.trim().length > 0));
+										form.setValue('top_sdgs', arr.filter((s) => s && s.trim().length > 0), { shouldDirty: true, shouldTouch: true });
 									}}
+									value={(() => {
+										const arr = form.watch('top_sdgs') || [];
+										return arr[idx] || '';
+									})()}
 								/>
 							</FormControl>
 						</FormItem>
 					))}
 				</div>
-				<FormField
-					control={form.control}
-					name="additional_sdgs"
-					render={({ field }) => (
-						<FormItem>
-								<FormLabel className="text-sm font-normal">If you target more than 3 SDGs, please list them here.</FormLabel>
-							<FormControl>
-								<Textarea {...field} placeholder="List any additional SDGs you target" />
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
+				<FormItem>
+					<FormLabel className="text-sm font-normal">If you target more than 3 SDGs, please list them here.</FormLabel>
+					<FormControl>
+						<Textarea 
+							onChange={(e) => {
+								form.setValue('additional_sdgs', e.target.value, { shouldDirty: true, shouldTouch: true });
+							}}
+							value={form.watch('additional_sdgs') || ''}
+							placeholder="List any additional SDGs you target" 
+						/>
+					</FormControl>
+					<FormMessage />
+				</FormItem>
 				</div>
 			</FormItem>
 
