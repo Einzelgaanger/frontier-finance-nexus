@@ -289,6 +289,18 @@ export default function Survey2023() {
       currency_lp_commitments: '',
       fund_operations: '',
       fund_operations_other: '',
+      lp_capital_sources_existing: {},
+      lp_capital_sources_target: {},
+      business_stages: {},
+      growth_expectations: {},
+      financing_needs: {},
+      sector_focus: {},
+      financial_instruments: {},
+      pipeline_sourcing: {},
+      technical_assistance_funding: {},
+      jobs_impact: {},
+      portfolio_value_creation_priorities: {},
+      gender_lens_investing: {},
       current_funds_raised: '',
       current_amount_invested: '',
       target_fund_size: '',
@@ -2966,27 +2978,27 @@ export default function Survey2023() {
                       )}
                     />
                   ) : (
-                    <FormField
-                      control={form.control}
-                      name={`gender_lens_investing.${criteria}`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger className="h-8">
-                                <SelectValue placeholder="Select category" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="Not Applicable">Not Applicable</SelectItem>
-                              <SelectItem value="Investment Consideration">Investment Consideration</SelectItem>
-                              <SelectItem value="Investment Requirement">Investment Requirement</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  <FormField
+                    control={form.control}
+                    name={`gender_lens_investing.${criteria}`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <Select onValueChange={field.onChange} value={field.value ?? undefined}>
+                          <FormControl>
+                            <SelectTrigger className="h-8">
+                              <SelectValue placeholder="Select category" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Not Applicable">Not Applicable</SelectItem>
+                            <SelectItem value="Investment Consideration">Investment Consideration</SelectItem>
+                            <SelectItem value="Investment Requirement">Investment Requirement</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   )}
                 </div>
               </div>
@@ -3017,7 +3029,7 @@ export default function Survey2023() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm font-normal">Category for other criteria</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value ?? undefined}>
               <FormControl>
                 <SelectTrigger>
                           <SelectValue placeholder="Select category" />
@@ -3333,7 +3345,7 @@ export default function Survey2023() {
                       <FormControl>
                         <Select
                           onValueChange={field.onChange}
-                          value={field.value}
+                          value={field.value ?? undefined}
                         >
                           <SelectTrigger className="w-20">
                             <SelectValue placeholder="Rank" />
@@ -3385,7 +3397,7 @@ export default function Survey2023() {
                     <FormControl>
                       <Select
                         onValueChange={field.onChange}
-                        value={field.value}
+                        value={field.value ?? undefined}
                         disabled={!form.watch('portfolio_other_selected')}
                       >
                         <SelectTrigger className="w-20">
