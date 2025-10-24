@@ -2589,7 +2589,7 @@ const Survey2021: React.FC = () => {
 
       <div>
         <Label >44. Do you prefer Slack or WhatsApp as a communication platform for the network?</Label>
-        <Select onValueChange={(value) => {
+        <Select value={form.watch('communication_platform') ?? undefined} onValueChange={(value) => {
           form.setValue('communication_platform', value);
           if (value !== 'Other') {
             form.setValue('communication_platform_other', '');
@@ -2773,7 +2773,7 @@ const Survey2021: React.FC = () => {
               </div>
               <div className="flex items-center space-x-3">
                 <Label className="text-sm font-normal text-gray-800">Rank:</Label>
-                <Select onValueChange={(value) => form.setValue("convening_initiatives_other_ranking", value)}>
+                <Select value={form.watch('convening_initiatives_other_ranking') ?? undefined} onValueChange={(value) => form.setValue('convening_initiatives_other_ranking', value)}>
                   <SelectTrigger className="w-20">
                     <SelectValue placeholder="-" />
                   </SelectTrigger>
@@ -2791,7 +2791,7 @@ const Survey2021: React.FC = () => {
 
       <div>
         <Label >48. Would you be interested in participating in a peer mentoring program?</Label>
-        <Select onValueChange={(value) => form.setValue("participate_mentoring_program", value)}>
+        <Select value={form.watch('participate_mentoring_program') ?? undefined} onValueChange={(value) => form.setValue('participate_mentoring_program', value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select option" />
           </SelectTrigger>

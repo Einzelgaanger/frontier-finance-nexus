@@ -2618,13 +2618,14 @@ export default function Survey2024() {
 							name="fundraising_barriers"
 							render={() => (
 								<FormItem>
-									<Select
-										onValueChange={(value) => {
-											const score = value ? parseInt(value) : 0;
-											const current = form.getValues('fundraising_barriers') || {};
-											form.setValue('fundraising_barriers', { ...current, [row]: score });
-										}}
-									>
+								<Select
+									value={(() => { const v = (form.watch('fundraising_barriers') || {})[row] as any; return v == null ? undefined : String(v); })()}
+									onValueChange={(value) => {
+										const score = value ? parseInt(value) : 0;
+										const current = form.getValues('fundraising_barriers') || {};
+										form.setValue('fundraising_barriers', { ...current, [row]: score });
+									}}
+								>
 										<FormControl>
 											<SelectTrigger>
 												<SelectValue placeholder="Select 1-5 or N/A" />
@@ -2685,13 +2686,14 @@ export default function Survey2024() {
 										name="fundraising_barriers"
 										render={() => (
 											<FormItem>
-												<Select
-													onValueChange={(value) => {
-														const score = value ? parseInt(value) : 0;
-														const current = form.getValues('fundraising_barriers') || {};
-														form.setValue('fundraising_barriers', { ...current, other_percentage: score });
-													}}
-												>
+													<Select
+														value={(() => { const v = (form.watch('fundraising_barriers') || {})['other_percentage'] as any; return v == null ? undefined : String(v); })()}
+														onValueChange={(value) => {
+															const score = value ? parseInt(value) : 0;
+															const current = form.getValues('fundraising_barriers') || {};
+															form.setValue('fundraising_barriers', { ...current, other_percentage: score });
+														}}
+													>
 													<FormControl>
 														<SelectTrigger>
 															<SelectValue placeholder="Select 1-5 or N/A" />
