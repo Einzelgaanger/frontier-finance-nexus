@@ -280,6 +280,8 @@ export default function Survey2023() {
       gender_orientation_other: '',
       investments_experience: '',
       exits_experience: '',
+      team_experience_investments: {},
+      team_experience_exits: {},
       // Section 4: Portfolio Development & Investment Return Monetization
       legal_domicile: '',
       legal_domicile_other: '',
@@ -1427,7 +1429,7 @@ export default function Survey2023() {
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                           <SelectTrigger className="w-48">
                             <SelectValue placeholder="Select applicable category" />
                           </SelectTrigger>
@@ -1475,7 +1477,7 @@ export default function Survey2023() {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                         <SelectTrigger className="w-48">
                           <SelectValue placeholder="Select applicable category" />
                         </SelectTrigger>
