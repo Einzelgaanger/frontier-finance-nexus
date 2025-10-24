@@ -4696,32 +4696,36 @@ const renderSection7 = () => (
 								</div>
 							)}
 							<div className="flex justify-between items-center">
-								<Button 
-									type="button"
-									variant="outline"
-									onClick={handlePrevious}
-									disabled={currentSection === 1}
-									className="px-6 py-2 border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-								>
-									← Previous
-								</Button>
-								
 								<div className="flex gap-3">
-									{currentSection < totalSections ? (
-										<Button 
-											type="button" 
-											onClick={handleNext}
-											className="px-8 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-										>
-											Next →
-										</Button>
-									) : (
+									<Button 
+										type="button"
+										variant="outline"
+										onClick={handlePrevious}
+										disabled={currentSection === 1}
+										className="px-6 py-2 border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+									>
+										← Previous
+									</Button>
+									
+									{currentSection === totalSections && (
 										<Button 
 											type="submit" 
 											disabled={loading}
 											className="px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
 										>
 											{loading ? 'Submitting...' : '🎉 Submit Survey'}
+										</Button>
+									)}
+								</div>
+								
+								<div className="flex gap-3">
+									{currentSection < totalSections && (
+										<Button 
+											type="button" 
+											onClick={handleNext}
+											className="px-8 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+										>
+											Next →
 										</Button>
 									)}
 								</div>

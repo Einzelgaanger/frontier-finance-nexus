@@ -830,25 +830,22 @@ const Survey2022 = () => {
                   <FormLabel className="text-sm font-normal text-gray-900 leading-tight">{experience}</FormLabel>
                 </div>
                 <div className="flex-shrink-0">
-                  <FormField
-                    control={form.control}
-                    name={`gp_experience.${experience}`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <Select onValueChange={field.onChange} value={field.value ?? undefined}>
-                          <SelectTrigger className="w-48">
-                            <SelectValue placeholder="Select applicability" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Not Applicable">Not Applicable</SelectItem>
-                            <SelectItem value="Applies to 1 Principal">Applies to 1 Principal</SelectItem>
-                            <SelectItem value="Applies to 2 or more principals">Applies to 2 or more principals</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <Select
+                    onValueChange={(value) => {
+                      const current = form.watch('gp_experience') || {};
+                      form.setValue('gp_experience', { ...current, [experience]: value });
+                    }}
+                    value={(() => { const v = (form.watch('gp_experience') || {})[experience] as any; return v == null ? undefined : String(v); })()}
+                  >
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Select applicability" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Not Applicable">Not Applicable</SelectItem>
+                      <SelectItem value="Applies to 1 Principal">Applies to 1 Principal</SelectItem>
+                      <SelectItem value="Applies to 2 or more principals">Applies to 2 or more principals</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             ))}
@@ -1494,8 +1491,10 @@ const Survey2022 = () => {
                 'International impact investors',
                 'Donors / Bilateral Agencies / Foundations'
               ].map((category) => {
-                const existing = form.watch(`lp_capital_sources.${category}.existing`) || 0;
-                const targeted = form.watch(`lp_capital_sources.${category}.targeted`) || 0;
+                const current = form.watch('lp_capital_sources') || {};
+                const categoryData = current[category] || {};
+                const existing = categoryData.existing || 0;
+                const targeted = categoryData.targeted || 0;
                 const total = (typeof existing === 'number' ? existing : 0) + (typeof targeted === 'number' ? targeted : 0);
                 const isValid = Math.abs(total - 100) < 0.1;
                 
@@ -1505,50 +1504,58 @@ const Survey2022 = () => {
                       <span className="text-sm font-normal">{category}</span>
                     </div>
                     <div className="flex items-center space-x-4">
-                      <FormField
-                        control={form.control}
-                        name={`lp_capital_sources.${category}.existing`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs font-normal">Existing (%)</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min="0"
-                                max="100"
-                                step="0.1"
-                                onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                                value={field.value ?? ''}
-                                placeholder="0"
-                                className="h-8 w-20"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name={`lp_capital_sources.${category}.targeted`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs font-normal">Targeted (%)</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min="0"
-                                max="100"
-                                step="0.1"
-                                onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                                value={field.value ?? ''}
-                                placeholder="0"
-                                className="h-8 w-20"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      <div>
+                        <FormLabel className="text-xs font-normal">Existing (%)</FormLabel>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.1"
+                          onChange={(e) => {
+                            const current = form.watch('lp_capital_sources') || {};
+                            form.setValue('lp_capital_sources', {
+                              ...current,
+                              [category]: { 
+                                ...current[category], 
+                                existing: parseFloat(e.target.value) || 0 
+                              }
+                            });
+                          }}
+                          value={(() => {
+                            const current = form.watch('lp_capital_sources') || {};
+                            const categoryData = current[category] || {};
+                            return categoryData.existing ?? '';
+                          })()}
+                          placeholder="0"
+                          className="h-8 w-20"
+                        />
+                      </div>
+                      <div>
+                        <FormLabel className="text-xs font-normal">Targeted (%)</FormLabel>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.1"
+                          onChange={(e) => {
+                            const current = form.watch('lp_capital_sources') || {};
+                            form.setValue('lp_capital_sources', {
+                              ...current,
+                              [category]: { 
+                                ...current[category], 
+                                targeted: parseFloat(e.target.value) || 0 
+                              }
+                            });
+                          }}
+                          value={(() => {
+                            const current = form.watch('lp_capital_sources') || {};
+                            const categoryData = current[category] || {};
+                            return categoryData.targeted ?? '';
+                          })()}
+                          placeholder="0"
+                          className="h-8 w-20"
+                        />
+                      </div>
                     </div>
                     <div className="text-center w-20">
                       <span className={`text-sm font-medium ${isValid ? 'text-green-600' : 'text-red-600'}`}>
@@ -1584,57 +1591,63 @@ const Survey2022 = () => {
                   />
                 </div>
                 <div className="flex items-center space-x-4">
-                  <FormField
-                    control={form.control}
-                    name="lp_capital_sources.Other.existing"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs font-normal">Existing (%)</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min="0"
-                            max="100"
-                            step="0.1"
-                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                            value={field.value ?? ''}
-                            placeholder="0"
-                            className="h-8 w-20"
-                            disabled={!form.watch('lp_capital_sources_other_selected')}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="lp_capital_sources.Other.targeted"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs font-normal">Targeted (%)</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min="0"
-                            max="100"
-                            step="0.1"
-                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                            value={field.value ?? ''}
-                            placeholder="0"
-                            className="h-8 w-20"
-                            disabled={!form.watch('lp_capital_sources_other_selected')}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div>
+                    <FormLabel className="text-xs font-normal">Existing (%)</FormLabel>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      onChange={(e) => {
+                        const current = form.watch('lp_capital_sources') || {};
+                        const otherData = current.Other || {};
+                        form.setValue('lp_capital_sources', {
+                          ...current,
+                          Other: { ...otherData, existing: parseFloat(e.target.value) || 0 }
+                        });
+                      }}
+                      value={(() => {
+                        const current = form.watch('lp_capital_sources') || {};
+                        const otherData = current.Other || {};
+                        return otherData.existing ?? '';
+                      })()}
+                      placeholder="0"
+                      className="h-8 w-20"
+                      disabled={!form.watch('lp_capital_sources_other_selected')}
+                    />
+                  </div>
+                  <div>
+                    <FormLabel className="text-xs font-normal">Targeted (%)</FormLabel>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      onChange={(e) => {
+                        const current = form.watch('lp_capital_sources') || {};
+                        const otherData = current.Other || {};
+                        form.setValue('lp_capital_sources', {
+                          ...current,
+                          Other: { ...otherData, targeted: parseFloat(e.target.value) || 0 }
+                        });
+                      }}
+                      value={(() => {
+                        const current = form.watch('lp_capital_sources') || {};
+                        const otherData = current.Other || {};
+                        return otherData.targeted ?? '';
+                      })()}
+                      placeholder="0"
+                      className="h-8 w-20"
+                      disabled={!form.watch('lp_capital_sources_other_selected')}
+                    />
+                  </div>
                 </div>
                 <div className="text-center w-20">
                   {form.watch('lp_capital_sources_other_selected') && (() => {
-                    const existing = form.watch('lp_capital_sources.Other.existing') || 0;
-                    const targeted = form.watch('lp_capital_sources.Other.targeted') || 0;
+                    const current = form.watch('lp_capital_sources') || {};
+                    const otherData = current.Other || {};
+                    const existing = otherData.existing || 0;
+                    const targeted = otherData.targeted || 0;
                     const total = (typeof existing === 'number' ? existing : 0) + (typeof targeted === 'number' ? targeted : 0);
                     const isValid = Math.abs(total - 100) < 0.1;
                     
@@ -1657,19 +1670,16 @@ const Survey2022 = () => {
               {/* Description field for Other when selected */}
               {form.watch('lp_capital_sources_other_selected') && (
                 <div className="pl-6 border-l-2 border-gray-200">
-                  <FormField
-                    control={form.control}
-                    name="lp_capital_sources_other_description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-normal">Please specify other LP capital source</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Specify other LP capital source" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div>
+                    <FormLabel className="text-sm font-normal">Please specify other LP capital source</FormLabel>
+                    <Input 
+                      onChange={(e) => {
+                        form.setValue('lp_capital_sources_other_description', e.target.value);
+                      }}
+                      value={form.watch('lp_capital_sources_other_description') ?? ''}
+                      placeholder="Specify other LP capital source" 
+                    />
+                  </div>
                 </div>
               )}
             </div>
@@ -1928,27 +1938,24 @@ const Survey2022 = () => {
                       <span className="text-sm font-normal">{stage}</span>
                     </div>
                     <div className="md:w-64">
-          <FormField
-            control={form.control}
-                        name={`business_stages.${stage}`}
-            render={({ field }) => (
-              <FormItem>
-                <Select onValueChange={field.onChange} value={field.value ?? undefined}>
-                  <SelectTrigger>
-                                <SelectValue placeholder="Select percentage" />
-                  </SelectTrigger>
-                              <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
-                                <SelectItem value="0% Not a target Segment">0% Not a target Segment</SelectItem>
-                                <SelectItem value="1 - 24% of target portfolio">1 - 24% of target portfolio</SelectItem>
-                                <SelectItem value="25 - 49% of target portfolio">25 - 49% of target portfolio</SelectItem>
-                                <SelectItem value="50 - 74% of target portfolio">50 - 74% of target portfolio</SelectItem>
-                                <SelectItem value="gte_75_percent_target_portfolio">&ge; 75% of target portfolio</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <Select
+            onValueChange={(value) => {
+              const current = form.watch('business_stages') || {};
+              form.setValue('business_stages', { ...current, [stage]: value });
+            }}
+            value={(() => { const v = (form.watch('business_stages') || {})[stage] as any; return v == null ? undefined : String(v); })()}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select percentage" />
+            </SelectTrigger>
+            <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
+              <SelectItem value="0% Not a target Segment">0% Not a target Segment</SelectItem>
+              <SelectItem value="1 - 24% of target portfolio">1 - 24% of target portfolio</SelectItem>
+              <SelectItem value="25 - 49% of target portfolio">25 - 49% of target portfolio</SelectItem>
+              <SelectItem value="50 - 74% of target portfolio">50 - 74% of target portfolio</SelectItem>
+              <SelectItem value="gte_75_percent_target_portfolio">&ge; 75% of target portfolio</SelectItem>
+            </SelectContent>
+          </Select>
                     </div>
                   </div>
                 ))}
@@ -1975,46 +1982,40 @@ const Survey2022 = () => {
                   
                   {form.watch('business_stages_other_selected') && (
                     <div className="space-y-3 ml-6">
-                      <FormField
-                        control={form.control}
-                        name="business_stages_other_description"
-            render={({ field }) => (
-              <FormItem>
-                            <FormLabel className="text-sm font-normal">Please specify the business stage</FormLabel>
-                            <FormControl>
-                              <Input {...field} placeholder="Describe the other business stage" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      <div>
+                        <FormLabel className="text-sm font-normal">Please specify the business stage</FormLabel>
+                        <Input 
+                          onChange={(e) => {
+                            form.setValue('business_stages_other_description', e.target.value);
+                          }}
+                          value={form.watch('business_stages_other_description') ?? ''}
+                          placeholder="Describe the other business stage" 
+                        />
+                      </div>
                       
                       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                         <div className="flex-1">
                           <span className="text-sm font-normal">Percentage for this business stage</span>
                         </div>
                         <div className="md:w-64">
-                          <FormField
-                            control={form.control}
-                            name="business_stages.Other"
-                            render={({ field }) => (
-                              <FormItem>
-                <Select onValueChange={field.onChange} value={field.value ?? undefined}>
-                  <SelectTrigger>
-                                    <SelectValue placeholder="Select percentage" />
-                  </SelectTrigger>
-                                  <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
-                                    <SelectItem value="0% Not a target Segment">0% Not a target Segment</SelectItem>
-                                    <SelectItem value="1 - 24% of target portfolio">1 - 24% of target portfolio</SelectItem>
-                                    <SelectItem value="25 - 49% of target portfolio">25 - 49% of target portfolio</SelectItem>
-                                    <SelectItem value="50 - 74% of target portfolio">50 - 74% of target portfolio</SelectItem>
-                                    <SelectItem value="gte_75_percent_target_portfolio">&ge; 75% of target portfolio</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                          <Select
+                            onValueChange={(value) => {
+                              const current = form.watch('business_stages') || {};
+                              form.setValue('business_stages', { ...current, Other: value });
+                            }}
+                            value={(() => { const v = (form.watch('business_stages') || {}).Other as any; return v == null ? undefined : String(v); })()}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select percentage" />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
+                              <SelectItem value="0% Not a target Segment">0% Not a target Segment</SelectItem>
+                              <SelectItem value="1 - 24% of target portfolio">1 - 24% of target portfolio</SelectItem>
+                              <SelectItem value="25 - 49% of target portfolio">25 - 49% of target portfolio</SelectItem>
+                              <SelectItem value="50 - 74% of target portfolio">50 - 74% of target portfolio</SelectItem>
+                              <SelectItem value="gte_75_percent_target_portfolio">&ge; 75% of target portfolio</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
                     </div>
@@ -2088,27 +2089,24 @@ const Survey2022 = () => {
                       <span className="text-sm font-normal">{financingNeed}</span>
                     </div>
                     <div className="md:w-64">
-                      <FormField
-                        control={form.control}
-                        name={`financing_needs.${financingNeed}`}
-            render={({ field }) => (
-              <FormItem>
-                <Select onValueChange={field.onChange} value={field.value ?? undefined}>
-                  <SelectTrigger>
-                                <SelectValue placeholder="Select percentage" />
-                  </SelectTrigger>
-                              <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
-                                <SelectItem value="0% Not a target investment focus">0% Not a target investment focus</SelectItem>
-                                <SelectItem value="1-24% of target portfolio">1-24% of target portfolio</SelectItem>
-                                <SelectItem value="25-49% of target portfolio">25-49% of target portfolio</SelectItem>
-                                <SelectItem value="50-74% of target portfolio">50-74% of target portfolio</SelectItem>
-                                <SelectItem value="gte_75_percent_target_portfolio">&ge; 75% of target portfolio</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                      <Select
+                        onValueChange={(value) => {
+                          const current = form.watch('financing_needs') || {};
+                          form.setValue('financing_needs', { ...current, [financingNeed]: value });
+                        }}
+                        value={(() => { const v = (form.watch('financing_needs') || {})[financingNeed] as any; return v == null ? undefined : String(v); })()}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select percentage" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
+                          <SelectItem value="0% Not a target investment focus">0% Not a target investment focus</SelectItem>
+                          <SelectItem value="1-24% of target portfolio">1-24% of target portfolio</SelectItem>
+                          <SelectItem value="25-49% of target portfolio">25-49% of target portfolio</SelectItem>
+                          <SelectItem value="50-74% of target portfolio">50-74% of target portfolio</SelectItem>
+                          <SelectItem value="gte_75_percent_target_portfolio">&ge; 75% of target portfolio</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 ))}
@@ -2135,46 +2133,40 @@ const Survey2022 = () => {
                   
                   {form.watch('financing_needs_other_selected') && (
                     <div className="space-y-3 ml-6">
-                      <FormField
-                        control={form.control}
-                        name="financing_needs_other_description"
-            render={({ field }) => (
-              <FormItem>
-                            <FormLabel className="text-sm font-normal">Please specify the financing need</FormLabel>
-                            <FormControl>
-                              <Input {...field} placeholder="Describe the other financing need" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      <div>
+                        <FormLabel className="text-sm font-normal">Please specify the financing need</FormLabel>
+                        <Input 
+                          onChange={(e) => {
+                            form.setValue('financing_needs_other_description', e.target.value);
+                          }}
+                          value={form.watch('financing_needs_other_description') ?? ''}
+                          placeholder="Describe the other financing need" 
+                        />
+                      </div>
                       
                       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                         <div className="flex-1">
                           <span className="text-sm font-normal">Percentage for this financing need</span>
                         </div>
                         <div className="md:w-64">
-                          <FormField
-                            control={form.control}
-                            name="financing_needs.Other"
-                            render={({ field }) => (
-                              <FormItem>
-                <Select onValueChange={field.onChange} value={field.value ?? undefined}>
-                  <SelectTrigger>
-                                    <SelectValue placeholder="Select percentage" />
-                  </SelectTrigger>
-                                  <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
-                                    <SelectItem value="0% Not a target investment focus">0% Not a target investment focus</SelectItem>
-                                    <SelectItem value="1-24% of target portfolio">1-24% of target portfolio</SelectItem>
-                                    <SelectItem value="25-49% of target portfolio">25-49% of target portfolio</SelectItem>
-                                    <SelectItem value="50-74% of target portfolio">50-74% of target portfolio</SelectItem>
-                                    <SelectItem value="gte_75_percent_target_portfolio">&ge; 75% of target portfolio</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                          <Select
+                            onValueChange={(value) => {
+                              const current = form.watch('financing_needs') || {};
+                              form.setValue('financing_needs', { ...current, Other: value });
+                            }}
+                            value={(() => { const v = (form.watch('financing_needs') || {}).Other as any; return v == null ? undefined : String(v); })()}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select percentage" />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
+                              <SelectItem value="0% Not a target investment focus">0% Not a target investment focus</SelectItem>
+                              <SelectItem value="1-24% of target portfolio">1-24% of target portfolio</SelectItem>
+                              <SelectItem value="25-49% of target portfolio">25-49% of target portfolio</SelectItem>
+                              <SelectItem value="50-74% of target portfolio">50-74% of target portfolio</SelectItem>
+                              <SelectItem value="gte_75_percent_target_portfolio">&ge; 75% of target portfolio</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
                     </div>
@@ -2923,29 +2915,24 @@ const Survey2022 = () => {
               ].map((priority) => (
                 <div key={priority} className="flex items-center justify-between">
                   <span className="text-sm font-normal flex-1 pr-4">{priority}</span>
-                  <FormField
-                    control={form.control}
-                    name={`portfolio_value_creation_priorities.${priority}`}
-            render={({ field }) => (
-              <FormItem>
-                <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="w-24">
-                              <SelectValue placeholder="Rank" />
-                  </SelectTrigger>
-                          </FormControl>
-                  <SelectContent>
-                            <SelectItem value="1">1 (Lowest need)</SelectItem>
-                            <SelectItem value="2">2</SelectItem>
-                            <SelectItem value="3">3</SelectItem>
-                            <SelectItem value="4">4</SelectItem>
-                            <SelectItem value="5">5 (Highest need)</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  <Select
+                    onValueChange={(value) => {
+                      const current = form.watch('portfolio_value_creation_priorities') || {};
+                      form.setValue('portfolio_value_creation_priorities', { ...current, [priority]: value });
+                    }}
+                    value={(() => { const v = (form.watch('portfolio_value_creation_priorities') || {})[priority] as any; return v == null ? undefined : String(v); })()}
+                  >
+                    <SelectTrigger className="w-24">
+                      <SelectValue placeholder="Rank" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 (Lowest need)</SelectItem>
+                      <SelectItem value="2">2</SelectItem>
+                      <SelectItem value="3">3</SelectItem>
+                      <SelectItem value="4">4</SelectItem>
+                      <SelectItem value="5">5 (Highest need)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               ))}
 
@@ -2971,48 +2958,35 @@ const Survey2022 = () => {
                   </div>
                   
                   {form.watch('portfolio_value_creation_other_selected') && (
-                    <FormField
-                      control={form.control}
-                      name={`portfolio_value_creation_priorities.Other`}
-                      render={({ field }) => (
-                        <FormItem>
-                <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger className="w-24">
-                                <SelectValue placeholder="Rank" />
-                  </SelectTrigger>
-                            </FormControl>
-                  <SelectContent>
-                              <SelectItem value="1">1 (Lowest need)</SelectItem>
-                              <SelectItem value="2">2</SelectItem>
-                              <SelectItem value="3">3</SelectItem>
-                              <SelectItem value="4">4</SelectItem>
-                              <SelectItem value="5">5 (Highest need)</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                    <Select
+                      onValueChange={(value) => {
+                        const current = form.watch('portfolio_value_creation_priorities') || {};
+                        form.setValue('portfolio_value_creation_priorities', { ...current, Other: value });
+                      }}
+                      value={(() => { const v = (form.watch('portfolio_value_creation_priorities') || {}).Other as any; return v == null ? undefined : String(v); })()}
+                    >
+                      <SelectTrigger className="w-24">
+                        <SelectValue placeholder="Rank" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 (Lowest need)</SelectItem>
+                        <SelectItem value="2">2</SelectItem>
+                        <SelectItem value="3">3</SelectItem>
+                        <SelectItem value="4">4</SelectItem>
+                        <SelectItem value="5">5 (Highest need)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   )}
                 </div>
                 
                 {form.watch('portfolio_value_creation_other_selected') && (
-                  <FormField
-                    control={form.control}
-                    name="portfolio_value_creation_other_description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input
-                            placeholder="Please specify other priority area"
-                            {...field}
-                            className="ml-6"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                  <Input
+                    placeholder="Please specify other priority area"
+                    onChange={(e) => {
+                      form.setValue('portfolio_value_creation_other_description', e.target.value);
+                    }}
+                    value={form.watch('portfolio_value_creation_other_description') ?? ''}
+                    className="ml-6"
                   />
                 )}
               </div>
@@ -3706,29 +3680,24 @@ const Survey2022 = () => {
               ].map((priority) => (
                 <div key={priority} className="flex items-center justify-between">
                   <span className="text-sm font-normal flex-1 pr-4">{priority}</span>
-                  <FormField
-                    control={form.control}
-                    name={`fund_priority_areas.${priority}`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="w-24">
-                              <SelectValue placeholder="Rank" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="1">1 (Lowest need)</SelectItem>
-                            <SelectItem value="2">2</SelectItem>
-                            <SelectItem value="3">3</SelectItem>
-                            <SelectItem value="4">4</SelectItem>
-                            <SelectItem value="5">5 (Highest need)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <Select
+                    onValueChange={(value) => {
+                      const current = form.watch('fund_priority_areas') || {};
+                      form.setValue('fund_priority_areas', { ...current, [priority]: value });
+                    }}
+                    value={(() => { const v = (form.watch('fund_priority_areas') || {})[priority] as any; return v == null ? undefined : String(v); })()}
+                  >
+                    <SelectTrigger className="w-24">
+                      <SelectValue placeholder="Rank" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 (Lowest need)</SelectItem>
+                      <SelectItem value="2">2</SelectItem>
+                      <SelectItem value="3">3</SelectItem>
+                      <SelectItem value="4">4</SelectItem>
+                      <SelectItem value="5">5 (Highest need)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               ))}
               
@@ -3754,48 +3723,35 @@ const Survey2022 = () => {
                   </div>
                   
                   {form.watch('fund_priority_areas_other_selected') && (
-                    <FormField
-                      control={form.control}
-                      name={`fund_priority_areas.Other`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger className="w-24">
-                                <SelectValue placeholder="Rank" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="1">1 (Lowest need)</SelectItem>
-                              <SelectItem value="2">2</SelectItem>
-                              <SelectItem value="3">3</SelectItem>
-                              <SelectItem value="4">4</SelectItem>
-                              <SelectItem value="5">5 (Highest need)</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <Select
+                      onValueChange={(value) => {
+                        const current = form.watch('fund_priority_areas') || {};
+                        form.setValue('fund_priority_areas', { ...current, Other: value });
+                      }}
+                      value={(() => { const v = (form.watch('fund_priority_areas') || {}).Other as any; return v == null ? undefined : String(v); })()}
+                    >
+                      <SelectTrigger className="w-24">
+                        <SelectValue placeholder="Rank" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 (Lowest need)</SelectItem>
+                        <SelectItem value="2">2</SelectItem>
+                        <SelectItem value="3">3</SelectItem>
+                        <SelectItem value="4">4</SelectItem>
+                        <SelectItem value="5">5 (Highest need)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   )}
                 </div>
                 
                 {form.watch('fund_priority_areas_other_selected') && (
-                  <FormField
-                    control={form.control}
-                    name="fund_priority_areas_other_description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input
-                            placeholder="Please specify other priority area"
-                            {...field}
-                            className="ml-6"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                  <Input
+                    placeholder="Please specify other priority area"
+                    onChange={(e) => {
+                      form.setValue('fund_priority_areas_other_description', e.target.value);
+                    }}
+                    value={form.watch('fund_priority_areas_other_description') ?? ''}
+                    className="ml-6"
                   />
                 )}
               </div>
@@ -4294,32 +4250,36 @@ const Survey2022 = () => {
                 </div>
               )}
               <div className="flex items-center justify-between">
-                <Button 
-                  type="button"
-                  variant="outline"
-                  onClick={handlePrevious}
-                  disabled={currentSection === 1}
-                  className="px-6 py-2 border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  &larr; Previous
-                </Button>
-                
                 <div className="flex gap-3">
-                  {currentSection < totalSections ? (
-                    <Button 
-                      type="button" 
-                      onClick={handleNext}
-                      className="px-8 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                    >
-                      Next &rarr;
-                    </Button>
-                  ) : (
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    onClick={handlePrevious}
+                    disabled={currentSection === 1}
+                    className="px-6 py-2 border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    &larr; Previous
+                  </Button>
+                  
+                  {currentSection === totalSections && (
                     <Button 
                       type="submit" 
                       disabled={loading}
                       className="px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {loading ? 'Submitting...' : '🎉 Submit Survey'}
+                    </Button>
+                  )}
+                </div>
+                
+                <div className="flex gap-3">
+                  {currentSection < totalSections && (
+                    <Button 
+                      type="button" 
+                      onClick={handleNext}
+                      className="px-8 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                    >
+                      Next &rarr;
                     </Button>
                   )}
                 </div>

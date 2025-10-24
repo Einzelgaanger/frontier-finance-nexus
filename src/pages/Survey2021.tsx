@@ -2638,7 +2638,7 @@ const Survey2021: React.FC = () => {
                   const current = form.watch("network_value_areas") || {};
                   form.setValue("network_value_areas", { ...current, [area]: value });
                 }}
-                value={(form.watch("network_value_areas") || {})[area] ?? undefined}
+                value={(() => { const v = (form.watch("network_value_areas") || {})[area] as any; return v == null ? undefined : String(v); })()}
               >
                 <SelectTrigger className="w-20">
                   <SelectValue placeholder="-" />
@@ -3101,36 +3101,40 @@ const Survey2021: React.FC = () => {
           {/* Enhanced Navigation Buttons */}
           <Card className="bg-white p-6 rounded-lg border shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentSection === 1}
-                className="px-6 py-2 border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Previous
-            </Button>
-
-            <div className="flex gap-3">
-              {currentSection < totalSections ? (
+              <div className="flex gap-3">
                 <Button
                   type="button"
-                  onClick={handleNext}
-                    className="px-8 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                  variant="outline"
+                  onClick={handlePrevious}
+                  disabled={currentSection === 1}
+                    className="px-6 py-2 border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                 >
-                    Next &rarr;
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Previous
                 </Button>
-              ) : (
-                <Button
-                  type="submit"
-                  disabled={loading}
-                    className="px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? 'Submitting...' : '🎉 Submit Survey'}
-                </Button>
-              )}
-            </div>
+
+                {currentSection === totalSections && (
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                      className="px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? 'Submitting...' : '🎉 Submit Survey'}
+                  </Button>
+                )}
+              </div>
+
+              <div className="flex gap-3">
+                {currentSection < totalSections && (
+                  <Button
+                    type="button"
+                    onClick={handleNext}
+                      className="px-8 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                      Next &rarr;
+                  </Button>
+                )}
+              </div>
             </div>
           </Card>
         </form>
