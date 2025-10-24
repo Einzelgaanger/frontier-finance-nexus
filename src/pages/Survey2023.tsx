@@ -638,7 +638,8 @@ export default function Survey2023() {
 
   const handleNext = () => {
     if (currentSection < totalSections) {
-      setCurrentSection(currentSection + 1);
+      const newSection = currentSection + 1;
+      setCurrentSection(newSection);
       
       // Scroll to top of page for better UX
       setTimeout(() => {
@@ -1064,7 +1065,7 @@ export default function Survey2023() {
             <div className="space-y-4">
               <div>
                 <FormLabel className="text-sm font-medium">Legal Entity</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+            <Select onValueChange={field.onChange} value={field.value ?? undefined}>
             <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select when legal entity was achieved" />
@@ -1090,7 +1091,7 @@ export default function Survey2023() {
         render={({ field }) => (
           <FormItem>
             <FormLabel>First Close (or equivalent)</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
+            <Select onValueChange={field.onChange} value={field.value ?? undefined}>
             <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Select when first close was achieved" />
@@ -1114,7 +1115,7 @@ export default function Survey2023() {
         render={({ field }) => (
           <FormItem>
             <FormLabel>First Investment</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
+            <Select onValueChange={field.onChange} value={field.value ?? undefined}>
             <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Select when first investment was made" />
@@ -1155,10 +1156,11 @@ export default function Survey2023() {
                             checked={field.value?.includes(market)}
                             onCheckedChange={(checked) => {
                               if (!isReadOnly) {
+                                const current = field.value || [];
                                 return checked
-                                  ? field.onChange([...field.value, market])
+                                  ? field.onChange([...current, market])
                                   : field.onChange(
-                                      field.value?.filter(
+                                      current.filter(
                                         (value) => value !== market
                                       )
                                     )
@@ -1219,10 +1221,11 @@ export default function Survey2023() {
                           <Checkbox
                             checked={field.value?.includes(location)}
                             onCheckedChange={(checked) => {
+                              const current = field.value || [];
                               return checked
-                                ? field.onChange([...field.value, location])
+                                ? field.onChange([...current, location])
                                 : field.onChange(
-                                    field.value?.filter(
+                                    current.filter(
                                       (value) => value !== location
                                     )
                                   )

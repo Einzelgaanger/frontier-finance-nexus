@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
@@ -894,9 +895,10 @@ export default function Survey2024() {
 												<Checkbox
 													checked={field.value?.includes(network)}
 													onCheckedChange={(checked) => {
+														const current = field.value || [];
 														return checked
-															? field.onChange([...field.value, network])
-															: field.onChange(field.value?.filter((value) => value !== network))
+															? field.onChange([...current, network])
+															: field.onChange(current.filter((value) => value !== network))
 													}}
 												/>
 											</FormControl>
@@ -4783,6 +4785,13 @@ const renderSection7 = () => (
 
 						{/* Navigation Buttons */}
 						<div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+							{currentSection === totalSections && (
+								<div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+									<p className="text-green-800 font-semibold text-center">
+										You've reached the final section! Please review your responses and submit below.
+									</p>
+								</div>
+							)}
 							<div className="flex justify-between items-center">
 								<Button 
 									type="button"
@@ -4807,7 +4816,7 @@ const renderSection7 = () => (
 										<Button 
 											type="submit" 
 											disabled={loading}
-											className="px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+											className="px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
 										>
 											{loading ? 'Submitting...' : '🎉 Submit Survey'}
 										</Button>

@@ -259,7 +259,8 @@ const Survey2022 = () => {
 
   const handleNext = () => {
     if (currentSection < totalSections) {
-      setCurrentSection(currentSection + 1);
+      const newSection = currentSection + 1;
+      setCurrentSection(newSection);
       
       // Scroll to top of page for better UX
       setTimeout(() => {
@@ -668,7 +669,7 @@ const Survey2022 = () => {
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                     <FormControl>
                       <Checkbox
-                        checked={field.value?.includes(location)}
+                        checked={(field.value || []).includes(location)}
                         onCheckedChange={(checked) => {
                           const current = field.value || [];
                           if (checked) {
@@ -738,7 +739,7 @@ const Survey2022 = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Current</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select number" />
                     </SelectTrigger>
@@ -760,7 +761,7 @@ const Survey2022 = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Year-End 2023 (est.)</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select number" />
                     </SelectTrigger>
@@ -787,7 +788,7 @@ const Survey2022 = () => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Select number</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select number" />
                   </SelectTrigger>
@@ -829,7 +830,7 @@ const Survey2022 = () => {
                     name={`gp_experience.${experience}`}
                     render={({ field }) => (
                       <FormItem>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                           <SelectTrigger className="w-48">
                             <SelectValue placeholder="Select applicability" />
                           </SelectTrigger>
@@ -4282,6 +4283,13 @@ const Survey2022 = () => {
 
             {/* Enhanced Navigation Buttons */}
             <Card className="bg-white p-6 rounded-lg border shadow-sm">
+              {currentSection === totalSections && (
+                <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-green-800 font-semibold text-center">
+                    You've reached the final section! Please review your responses and submit below.
+                  </p>
+                </div>
+              )}
               <div className="flex items-center justify-between">
                 <Button 
                   type="button"
@@ -4306,7 +4314,7 @@ const Survey2022 = () => {
                     <Button 
                       type="submit" 
                       disabled={loading}
-                      className="px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {loading ? 'Submitting...' : '🎉 Submit Survey'}
                     </Button>
