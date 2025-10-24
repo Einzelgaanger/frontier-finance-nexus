@@ -1034,7 +1034,7 @@ const Survey2021: React.FC = () => {
         <div className="grid grid-cols-2 gap-6">
           <div>
             <Label htmlFor="current_fund_size">Current</Label>
-            <Select onValueChange={(value) => form.setValue("current_fund_size", value)}>
+            <Select value={form.watch('current_fund_size') ?? undefined} onValueChange={(value) => form.setValue('current_fund_size', value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select size" />
               </SelectTrigger>
@@ -1050,7 +1050,7 @@ const Survey2021: React.FC = () => {
           </div>
           <div>
             <Label htmlFor="target_fund_size">Target</Label>
-            <Select onValueChange={(value) => form.setValue("target_fund_size", value)}>
+            <Select value={form.watch('target_fund_size') ?? undefined} onValueChange={(value) => form.setValue('target_fund_size', value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select size" />
               </SelectTrigger>
@@ -1308,7 +1308,7 @@ const Survey2021: React.FC = () => {
         <div className="grid grid-cols-2 gap-6">
           <div>
             <Label htmlFor="target_irr_achieved">Achieved in most recent reporting period</Label>
-            <Select onValueChange={(value) => form.setValue("target_irr_achieved", value)}>
+            <Select value={form.watch('target_irr_achieved') ?? undefined} onValueChange={(value) => form.setValue('target_irr_achieved', value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select IRR" />
               </SelectTrigger>
@@ -1323,7 +1323,7 @@ const Survey2021: React.FC = () => {
           </div>
           <div>
             <Label htmlFor="target_irr_targeted">Targeted</Label>
-            <Select onValueChange={(value) => form.setValue("target_irr_targeted", value)}>
+            <Select value={form.watch('target_irr_targeted') ?? undefined} onValueChange={(value) => form.setValue('target_irr_targeted', value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select IRR" />
               </SelectTrigger>
@@ -2282,7 +2282,7 @@ const Survey2021: React.FC = () => {
     <div className="space-y-6">
       <div>
         <Label htmlFor="covid_impact_aggregate" >34. At an aggregate level, please indicate the impact of COVID-19 on your investment vehicle and operations.</Label>
-        <Select onValueChange={(value) => form.setValue("covid_impact_aggregate", value)}>
+        <Select value={form.watch('covid_impact_aggregate') ?? undefined} onValueChange={(value) => form.setValue('covid_impact_aggregate', value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select impact level" />
           </SelectTrigger>
@@ -2471,7 +2471,7 @@ const Survey2021: React.FC = () => {
     <div className="space-y-6">
       <div>
         <Label >39. Overall, how valuable have you found your participation in the ESCP network?</Label>
-        <Select onValueChange={(value) => form.setValue('network_value_rating', value)}>
+        <Select value={form.watch('network_value_rating') ?? undefined} onValueChange={(value) => form.setValue('network_value_rating', value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select rating (1 = Most valuable, 5 = Least valuable)" />
           </SelectTrigger>

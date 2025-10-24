@@ -3062,6 +3062,7 @@ export default function Survey2024() {
 													render={() => (
 														<FormItem>
 															<Select
+																value={(() => { const v = (form.watch('investment_considerations') || {})['other_score'] as any; return v == null ? undefined : String(v); })()}
 																onValueChange={(value) => {
 																	const score = value ? parseInt(value) : 0;
 																	const current = form.getValues('investment_considerations') || {};
@@ -3095,6 +3096,7 @@ export default function Survey2024() {
 										render={() => (
 											<FormItem>
 												<Select
+													value={(() => { const v = (form.watch('investment_considerations') || {})[row] as any; return v == null ? undefined : String(v); })()}
 													onValueChange={(value) => {
 														const score = value ? parseInt(value) : 0;
 														const current = form.getValues('investment_considerations') || {};
@@ -3240,6 +3242,7 @@ export default function Survey2024() {
 								<FormItem>
 										<FormLabel className="text-sm font-normal">{row}</FormLabel>
 									<Select
+										value={(() => { const v = (form.watch('gender_lens_investing') || {})[row] as any; return v == null ? undefined : String(v); })()}
 										onValueChange={(value) => {
 											const current = form.getValues('gender_lens_investing') || {};
 											form.setValue('gender_lens_investing', { ...current, [row]: value });
@@ -3314,6 +3317,7 @@ export default function Survey2024() {
 															)}
 														/>
 														<Select
+															value={(() => { const v = form.watch('pipeline_sources_quality_other_score') as any; return v == null ? undefined : String(v); })()}
 															onValueChange={(value) => {
 																const score = value ? parseInt(value) : 0;
 																form.setValue('pipeline_sources_quality_other_score', score);
@@ -3340,6 +3344,7 @@ export default function Survey2024() {
 											<>
 												<FormLabel className="text-sm font-normal">{source}</FormLabel>
 									<Select
+										value={(() => { const v = (form.watch('pipeline_sources_quality') || {})[source] as any; return v == null ? undefined : String(v); })()}
 										onValueChange={(value) => {
 											const score = value ? parseInt(value) : 0;
 											const current = form.getValues('pipeline_sources_quality') || {};
@@ -3489,6 +3494,7 @@ export default function Survey2024() {
 										<FormItem>
 											<FormControl>
 												<Select
+													value={(() => { const v = (form.watch('post_investment_priorities') || {})[priority] as any; return v == null ? undefined : String(v); })()}
 													onValueChange={(value) => {
 														const score = value ? parseInt(value) : 0;
 														const current = form.getValues('post_investment_priorities') || {};
@@ -3544,6 +3550,7 @@ export default function Survey2024() {
 								)}
 							/>
 							<Select
+								value={(() => { const v = form.watch('post_investment_priorities_other_score') as any; return v == null ? undefined : String(v); })()}
 								onValueChange={(value) => {
 									const score = value ? parseInt(value) : 0;
 									form.setValue('post_investment_priorities_other_score', score);
@@ -3739,6 +3746,7 @@ export default function Survey2024() {
 										<FormItem>
 											<FormControl>
 												<Select
+													value={(() => { const v = (form.watch('unique_offerings') || {})[offering] as any; return v == null ? undefined : String(v); })()}
 													onValueChange={(value) => {
 														const score = value ? parseInt(value) : 0;
 														const current = form.getValues('unique_offerings') || {};
@@ -3794,6 +3802,7 @@ export default function Survey2024() {
 								)}
 							/>
 							<Select
+								value={(() => { const v = form.watch('unique_offerings_other_score') as any; return v == null ? undefined : String(v); })()}
 								onValueChange={(value) => {
 									const score = value ? parseInt(value) : 0;
 									form.setValue('unique_offerings_other_score', score);
