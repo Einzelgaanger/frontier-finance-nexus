@@ -182,6 +182,7 @@ const Survey2022 = () => {
       lp_capital_sources: {},
       business_stages: {},
       financing_needs: {},
+      investment_monetization_exit_forms: [],
       receive_results: false,
     },
   });
@@ -3102,12 +3103,13 @@ const Survey2022 = () => {
                             >
                               <FormControl>
                                 <Checkbox
-                                  checked={field.value?.includes(option)}
+                                  checked={(field.value || []).includes(option)}
                                   onCheckedChange={(checked) => {
+                                    const current = field.value || [];
                                     return checked
-                                      ? field.onChange([...field.value, option])
+                                      ? field.onChange([...current, option])
                                       : field.onChange(
-                                          field.value?.filter(
+                                          current.filter(
                                             (value: string) => value !== option
                                           )
                                         )
@@ -3128,17 +3130,18 @@ const Survey2022 = () => {
                       control={form.control}
                       name="investment_monetization_exit_forms"
                       render={({ field }) => {
-                        const isOtherSelected = field.value?.includes('Other');
+                        const isOtherSelected = (field.value || []).includes('Other');
                         return (
                           <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                             <FormControl>
                               <Checkbox
                                 checked={isOtherSelected}
                                 onCheckedChange={(checked) => {
+                                  const current = field.value || [];
                                   return checked
-                                    ? field.onChange([...field.value, 'Other'])
+                                    ? field.onChange([...current, 'Other'])
                                     : field.onChange(
-                                        field.value?.filter(
+                                        current.filter(
                                           (value: string) => value !== 'Other'
                                         )
                                       )
