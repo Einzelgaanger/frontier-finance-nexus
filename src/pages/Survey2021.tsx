@@ -2027,7 +2027,7 @@ const Survey2021: React.FC = () => {
                     const current = form.watch("portfolio_needs_ranking") || {};
                     form.setValue("portfolio_needs_ranking", { ...current, [need]: value });
                   }}
-                  value={(form.watch("portfolio_needs_ranking") || {})[need] ?? undefined}
+                  value={(() => { const v = (form.watch('portfolio_needs_ranking') || {})[need] as any; return v == null ? undefined : String(v); })()}
                 >
                   <SelectTrigger className="w-20">
                     <SelectValue placeholder="-" />
@@ -2081,7 +2081,7 @@ const Survey2021: React.FC = () => {
                       const current = form.watch('portfolio_needs_ranking') || {};
                       form.setValue('portfolio_needs_ranking', { ...current, ['Other']: value });
                     }}
-                    value={(form.watch('portfolio_needs_ranking') || {})['Other'] ?? undefined}
+                    value={(() => { const v = (form.watch('portfolio_needs_ranking') || {})['Other'] as any; return v == null ? undefined : String(v); })()}
                   >
                     <SelectTrigger className="w-20">
                       <SelectValue placeholder="-" />
@@ -2149,7 +2149,7 @@ const Survey2021: React.FC = () => {
 
       <div>
         <Label htmlFor="exits_achieved" >32. How many exits has your vehicle achieved to date (ie exits/monetizations for equity investments and full repayments for debt investments)?</Label>
-        <Select onValueChange={(value) => {
+        <Select value={form.watch('exits_achieved') ?? undefined} onValueChange={(value) => {
           form.setValue("exits_achieved", value);
           if (value !== 'Other') {
             form.setValue('exits_achieved_other', '');
@@ -2207,7 +2207,7 @@ const Survey2021: React.FC = () => {
                   const current = form.watch("fund_capabilities_ranking") || {};
                   form.setValue("fund_capabilities_ranking", { ...current, [capability]: value });
                 }}
-                value={(form.watch("fund_capabilities_ranking") || {})[capability] ?? undefined}
+                value={(() => { const v = (form.watch('fund_capabilities_ranking') || {})[capability] as any; return v == null ? undefined : String(v); })()}
               >
                 <SelectTrigger className="w-20">
                   <SelectValue placeholder="-" />
@@ -2254,7 +2254,7 @@ const Survey2021: React.FC = () => {
                 </div>
                 <div className="flex items-center space-x-3">
                   <Label className="text-sm font-normal text-gray-800">Rank:</Label>
-                  <Select onValueChange={(value) => {
+                  <Select value={(() => { const v = (form.watch('fund_capabilities_ranking') || {})['Other'] as any; return v == null ? undefined : String(v); })()} onValueChange={(value) => {
                     const current = form.watch('fund_capabilities_ranking') || {};
                     form.setValue('fund_capabilities_ranking', { ...current, ['Other']: value });
                   }}>
@@ -2502,7 +2502,7 @@ const Survey2021: React.FC = () => {
                   const current = form.watch('working_groups_ranking') || {};
                   form.setValue('working_groups_ranking', { ...current, [group]: value });
                 }}
-                value={(form.watch('working_groups_ranking') || {})[group] ?? undefined}
+                value={(() => { const v = (form.watch('working_groups_ranking') || {})[group] as any; return v == null ? undefined : String(v); })()}
               >
                 <SelectTrigger className="w-24">
                   <SelectValue placeholder="-" />
@@ -2556,7 +2556,7 @@ const Survey2021: React.FC = () => {
                   const current = form.watch('webinar_content_ranking') || {};
                   form.setValue('webinar_content_ranking', { ...current, [webinar]: value });
                 }}
-                value={(form.watch('webinar_content_ranking') || {})[webinar] ?? undefined}
+                value={(() => { const v = (form.watch('webinar_content_ranking') || {})[webinar] as any; return v == null ? undefined : String(v); })()}
               >
                 <SelectTrigger className="w-24">
                   <SelectValue placeholder="-" />
