@@ -32,42 +32,42 @@ const survey2023Schema = z.object({
   legal_entity_achieved: z.string().optional(),
   first_close_achieved: z.string().optional(),
   first_investment_achieved: z.string().optional(),
-  geographic_markets: z.array(z.string()).min(1),
+  geographic_markets: z.array(z.string()).optional(),
   geographic_markets_other: z.string().optional(),
-  team_based: z.array(z.string()).min(1),
+  team_based: z.array(z.string()).optional(),
   team_based_other: z.string().optional(),
   fte_staff_2022: z.number().int().min(0).optional(),
   fte_staff_current: z.number().int().min(0).optional(),
   fte_staff_2024_est: z.number().int().min(0).optional(),
   principals_count: z.number().int().min(0).optional(),
-  gender_inclusion: z.array(z.string()).min(1),
+  gender_inclusion: z.array(z.string()).optional(),
   gender_inclusion_other: z.string().optional(),
-  	team_experience_investments: z.record(z.string(), z.string()),
-	team_experience_exits: z.record(z.string(), z.string()),
+  	team_experience_investments: z.record(z.string(), z.string()).optional(),
+	team_experience_exits: z.record(z.string(), z.string()).optional(),
 	team_experience_other: z.string().optional(),
 	other_experience_selected: z.boolean().optional(),
   
   // Section 3: Vehicle Construct
-  legal_domicile: z.array(z.string()).min(1),
+  legal_domicile: z.array(z.string()).optional(),
   legal_domicile_other: z.string().optional(),
-  currency_investments: z.string().min(1),
-  currency_lp_commitments: z.string().min(1),
-  fund_type_status: z.string().min(1),
+  currency_investments: z.string().optional(),
+  currency_lp_commitments: z.string().optional(),
+  fund_type_status: z.string().optional(),
   fund_type_status_other: z.string().optional(),
   current_funds_raised: z.number().min(0).optional(),
   current_amount_invested: z.number().min(0).optional(),
   target_fund_size: z.number().min(0).optional(),
   target_investments_count: z.number().int().min(0).optional(),
-  follow_on_investment_permitted: z.string().min(1),
-  concessionary_capital: z.array(z.string()).min(1),
+  follow_on_investment_permitted: z.string().optional(),
+  concessionary_capital: z.array(z.string()).optional(),
   concessionary_capital_other: z.string().optional(),
   lp_capital_sources_existing: z.record(z.string(), z.number()).optional(),
   lp_capital_sources_target: z.record(z.string(), z.number()).optional(),
-  gp_financial_commitment: z.array(z.string()).min(1),
+  gp_financial_commitment: z.array(z.string()).optional(),
   gp_financial_commitment_other: z.string().optional(),
-  gp_management_fee: z.string().min(1),
+  gp_management_fee: z.string().optional(),
   gp_management_fee_other: z.string().optional(),
-  hurdle_rate_currency: z.string().min(1),
+  hurdle_rate_currency: z.string().optional(),
   hurdle_rate_currency_other: z.string().optional(),
   hurdle_rate_percentage: z.number().min(0).max(100).optional(),
   target_local_currency_return_methods: z.record(z.string(), z.number()).optional(),
@@ -128,7 +128,7 @@ const survey2023Schema = z.object({
       message: "Financial instruments percentages must sum to 100%",
     }
   ),
-  sustainable_development_goals: z.array(z.string()).min(1),
+  sustainable_development_goals: z.array(z.string()).optional(),
   sdg_ranking: z.record(z.string(), z.string()).optional(),
   gender_lens_investing: z.record(z.string(), z.string()).optional(),
   gender_lens_investing_other: z.string().optional(),
@@ -146,7 +146,7 @@ const survey2023Schema = z.object({
     }
   ),
   pipeline_sourcing_other: z.string().optional(),
-  average_investment_size: z.string().min(1),
+  average_investment_size: z.string().optional(),
   average_investment_size_per_company: z.string().optional(),
   capital_raise_percentage: z.number().min(0).max(100).optional(),
   portfolio_funding_mix: z.record(z.string(), z.number()).optional().refine(
@@ -180,10 +180,10 @@ const survey2023Schema = z.object({
   technical_assistance_funding_other: z.string().optional(),
   business_development_approach: z.array(z.string()).optional(),
   business_development_approach_other: z.string().optional(),
-  business_development_support: z.array(z.string()).min(1),
+  business_development_support: z.array(z.string()).optional(),
   business_development_support_other: z.string().optional(),
-  investment_timeframe: z.string().min(1),
-  exit_form: z.array(z.string()).min(1),
+  investment_timeframe: z.string().optional(),
+  exit_form: z.array(z.string()).optional(),
   exit_form_other: z.string().optional(),
   
   // Section 7: Performance to Date and Current Outlook
@@ -215,7 +215,7 @@ const survey2023Schema = z.object({
   concerns_other_selected: z.boolean().optional(),
   
   // Section 8: Future Research
-  future_research_data: z.array(z.string()).min(1),
+  future_research_data: z.array(z.string()).optional(),
   future_research_data_other: z.string().optional(),
   one_on_one_meeting: z.string().optional(),
   receive_survey_results: z.boolean().default(false)
@@ -817,7 +817,10 @@ export default function Survey2023() {
         submitError = insertError;
       }
 
-      if (submitError) throw submitError;
+      if (submitError) {
+        console.error('Survey submission error:', submitError);
+        throw submitError;
+      }
 
       
       // Mark as completed
@@ -831,9 +834,10 @@ export default function Survey2023() {
       // Navigate to dashboard
       navigate('/dashboard');
     } catch (error) {
+      console.error('Error submitting survey:', error);
       toast({
         title: "Error submitting survey",
-        description: "Please try again.",
+        description: error?.message || "Please try again.",
         variant: "destructive",
       });
     } finally {
