@@ -180,6 +180,14 @@ const ViewerDashboardV2 = () => {
     }));
   };
 
+  // Prevent body scrolling like the AI page
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
   const validateSection = (section: number): boolean => {
     switch (section) {
       case 1:
@@ -659,15 +667,15 @@ const ViewerDashboardV2 = () => {
   // Preview/Landing Page
   if (!showApplicationForm) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#f5f5dc] to-[#f0f0e6]">
+      <div className="h-screen overflow-hidden bg-gradient-to-br from-[#f5f5dc] to-[#f0f0e6]">
         {/* Welcome Section */}
-        <div className="relative z-10 pt-6 pb-4">
+        <div className="relative z-10 pt-4 pb-2">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-left">
-              <h1 className="text-2xl font-bold text-gray-800 mb-2">
+              <h1 className="text-xl font-bold text-gray-800 mb-1">
                 Welcome
               </h1>
-              <p className="text-sm text-gray-600 mb-6 max-w-2xl">
+              <p className="text-xs text-gray-600 mb-4 max-w-2xl">
                 Your gateway to the global fund manager community and comprehensive market intelligence
               </p>
             </div>
@@ -675,7 +683,7 @@ const ViewerDashboardV2 = () => {
         </div>
 
         {/* Preview Cards */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+        <div className="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             {/* Network Benefits */}
             <div className="group relative overflow-hidden rounded-lg bg-[#f5f5dc] border-2 border-blue-200 hover:border-blue-400 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg cursor-pointer">
@@ -832,10 +840,10 @@ const ViewerDashboardV2 = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+    <div className="h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       {/* Header with Back Button */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-4">
-        <div className="flex items-center justify-between mb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
+        <div className="flex items-center justify-between mb-4">
           <Button
             variant="outline"
             onClick={() => setShowApplicationForm(false)}
@@ -848,17 +856,17 @@ const ViewerDashboardV2 = () => {
           </Button>
         </div>
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-white mb-4">
+          <h1 className="text-2xl font-bold text-white mb-2">
             Application
           </h1>
-          <p className="text-xl text-white/90 mb-8">
+          <p className="text-sm text-white/90 mb-4">
             Join the world's leading emerging market fund manager network
           </p>
         </div>
       </div>
       
       {/* Application Form */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+      <div className="h-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-4">
         <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200 hover:border-blue-300 transition-all duration-300 shadow-lg hover:shadow-xl">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-100/20 to-purple-100/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           <div className="relative p-8">

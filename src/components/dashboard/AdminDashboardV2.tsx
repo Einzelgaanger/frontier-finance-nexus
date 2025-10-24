@@ -513,6 +513,14 @@ const AdminDashboardV2 = () => {
     fetchAllData();
   }, [fetchAllData]);
 
+  // Prevent body scrolling like the AI page
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'critical': return 'bg-red-100 border-red-200 text-red-800';
@@ -534,8 +542,8 @@ const AdminDashboardV2 = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f5f5dc] to-[#f0f0e6]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="h-screen overflow-hidden bg-gradient-to-br from-[#f5f5dc] to-[#f0f0e6]">
+      <div className="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         
 
         {/* Single Comprehensive Card - Everything in One */}

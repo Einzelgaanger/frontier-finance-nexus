@@ -67,6 +67,14 @@ const MemberDashboard = () => {
     fetchMemberStats();
   }, [user]);
 
+  // Prevent body scrolling like the AI page
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
 
   const quickActions = [
     { title: 'Browse Network', description: 'Connect with fund managers', icon: Users, color: 'blue', href: '/network' },
@@ -82,15 +90,15 @@ const MemberDashboard = () => {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f5f5dc] to-[#f0f0e6]">
+    <div className="h-screen overflow-hidden bg-gradient-to-br from-[#f5f5dc] to-[#f0f0e6]">
       {/* Welcome Section */}
-      <div className="relative z-10 pt-6 pb-4">
+      <div className="relative z-10 pt-4 pb-2">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-left">
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">
+            <h1 className="text-xl font-bold text-gray-800 mb-1">
               Welcome
             </h1>
-            <p className="text-sm text-gray-600 mb-6 max-w-2xl">
+            <p className="text-xs text-gray-600 mb-4 max-w-2xl">
               Your gateway to the global fund manager community and comprehensive market intelligence
             </p>
           </div>
@@ -98,7 +106,7 @@ const MemberDashboard = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+      <div className="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           {/* Stats and Quick Actions - Moved to top */}
