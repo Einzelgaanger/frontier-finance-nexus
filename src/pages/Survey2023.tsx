@@ -278,6 +278,8 @@ export default function Survey2023() {
       gp_experience_other_description: '',
       gender_orientation: [],
       gender_orientation_other: '',
+      gender_inclusion: [],
+      gender_inclusion_other: '',
       investments_experience: '',
       exits_experience: '',
       team_experience_investments: {},
@@ -310,6 +312,8 @@ export default function Survey2023() {
       target_irr_other: '',
       concessionary_capital: [],
       concessionary_capital_other: '',
+      gp_financial_commitment: [],
+      gp_financial_commitment_other: '',
       lp_capital_sources: {},
       lp_capital_sources_other_description: '',
       gp_commitment: '',
@@ -321,6 +325,12 @@ export default function Survey2023() {
       carried_interest_percentage_other: '',
       key_terms_other: '',
       key_terms_other_description: '',
+      business_development_approach: [],
+      business_development_approach_other: '',
+      business_development_support: [],
+      business_development_support_other: '',
+      exit_form: [],
+      exit_form_other: '',
       // Section 5: Impact of COVID-19 on Vehicle and Portfolio
       portfolio_performance: {},
       portfolio_performance_other_selected: false,
@@ -344,6 +354,8 @@ export default function Survey2023() {
       international_factors_concerns: {},
       international_factors_concerns_other_selected: false,
       international_factors_concerns_other_description: '',
+      future_research_data: [],
+      future_research_data_other: '',
       // Section 6: Feedback on ESCP Network Membership to date
       network_value: '',
       network_improvements: '',
@@ -1379,10 +1391,11 @@ export default function Survey2023() {
                           <Checkbox
                             checked={field.value?.includes(inclusion)}
                             onCheckedChange={(checked) => {
+                              const current = field.value || [];
                               return checked
-                                ? field.onChange([...field.value, inclusion])
+                                ? field.onChange([...current, inclusion])
                                 : field.onChange(
-                                    field.value?.filter(
+                                    current.filter(
                                       (value) => value !== inclusion
                                     )
                                   )
@@ -2102,10 +2115,11 @@ export default function Survey2023() {
                           <Checkbox
                             checked={field.value?.includes(commitment)}
                             onCheckedChange={(checked) => {
+                              const current = field.value || [];
                               return checked
-                                ? field.onChange([...field.value, commitment])
+                                ? field.onChange([...current, commitment])
                                 : field.onChange(
-                                    field.value?.filter(
+                                    current.filter(
                                       (value) => value !== commitment
                                     )
                                   )
@@ -3602,10 +3616,11 @@ export default function Survey2023() {
                           <Checkbox
                             checked={field.value?.includes(approach)}
                             onCheckedChange={(checked) => {
+                              const current = field.value || [];
                               return checked
-                                ? field.onChange([...field.value, approach])
+                                ? field.onChange([...current, approach])
                                 : field.onChange(
-                                    field.value?.filter(
+                                    current.filter(
                                       (value) => value !== approach
                                     )
                                   )
@@ -3707,10 +3722,11 @@ export default function Survey2023() {
                           <Checkbox
                             checked={field.value?.includes(exit)}
                             onCheckedChange={(checked) => {
+                              const current = field.value || [];
                               return checked
-                                ? field.onChange([...field.value, exit])
+                                ? field.onChange([...current, exit])
                                 : field.onChange(
-                                    field.value?.filter(
+                                    current.filter(
                                       (value) => value !== exit
                                     )
                                   )
@@ -4530,10 +4546,11 @@ Which of the following would you be prepared to make available? [note: we are cu
                           <Checkbox
                             checked={field.value?.includes(data)}
                             onCheckedChange={(checked) => {
+                              const current = field.value || [];
                               return checked
-                                ? field.onChange([...field.value, data])
+                                ? field.onChange([...current, data])
                                 : field.onChange(
-                                    field.value?.filter(
+                                    current.filter(
                                       (value) => value !== data
                                     )
                                   )
