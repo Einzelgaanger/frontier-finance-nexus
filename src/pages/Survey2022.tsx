@@ -180,6 +180,8 @@ const Survey2022 = () => {
       team_based_other: '',
       gp_experience: {},
       lp_capital_sources: {},
+      business_stages: {},
+      financing_needs: {},
       receive_results: false,
     },
   });
@@ -1930,7 +1932,7 @@ const Survey2022 = () => {
                         name={`business_stages.${stage}`}
             render={({ field }) => (
               <FormItem>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                   <SelectTrigger>
                                 <SelectValue placeholder="Select percentage" />
                   </SelectTrigger>
@@ -1996,7 +1998,7 @@ const Survey2022 = () => {
                             name="business_stages.Other"
                             render={({ field }) => (
                               <FormItem>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                   <SelectTrigger>
                                     <SelectValue placeholder="Select percentage" />
                   </SelectTrigger>
@@ -2090,7 +2092,7 @@ const Survey2022 = () => {
                         name={`financing_needs.${financingNeed}`}
             render={({ field }) => (
               <FormItem>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                   <SelectTrigger>
                                 <SelectValue placeholder="Select percentage" />
                   </SelectTrigger>
@@ -2156,7 +2158,7 @@ const Survey2022 = () => {
                             name="financing_needs.Other"
                             render={({ field }) => (
                               <FormItem>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                   <SelectTrigger>
                                     <SelectValue placeholder="Select percentage" />
                   </SelectTrigger>
