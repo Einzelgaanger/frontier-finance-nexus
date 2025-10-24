@@ -8,7 +8,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useSurveyPersistence } from '@/hooks/useSurveyPersistence';
 import { useSurveyStatus } from '@/hooks/useSurveyStatus';
-import { useSurveyAutosave } from '@/hooks/useSurveyAutosave';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -144,7 +143,6 @@ const Survey2021: React.FC = () => {
   const { isSurveyCompleted } = useSurveyStatus();
   const [currentSection, setCurrentSection] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
 
   // Initialize persistence hook
@@ -162,6 +160,7 @@ const Survey2021: React.FC = () => {
   const progress = (currentSection / totalSections) * 100;
 
   const form = useForm<Survey2021FormData>({
+    shouldUnregister: false,
     defaultValues: {
       email_address: '',
       firm_name: '',
@@ -261,13 +260,6 @@ const Survey2021: React.FC = () => {
     },
   });
 
-  // Initialize autosave AFTER form is created
-  const { saveStatus, saveDraft: autoSaveDraft } = useSurveyAutosave({
-    userId: user?.id,
-    surveyYear: '2021',
-    watch: form.watch,
-    enabled: !!user,
-  });
 
   // Load saved section on component mount (no form data restoration)
   useEffect(() => {
@@ -324,6 +316,15 @@ const Survey2021: React.FC = () => {
     loadDraft();
   }, [user, form]);
 
+  // Auto-save form data to localStorage whenever form values change
+  useEffect(() => {
+    const subscription = form.watch((formData) => {
+      // Save to localStorage on every change
+      saveFormData(formData);
+    });
+    return () => subscription.unsubscribe();
+  }, [form.watch, saveFormData]);
+
   // Setup auto-save when form data changes
   useEffect(() => {
     const formData = form.watch();
@@ -332,34 +333,6 @@ const Survey2021: React.FC = () => {
     return cleanup;
   }, [form.watch()]);
 
-  // Watch all form changes and save immediately
-  useEffect(() => {
-    if (!user) return;
-    
-    // Watch specific complex fields that might not trigger general form changes
-    const watchFields = [
-      'top_sdg_1',
-      'top_sdg_2', 
-      'top_sdg_3',
-      'other_sdgs',
-      'convening_initiatives_other_ranking'
-    ];
-    
-    // Watch each field individually and save on change
-    watchFields.forEach(field => {
-      form.watch(field as any);
-    });
-    
-    // General form watching - this will trigger on any form change
-    const watchedValues = form.watch();
-    
-    // Save when any watched value changes
-    const timeoutId = setTimeout(() => {
-      saveDraft();
-    }, 2000); // Save 2 seconds after last change
-    
-    return () => clearTimeout(timeoutId);
-  }, [user, form, form.watch()]);
 
   // Save section and scroll position when section changes
   useEffect(() => {
@@ -409,100 +382,6 @@ const Survey2021: React.FC = () => {
     }
   };
 
-  const saveDraft = async () => {
-    if (!user) return;
-    
-    setSaving(true);
-    try {
-      // Enhanced form data capture for all field types
-      const formData = form.getValues();
-      
-      // Additional capture for complex nested objects and dynamic fields
-      const enhancedFormData = {
-        ...formData,
-        // Ensure all nested objects are captured
-        top_sdg_1: form.getValues('top_sdg_1'),
-        top_sdg_2: form.getValues('top_sdg_2'),
-        top_sdg_3: form.getValues('top_sdg_3'),
-        other_sdgs: form.getValues('other_sdgs') || [],
-        convening_initiatives_other_ranking: form.getValues('convening_initiatives_other_ranking'),
-        // Capture all form state including touched/dirty fields
-        _formState: form.formState,
-      };
-      
-      // Save to localStorage as backup
-      saveFormData(enhancedFormData);
-      
-      // Try to save to database
-      try {
-        // Check if record exists
-        const { data: existingRecord } = await supabase
-          .from('survey_responses_2021')
-          .select('id')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        // Ensure required non-null columns for drafts have values
-        const effectiveEmail = formData.email_address || user?.email || `draft+${user.id}@placeholder.local`;
-        const effectiveFirm = formData.firm_name || 'Draft';
-        const effectiveParticipant = formData.participant_name || 'Draft';
-        const effectiveRole = formData.role_title || 'Draft';
-
-        const recordData = {
-          user_id: user.id,
-          email_address: effectiveEmail,
-          firm_name: effectiveFirm,
-          participant_name: effectiveParticipant,
-          role_title: effectiveRole,
-          team_based: formData.team_based || [],
-          team_based_other: formData.team_based_other || '',
-          geographic_focus: formData.geographic_focus || [],
-          geographic_focus_other: formData.geographic_focus_other || '',
-          fund_stage: formData.fund_stage || '',
-          fund_stage_other: formData.fund_stage_other || '',
-          legal_entity_date: formData.legal_entity_date || '',
-          first_close_date: formData.first_close_date || '',
-          first_investment_date: formData.first_investment_date || '',
-          form_data: formData,
-          submission_status: 'draft',
-          updated_at: new Date().toISOString(),
-        };
-
-        let error;
-        if (existingRecord) {
-          // Update existing record
-          const { error: updateError } = await supabase
-            .from('survey_responses_2021')
-            .update(recordData)
-            .eq('user_id', user.id);
-          error = updateError;
-        } else {
-          // Insert new record
-          const { error: insertError } = await supabase
-            .from('survey_responses_2021')
-            .insert(recordData);
-          error = insertError;
-        }
-
-        if (error) throw error;
-      } catch (dbError) {
-        console.warn('Database save failed, using localStorage only:', dbError);
-        // Database save failed, but localStorage save succeeded
-      }
-      
-      // Draft saved silently - status indicator shows save state
-      
-    } catch (error) {
-      console.error('Error saving draft:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save draft. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const handleSubmit = async (data: Survey2021FormData) => {
     if (!user) return;
@@ -638,17 +517,13 @@ const Survey2021: React.FC = () => {
       if (submitError) throw submitError;
 
       
-      // Clear saved data after successful submission
-      clearSavedData();
-      
       toast({
         title: "Survey Submitted",
         description: "Thank you for completing the 2021 survey!",
       });
       
-      // Reset form and go back to first section
-      form.reset();
-      setCurrentSection(1);
+      // Navigate to dashboard
+      navigate('/dashboard');
       
     } catch (error) {
       console.error('Error submitting survey:', error);
@@ -856,27 +731,38 @@ const Survey2021: React.FC = () => {
 
       <div>
         <Label htmlFor="fund_stage" >7. What is the stage of your current fund/vehicle's operations?</Label>
-        <Select onValueChange={(value) => {
-          form.setValue("fund_stage", value);
-          // Clear the "Other" field if not selecting "Other"
-          if (value !== "Other") {
-            form.setValue("fund_stage_other", "");
-          }
-        }}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select fund stage" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Open ended - fundraising and heading towards equivalent of 1st close">Open ended - fundraising and heading towards equivalent of 1st close</SelectItem>
+        <FormField
+          control={form.control}
+          name="fund_stage"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Select onValueChange={(value) => {
+                  field.onChange(value);
+                  // Clear the "Other" field if not selecting "Other"
+                  if (value !== "Other") {
+                    form.setValue("fund_stage_other", "");
+                  }
+                }} value={field.value}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select fund stage" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Open ended - fundraising and heading towards equivalent of 1st close">Open ended - fundraising and heading towards equivalent of 1st close</SelectItem>
             <SelectItem value="Open-ended - achieved equivalent of 1st close with sufficient committed funds to cover fund economics">Open-ended - achieved equivalent of 1st close with sufficient committed funds to cover fund economics</SelectItem>
             <SelectItem value="Closed ended - fundraising">Closed ended - fundraising</SelectItem>
             <SelectItem value="Closed ended - completed first close">Closed ended - completed first close</SelectItem>
             <SelectItem value="Closed ended - completed second close">Closed ended - completed second close</SelectItem>
             <SelectItem value="Second fund/vehicle">Second fund/vehicle</SelectItem>
             <SelectItem value="Third or later fund/vehicle">Third or later fund/vehicle</SelectItem>
-            <SelectItem value="Other">Other</SelectItem>
-          </SelectContent>
-        </Select>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         
         {/* Only show "Other" input when "Other" is selected */}
         {form.watch("fund_stage") === "Other" && (
@@ -908,7 +794,13 @@ const Survey2021: React.FC = () => {
         <div className="grid grid-cols-3 gap-4">
           <div>
             <Label htmlFor="legal_entity_date" className="text-sm font-medium text-gray-700">Legal entity</Label>
-            <Select onValueChange={(value) => form.setValue("legal_entity_date", value)}>
+            <FormField
+              control={form.control}
+              name="legal_entity_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
               <SelectTrigger>
                 <SelectValue placeholder="Select date" />
               </SelectTrigger>
@@ -926,14 +818,25 @@ const Survey2021: React.FC = () => {
                 <SelectItem value="2018">2018</SelectItem>
                 <SelectItem value="2019">2019</SelectItem>
                 <SelectItem value="2020">2020</SelectItem>
-                <SelectItem value="2021">2021</SelectItem>
-              </SelectContent>
-            </Select>
+                      <SelectItem value="2021">2021</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           </div>
 
           <div>
             <Label htmlFor="first_close_date" className="text-sm font-medium text-gray-700">1st close (or equivalent)</Label>
-            <Select onValueChange={(value) => form.setValue("first_close_date", value)}>
+            <FormField
+              control={form.control}
+              name="first_close_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
               <SelectTrigger>
                 <SelectValue placeholder="Select date" />
               </SelectTrigger>
@@ -951,14 +854,25 @@ const Survey2021: React.FC = () => {
                 <SelectItem value="2018">2018</SelectItem>
                 <SelectItem value="2019">2019</SelectItem>
                 <SelectItem value="2020">2020</SelectItem>
-                <SelectItem value="2021">2021</SelectItem>
-              </SelectContent>
-            </Select>
+                      <SelectItem value="2021">2021</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           </div>
 
           <div>
             <Label htmlFor="first_investment_date" className="text-sm font-medium text-gray-700">First investment</Label>
-            <Select onValueChange={(value) => form.setValue("first_investment_date", value)}>
+            <FormField
+              control={form.control}
+              name="first_investment_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
               <SelectTrigger>
                 <SelectValue placeholder="Select date" />
               </SelectTrigger>
@@ -976,9 +890,14 @@ const Survey2021: React.FC = () => {
                 <SelectItem value="2018">2018</SelectItem>
                 <SelectItem value="2019">2019</SelectItem>
                 <SelectItem value="2020">2020</SelectItem>
-                <SelectItem value="2021">2021</SelectItem>
-              </SelectContent>
-            </Select>
+                      <SelectItem value="2021">2021</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           </div>
         </div>
       </div>
@@ -992,7 +911,13 @@ const Survey2021: React.FC = () => {
         <div className="grid grid-cols-2 gap-6">
           <div>
             <Label htmlFor="investments_march_2020">As of March 2020</Label>
-            <Select onValueChange={(value) => form.setValue("investments_march_2020", value)}>
+            <FormField
+              control={form.control}
+              name="investments_march_2020"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
               <SelectTrigger>
                 <SelectValue placeholder="Select count" />
               </SelectTrigger>
@@ -1002,13 +927,24 @@ const Survey2021: React.FC = () => {
                 <SelectItem value="5-9">5-9</SelectItem>
                 <SelectItem value="10-14">10-14</SelectItem>
                 <SelectItem value="15-24">15-24</SelectItem>
-                <SelectItem value="25+">25+</SelectItem>
-              </SelectContent>
-            </Select>
+                      <SelectItem value="25+">25+</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           </div>
           <div>
             <Label htmlFor="investments_december_2020">As of December 2020</Label>
-            <Select onValueChange={(value) => form.setValue("investments_december_2020", value)}>
+            <FormField
+              control={form.control}
+              name="investments_december_2020"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
               <SelectTrigger>
                 <SelectValue placeholder="Select count" />
               </SelectTrigger>
@@ -1018,9 +954,14 @@ const Survey2021: React.FC = () => {
                 <SelectItem value="5-9">5-9</SelectItem>
                 <SelectItem value="10-14">10-14</SelectItem>
                 <SelectItem value="15-24">15-24</SelectItem>
-                <SelectItem value="25+">25+</SelectItem>
-              </SelectContent>
-            </Select>
+                      <SelectItem value="25+">25+</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           </div>
         </div>
       </div>
@@ -1093,7 +1034,7 @@ const Survey2021: React.FC = () => {
         <div className="grid grid-cols-2 gap-6">
           <div>
             <Label htmlFor="current_fund_size">Current</Label>
-            <Select onValueChange={(value) => form.setValue("current_fund_size", value)}>
+            <Select value={form.watch('current_fund_size') ?? undefined} onValueChange={(value) => form.setValue('current_fund_size', value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select size" />
               </SelectTrigger>
@@ -1109,7 +1050,7 @@ const Survey2021: React.FC = () => {
           </div>
           <div>
             <Label htmlFor="target_fund_size">Target</Label>
-            <Select onValueChange={(value) => form.setValue("target_fund_size", value)}>
+            <Select value={form.watch('target_fund_size') ?? undefined} onValueChange={(value) => form.setValue('target_fund_size', value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select size" />
               </SelectTrigger>
@@ -1132,12 +1073,18 @@ const Survey2021: React.FC = () => {
           <Label >13. Typical investment timeframe</Label>
         </div>
         
-        <Select onValueChange={(value) => {
-          form.setValue("investment_timeframe", value);
-          if (value !== "Other") {
-            form.setValue("investment_timeframe_other", "");
-          }
-        }}>
+        <FormField
+          control={form.control}
+          name="investment_timeframe"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Select onValueChange={(value) => {
+                  field.onChange(value);
+                  if (value !== "Other") {
+                    form.setValue("investment_timeframe_other", "");
+                  }
+                }} value={field.value}>
           <SelectTrigger>
             <SelectValue placeholder="Select timeframe" />
           </SelectTrigger>
@@ -1147,9 +1094,14 @@ const Survey2021: React.FC = () => {
             <SelectItem value="4-5 years">4-5 years</SelectItem>
             <SelectItem value="6-7 years">6-7 years</SelectItem>
             <SelectItem value="8+ years">8+ years</SelectItem>
-            <SelectItem value="Other">Other</SelectItem>
-          </SelectContent>
-        </Select>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         {form.watch("investment_timeframe") === "Other" && (
           <div className="mt-3">
             <Label htmlFor="investment_timeframe_other">Please specify other timeframe:</Label>
@@ -1356,7 +1308,7 @@ const Survey2021: React.FC = () => {
         <div className="grid grid-cols-2 gap-6">
           <div>
             <Label htmlFor="target_irr_achieved">Achieved in most recent reporting period</Label>
-            <Select onValueChange={(value) => form.setValue("target_irr_achieved", value)}>
+            <Select value={form.watch('target_irr_achieved') ?? undefined} onValueChange={(value) => form.setValue('target_irr_achieved', value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select IRR" />
               </SelectTrigger>
@@ -1371,7 +1323,7 @@ const Survey2021: React.FC = () => {
           </div>
           <div>
             <Label htmlFor="target_irr_targeted">Targeted</Label>
-            <Select onValueChange={(value) => form.setValue("target_irr_targeted", value)}>
+            <Select value={form.watch('target_irr_targeted') ?? undefined} onValueChange={(value) => form.setValue('target_irr_targeted', value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select IRR" />
               </SelectTrigger>
@@ -1393,12 +1345,18 @@ const Survey2021: React.FC = () => {
           <Label >19. How would you frame the impact vs financial return orientation of your capital vehicle?</Label>
         </div>
         
-        <Select onValueChange={(value) => {
-          form.setValue("impact_vs_financial_orientation", value);
-          if (value !== "Other") {
-            form.setValue("impact_vs_financial_orientation_other", "");
-          }
-        }}>
+        <FormField
+          control={form.control}
+          name="impact_vs_financial_orientation"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Select onValueChange={(value) => {
+                  field.onChange(value);
+                  if (value !== "Other") {
+                    form.setValue("impact_vs_financial_orientation_other", "");
+                  }
+                }} value={field.value}>
           <SelectTrigger>
             <SelectValue placeholder="Select orientation" />
           </SelectTrigger>
@@ -1408,9 +1366,14 @@ const Survey2021: React.FC = () => {
             <SelectItem value="Balanced impact/financial return">Balanced impact/financial return</SelectItem>
             <SelectItem value="Impact investing (positive screening)">Impact investing (positive screening)</SelectItem>
             <SelectItem value="Impact first investing (impact outcomes intentionally)">Impact first investing (impact outcomes intentionally)</SelectItem>
-            <SelectItem value="Other">Other</SelectItem>
-          </SelectContent>
-        </Select>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         {form.watch("impact_vs_financial_orientation") === "Other" && (
           <div className="mt-3">
             <Label htmlFor="impact_vs_financial_orientation_other">Please specify other orientation:</Label>
@@ -1831,7 +1794,13 @@ const Survey2021: React.FC = () => {
         <div className="grid grid-cols-2 gap-6">
           <div>
             <Label htmlFor="investment_size_your_amount">Your investment amount at time of initial investment</Label>
-            <Select onValueChange={(value) => form.setValue("investment_size_your_amount", value)}>
+            <FormField
+              control={form.control}
+              name="investment_size_your_amount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
               <SelectTrigger>
                 <SelectValue placeholder="Select amount" />
               </SelectTrigger>
@@ -1841,13 +1810,24 @@ const Survey2021: React.FC = () => {
                 <SelectItem value="$200,000 - $499,000">$200,000 - $499,000</SelectItem>
                 <SelectItem value="$500,000 - $999,000">$500,000 - $999,000</SelectItem>
                 <SelectItem value="$1,000,000 - $1,999,000">$1,000,000 - $1,999,000</SelectItem>
-                <SelectItem value="≥ $2,000,000">≥ $2,000,000</SelectItem>
-              </SelectContent>
-            </Select>
+                      <SelectItem value="≥ $2,000,000">≥ $2,000,000</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           </div>
           <div>
             <Label htmlFor="investment_size_total_raise">Total raise by portfolio company</Label>
-            <Select onValueChange={(value) => form.setValue("investment_size_total_raise", value)}>
+            <FormField
+              control={form.control}
+              name="investment_size_total_raise"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
               <SelectTrigger>
                 <SelectValue placeholder="Select amount" />
               </SelectTrigger>
@@ -1857,9 +1837,14 @@ const Survey2021: React.FC = () => {
                 <SelectItem value="$200,000 - $499,000">$200,000 - $499,000</SelectItem>
                 <SelectItem value="$500,000 - $999,000">$500,000 - $999,000</SelectItem>
                 <SelectItem value="$1,000,000 - $1,999,000">$1,000,000 - $1,999,000</SelectItem>
-                <SelectItem value="≥ $2,000,000">≥ $2,000,000</SelectItem>
-              </SelectContent>
-            </Select>
+                      <SelectItem value="≥ $2,000,000">≥ $2,000,000</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           </div>
         </div>
       </div>
@@ -1965,33 +1950,55 @@ const Survey2021: React.FC = () => {
 
       <div>
         <Label htmlFor="carried_interest_principals">28. Number of current carried-interest/equity-interest principals</Label>
-        <Select onValueChange={(value) => form.setValue("carried_interest_principals", value)}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select count" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="0">0</SelectItem>
-            <SelectItem value="1">1</SelectItem>
-            <SelectItem value="2-3">2-3</SelectItem>
-            <SelectItem value="4-5">4-5</SelectItem>
-            <SelectItem value="5+">5+</SelectItem>
-          </SelectContent>
-        </Select>
+        <FormField
+          control={form.control}
+          name="carried_interest_principals"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select count" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">0</SelectItem>
+                    <SelectItem value="1">1</SelectItem>
+                    <SelectItem value="2-3">2-3</SelectItem>
+                    <SelectItem value="4-5">4-5</SelectItem>
+                    <SelectItem value="5+">5+</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </div>
 
       <div>
         <Label htmlFor="current_ftes">29. Number of current Full Time Equivalent staff members (FTEs) including principals</Label>
-        <Select onValueChange={(value) => form.setValue("current_ftes", value)}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select count" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="< or = 2">&lt; or = 2</SelectItem>
-            <SelectItem value="3-5">3-5</SelectItem>
-            <SelectItem value="6-10">6-10</SelectItem>
-            <SelectItem value="10+">10+</SelectItem>
-          </SelectContent>
-        </Select>
+        <FormField
+          control={form.control}
+          name="current_ftes"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select count" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="< or = 2">&lt; or = 2</SelectItem>
+                    <SelectItem value="3-5">3-5</SelectItem>
+                    <SelectItem value="6-10">6-10</SelectItem>
+                    <SelectItem value="10+">10+</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </div>
     </div>
   );
@@ -2015,10 +2022,13 @@ const Survey2021: React.FC = () => {
             <div key={need} className="p-3 border border-gray-200 rounded-lg">
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-medium pr-3">{need}</Label>
-                <Select onValueChange={(value) => {
-                  const current = form.watch("portfolio_needs_ranking") || {};
-                  form.setValue("portfolio_needs_ranking", { ...current, [need]: value });
-                }}>
+                <Select
+                  onValueChange={(value) => {
+                    const current = form.watch("portfolio_needs_ranking") || {};
+                    form.setValue("portfolio_needs_ranking", { ...current, [need]: value });
+                  }}
+                  value={(() => { const v = (form.watch('portfolio_needs_ranking') || {})[need] as any; return v == null ? undefined : String(v); })()}
+                >
                   <SelectTrigger className="w-20">
                     <SelectValue placeholder="-" />
                   </SelectTrigger>
@@ -2066,10 +2076,13 @@ const Survey2021: React.FC = () => {
                 </div>
                 <div className="flex items-center space-x-3">
                   <Label className="text-sm font-normal text-gray-800">Rank:</Label>
-                  <Select onValueChange={(value) => {
-                    const current = form.watch('portfolio_needs_ranking') || {};
-                    form.setValue('portfolio_needs_ranking', { ...current, ['Other']: value });
-                  }}>
+                  <Select
+                    onValueChange={(value) => {
+                      const current = form.watch('portfolio_needs_ranking') || {};
+                      form.setValue('portfolio_needs_ranking', { ...current, ['Other']: value });
+                    }}
+                    value={(() => { const v = (form.watch('portfolio_needs_ranking') || {})['Other'] as any; return v == null ? undefined : String(v); })()}
+                  >
                     <SelectTrigger className="w-20">
                       <SelectValue placeholder="-" />
                     </SelectTrigger>
@@ -2136,7 +2149,7 @@ const Survey2021: React.FC = () => {
 
       <div>
         <Label htmlFor="exits_achieved" >32. How many exits has your vehicle achieved to date (ie exits/monetizations for equity investments and full repayments for debt investments)?</Label>
-        <Select onValueChange={(value) => {
+        <Select value={form.watch('exits_achieved') ?? undefined} onValueChange={(value) => {
           form.setValue("exits_achieved", value);
           if (value !== 'Other') {
             form.setValue('exits_achieved_other', '');
@@ -2189,10 +2202,13 @@ const Survey2021: React.FC = () => {
           ].map((capability) => (
             <div key={capability} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
               <Label className="text-sm font-medium">{capability}</Label>
-              <Select onValueChange={(value) => {
-                const current = form.watch("fund_capabilities_ranking") || {};
-                form.setValue("fund_capabilities_ranking", { ...current, [capability]: value });
-              }}>
+              <Select
+                onValueChange={(value) => {
+                  const current = form.watch("fund_capabilities_ranking") || {};
+                  form.setValue("fund_capabilities_ranking", { ...current, [capability]: value });
+                }}
+                value={(() => { const v = (form.watch('fund_capabilities_ranking') || {})[capability] as any; return v == null ? undefined : String(v); })()}
+              >
                 <SelectTrigger className="w-20">
                   <SelectValue placeholder="-" />
                 </SelectTrigger>
@@ -2238,7 +2254,7 @@ const Survey2021: React.FC = () => {
                 </div>
                 <div className="flex items-center space-x-3">
                   <Label className="text-sm font-normal text-gray-800">Rank:</Label>
-                  <Select onValueChange={(value) => {
+                  <Select value={(() => { const v = (form.watch('fund_capabilities_ranking') || {})['Other'] as any; return v == null ? undefined : String(v); })()} onValueChange={(value) => {
                     const current = form.watch('fund_capabilities_ranking') || {};
                     form.setValue('fund_capabilities_ranking', { ...current, ['Other']: value });
                   }}>
@@ -2266,7 +2282,7 @@ const Survey2021: React.FC = () => {
     <div className="space-y-6">
       <div>
         <Label htmlFor="covid_impact_aggregate" >34. At an aggregate level, please indicate the impact of COVID-19 on your investment vehicle and operations.</Label>
-        <Select onValueChange={(value) => form.setValue("covid_impact_aggregate", value)}>
+        <Select value={form.watch('covid_impact_aggregate') ?? undefined} onValueChange={(value) => form.setValue('covid_impact_aggregate', value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select impact level" />
           </SelectTrigger>
@@ -2455,7 +2471,7 @@ const Survey2021: React.FC = () => {
     <div className="space-y-6">
       <div>
         <Label >39. Overall, how valuable have you found your participation in the ESCP network?</Label>
-        <Select onValueChange={(value) => form.setValue('network_value_rating', value)}>
+        <Select value={form.watch('network_value_rating') ?? undefined} onValueChange={(value) => form.setValue('network_value_rating', value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select rating (1 = Most valuable, 5 = Least valuable)" />
           </SelectTrigger>
@@ -2481,10 +2497,13 @@ const Survey2021: React.FC = () => {
           ].map(group => (
             <div key={group} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
               <Label className="text-sm font-medium">{group}</Label>
-              <Select onValueChange={(value) => {
-                const current = form.watch('working_groups_ranking') || {};
-                form.setValue('working_groups_ranking', { ...current, [group]: value });
-              }}>
+              <Select
+                onValueChange={(value) => {
+                  const current = form.watch('working_groups_ranking') || {};
+                  form.setValue('working_groups_ranking', { ...current, [group]: value });
+                }}
+                value={(() => { const v = (form.watch('working_groups_ranking') || {})[group] as any; return v == null ? undefined : String(v); })()}
+              >
                 <SelectTrigger className="w-24">
                   <SelectValue placeholder="-" />
                 </SelectTrigger>
@@ -2532,10 +2551,13 @@ const Survey2021: React.FC = () => {
           ].map(webinar => (
             <div key={webinar} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
               <Label className="text-sm font-medium">{webinar}</Label>
-              <Select onValueChange={(value) => {
-                const current = form.watch('webinar_content_ranking') || {};
-                form.setValue('webinar_content_ranking', { ...current, [webinar]: value });
-              }}>
+              <Select
+                onValueChange={(value) => {
+                  const current = form.watch('webinar_content_ranking') || {};
+                  form.setValue('webinar_content_ranking', { ...current, [webinar]: value });
+                }}
+                value={(() => { const v = (form.watch('webinar_content_ranking') || {})[webinar] as any; return v == null ? undefined : String(v); })()}
+              >
                 <SelectTrigger className="w-24">
                   <SelectValue placeholder="-" />
                 </SelectTrigger>
@@ -2567,7 +2589,7 @@ const Survey2021: React.FC = () => {
 
       <div>
         <Label >44. Do you prefer Slack or WhatsApp as a communication platform for the network?</Label>
-        <Select onValueChange={(value) => {
+        <Select value={form.watch('communication_platform') ?? undefined} onValueChange={(value) => {
           form.setValue('communication_platform', value);
           if (value !== 'Other') {
             form.setValue('communication_platform_other', '');
@@ -2611,10 +2633,13 @@ const Survey2021: React.FC = () => {
           ].map((area) => (
             <div key={area} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
               <Label className="text-sm font-medium">{area}</Label>
-              <Select onValueChange={(value) => {
-                const current = form.watch("network_value_areas") || {};
-                form.setValue("network_value_areas", { ...current, [area]: value });
-              }}>
+              <Select
+                onValueChange={(value) => {
+                  const current = form.watch("network_value_areas") || {};
+                  form.setValue("network_value_areas", { ...current, [area]: value });
+                }}
+                value={(form.watch("network_value_areas") || {})[area] ?? undefined}
+              >
                 <SelectTrigger className="w-20">
                   <SelectValue placeholder="-" />
                 </SelectTrigger>
@@ -2701,10 +2726,13 @@ const Survey2021: React.FC = () => {
           ].map((initiative) => (
             <div key={initiative} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
               <Label className="text-sm font-medium">{initiative}</Label>
-              <Select onValueChange={(value) => {
-                const current = form.watch("convening_initiatives_ranking") || {};
-                form.setValue("convening_initiatives_ranking", { ...current, [initiative]: value });
-              }}>
+              <Select
+                onValueChange={(value) => {
+                  const current = form.watch("convening_initiatives_ranking") || {};
+                  form.setValue("convening_initiatives_ranking", { ...current, [initiative]: value });
+                }}
+                value={(form.watch("convening_initiatives_ranking") || {})[initiative] ?? undefined}
+              >
                 <SelectTrigger className="w-20">
                   <SelectValue placeholder="-" />
                 </SelectTrigger>
@@ -2745,7 +2773,7 @@ const Survey2021: React.FC = () => {
               </div>
               <div className="flex items-center space-x-3">
                 <Label className="text-sm font-normal text-gray-800">Rank:</Label>
-                <Select onValueChange={(value) => form.setValue("convening_initiatives_other_ranking", value)}>
+                <Select value={form.watch('convening_initiatives_other_ranking') ?? undefined} onValueChange={(value) => form.setValue('convening_initiatives_other_ranking', value)}>
                   <SelectTrigger className="w-20">
                     <SelectValue placeholder="-" />
                   </SelectTrigger>
@@ -2763,7 +2791,7 @@ const Survey2021: React.FC = () => {
 
       <div>
         <Label >48. Would you be interested in participating in a peer mentoring program?</Label>
-        <Select onValueChange={(value) => form.setValue("participate_mentoring_program", value)}>
+        <Select value={form.watch('participate_mentoring_program') ?? undefined} onValueChange={(value) => form.setValue('participate_mentoring_program', value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select option" />
           </SelectTrigger>
@@ -3062,18 +3090,6 @@ const Survey2021: React.FC = () => {
                   className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-300"
                   style={{ width: `${progress}%` }}
                 ></div>
-              </div>
-              {/* Autosave status indicator */}
-              <div className="flex items-center justify-end gap-2 text-xs">
-                {saveStatus === 'saving' && (
-                  <span className="text-gray-500 animate-pulse">Saving...</span>
-                )}
-                {saveStatus === 'saved' && (
-                  <span className="text-green-600">✓ Saved</span>
-                )}
-                {saveStatus === 'error' && (
-                  <span className="text-red-600">Error saving</span>
-                )}
               </div>
             </div>
           </Card>

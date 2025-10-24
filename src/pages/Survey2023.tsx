@@ -15,7 +15,6 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { useSurveyPersistence } from '@/hooks/useSurveyPersistence';
 import { useAuth } from '@/hooks/useAuth';
-import { useSurveyAutosave } from '@/hooks/useSurveyAutosave';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft } from 'lucide-react';
@@ -33,42 +32,42 @@ const survey2023Schema = z.object({
   legal_entity_achieved: z.string().optional(),
   first_close_achieved: z.string().optional(),
   first_investment_achieved: z.string().optional(),
-  geographic_markets: z.array(z.string()).min(1),
+  geographic_markets: z.array(z.string()).optional(),
   geographic_markets_other: z.string().optional(),
-  team_based: z.array(z.string()).min(1),
+  team_based: z.array(z.string()).optional(),
   team_based_other: z.string().optional(),
   fte_staff_2022: z.number().int().min(0).optional(),
   fte_staff_current: z.number().int().min(0).optional(),
   fte_staff_2024_est: z.number().int().min(0).optional(),
   principals_count: z.number().int().min(0).optional(),
-  gender_inclusion: z.array(z.string()).min(1),
+  gender_inclusion: z.array(z.string()).optional(),
   gender_inclusion_other: z.string().optional(),
-  	team_experience_investments: z.record(z.string(), z.string()),
-	team_experience_exits: z.record(z.string(), z.string()),
+  	team_experience_investments: z.record(z.string(), z.string()).optional(),
+	team_experience_exits: z.record(z.string(), z.string()).optional(),
 	team_experience_other: z.string().optional(),
 	other_experience_selected: z.boolean().optional(),
   
   // Section 3: Vehicle Construct
-  legal_domicile: z.array(z.string()).min(1),
+  legal_domicile: z.array(z.string()).optional(),
   legal_domicile_other: z.string().optional(),
-  currency_investments: z.string().min(1),
-  currency_lp_commitments: z.string().min(1),
-  fund_type_status: z.string().min(1),
+  currency_investments: z.string().optional(),
+  currency_lp_commitments: z.string().optional(),
+  fund_type_status: z.string().optional(),
   fund_type_status_other: z.string().optional(),
   current_funds_raised: z.number().min(0).optional(),
   current_amount_invested: z.number().min(0).optional(),
   target_fund_size: z.number().min(0).optional(),
   target_investments_count: z.number().int().min(0).optional(),
-  follow_on_investment_permitted: z.string().min(1),
-  concessionary_capital: z.array(z.string()).min(1),
+  follow_on_investment_permitted: z.string().optional(),
+  concessionary_capital: z.array(z.string()).optional(),
   concessionary_capital_other: z.string().optional(),
   lp_capital_sources_existing: z.record(z.string(), z.number()).optional(),
   lp_capital_sources_target: z.record(z.string(), z.number()).optional(),
-  gp_financial_commitment: z.array(z.string()).min(1),
+  gp_financial_commitment: z.array(z.string()).optional(),
   gp_financial_commitment_other: z.string().optional(),
-  gp_management_fee: z.string().min(1),
+  gp_management_fee: z.string().optional(),
   gp_management_fee_other: z.string().optional(),
-  hurdle_rate_currency: z.string().min(1),
+  hurdle_rate_currency: z.string().optional(),
   hurdle_rate_currency_other: z.string().optional(),
   hurdle_rate_percentage: z.number().min(0).max(100).optional(),
   target_local_currency_return_methods: z.record(z.string(), z.number()).optional(),
@@ -129,7 +128,7 @@ const survey2023Schema = z.object({
       message: "Financial instruments percentages must sum to 100%",
     }
   ),
-  sustainable_development_goals: z.array(z.string()).min(1),
+  sustainable_development_goals: z.array(z.string()).optional(),
   sdg_ranking: z.record(z.string(), z.string()).optional(),
   gender_lens_investing: z.record(z.string(), z.string()).optional(),
   gender_lens_investing_other: z.string().optional(),
@@ -147,7 +146,7 @@ const survey2023Schema = z.object({
     }
   ),
   pipeline_sourcing_other: z.string().optional(),
-  average_investment_size: z.string().min(1),
+  average_investment_size: z.string().optional(),
   average_investment_size_per_company: z.string().optional(),
   capital_raise_percentage: z.number().min(0).max(100).optional(),
   portfolio_funding_mix: z.record(z.string(), z.number()).optional().refine(
@@ -181,10 +180,10 @@ const survey2023Schema = z.object({
   technical_assistance_funding_other: z.string().optional(),
   business_development_approach: z.array(z.string()).optional(),
   business_development_approach_other: z.string().optional(),
-  business_development_support: z.array(z.string()).min(1),
+  business_development_support: z.array(z.string()).optional(),
   business_development_support_other: z.string().optional(),
-  investment_timeframe: z.string().min(1),
-  exit_form: z.array(z.string()).min(1),
+  investment_timeframe: z.string().optional(),
+  exit_form: z.array(z.string()).optional(),
   exit_form_other: z.string().optional(),
   
   // Section 7: Performance to Date and Current Outlook
@@ -216,7 +215,7 @@ const survey2023Schema = z.object({
   concerns_other_selected: z.boolean().optional(),
   
   // Section 8: Future Research
-  future_research_data: z.array(z.string()).min(1),
+  future_research_data: z.array(z.string()).optional(),
   future_research_data_other: z.string().optional(),
   one_on_one_meeting: z.string().optional(),
   receive_survey_results: z.boolean().default(false)
@@ -229,7 +228,6 @@ export default function Survey2023() {
   const { user } = useAuth();
   const [currentSection, setCurrentSection] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [isReadOnly, setIsReadOnly] = useState(false);
   const totalSections = 8;
@@ -248,6 +246,7 @@ export default function Survey2023() {
   } = useSurveyPersistence({ surveyKey: 'survey2023' });
 
   const form = useForm<Survey2023FormData>({
+    shouldUnregister: false,
     defaultValues: {
       // Section 1: Introduction & Context
       email_address: '',
@@ -279,8 +278,12 @@ export default function Survey2023() {
       gp_experience_other_description: '',
       gender_orientation: [],
       gender_orientation_other: '',
+      gender_inclusion: [],
+      gender_inclusion_other: '',
       investments_experience: '',
       exits_experience: '',
+      team_experience_investments: {},
+      team_experience_exits: {},
       // Section 4: Portfolio Development & Investment Return Monetization
       legal_domicile: '',
       legal_domicile_other: '',
@@ -288,6 +291,18 @@ export default function Survey2023() {
       currency_lp_commitments: '',
       fund_operations: '',
       fund_operations_other: '',
+      lp_capital_sources_existing: {},
+      lp_capital_sources_target: {},
+      business_stages: {},
+      growth_expectations: {},
+      financing_needs: {},
+      sector_focus: {},
+      financial_instruments: {},
+      pipeline_sourcing: {},
+      technical_assistance_funding: {},
+      jobs_impact: {},
+      portfolio_value_creation_priorities: {},
+      gender_lens_investing: {},
       current_funds_raised: '',
       current_amount_invested: '',
       target_fund_size: '',
@@ -297,6 +312,8 @@ export default function Survey2023() {
       target_irr_other: '',
       concessionary_capital: [],
       concessionary_capital_other: '',
+      gp_financial_commitment: [],
+      gp_financial_commitment_other: '',
       lp_capital_sources: {},
       lp_capital_sources_other_description: '',
       gp_commitment: '',
@@ -308,6 +325,12 @@ export default function Survey2023() {
       carried_interest_percentage_other: '',
       key_terms_other: '',
       key_terms_other_description: '',
+      business_development_approach: [],
+      business_development_approach_other: '',
+      business_development_support: [],
+      business_development_support_other: '',
+      exit_form: [],
+      exit_form_other: '',
       // Section 5: Impact of COVID-19 on Vehicle and Portfolio
       portfolio_performance: {},
       portfolio_performance_other_selected: false,
@@ -331,6 +354,8 @@ export default function Survey2023() {
       international_factors_concerns: {},
       international_factors_concerns_other_selected: false,
       international_factors_concerns_other_description: '',
+      future_research_data: [],
+      future_research_data_other: '',
       // Section 6: Feedback on ESCP Network Membership to date
       network_value: '',
       network_improvements: '',
@@ -552,13 +577,6 @@ export default function Survey2023() {
     },
   });
 
-  // Initialize autosave AFTER form is created
-  const { saveStatus, saveDraft: autoSaveDraft } = useSurveyAutosave({
-    userId: user?.id,
-    surveyYear: '2023',
-    watch: form.watch,
-    enabled: !!user,
-  });
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -608,6 +626,15 @@ export default function Survey2023() {
     loadDraft();
   }, [user, form]);
 
+  // Auto-save form data to localStorage whenever form values change
+  useEffect(() => {
+    const subscription = form.watch((formData) => {
+      // Save to localStorage on every change
+      saveFormData(formData);
+    });
+    return () => subscription.unsubscribe();
+  }, [form.watch, saveFormData]);
+
   // Check for existing completed response
   useEffect(() => {
     const checkExistingResponse = async () => {
@@ -637,7 +664,8 @@ export default function Survey2023() {
 
   const handleNext = () => {
     if (currentSection < totalSections) {
-      setCurrentSection(currentSection + 1);
+      const newSection = currentSection + 1;
+      setCurrentSection(newSection);
       
       // Scroll to top of page for better UX
       setTimeout(() => {
@@ -652,133 +680,6 @@ export default function Survey2023() {
     }
   };
 
-  const saveDraft = async () => {
-    if (!user) return;
-    
-    setSaving(true);
-    try {
-      // Enhanced form data capture for all field types
-      const formData = form.getValues();
-      
-      // Additional capture for complex nested objects and dynamic fields
-      const enhancedFormData = {
-        ...formData,
-        // Ensure all nested objects are captured
-        team_experience_investments: form.getValues('team_experience_investments') || {},
-        team_experience_exits: form.getValues('team_experience_exits') || {},
-        lp_capital_sources: form.getValues('lp_capital_sources') || {},
-        // Capture all form state including touched/dirty fields
-        _formState: form.formState,
-      };
-      
-      // Always save to localStorage as fallback
-      saveFormData(enhancedFormData);
-      
-      // Try to save to database
-      try {
-        // Check if draft already exists
-        const { data: existing } = await supabase
-          .from('survey_responses_2023')
-          .select('id')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        
-        // Ensure required non-null columns for drafts have values
-        const effectiveEmail = formData.email_address || user?.email || `draft+${user.id}@placeholder.local`;
-        const effectiveOrg = formData.organisation_name || 'Draft';
-        const effectiveFund = formData.fund_name || 'Draft';
-        const effectiveFRI = formData.funds_raising_investing || 'Draft';
-        
-        const surveyData = {
-          user_id: user.id,
-          email_address: effectiveEmail,
-          organisation_name: effectiveOrg,
-          fund_name: effectiveFund,
-          funds_raising_investing: effectiveFRI,
-          legal_entity_achieved: formData.legal_entity_achieved || '',
-          first_close_achieved: formData.first_close_achieved || '',
-          first_investment_achieved: formData.first_investment_achieved || '',
-          geographic_markets: formData.geographic_markets || [],
-          geographic_markets_other: formData.geographic_markets_other || '',
-          team_based: formData.team_based || [],
-          team_based_other: formData.team_based_other || '',
-          form_data: formData,
-          submission_status: 'draft',
-          updated_at: new Date().toISOString()
-        };
-
-        if (existing) {
-          // Update existing draft
-          const { error } = await supabase
-            .from('survey_responses_2023')
-            .update(surveyData)
-            .eq('id', existing.id);
-          
-          if (error) throw error;
-        } else {
-          // Insert new draft
-          const { error } = await supabase
-            .from('survey_responses_2023')
-            .insert(surveyData);
-          
-          if (error) throw error;
-        }
-      } catch (dbError) {
-        console.warn('Database save failed, using localStorage only:', dbError);
-        // Database save failed, but localStorage save succeeded
-      }
-      
-      // Draft saved silently - status indicator shows save state
-      
-    } catch (error) {
-      console.error('Error saving draft:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save draft. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // Auto-save draft every 5 seconds
-  useEffect(() => {
-    if (!user || isCompleted) return;
-    
-    const interval = setInterval(() => {
-      saveDraft();
-    }, 5000); // Save every 5 seconds instead of 1 second
-    
-    return () => clearInterval(interval);
-  }, [user, isCompleted]);
-
-  // Watch all form changes and save immediately
-  useEffect(() => {
-    if (!user || isCompleted) return;
-    
-    // Watch specific complex fields that might not trigger general form changes
-    const watchFields = [
-      'team_experience_investments',
-      'team_experience_exits',
-      'lp_capital_sources'
-    ];
-    
-    // Watch each field individually and save on change
-    watchFields.forEach(field => {
-      form.watch(field as any);
-    });
-    
-    // General form watching - this will trigger on any form change
-    const watchedValues = form.watch();
-    
-    // Save when any watched value changes
-    const timeoutId = setTimeout(() => {
-      saveDraft();
-    }, 2000); // Save 2 seconds after last change
-    
-    return () => clearTimeout(timeoutId);
-  }, [user, form, isCompleted, form.watch()]);
 
   const handleSubmit = async (data: Survey2023FormData) => {
     if (!user) return;
@@ -916,7 +817,10 @@ export default function Survey2023() {
         submitError = insertError;
       }
 
-      if (submitError) throw submitError;
+      if (submitError) {
+        console.error('Survey submission error:', submitError);
+        throw submitError;
+      }
 
       
       // Mark as completed
@@ -926,10 +830,14 @@ export default function Survey2023() {
         title: "Survey submitted successfully",
         description: "Thank you for completing the 2023 MSME Financing Survey.",
       });
+
+      // Navigate to dashboard
+      navigate('/dashboard');
     } catch (error) {
+      console.error('Error submitting survey:', error);
       toast({
         title: "Error submitting survey",
-        description: "Please try again.",
+        description: error?.message || "Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -1187,7 +1095,7 @@ export default function Survey2023() {
             <div className="space-y-4">
               <div>
                 <FormLabel className="text-sm font-medium">Legal Entity</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+            <Select onValueChange={field.onChange} value={field.value ?? undefined}>
             <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select when legal entity was achieved" />
@@ -1213,7 +1121,7 @@ export default function Survey2023() {
         render={({ field }) => (
           <FormItem>
             <FormLabel>First Close (or equivalent)</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
+            <Select onValueChange={field.onChange} value={field.value ?? undefined}>
             <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Select when first close was achieved" />
@@ -1237,7 +1145,7 @@ export default function Survey2023() {
         render={({ field }) => (
           <FormItem>
             <FormLabel>First Investment</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
+            <Select onValueChange={field.onChange} value={field.value ?? undefined}>
             <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Select when first investment was made" />
@@ -1278,10 +1186,11 @@ export default function Survey2023() {
                             checked={field.value?.includes(market)}
                             onCheckedChange={(checked) => {
                               if (!isReadOnly) {
+                                const current = field.value || [];
                                 return checked
-                                  ? field.onChange([...field.value, market])
+                                  ? field.onChange([...current, market])
                                   : field.onChange(
-                                      field.value?.filter(
+                                      current.filter(
                                         (value) => value !== market
                                       )
                                     )
@@ -1342,10 +1251,11 @@ export default function Survey2023() {
                           <Checkbox
                             checked={field.value?.includes(location)}
                             onCheckedChange={(checked) => {
+                              const current = field.value || [];
                               return checked
-                                ? field.onChange([...field.value, location])
+                                ? field.onChange([...current, location])
                                 : field.onChange(
-                                    field.value?.filter(
+                                    current.filter(
                                       (value) => value !== location
                                     )
                                   )
@@ -1485,10 +1395,11 @@ export default function Survey2023() {
                           <Checkbox
                             checked={field.value?.includes(inclusion)}
                             onCheckedChange={(checked) => {
+                              const current = field.value || [];
                               return checked
-                                ? field.onChange([...field.value, inclusion])
+                                ? field.onChange([...current, inclusion])
                                 : field.onChange(
-                                    field.value?.filter(
+                                    current.filter(
                                       (value) => value !== inclusion
                                     )
                                   )
@@ -1547,7 +1458,7 @@ export default function Survey2023() {
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                           <SelectTrigger className="w-48">
                             <SelectValue placeholder="Select applicable category" />
                           </SelectTrigger>
@@ -1595,7 +1506,7 @@ export default function Survey2023() {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                         <SelectTrigger className="w-48">
                           <SelectValue placeholder="Select applicable category" />
                         </SelectTrigger>
@@ -2208,10 +2119,11 @@ export default function Survey2023() {
                           <Checkbox
                             checked={field.value?.includes(commitment)}
                             onCheckedChange={(checked) => {
+                              const current = field.value || [];
                               return checked
-                                ? field.onChange([...field.value, commitment])
+                                ? field.onChange([...current, commitment])
                                 : field.onChange(
-                                    field.value?.filter(
+                                    current.filter(
                                       (value) => value !== commitment
                                     )
                                   )
@@ -3084,27 +2996,27 @@ export default function Survey2023() {
                       )}
                     />
                   ) : (
-                    <FormField
-                      control={form.control}
-                      name={`gender_lens_investing.${criteria}`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger className="h-8">
-                                <SelectValue placeholder="Select category" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="Not Applicable">Not Applicable</SelectItem>
-                              <SelectItem value="Investment Consideration">Investment Consideration</SelectItem>
-                              <SelectItem value="Investment Requirement">Investment Requirement</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  <FormField
+                    control={form.control}
+                    name={`gender_lens_investing.${criteria}`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <Select onValueChange={field.onChange} value={field.value ?? undefined}>
+                          <FormControl>
+                            <SelectTrigger className="h-8">
+                              <SelectValue placeholder="Select category" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Not Applicable">Not Applicable</SelectItem>
+                            <SelectItem value="Investment Consideration">Investment Consideration</SelectItem>
+                            <SelectItem value="Investment Requirement">Investment Requirement</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   )}
                 </div>
               </div>
@@ -3135,7 +3047,7 @@ export default function Survey2023() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm font-normal">Category for other criteria</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value ?? undefined}>
               <FormControl>
                 <SelectTrigger>
                           <SelectValue placeholder="Select category" />
@@ -3451,7 +3363,7 @@ export default function Survey2023() {
                       <FormControl>
                         <Select
                           onValueChange={field.onChange}
-                          value={field.value}
+                          value={field.value ?? undefined}
                         >
                           <SelectTrigger className="w-20">
                             <SelectValue placeholder="Rank" />
@@ -3503,7 +3415,7 @@ export default function Survey2023() {
                     <FormControl>
                       <Select
                         onValueChange={field.onChange}
-                        value={field.value}
+                        value={field.value ?? undefined}
                         disabled={!form.watch('portfolio_other_selected')}
                       >
                         <SelectTrigger className="w-20">
@@ -3708,10 +3620,11 @@ export default function Survey2023() {
                           <Checkbox
                             checked={field.value?.includes(approach)}
                             onCheckedChange={(checked) => {
+                              const current = field.value || [];
                               return checked
-                                ? field.onChange([...field.value, approach])
+                                ? field.onChange([...current, approach])
                                 : field.onChange(
-                                    field.value?.filter(
+                                    current.filter(
                                       (value) => value !== approach
                                     )
                                   )
@@ -3813,10 +3726,11 @@ export default function Survey2023() {
                           <Checkbox
                             checked={field.value?.includes(exit)}
                             onCheckedChange={(checked) => {
+                              const current = field.value || [];
                               return checked
-                                ? field.onChange([...field.value, exit])
+                                ? field.onChange([...current, exit])
                                 : field.onChange(
-                                    field.value?.filter(
+                                    current.filter(
                                       (value) => value !== exit
                                     )
                                   )
@@ -4636,10 +4550,11 @@ Which of the following would you be prepared to make available? [note: we are cu
                           <Checkbox
                             checked={field.value?.includes(data)}
                             onCheckedChange={(checked) => {
+                              const current = field.value || [];
                               return checked
-                                ? field.onChange([...field.value, data])
+                                ? field.onChange([...current, data])
                                 : field.onChange(
-                                    field.value?.filter(
+                                    current.filter(
                                       (value) => value !== data
                                     )
                                   )
@@ -4785,21 +4700,7 @@ Which of the following would you be prepared to make available? [note: we are cu
                 <div className="text-2xl font-bold text-blue-600">
                   {currentSection}/{totalSections}
                 </div>
-                {/* Autosave status */}
-                <div className="text-xs">
-                  {saveStatus === 'saving' && (
-                    <span className="text-gray-500 animate-pulse">Saving...</span>
-                  )}
-                  {saveStatus === 'saved' && (
-                    <span className="text-green-600">✓ Saved</span>
-                  )}
-                  {saveStatus === 'error' && (
-                    <span className="text-red-600">Error saving</span>
-                  )}
-                  {saveStatus === 'idle' && (
-                    <span className="text-gray-500">Progress</span>
-                  )}
-                </div>
+                <div className="text-xs text-gray-500">Progress</div>
               </div>
             </div>
             <div className="mt-4">

@@ -18,7 +18,6 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useSurveyPersistence } from '@/hooks/useSurveyPersistence';
-import { useSurveyAutosave } from '@/hooks/useSurveyAutosave';
 import { ArrowLeft, ArrowRight, Save, Send } from 'lucide-react';
 import SidebarLayout from '@/components/layout/SidebarLayout';
 import Header from '@/components/layout/Header';
@@ -158,6 +157,7 @@ const Survey2022 = () => {
   } = useSurveyPersistence({ surveyKey: 'survey2022' });
 
   const form = useForm<Survey2022FormData>({
+    shouldUnregister: false,
     defaultValues: {
       name: '',
       role_title: '',
@@ -178,17 +178,15 @@ const Survey2022 = () => {
       value_add_services: '',
       team_based: [],
       team_based_other: '',
+      gp_experience: {},
+      lp_capital_sources: {},
+      business_stages: {},
+      financing_needs: {},
+      investment_monetization_exit_forms: [],
       receive_results: false,
     },
   });
 
-  // Initialize autosave AFTER form is created
-  const { saveStatus, saveDraft: autoSaveDraft } = useSurveyAutosave({
-    userId: user?.id,
-    surveyYear: '2022',
-    watch: form.watch,
-    enabled: !!user,
-  });
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -237,9 +235,18 @@ const Survey2022 = () => {
 
     loadDraft();
   }, [user, form]);
+
+  // Auto-save form data to localStorage whenever form values change
+  useEffect(() => {
+    const subscription = form.watch((formData) => {
+      // Save to localStorage on every change
+      saveFormData(formData);
+    });
+    return () => subscription.unsubscribe();
+  }, [form.watch, saveFormData]);
+
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
 
   const totalSections = 7;
   const [showIntro, setShowIntro] = useState(true);
@@ -254,136 +261,11 @@ const Survey2022 = () => {
     setProgress(calculateProgress());
   }, [currentSection]);
 
-  const saveDraft = async () => {
-    if (!user) return;
-    
-    setSaving(true);
-    try {
-      // Enhanced form data capture for all field types
-      const formData = form.getValues();
-      
-      // Additional capture for complex nested objects and dynamic fields
-      const enhancedFormData = {
-        ...formData,
-        // Ensure all nested objects are captured
-        business_stages: form.getValues('business_stages') || {},
-        fundraising_constraints: form.getValues('fundraising_constraints') || {},
-        financing_needs: form.getValues('financing_needs') || {},
-        sector_activities: form.getValues('sector_activities') || {},
-        // Capture all form state including touched/dirty fields
-        _formState: form.formState,
-      };
-      
-      // Always save to localStorage as fallback
-      saveFormData(enhancedFormData);
-      
-      // Try to save to database
-      try {
-        // Check if draft already exists
-        const { data: existing } = await supabase
-          .from('survey_responses_2022')
-          .select('id')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        
-        // Ensure required non-null columns for drafts have values
-        const effectiveEmail = formData.email || user?.email || `draft+${user.id}@placeholder.local`;
-        const effectiveOrg = formData.organisation || 'Draft';
-        const effectiveName = formData.name || 'Draft';
-        const effectiveRole = formData.role_title || 'Draft';
-        
-        const surveyData = {
-          user_id: user.id,
-          name: effectiveName,
-          role_title: effectiveRole,
-          email: effectiveEmail,
-          organisation: effectiveOrg,
-          legal_entity_date: formData.legal_entity_date || '',
-          first_close_date: formData.first_close_date || '',
-          first_investment_date: formData.first_investment_date || '',
-          geographic_markets: formData.geographic_markets || [],
-          geographic_markets_other: formData.geographic_markets_other || '',
-          team_based: formData.team_based || [],
-          team_based_other: formData.team_based_other || '',
-          form_data: formData,
-          submission_status: 'draft',
-          updated_at: new Date().toISOString(),
-        };
-
-        if (existing) {
-          // Update existing draft
-          const { error } = await supabase
-            .from('survey_responses_2022')
-            .update(surveyData)
-            .eq('id', existing.id);
-          
-          if (error) throw error;
-        } else {
-          // Insert new draft
-          const { error } = await supabase
-            .from('survey_responses_2022')
-            .insert(surveyData);
-          
-          if (error) throw error;
-        }
-      } catch (dbError) {
-        console.warn('Database save failed, using localStorage only:', dbError);
-        // Database save failed, but localStorage save succeeded
-      }
-      
-    } catch (error) {
-      console.error('Error saving draft:', error);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // Auto-save draft every 5 seconds
-  useEffect(() => {
-    if (!user) return;
-    
-    const interval = setInterval(() => {
-      saveDraft();
-    }, 5000); // Save every 5 seconds instead of 1 second
-    
-    return () => clearInterval(interval);
-  }, [user]);
-
-  // Watch all form changes and save immediately
-  useEffect(() => {
-    if (!user) return;
-    
-    // Watch specific complex fields that might not trigger general form changes
-    const watchFields = [
-      'business_stages',
-      'fundraising_constraints', 
-      'financing_needs',
-      'sector_activities',
-      'business_stages_other_selected',
-      'business_stages_other_description'
-    ];
-    
-    // Watch each field individually and save on change
-    watchFields.forEach(field => {
-      form.watch(field as any);
-    });
-    
-    // General form watching - this will trigger on any form change
-    const watchedValues = form.watch();
-    
-    // Save when any watched value changes
-    const timeoutId = setTimeout(() => {
-      saveDraft();
-    }, 2000); // Save 2 seconds after last change
-    
-    return () => clearTimeout(timeoutId);
-  }, [user, form, form.watch()]);
-
-
 
   const handleNext = () => {
     if (currentSection < totalSections) {
-      setCurrentSection(currentSection + 1);
+      const newSection = currentSection + 1;
+      setCurrentSection(newSection);
       
       // Scroll to top of page for better UX
       setTimeout(() => {
@@ -392,19 +274,6 @@ const Survey2022 = () => {
     }
   };
 
-  const handleSaveDraft = async () => {
-    try {
-      // Save current form data as draft
-      const formData = form.getValues();
-      // Draft saving handled by autosave hook - no toast notification
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to save draft. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handlePrevious = () => {
     if (currentSection > 1) {
@@ -547,9 +416,8 @@ const Survey2022 = () => {
         description: "Thank you for completing the 2022 survey!",
       });
       
-      // Reset form and go back to first section
-      form.reset();
-      setCurrentSection(1);
+      // Navigate to dashboard
+      navigate('/dashboard');
       
     } catch (error) {
       console.error('Error submitting survey:', error);
@@ -806,7 +674,7 @@ const Survey2022 = () => {
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                     <FormControl>
                       <Checkbox
-                        checked={field.value?.includes(location)}
+                        checked={(field.value || []).includes(location)}
                         onCheckedChange={(checked) => {
                           const current = field.value || [];
                           if (checked) {
@@ -876,7 +744,7 @@ const Survey2022 = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Current</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select number" />
                     </SelectTrigger>
@@ -898,7 +766,7 @@ const Survey2022 = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Year-End 2023 (est.)</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select number" />
                     </SelectTrigger>
@@ -925,7 +793,7 @@ const Survey2022 = () => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Select number</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select number" />
                   </SelectTrigger>
@@ -967,7 +835,7 @@ const Survey2022 = () => {
                     name={`gp_experience.${experience}`}
                     render={({ field }) => (
                       <FormItem>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                           <SelectTrigger className="w-48">
                             <SelectValue placeholder="Select applicability" />
                           </SelectTrigger>
@@ -1032,7 +900,7 @@ const Survey2022 = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-sm font-normal">Applicability</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select applicability" />
                         </SelectTrigger>
@@ -1649,9 +1517,8 @@ const Survey2022 = () => {
                                 min="0"
                                 max="100"
                                 step="0.1"
-                                {...field}
                                 onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                                value={field.value || ''}
+                                value={field.value ?? ''}
                                 placeholder="0"
                                 className="h-8 w-20"
                               />
@@ -1672,9 +1539,8 @@ const Survey2022 = () => {
                                 min="0"
                                 max="100"
                                 step="0.1"
-                                {...field}
                                 onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                                value={field.value || ''}
+                                value={field.value ?? ''}
                                 placeholder="0"
                                 className="h-8 w-20"
                               />
@@ -1730,9 +1596,8 @@ const Survey2022 = () => {
                             min="0"
                             max="100"
                             step="0.1"
-                            {...field}
                             onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                            value={field.value || ''}
+                            value={field.value ?? ''}
                             placeholder="0"
                             className="h-8 w-20"
                             disabled={!form.watch('lp_capital_sources_other_selected')}
@@ -1754,9 +1619,8 @@ const Survey2022 = () => {
                             min="0"
                             max="100"
                             step="0.1"
-                            {...field}
                             onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                            value={field.value || ''}
+                            value={field.value ?? ''}
                             placeholder="0"
                             className="h-8 w-20"
                             disabled={!form.watch('lp_capital_sources_other_selected')}
@@ -2069,7 +1933,7 @@ const Survey2022 = () => {
                         name={`business_stages.${stage}`}
             render={({ field }) => (
               <FormItem>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                   <SelectTrigger>
                                 <SelectValue placeholder="Select percentage" />
                   </SelectTrigger>
@@ -2135,7 +1999,7 @@ const Survey2022 = () => {
                             name="business_stages.Other"
                             render={({ field }) => (
                               <FormItem>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                   <SelectTrigger>
                                     <SelectValue placeholder="Select percentage" />
                   </SelectTrigger>
@@ -2229,7 +2093,7 @@ const Survey2022 = () => {
                         name={`financing_needs.${financingNeed}`}
             render={({ field }) => (
               <FormItem>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                   <SelectTrigger>
                                 <SelectValue placeholder="Select percentage" />
                   </SelectTrigger>
@@ -2295,7 +2159,7 @@ const Survey2022 = () => {
                             name="financing_needs.Other"
                             render={({ field }) => (
                               <FormItem>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                   <SelectTrigger>
                                     <SelectValue placeholder="Select percentage" />
                   </SelectTrigger>
@@ -3239,12 +3103,13 @@ const Survey2022 = () => {
                             >
                               <FormControl>
                                 <Checkbox
-                                  checked={field.value?.includes(option)}
+                                  checked={(field.value || []).includes(option)}
                                   onCheckedChange={(checked) => {
+                                    const current = field.value || [];
                                     return checked
-                                      ? field.onChange([...field.value, option])
+                                      ? field.onChange([...current, option])
                                       : field.onChange(
-                                          field.value?.filter(
+                                          current.filter(
                                             (value: string) => value !== option
                                           )
                                         )
@@ -3265,17 +3130,18 @@ const Survey2022 = () => {
                       control={form.control}
                       name="investment_monetization_exit_forms"
                       render={({ field }) => {
-                        const isOtherSelected = field.value?.includes('Other');
+                        const isOtherSelected = (field.value || []).includes('Other');
                         return (
                           <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                             <FormControl>
                               <Checkbox
                                 checked={isOtherSelected}
                                 onCheckedChange={(checked) => {
+                                  const current = field.value || [];
                                   return checked
-                                    ? field.onChange([...field.value, 'Other'])
+                                    ? field.onChange([...current, 'Other'])
                                     : field.onChange(
-                                        field.value?.filter(
+                                        current.filter(
                                           (value: string) => value !== 'Other'
                                         )
                                       )
@@ -4400,21 +4266,7 @@ const Survey2022 = () => {
                     <div className="text-2xl font-bold text-blue-600">
                       {currentSection}/{totalSections}
                     </div>
-                    {/* Autosave status */}
-                    <div className="text-xs">
-                      {saveStatus === 'saving' && (
-                        <span className="text-gray-500 animate-pulse">Saving...</span>
-                      )}
-                      {saveStatus === 'saved' && (
-                        <span className="text-green-600">✓ Saved</span>
-                      )}
-                      {saveStatus === 'error' && (
-                        <span className="text-red-600">Error saving</span>
-                      )}
-                      {saveStatus === 'idle' && (
-                        <span className="text-gray-500">Progress</span>
-                      )}
-                    </div>
+                    <div className="text-xs text-gray-500">Progress</div>
                   </div>
                 </div>
                 <div className="mt-4">
@@ -4434,6 +4286,13 @@ const Survey2022 = () => {
 
             {/* Enhanced Navigation Buttons */}
             <Card className="bg-white p-6 rounded-lg border shadow-sm">
+              {currentSection === totalSections && (
+                <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-green-800 font-semibold text-center">
+                    You've reached the final section! Please review your responses and submit below.
+                  </p>
+                </div>
+              )}
               <div className="flex items-center justify-between">
                 <Button 
                   type="button"
@@ -4458,7 +4317,7 @@ const Survey2022 = () => {
                     <Button 
                       type="submit" 
                       disabled={loading}
-                      className="px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {loading ? 'Submitting...' : '🎉 Submit Survey'}
                     </Button>

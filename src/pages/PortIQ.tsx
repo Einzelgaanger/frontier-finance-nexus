@@ -130,34 +130,12 @@ const PortIQ = () => {
     }
   };
 
-  const truncateMessage = (message: string): string => {
-    // Calculate max length based on 3/4 of screen width
-    // Assuming average character width of ~8px, and 3/4 of screen width
-    const screenWidth = window.innerWidth;
-    const maxWidth = screenWidth * 0.75; // 3/4 of screen width
-    const avgCharWidth = 8; // Approximate character width in pixels
-    const maxLength = Math.floor(maxWidth / avgCharWidth);
-    
-    // Only truncate if message is much longer than max length (be very lenient)
-    if (message.length <= maxLength * 1.5) return message;
-    
-    // Try to truncate at word boundary first
-    const truncatedAtWord = message.substring(0, maxLength).lastIndexOf(' ');
-    
-    // Only truncate if we found a good word boundary (at least 30% of max length)
-    if (truncatedAtWord > maxLength * 0.3) {
-      return message.substring(0, truncatedAtWord) + '...';
-    } else {
-      // If no good word boundary, truncate at exact length with hyphen
-      return message.substring(0, maxLength - 1) + '-';
-    }
-  };
+  // Removed truncateMessage - preserve full message content with proper formatting
 
   const sendMessage = async () => {
     if (!input.trim() || loading || !conversationId || !user) return;
 
-    const originalMessage = input.trim();
-    const userMessage = truncateMessage(originalMessage);
+    const userMessage = input.trim();
     setInput('');
     
     // Reset textarea height immediately
@@ -169,13 +147,17 @@ const PortIQ = () => {
     setLoading(true);
 
     try {
-      // Save user message to DB
-      await supabase.from('chat_messages' as any).insert({
+      // Save user message to DB first
+      const { error: userMsgError } = await supabase.from('chat_messages' as any).insert({
         conversation_id: conversationId,
         user_id: user.id,
         role: 'user',
         content: userMessage
       });
+
+      if (userMsgError) {
+        console.error('Error saving user message:', userMsgError);
+      }
 
       // Send all messages for context
       const { data, error } = await supabase.functions.invoke('ai-chat', {
@@ -189,28 +171,31 @@ const PortIQ = () => {
         const assistantMsg: Message = { role: 'assistant', content: resText };
         setMessages(prev => [...prev, assistantMsg]);
         
-        // Stop loading immediately when we get the response
-        setLoading(false);
-        
-        // Save assistant message to DB (async, don't wait)
-        void supabase.from('chat_messages' as any).insert({
+        // Save assistant message to DB immediately
+        const { error: assistantMsgError } = await supabase.from('chat_messages' as any).insert({
           conversation_id: conversationId,
           user_id: user.id,
           role: 'assistant',
           content: resText
         });
 
-        // Update conversation timestamp (async, don't wait)
-        void supabase
+        if (assistantMsgError) {
+          console.error('Error saving assistant message:', assistantMsgError);
+        }
+
+        // Update conversation timestamp
+        await supabase
           .from('chat_conversations' as any)
           .update({ updated_at: new Date().toISOString() })
           .eq('id', conversationId);
+        
+        setLoading(false);
       } else {
         throw new Error('Empty response from AI');
       }
     } catch (error: any) {
       console.error('Error sending message:', error);
-      setLoading(false); // Stop loading on error
+      setLoading(false);
       toast({
         title: "Error",
         description: error.message || "Failed to send message",
@@ -331,18 +316,18 @@ const PortIQ = () => {
                             
                             {/* Message bubble */}
                             <div
-                              className={`rounded-2xl px-4 py-3 break-words ${
+                              className={`rounded-2xl px-4 py-3 ${
                                 message.role === 'user'
-                                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                                  : 'bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 text-gray-800 shadow-lg border border-blue-200/50 backdrop-blur-sm'
+                                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg max-w-[600px]'
+                                  : 'bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 text-gray-800 shadow-lg border border-blue-200/50 backdrop-blur-sm max-w-[700px]'
                               }`}
                             >
                               {message.role === 'assistant' ? (
-                                <div className="text-sm prose prose-sm max-w-none prose-headings:mt-3 prose-headings:mb-2 prose-p:my-2 prose-ul:my-2 prose-li:my-0.5 prose-strong:text-gray-900 prose-strong:font-semibold">
+                                <div className="text-sm prose prose-sm max-w-none prose-headings:mt-3 prose-headings:mb-2 prose-p:my-2 prose-ul:my-2 prose-li:my-0.5 prose-strong:text-gray-900 prose-strong:font-semibold whitespace-pre-wrap break-words">
                                   <ReactMarkdown>{message.content}</ReactMarkdown>
                                 </div>
                               ) : (
-                                <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
+                                <div className="text-sm whitespace-pre-wrap break-words">{message.content}</div>
                               )}
                             </div>
                           </div>

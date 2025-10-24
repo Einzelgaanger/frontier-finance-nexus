@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { PlusCircle, Image, Video, FileText, Heart, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { CreateBlogModal } from "@/components/blogs/CreateBlogModal";
+import { BlogDetailModal } from "@/components/blogs/BlogDetailModal";
 import { format } from "date-fns";
 import { getBadge } from "@/utils/badgeSystem";
 
@@ -37,6 +38,7 @@ export default function Blogs() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null);
 
   useEffect(() => {
     document.title = "Blogs | CFF Network";
@@ -85,14 +87,32 @@ export default function Blogs() {
         userLikes = new Set(likesData?.map((l: any) => l.blog_id) || []);
       }
 
+      // Fetch like counts
+      const { data: likeCounts } = await supabase
+        .from("blog_likes" as any)
+        .select("blog_id");
+      const likeCountMap = new Map<string, number>();
+      likeCounts?.forEach((like: any) => {
+        likeCountMap.set(like.blog_id, (likeCountMap.get(like.blog_id) || 0) + 1);
+      });
+
+      // Fetch comment counts
+      const { data: commentCounts } = await supabase
+        .from("blog_comments")
+        .select("blog_id");
+      const commentCountMap = new Map<string, number>();
+      commentCounts?.forEach((comment: any) => {
+        commentCountMap.set(comment.blog_id, (commentCountMap.get(comment.blog_id) || 0) + 1);
+      });
+
       const blogsWithAuthors = (blogsData?.map(blog => {
         const profile = profilesRes.data?.find(p => p.id === blog.user_id);
         const credit = creditsRes.data?.find(c => c.user_id === blog.user_id);
         return {
           ...blog,
           media_type: blog.media_type as 'text' | 'image' | 'video' | null,
-          like_count: (blog as any).like_count || 0,
-          comment_count: (blog as any).comment_count || 0,
+          like_count: likeCountMap.get(blog.id) || 0,
+          comment_count: commentCountMap.get(blog.id) || 0,
           is_liked: userLikes.has(blog.id),
           author: profile ? { ...profile, total_points: credit?.total_points || 0 } : undefined
         };
@@ -182,7 +202,11 @@ export default function Blogs() {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {blogs.map((blog) => (
-              <Card key={blog.id} className="hover:shadow-lg transition-shadow group">
+              <Card 
+                key={blog.id} 
+                className="hover:shadow-lg transition-shadow group cursor-pointer"
+                onClick={() => setSelectedBlog(blog)}
+              >
                 <CardHeader>
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
@@ -279,6 +303,13 @@ export default function Blogs() {
           open={isCreateModalOpen}
           onOpenChange={setIsCreateModalOpen}
           onSuccess={fetchBlogs}
+        />
+
+        <BlogDetailModal
+          blog={selectedBlog}
+          open={!!selectedBlog}
+          onOpenChange={(open) => !open && setSelectedBlog(null)}
+          onToggleLike={toggleLike}
         />
       </div>
     </SidebarLayout>
