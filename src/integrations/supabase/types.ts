@@ -1333,13 +1333,13 @@ export type Database = {
           pipeline_sources_quality: Json | null
           pipeline_sources_quality_other_description: string | null
           pipeline_sources_quality_other_score: number | null
-          portfolio_cashflow_growth_12m: number | null
-          portfolio_cashflow_growth_next_12m: number | null
+          portfolio_cashflow_growth_12m: string | null
+          portfolio_cashflow_growth_next_12m: string | null
           portfolio_performance_other_category: string | null
           portfolio_performance_other_description: string | null
-          portfolio_performance_other_value: number | null
-          portfolio_revenue_growth_12m: number | null
-          portfolio_revenue_growth_next_12m: number | null
+          portfolio_performance_other_value: string | null
+          portfolio_revenue_growth_12m: string | null
+          portfolio_revenue_growth_next_12m: string | null
           post_investment_priorities: Json | null
           post_investment_priorities_other_description: string | null
           post_investment_priorities_other_score: number | null
@@ -1457,13 +1457,13 @@ export type Database = {
           pipeline_sources_quality?: Json | null
           pipeline_sources_quality_other_description?: string | null
           pipeline_sources_quality_other_score?: number | null
-          portfolio_cashflow_growth_12m?: number | null
-          portfolio_cashflow_growth_next_12m?: number | null
+          portfolio_cashflow_growth_12m?: string | null
+          portfolio_cashflow_growth_next_12m?: string | null
           portfolio_performance_other_category?: string | null
           portfolio_performance_other_description?: string | null
-          portfolio_performance_other_value?: number | null
-          portfolio_revenue_growth_12m?: number | null
-          portfolio_revenue_growth_next_12m?: number | null
+          portfolio_performance_other_value?: string | null
+          portfolio_revenue_growth_12m?: string | null
+          portfolio_revenue_growth_next_12m?: string | null
           post_investment_priorities?: Json | null
           post_investment_priorities_other_description?: string | null
           post_investment_priorities_other_score?: number | null
@@ -1581,13 +1581,13 @@ export type Database = {
           pipeline_sources_quality?: Json | null
           pipeline_sources_quality_other_description?: string | null
           pipeline_sources_quality_other_score?: number | null
-          portfolio_cashflow_growth_12m?: number | null
-          portfolio_cashflow_growth_next_12m?: number | null
+          portfolio_cashflow_growth_12m?: string | null
+          portfolio_cashflow_growth_next_12m?: string | null
           portfolio_performance_other_category?: string | null
           portfolio_performance_other_description?: string | null
-          portfolio_performance_other_value?: number | null
-          portfolio_revenue_growth_12m?: number | null
-          portfolio_revenue_growth_next_12m?: number | null
+          portfolio_performance_other_value?: string | null
+          portfolio_revenue_growth_12m?: string | null
+          portfolio_revenue_growth_next_12m?: string | null
           post_investment_priorities?: Json | null
           post_investment_priorities_other_description?: string | null
           post_investment_priorities_other_score?: number | null

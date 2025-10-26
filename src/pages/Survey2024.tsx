@@ -136,14 +136,14 @@ const survey2024Schema = z.object({
 	equity_exits_anticipated: z.number().int().optional(),
 	debt_repayments_anticipated: z.number().int().optional(),
 	other_investments_supplement: z.string().optional(),
-	portfolio_revenue_growth_12m: z.number().optional(),
-	portfolio_revenue_growth_next_12m: z.number().optional(),
-	portfolio_cashflow_growth_12m: z.number().optional(),
-	portfolio_cashflow_growth_next_12m: z.number().optional(),
+	portfolio_revenue_growth_12m: z.string().optional(),
+	portfolio_revenue_growth_next_12m: z.string().optional(),
+	portfolio_cashflow_growth_12m: z.string().optional(),
+	portfolio_cashflow_growth_next_12m: z.string().optional(),
 	portfolio_performance_other_enabled: z.boolean().optional(),
 	portfolio_performance_other_description: z.string().optional(),
 	portfolio_performance_other_category: z.string().optional(),
-	portfolio_performance_other_value: z.number().optional(),
+	portfolio_performance_other_value: z.string().optional(),
 	direct_jobs_current: z.number().int().optional(),
 	indirect_jobs_current: z.number().int().optional(),
 	direct_jobs_anticipated: z.number().int().optional(),
@@ -301,14 +301,14 @@ export default function Survey2024() {
 			equity_exits_anticipated: undefined,
 			debt_repayments_anticipated: undefined,
 			other_investments_supplement: '',
-			portfolio_revenue_growth_12m: undefined,
-			portfolio_revenue_growth_next_12m: undefined,
-			portfolio_cashflow_growth_12m: undefined,
-			portfolio_cashflow_growth_next_12m: undefined,
-			portfolio_performance_other_enabled: false,
-			portfolio_performance_other_description: '',
-			portfolio_performance_other_category: '',
-			portfolio_performance_other_value: undefined,
+		portfolio_revenue_growth_12m: '',
+		portfolio_revenue_growth_next_12m: '',
+		portfolio_cashflow_growth_12m: '',
+		portfolio_cashflow_growth_next_12m: '',
+		portfolio_performance_other_enabled: false,
+		portfolio_performance_other_description: '',
+		portfolio_performance_other_category: '',
+		portfolio_performance_other_value: '',
 			direct_jobs_current: undefined,
 			indirect_jobs_current: undefined,
 			direct_jobs_anticipated: undefined,
@@ -661,13 +661,13 @@ export default function Survey2024() {
         equity_exits_anticipated: toIntOrNull(data.equity_exits_anticipated),
         debt_repayments_anticipated: toIntOrNull(data.debt_repayments_anticipated),
         other_investments_supplement: data.other_investments_supplement || null,
-        portfolio_revenue_growth_12m: toNumberOrNull(data.portfolio_revenue_growth_12m),
-        portfolio_revenue_growth_next_12m: toNumberOrNull(data.portfolio_revenue_growth_next_12m),
-        portfolio_cashflow_growth_12m: toNumberOrNull(data.portfolio_cashflow_growth_12m),
-        portfolio_cashflow_growth_next_12m: toNumberOrNull(data.portfolio_cashflow_growth_next_12m),
+        portfolio_revenue_growth_12m: data.portfolio_revenue_growth_12m || null,
+        portfolio_revenue_growth_next_12m: data.portfolio_revenue_growth_next_12m || null,
+        portfolio_cashflow_growth_12m: data.portfolio_cashflow_growth_12m || null,
+        portfolio_cashflow_growth_next_12m: data.portfolio_cashflow_growth_next_12m || null,
         portfolio_performance_other_description: data.portfolio_performance_other_description || null,
         portfolio_performance_other_category: data.portfolio_performance_other_category || null,
-        portfolio_performance_other_value: toNumberOrNull(data.portfolio_performance_other_value),
+        portfolio_performance_other_value: data.portfolio_performance_other_value || null,
         direct_jobs_current: toIntOrNull(data.direct_jobs_current),
         indirect_jobs_current: toIntOrNull(data.indirect_jobs_current),
         direct_jobs_anticipated: toIntOrNull(data.direct_jobs_anticipated),
@@ -4095,15 +4095,14 @@ const renderSection7 = () => (
 							name="portfolio_revenue_growth_12m"
 							render={({ field }) => (
 								<FormItem>
-										<FormLabel className="text-sm font-normal">Most recent 12 months leading up to June 30, 2024</FormLabel>
-									<FormControl>
-										<Input
-											{...field}
-											type="number"
-												placeholder="Enter percentage"
-											onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-										/>
-									</FormControl>
+					<FormLabel className="text-sm font-normal">Most recent 12 months leading up to June 30, 2024</FormLabel>
+								<FormControl>
+									<Input
+										{...field}
+										type="text"
+										placeholder="e.g., 25%, >50%, approximately 30%"
+									/>
+								</FormControl>
 									<FormMessage />
 								</FormItem>
 							)}
@@ -4113,15 +4112,14 @@ const renderSection7 = () => (
 							name="portfolio_revenue_growth_next_12m"
 							render={({ field }) => (
 								<FormItem>
-										<FormLabel className="text-sm font-normal">Based on current outlook, anticipated performance for next 12 months from July 1, 2024</FormLabel>
-									<FormControl>
-										<Input
-											{...field}
-											type="number"
-												placeholder="Enter percentage"
-											onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-										/>
-									</FormControl>
+					<FormLabel className="text-sm font-normal">Based on current outlook, anticipated performance for next 12 months from July 1, 2024</FormLabel>
+								<FormControl>
+									<Input
+										{...field}
+										type="text"
+										placeholder="e.g., 25%, >50%, approximately 30%"
+									/>
+								</FormControl>
 									<FormMessage />
 								</FormItem>
 							)}
@@ -4134,15 +4132,14 @@ const renderSection7 = () => (
 							name="portfolio_cashflow_growth_12m"
 							render={({ field }) => (
 								<FormItem>
-										<FormLabel className="text-sm font-normal">Most recent 12 months leading up to June 30, 2024</FormLabel>
-									<FormControl>
-										<Input
-											{...field}
-											type="number"
-												placeholder="Enter percentage"
-											onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-										/>
-									</FormControl>
+					<FormLabel className="text-sm font-normal">Most recent 12 months leading up to June 30, 2024</FormLabel>
+								<FormControl>
+									<Input
+										{...field}
+										type="text"
+										placeholder="e.g., 25%, >50%, approximately 30%"
+									/>
+								</FormControl>
 									<FormMessage />
 								</FormItem>
 							)}
@@ -4152,15 +4149,14 @@ const renderSection7 = () => (
 							name="portfolio_cashflow_growth_next_12m"
 							render={({ field }) => (
 								<FormItem>
-										<FormLabel className="text-sm font-normal">Based on current outlook, anticipated performance for next 12 months from July 1, 2024</FormLabel>
-									<FormControl>
-										<Input
-											{...field}
-											type="number"
-												placeholder="Enter percentage"
-											onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-										/>
-									</FormControl>
+					<FormLabel className="text-sm font-normal">Based on current outlook, anticipated performance for next 12 months from July 1, 2024</FormLabel>
+								<FormControl>
+									<Input
+										{...field}
+										type="text"
+										placeholder="e.g., 25%, >50%, approximately 30%"
+									/>
+								</FormControl>
 									<FormMessage />
 								</FormItem>
 							)}
