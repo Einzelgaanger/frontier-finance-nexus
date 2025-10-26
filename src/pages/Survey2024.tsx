@@ -136,14 +136,14 @@ const survey2024Schema = z.object({
 	equity_exits_anticipated: z.number().int().optional(),
 	debt_repayments_anticipated: z.number().int().optional(),
 	other_investments_supplement: z.string().optional(),
-	portfolio_revenue_growth_12m: z.number().optional(),
-	portfolio_revenue_growth_next_12m: z.number().optional(),
-	portfolio_cashflow_growth_12m: z.number().optional(),
-	portfolio_cashflow_growth_next_12m: z.number().optional(),
+	portfolio_revenue_growth_12m: z.string().optional(),
+	portfolio_revenue_growth_next_12m: z.string().optional(),
+	portfolio_cashflow_growth_12m: z.string().optional(),
+	portfolio_cashflow_growth_next_12m: z.string().optional(),
 	portfolio_performance_other_enabled: z.boolean().optional(),
 	portfolio_performance_other_description: z.string().optional(),
 	portfolio_performance_other_category: z.string().optional(),
-	portfolio_performance_other_value: z.number().optional(),
+	portfolio_performance_other_value: z.string().optional(),
 	direct_jobs_current: z.number().int().optional(),
 	indirect_jobs_current: z.number().int().optional(),
 	direct_jobs_anticipated: z.number().int().optional(),
@@ -301,14 +301,14 @@ export default function Survey2024() {
 			equity_exits_anticipated: undefined,
 			debt_repayments_anticipated: undefined,
 			other_investments_supplement: '',
-			portfolio_revenue_growth_12m: undefined,
-			portfolio_revenue_growth_next_12m: undefined,
-			portfolio_cashflow_growth_12m: undefined,
-			portfolio_cashflow_growth_next_12m: undefined,
-			portfolio_performance_other_enabled: false,
-			portfolio_performance_other_description: '',
-			portfolio_performance_other_category: '',
-			portfolio_performance_other_value: undefined,
+		portfolio_revenue_growth_12m: '',
+		portfolio_revenue_growth_next_12m: '',
+		portfolio_cashflow_growth_12m: '',
+		portfolio_cashflow_growth_next_12m: '',
+		portfolio_performance_other_enabled: false,
+		portfolio_performance_other_description: '',
+		portfolio_performance_other_category: '',
+		portfolio_performance_other_value: '',
 			direct_jobs_current: undefined,
 			indirect_jobs_current: undefined,
 			direct_jobs_anticipated: undefined,
@@ -539,19 +539,153 @@ export default function Survey2024() {
         .eq('user_id', user.id)
         .maybeSingle();
 
+      // Helper functions to convert values to proper types
+      const toNumberOrNull = (val: any) => {
+        if (val === undefined || val === null || val === '') return null;
+        const num = Number(val);
+        return isNaN(num) ? null : num;
+      };
+
+      const toIntOrNull = (val: any) => {
+        if (val === undefined || val === null || val === '') return null;
+        const num = parseInt(String(val), 10);
+        return isNaN(num) ? null : num;
+      };
+
       const recordData = {
         user_id: user.id,
-        email_address: data.email_address,
-        organisation_name: data.organisation_name,
-        fund_name: data.fund_name,
-        funds_raising_investing: data.funds_raising_investing,
-        legal_entity_achieved: data.legal_entity_achieved,
-        first_close_achieved: data.first_close_achieved,
-        first_investment_achieved: data.first_investment_achieved,
+        // Section 1: Introduction & Context
+        email_address: data.email_address || null,
+        investment_networks: data.investment_networks || [],
+        investment_networks_other: data.investment_networks_other || null,
+        organisation_name: data.organisation_name || null,
+        funds_raising_investing: data.funds_raising_investing || null,
+        fund_name: data.fund_name || null,
+        
+        // Section 2: Organizational Background and Team
+        legal_entity_achieved: data.legal_entity_achieved || null,
+        first_close_achieved: data.first_close_achieved || null,
+        first_investment_achieved: data.first_investment_achieved || null,
         geographic_markets: data.geographic_markets || [],
-        geographic_markets_other: data.geographic_markets_other,
+        geographic_markets_other: data.geographic_markets_other || null,
         team_based: data.team_based || [],
-        team_based_other: data.team_based_other,
+        team_based_other: data.team_based_other || null,
+        fte_staff_2023_actual: toIntOrNull(data.fte_staff_2023_actual),
+        fte_staff_current: toIntOrNull(data.fte_staff_current),
+        fte_staff_2025_forecast: toIntOrNull(data.fte_staff_2025_forecast),
+        investment_approval: data.investment_approval || [],
+        investment_approval_other: data.investment_approval_other || null,
+        principals_total: toIntOrNull(data.principals_total),
+        principals_women: toIntOrNull(data.principals_women),
+        gender_inclusion: data.gender_inclusion || [],
+        gender_inclusion_other: data.gender_inclusion_other || null,
+        team_experience_investments: data.team_experience_investments || {},
+        team_experience_exits: data.team_experience_exits || {},
+        
+        // Section 3: Vehicle Construct
+        legal_domicile: data.legal_domicile || [],
+        legal_domicile_other: data.legal_domicile_other || null,
+        domicile_reason: data.domicile_reason || [],
+        domicile_reason_other: data.domicile_reason_other || null,
+        regulatory_impact: data.regulatory_impact || {},
+        regulatory_impact_other: data.regulatory_impact_other || null,
+        currency_investments: data.currency_investments || null,
+        currency_lp_commitments: data.currency_lp_commitments || null,
+        currency_hedging_strategy: data.currency_hedging_strategy || null,
+        currency_hedging_details: data.currency_hedging_details || null,
+        fund_type_status: data.fund_type_status || null,
+        fund_type_status_other: data.fund_type_status_other || null,
+        hard_commitments_2022: toNumberOrNull(data.hard_commitments_2022),
+        hard_commitments_current: toNumberOrNull(data.hard_commitments_current),
+        amount_invested_2022: toNumberOrNull(data.amount_invested_2022),
+        amount_invested_current: toNumberOrNull(data.amount_invested_current),
+        target_fund_size_2022: toNumberOrNull(data.target_fund_size_2022),
+        target_fund_size_current: toNumberOrNull(data.target_fund_size_current),
+        target_number_investments: toIntOrNull(data.target_number_investments),
+        follow_on_permitted: data.follow_on_permitted || null,
+        concessionary_capital: data.concessionary_capital || [],
+        concessionary_capital_other: data.concessionary_capital_other || null,
+        existing_lp_sources: data.existing_lp_sources || {},
+        existing_lp_sources_other_description: data.existing_lp_sources_other_description || null,
+        target_lp_sources: data.target_lp_sources || {},
+        target_lp_sources_other_description: data.target_lp_sources_other_description || null,
+        gp_financial_commitment: data.gp_financial_commitment || [],
+        gp_financial_commitment_other: data.gp_financial_commitment_other || null,
+        gp_management_fee: data.gp_management_fee || null,
+        gp_management_fee_other: data.gp_management_fee_other || null,
+        hurdle_rate_currency: data.hurdle_rate_currency || null,
+        hurdle_rate_currency_other: data.hurdle_rate_currency_other || null,
+        hurdle_rate_percentage: toNumberOrNull(data.hurdle_rate_percentage),
+        target_return_above_govt_debt: toNumberOrNull(data.target_return_above_govt_debt),
+        fundraising_barriers: data.fundraising_barriers || {},
+        fundraising_barriers_other_description: data.fundraising_barriers_other_description || null,
+        
+        // Section 4: Investment Thesis
+        business_stages: data.business_stages || {},
+        revenue_growth_mix: data.revenue_growth_mix || {},
+        financing_needs: data.financing_needs || {},
+        sector_target_allocation: data.sector_target_allocation || {},
+        investment_considerations: data.investment_considerations || {},
+        investment_considerations_other: data.investment_considerations_other || null,
+        financial_instruments_ranking: data.financial_instruments_ranking || {},
+        top_sdgs: data.top_sdgs || [],
+        additional_sdgs: data.additional_sdgs || null,
+        gender_lens_investing: data.gender_lens_investing || {},
+        
+        // Section 5: Pipeline Sourcing and Portfolio Construction
+        pipeline_sources_quality: data.pipeline_sources_quality || {},
+        pipeline_sources_quality_other_description: data.pipeline_sources_quality_other_description || null,
+        pipeline_sources_quality_other_score: toNumberOrNull(data.pipeline_sources_quality_other_score),
+        sgb_financing_trends: data.sgb_financing_trends || {},
+        typical_investment_size: data.typical_investment_size || null,
+        
+        // Section 6: Portfolio Value Creation and Exits
+        post_investment_priorities: data.post_investment_priorities || {},
+        post_investment_priorities_other_description: data.post_investment_priorities_other_description || null,
+        post_investment_priorities_other_score: toNumberOrNull(data.post_investment_priorities_other_score),
+        technical_assistance_funding: data.technical_assistance_funding || {},
+        business_development_approach: data.business_development_approach || [],
+        business_development_approach_other: data.business_development_approach_other || null,
+        unique_offerings: data.unique_offerings || {},
+        unique_offerings_other_description: data.unique_offerings_other_description || null,
+        unique_offerings_other_score: toNumberOrNull(data.unique_offerings_other_score),
+        typical_investment_timeframe: data.typical_investment_timeframe || null,
+        investment_monetisation_forms: data.investment_monetisation_forms || [],
+        investment_monetisation_other: data.investment_monetisation_other || null,
+        
+        // Section 7: Performance to Date and Current Outlook
+        equity_investments_made: toIntOrNull(data.equity_investments_made),
+        debt_investments_made: toIntOrNull(data.debt_investments_made),
+        equity_exits_achieved: toIntOrNull(data.equity_exits_achieved),
+        debt_repayments_achieved: toIntOrNull(data.debt_repayments_achieved),
+        equity_exits_anticipated: toIntOrNull(data.equity_exits_anticipated),
+        debt_repayments_anticipated: toIntOrNull(data.debt_repayments_anticipated),
+        other_investments_supplement: data.other_investments_supplement || null,
+        portfolio_revenue_growth_12m: data.portfolio_revenue_growth_12m || null,
+        portfolio_revenue_growth_next_12m: data.portfolio_revenue_growth_next_12m || null,
+        portfolio_cashflow_growth_12m: data.portfolio_cashflow_growth_12m || null,
+        portfolio_cashflow_growth_next_12m: data.portfolio_cashflow_growth_next_12m || null,
+        portfolio_performance_other_description: data.portfolio_performance_other_description || null,
+        portfolio_performance_other_category: data.portfolio_performance_other_category || null,
+        portfolio_performance_other_value: data.portfolio_performance_other_value || null,
+        direct_jobs_current: toIntOrNull(data.direct_jobs_current),
+        indirect_jobs_current: toIntOrNull(data.indirect_jobs_current),
+        direct_jobs_anticipated: toIntOrNull(data.direct_jobs_anticipated),
+        indirect_jobs_anticipated: toIntOrNull(data.indirect_jobs_anticipated),
+        employment_impact_other_description: data.employment_impact_other_description || null,
+        employment_impact_other_category: data.employment_impact_other_category || null,
+        employment_impact_other_value: toIntOrNull(data.employment_impact_other_value),
+        fund_priorities_next_12m: data.fund_priorities_next_12m || {},
+        fund_priorities_other_description: data.fund_priorities_other_description || null,
+        fund_priorities_other_category: data.fund_priorities_other_category || null,
+        
+        // Section 8: Future Research and Contact Information
+        data_sharing_willingness: data.data_sharing_willingness || [],
+        data_sharing_other: data.data_sharing_other || null,
+        survey_sender: data.survey_sender || null,
+        receive_results: data.receive_results || false,
+        
+        // System fields
         form_data: data,
         submission_status: 'completed',
         completed_at: new Date().toISOString(),
@@ -3961,15 +4095,14 @@ const renderSection7 = () => (
 							name="portfolio_revenue_growth_12m"
 							render={({ field }) => (
 								<FormItem>
-										<FormLabel className="text-sm font-normal">Most recent 12 months leading up to June 30, 2024</FormLabel>
-									<FormControl>
-										<Input
-											{...field}
-											type="number"
-												placeholder="Enter percentage"
-											onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-										/>
-									</FormControl>
+					<FormLabel className="text-sm font-normal">Most recent 12 months leading up to June 30, 2024</FormLabel>
+								<FormControl>
+									<Input
+										{...field}
+										type="text"
+										placeholder="e.g., 25%, >50%, approximately 30%"
+									/>
+								</FormControl>
 									<FormMessage />
 								</FormItem>
 							)}
@@ -3979,15 +4112,14 @@ const renderSection7 = () => (
 							name="portfolio_revenue_growth_next_12m"
 							render={({ field }) => (
 								<FormItem>
-										<FormLabel className="text-sm font-normal">Based on current outlook, anticipated performance for next 12 months from July 1, 2024</FormLabel>
-									<FormControl>
-										<Input
-											{...field}
-											type="number"
-												placeholder="Enter percentage"
-											onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-										/>
-									</FormControl>
+					<FormLabel className="text-sm font-normal">Based on current outlook, anticipated performance for next 12 months from July 1, 2024</FormLabel>
+								<FormControl>
+									<Input
+										{...field}
+										type="text"
+										placeholder="e.g., 25%, >50%, approximately 30%"
+									/>
+								</FormControl>
 									<FormMessage />
 								</FormItem>
 							)}
@@ -4000,15 +4132,14 @@ const renderSection7 = () => (
 							name="portfolio_cashflow_growth_12m"
 							render={({ field }) => (
 								<FormItem>
-										<FormLabel className="text-sm font-normal">Most recent 12 months leading up to June 30, 2024</FormLabel>
-									<FormControl>
-										<Input
-											{...field}
-											type="number"
-												placeholder="Enter percentage"
-											onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-										/>
-									</FormControl>
+					<FormLabel className="text-sm font-normal">Most recent 12 months leading up to June 30, 2024</FormLabel>
+								<FormControl>
+									<Input
+										{...field}
+										type="text"
+										placeholder="e.g., 25%, >50%, approximately 30%"
+									/>
+								</FormControl>
 									<FormMessage />
 								</FormItem>
 							)}
@@ -4018,15 +4149,14 @@ const renderSection7 = () => (
 							name="portfolio_cashflow_growth_next_12m"
 							render={({ field }) => (
 								<FormItem>
-										<FormLabel className="text-sm font-normal">Based on current outlook, anticipated performance for next 12 months from July 1, 2024</FormLabel>
-									<FormControl>
-										<Input
-											{...field}
-											type="number"
-												placeholder="Enter percentage"
-											onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-										/>
-									</FormControl>
+					<FormLabel className="text-sm font-normal">Based on current outlook, anticipated performance for next 12 months from July 1, 2024</FormLabel>
+								<FormControl>
+									<Input
+										{...field}
+										type="text"
+										placeholder="e.g., 25%, >50%, approximately 30%"
+									/>
+								</FormControl>
 									<FormMessage />
 								</FormItem>
 							)}
