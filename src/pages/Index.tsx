@@ -594,59 +594,59 @@ const Index = () => {
       </section>
 
       {/* Platform Features + CTA Combined */}
-      <section className="py-24 relative bg-gradient-to-br from-amber-50 via-white to-blue-50 overflow-hidden rounded-t-[2.5rem] -mt-16">
+      <section className="py-12 relative bg-gradient-to-br from-amber-50 via-white to-blue-50 overflow-hidden rounded-t-[2.5rem] -mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Left Column: Platform Features */}
             <div>
-              <div className="text-left mb-8">
-                <div className="inline-block mb-4">
-                  <span className="px-6 py-2 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full text-blue-700 text-sm font-semibold">
+              <div className="text-left mb-4">
+                <div className="inline-block mb-2">
+                  <span className="px-4 py-1 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full text-blue-700 text-xs font-semibold">
                     Our Platform
                   </span>
                 </div>
-                <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent mb-4">
+                <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent mb-2">
                   Platform Features
                 </h2>
-                <div className="w-20 h-1 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 mb-3"></div>
-                <p className="text-gray-700">Everything fund managers need to operate, connect, and grow</p>
+                <div className="w-16 h-0.5 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 mb-2"></div>
+                <p className="text-sm text-gray-700">Everything fund managers need to operate, connect, and grow</p>
               </div>
               
-                            <div className="space-y-2">
-                <div className="text-base font-semibold text-gray-800 hover:text-blue-600 transition-colors">Fund Manager Directory</div>
-                <div className="text-base font-semibold text-gray-800 hover:text-green-600 transition-colors">Annual Surveys</div>
-                <div className="text-base font-semibold text-gray-800 hover:text-purple-600 transition-colors">Market Insights</div>
-                <div className="text-base font-semibold text-gray-800 hover:text-orange-600 transition-colors">Global Network</div>
-                <div className="text-base font-semibold text-gray-800 hover:text-indigo-600 transition-colors">Learning Lab</div>
-                <div className="text-base font-semibold text-gray-800 hover:text-red-600 transition-colors">Secure Platform</div>
+              <div className="space-y-1.5">
+                <div className="text-sm font-semibold text-gray-800 hover:text-blue-600 transition-colors">Fund Manager Directory</div>
+                <div className="text-sm font-semibold text-gray-800 hover:text-green-600 transition-colors">Annual Surveys</div>
+                <div className="text-sm font-semibold text-gray-800 hover:text-purple-600 transition-colors">Market Insights</div>
+                <div className="text-sm font-semibold text-gray-800 hover:text-orange-600 transition-colors">Global Network</div>
+                <div className="text-sm font-semibold text-gray-800 hover:text-indigo-600 transition-colors">Learning Lab</div>
+                <div className="text-sm font-semibold text-gray-800 hover:text-red-600 transition-colors">Secure Platform</div>
               </div>
             </div>
             
             {/* Right Column: CTA */}
             <div className="flex flex-col justify-center">
-              <div className="text-center lg:text-left mb-8">
-                <div className="inline-block mb-4">
-                  <span className="px-6 py-2 bg-gradient-to-r from-green-100 to-emerald-100 rounded-full text-green-700 text-sm font-semibold">
+              <div className="text-center lg:text-left mb-4">
+                <div className="inline-block mb-2">
+                  <span className="px-4 py-1 bg-gradient-to-r from-green-100 to-emerald-100 rounded-full text-green-700 text-xs font-semibold">
                     Join Us
                   </span>
                 </div>
-                <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-gray-900 via-green-800 to-emerald-800 bg-clip-text text-transparent mb-4">
+                <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-gray-900 via-green-800 to-emerald-800 bg-clip-text text-transparent mb-2">
                   Ready to Join Our Network?
                 </h2>
-                <div className="w-20 h-1 bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 mb-3"></div>
-                <p className="text-gray-700 mb-8">
+                <div className="w-16 h-0.5 bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 mb-2"></div>
+                <p className="text-sm text-gray-700 mb-6">
                   Connect with 100+ early-stage capital providers and access tools, resources, and insights to grow your fund.
                 </p>
               </div>
               
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3">
                 <Link to="/auth">
                   <Button 
-                    size="lg" 
-                    className="group w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 px-8 py-6 text-lg font-semibold shadow-xl hover:shadow-blue-500/25 transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 rounded-full"
+                    size="default" 
+                    className="group w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 px-6 py-4 text-base font-semibold shadow-xl hover:shadow-blue-500/25 transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 rounded-full"
                   >
-                    <div className="flex items-center justify-center space-x-3">
-                      <Users className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
+                    <div className="flex items-center justify-center space-x-2">
+                      <Users className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
                       <span>Get Started</span>
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
                     </div>
@@ -654,12 +654,12 @@ const Index = () => {
                 </Link>
                 <Link to="/network">
                   <Button 
-                    size="lg" 
+                    size="default" 
                     variant="outline" 
-                    className="group w-full border-2 border-blue-600 text-blue-600 hover:bg-blue-50 px-8 py-6 text-lg font-semibold shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 rounded-full"
+                    className="group w-full border-2 border-blue-600 text-blue-600 hover:bg-blue-50 px-6 py-4 text-base font-semibold shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 rounded-full"
                   >
-                    <div className="flex items-center justify-center space-x-3">
-                      <Search className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" />
+                    <div className="flex items-center justify-center space-x-2">
+                      <Search className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
                       <span>Explore Directory</span>
                     </div>
                   </Button>
