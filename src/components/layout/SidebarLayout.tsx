@@ -223,12 +223,15 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
           "fixed inset-y-0 left-0 z-50 transform transition-all duration-300 ease-in-out lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full",
           "w-24",
-          "bg-black shadow-2xl overflow-hidden font-rubik"
+          "bg-gradient-to-b from-slate-900 via-blue-950 to-slate-900 shadow-2xl overflow-hidden font-rubik border-r border-slate-700/50"
         )}
       >
-        <div className="flex flex-col h-screen overflow-hidden">
+        {/* Animated background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-purple-600/5 to-pink-600/5 pointer-events-none"></div>
+        
+        <div className="flex flex-col h-screen overflow-hidden relative">
           {/* Navigation */}
-          <nav className="flex-1 p-2 space-y-1 overflow-hidden bg-black min-h-0">
+          <nav className="flex-1 p-2 space-y-1.5 overflow-hidden min-h-0">
             {filteredNavItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.href);
@@ -239,23 +242,38 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
                   key={item.name}
                   onClick={() => handleNavigation(item.href)}
                   className={cn(
-                    "w-full flex flex-col items-center px-2 py-3 rounded-xl transition-all duration-500 group relative transform",
-                    colors.bg,
-                    colors.hover,
-                    colors.border,
-                    active && "shadow-xl ring-2 ring-beige/30"
+                    "w-full flex flex-col items-center px-2 py-3 rounded-xl transition-all duration-500 group relative transform overflow-hidden",
+                    active 
+                      ? "bg-gradient-to-br from-blue-500/20 to-purple-500/20 shadow-lg shadow-blue-500/20 ring-1 ring-blue-400/30" 
+                      : "hover:bg-gradient-to-br hover:from-slate-700/30 hover:to-slate-800/30",
+                    "hover:shadow-lg hover:scale-[1.02] hover:-translate-y-0.5"
                   )}
                   title={item.name}
                 >
+                  {/* Active indicator bar */}
+                  {active && (
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-400 to-purple-500 rounded-r-full"></div>
+                  )}
+                  
+                  {/* Hover glow effect */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-400/0 via-purple-400/0 to-pink-400/0 group-hover:from-blue-400/10 group-hover:via-purple-400/10 group-hover:to-pink-400/10 transition-all duration-500 rounded-xl"></div>
+                  
                   <div className={cn(
-                    "p-1.5 rounded-xl transition-all duration-500 shadow-md group-hover:shadow-lg group-hover:scale-110 mb-1.5",
-                    colors.iconBg,
-                    active && "shadow-xl"
+                    "p-2 rounded-lg transition-all duration-500 shadow-md group-hover:shadow-xl group-hover:scale-110 mb-2 relative z-10",
+                    active 
+                      ? "bg-gradient-to-br from-blue-500 to-purple-600 shadow-blue-500/30" 
+                      : "bg-gradient-to-br from-slate-700/50 to-slate-800/50 group-hover:from-blue-600/30 group-hover:to-purple-600/30"
                   )}>
-                    <Icon className={cn("transition-colors w-4 h-4", colors.icon)} />
+                    <Icon className={cn(
+                      "transition-colors w-4 h-4 relative z-10",
+                      active ? "text-white" : "text-blue-300 group-hover:text-white"
+                    )} />
                   </div>
-                  <div className="text-center">
-                    <p className={cn("font-normal text-xs transition-colors", colors.text)}>
+                  <div className="text-center relative z-10">
+                    <p className={cn(
+                      "font-medium text-[10px] transition-colors leading-tight",
+                      active ? "text-white" : "text-slate-300 group-hover:text-white"
+                    )}>
                       {item.name}
                     </p>
                   </div>
@@ -265,17 +283,20 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
           </nav>
 
           {/* Sign Out Button */}
-          <div className="p-2">
+          <div className="p-2 border-t border-slate-700/50">
             <button
               onClick={handleSignOut}
-              className="w-full flex flex-col items-center px-2 py-3 rounded-xl transition-all duration-500 group hover:bg-[#f5f5dc]/10 hover:shadow-lg hover:scale-[1.02]"
+              className="w-full flex flex-col items-center px-2 py-3 rounded-xl transition-all duration-500 group relative overflow-hidden hover:bg-gradient-to-br hover:from-red-900/20 hover:to-red-800/20 hover:shadow-lg hover:scale-[1.02] hover:-translate-y-0.5"
               title="Sign Out"
             >
-              <div className="p-1.5 rounded-xl bg-[#f5f5dc]/20 transition-all duration-500 shadow-md group-hover:shadow-lg group-hover:scale-110 mb-1.5">
-                <LogOut className="text-[#f5f5dc] w-4 h-4" />
+              {/* Hover glow effect */}
+              <div className="absolute inset-0 bg-gradient-to-br from-red-500/0 to-orange-500/0 group-hover:from-red-500/10 group-hover:to-orange-500/10 transition-all duration-500 rounded-xl"></div>
+              
+              <div className="p-2 rounded-lg bg-gradient-to-br from-slate-700/50 to-slate-800/50 transition-all duration-500 shadow-md group-hover:shadow-xl group-hover:scale-110 mb-2 group-hover:from-red-600/30 group-hover:to-orange-600/30 relative z-10">
+                <LogOut className="text-red-300 group-hover:text-white w-4 h-4 transition-colors relative z-10" />
               </div>
-              <div className="text-center">
-                <p className="font-normal text-xs text-[#f5f5dc]">
+              <div className="text-center relative z-10">
+                <p className="font-medium text-[10px] text-slate-300 group-hover:text-white transition-colors leading-tight">
                   Sign Out
                 </p>
               </div>
