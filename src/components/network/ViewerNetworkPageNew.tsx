@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Building2, Mail, Globe, User, Loader2 } from 'lucide-react';
+import { Building2, Mail, Globe, User, Loader2, FileText } from 'lucide-react';
+import FundManagerDetailModal from './FundManagerDetailModal';
 
 interface UserProfile {
   id: string;
@@ -14,6 +15,7 @@ interface UserProfile {
   website: string | null;
   profile_picture_url: string | null;
   user_role: string;
+  has_surveys: boolean;
 }
 
 export default function ViewerNetworkPageNew() {
@@ -21,6 +23,7 @@ export default function ViewerNetworkPageNew() {
   const [filteredProfiles, setFilteredProfiles] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedUser, setSelectedUser] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     fetchProfiles();
@@ -39,12 +42,41 @@ export default function ViewerNetworkPageNew() {
         .order('company_name');
 
       if (error) throw error;
-      setProfiles(data || []);
+
+      // Check which users have completed surveys
+      const profilesWithSurveys = await Promise.all(
+        (data || []).map(async (profile) => {
+          const hasSurveys = await checkUserHasSurveys(profile.id);
+          return { ...profile, has_surveys: hasSurveys };
+        })
+      );
+
+      setProfiles(profilesWithSurveys);
     } catch (error) {
       console.error('Error fetching profiles:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const checkUserHasSurveys = async (userId: string): Promise<boolean> => {
+    const years = [2021, 2022, 2023, 2024];
+    
+    for (const year of years) {
+      try {
+        const { data } = await supabase
+          .from(`survey_responses_${year}` as any)
+          .select('id')
+          .eq('user_id', userId)
+          .eq('submission_status', 'completed')
+          .maybeSingle();
+
+        if (data) return true;
+      } catch (error) {
+        // Continue to next year
+      }
+    }
+    return false;
   };
 
   const filterProfiles = () => {
@@ -70,6 +102,12 @@ export default function ViewerNetworkPageNew() {
     }
   };
 
+  const handleCardClick = (profile: UserProfile) => {
+    if (profile.has_surveys) {
+      setSelectedUser({ id: profile.id, name: profile.company_name });
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -79,10 +117,13 @@ export default function ViewerNetworkPageNew() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Network Directory</h1>
-        <p className="text-muted-foreground mb-4">Browse all companies in the network</p>
+    <>
+      <div className="container mx-auto py-8 px-4">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Network Directory</h1>
+          <p className="text-muted-foreground mb-4">
+            Browse all companies in the network. Click on companies with surveys to view their responses.
+          </p>
         
         <Input
           placeholder="Search by company name, email, or description..."
@@ -93,8 +134,19 @@ export default function ViewerNetworkPageNew() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProfiles.map((profile) => (
-          <Card key={profile.id} className="hover:shadow-lg transition-shadow">
+        {filteredProfiles.map((profile) => {
+          const isClickable = profile.has_surveys;
+          
+          return (
+            <Card 
+              key={profile.id} 
+              className={`transition-shadow ${
+                isClickable 
+                  ? 'hover:shadow-lg cursor-pointer hover:border-primary' 
+                  : 'opacity-75'
+              }`}
+              onClick={() => handleCardClick(profile)}
+            >
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
@@ -106,9 +158,17 @@ export default function ViewerNetworkPageNew() {
                   </Avatar>
                   <div>
                     <CardTitle className="text-lg">{profile.company_name || 'No Company Name'}</CardTitle>
-                    <Badge className={`mt-1 ${getRoleBadgeColor(profile.user_role)}`}>
-                      {profile.user_role}
-                    </Badge>
+                    <div className="flex gap-2 mt-1">
+                      <Badge className={getRoleBadgeColor(profile.user_role)}>
+                        {profile.user_role}
+                      </Badge>
+                      {profile.has_surveys && (
+                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
+                          <FileText className="w-3 h-3 mr-1" />
+                          Has Surveys
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -143,7 +203,8 @@ export default function ViewerNetworkPageNew() {
               </div>
             </CardContent>
           </Card>
-        ))}
+          );
+        })}
       </div>
 
       {filteredProfiles.length === 0 && (
@@ -153,5 +214,15 @@ export default function ViewerNetworkPageNew() {
         </div>
       )}
     </div>
+
+    {selectedUser && (
+      <FundManagerDetailModal
+        userId={selectedUser.id}
+        companyName={selectedUser.name}
+        open={!!selectedUser}
+        onClose={() => setSelectedUser(null)}
+      />
+    )}
+  </>
   );
 }
