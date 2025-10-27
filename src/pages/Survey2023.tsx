@@ -1095,19 +1095,41 @@ export default function Survey2023() {
       </div>
       
       <div>
-        <FormLabel>5. Timeline. When did your fund/investment vehicle achieve each of the following? (Please provide a date for each of three points in your fund's evolution)</FormLabel>
-        <div className="space-y-4">
-          <div>
-            <FormLabel className="text-sm font-medium">Legal Entity</FormLabel>
+            <FormLabel>5. Timeline. When did your fund/investment vehicle achieve each of the following? (Please provide a date for each of three points in your fund's evolution)</FormLabel>
+            <div className="space-y-4">
+              <div>
+                <FormLabel className="text-sm font-medium">Legal Entity</FormLabel>
             <Select 
               onValueChange={(value) => {
                 form.setValue('legal_entity_achieved', value);
               }}
               value={form.watch('legal_entity_achieved') ?? undefined}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Select when legal entity was achieved" />
-              </SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select when legal entity was achieved" />
+                    </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Not Achieved">Not Achieved</SelectItem>
+                    <SelectItem value="2017 or earlier">2017 or earlier</SelectItem>
+                    <SelectItem value="2018 - 2022">2018 - 2022</SelectItem>
+                    <SelectItem value="2023">2023</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+      </div>
+
+      <div>
+            <FormLabel>First Close (or equivalent)</FormLabel>
+        <Select 
+          onValueChange={(value) => {
+            form.setValue('first_close_achieved', value);
+          }}
+          value={form.watch('first_close_achieved') ?? undefined}
+        >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select when first close was achieved" />
+                </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Not Achieved">Not Achieved</SelectItem>
                 <SelectItem value="2017 or earlier">2017 or earlier</SelectItem>
@@ -1115,48 +1137,26 @@ export default function Survey2023() {
                 <SelectItem value="2023">2023</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-        </div>
       </div>
 
       <div>
-        <FormLabel>First Close (or equivalent)</FormLabel>
-        <Select 
-          onValueChange={(value) => {
-            form.setValue('first_close_achieved', value);
-          }}
-          value={form.watch('first_close_achieved') ?? undefined}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select when first close was achieved" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Not Achieved">Not Achieved</SelectItem>
-            <SelectItem value="2017 or earlier">2017 or earlier</SelectItem>
-            <SelectItem value="2018 - 2022">2018 - 2022</SelectItem>
-            <SelectItem value="2023">2023</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div>
-        <FormLabel>First Investment</FormLabel>
+            <FormLabel>First Investment</FormLabel>
         <Select 
           onValueChange={(value) => {
             form.setValue('first_investment_achieved', value);
           }}
           value={form.watch('first_investment_achieved') ?? undefined}
         >
-          <SelectTrigger>
-            <SelectValue placeholder="Select when first investment was made" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Not Achieved">Not Achieved</SelectItem>
-            <SelectItem value="2017 or earlier">2017 or earlier</SelectItem>
-            <SelectItem value="2018 - 2022">2018 - 2022</SelectItem>
-            <SelectItem value="2023">2023</SelectItem>
-          </SelectContent>
-        </Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select when first investment was made" />
+                </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Not Achieved">Not Achieved</SelectItem>
+                <SelectItem value="2017 or earlier">2017 or earlier</SelectItem>
+                <SelectItem value="2018 - 2022">2018 - 2022</SelectItem>
+                <SelectItem value="2023">2023</SelectItem>
+              </SelectContent>
+            </Select>
       </div>
 
       <FormField
@@ -1455,15 +1455,15 @@ export default function Survey2023() {
                   }}
                   value={(() => { const v = (form.watch('team_experience_investments') || {})[experience] as any; return v == null ? undefined : String(v); })()}
                 >
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Select applicable category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Not Applicable">Not Applicable</SelectItem>
-                    <SelectItem value="Applies to 1 Principal">Applies to 1 Principal</SelectItem>
-                    <SelectItem value="Applies to 2 or more principals">Applies to 2 or more principals</SelectItem>
-                  </SelectContent>
-                </Select>
+                          <SelectTrigger className="w-48">
+                            <SelectValue placeholder="Select applicable category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Not Applicable">Not Applicable</SelectItem>
+                            <SelectItem value="Applies to 1 Principal">Applies to 1 Principal</SelectItem>
+                            <SelectItem value="Applies to 2 or more principals">Applies to 2 or more principals</SelectItem>
+                          </SelectContent>
+                        </Select>
               </div>
             </div>
           ))}
@@ -1498,15 +1498,15 @@ export default function Survey2023() {
                 }}
                 value={(() => { const v = (form.watch('team_experience_investments') || {})['Other Experience'] as any; return v == null ? undefined : String(v); })()}
               >
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Select applicable category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Not Applicable">Not Applicable</SelectItem>
-                  <SelectItem value="Applies to 1 Principal">Applies to 1 Principal</SelectItem>
-                  <SelectItem value="Applies to 2 or more principals">Applies to 2 or more principals</SelectItem>
-                </SelectContent>
-              </Select>
+                        <SelectTrigger className="w-48">
+                          <SelectValue placeholder="Select applicable category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Not Applicable">Not Applicable</SelectItem>
+                          <SelectItem value="Applies to 1 Principal">Applies to 1 Principal</SelectItem>
+                          <SelectItem value="Applies to 2 or more principals">Applies to 2 or more principals</SelectItem>
+                        </SelectContent>
+                      </Select>
             )}
           </div>
         </div>
@@ -1514,7 +1514,7 @@ export default function Survey2023() {
         {form.watch('other_experience_selected') && (
           <div className="space-y-2">
             <div>
-              <FormLabel className="text-sm font-normal">Description of other experience</FormLabel>
+                  <FormLabel className="text-sm font-normal">Description of other experience</FormLabel>
               <Input 
                 onChange={(e) => {
                   form.setValue('team_experience_other', e.target.value);
@@ -1826,15 +1826,15 @@ export default function Survey2023() {
       </div>
 
       <div>
-        <FormLabel>17. What is target number of investments for your fund?</FormLabel>
-        <Input 
-          type="number" 
+            <FormLabel>17. What is target number of investments for your fund?</FormLabel>
+              <Input 
+                type="number" 
           onChange={(e) => {
             form.setValue('target_investments_count', parseInt(e.target.value) || 0);
           }}
           value={form.watch('target_investments_count') ?? ''}
-          placeholder="0" 
-        />
+                placeholder="0" 
+              />
       </div>
 
       <div className="space-y-4">
@@ -1954,14 +1954,14 @@ export default function Survey2023() {
             <div key={lpCategory} className="flex items-center justify-between py-1 border-b border-gray-100">
               <FormLabel className="text-sm font-normal flex-1 mr-4">{lpCategory}</FormLabel>
               <div className="flex items-center space-x-1 w-20">
-      <Input
-        type="number"
-        min="0"
-        max="100"
-        step="0.1"
-        placeholder="0"
-        className="text-right h-8 w-16"
-        onChange={(e) => {
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.1"
+                          placeholder="0"
+                          className="text-right h-8 w-16"
+                          onChange={(e) => {
           const current = form.watch('lp_capital_sources_existing') || {};
           form.setValue('lp_capital_sources_existing', {
             ...current,
@@ -2018,14 +2018,14 @@ export default function Survey2023() {
             <div key={lpCategory} className="flex items-center justify-between py-1 border-b border-gray-100">
               <FormLabel className="text-sm font-normal flex-1 mr-4">{lpCategory}</FormLabel>
               <div className="flex items-center space-x-1 w-20">
-      <Input
-        type="number"
-        min="0"
-        max="100"
-        step="0.1"
-        placeholder="0"
-        className="text-right h-8 w-16"
-        onChange={(e) => {
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.1"
+                          placeholder="0"
+                          className="text-right h-8 w-16"
+                          onChange={(e) => {
           const current = form.watch('lp_capital_sources_target') || {};
           form.setValue('lp_capital_sources_target', {
             ...current,
@@ -2036,7 +2036,7 @@ export default function Survey2023() {
           const current = form.watch('lp_capital_sources_target') || {};
           return current[lpCategory] ?? '';
         })()}
-      />
+                />
                 <span className="text-sm text-gray-500">%</span>
               </div>
             </div>
@@ -2418,12 +2418,12 @@ export default function Survey2023() {
                 <FormLabel className="text-sm font-normal text-gray-900 leading-tight">{stage.label}</FormLabel>
               </div>
               <div className="flex-shrink-0">
-                <Input
-                  type="number"
-                  placeholder="%"
-                  className="w-20"
-                  onChange={(e) => {
-                    const value = e.target.value ? parseInt(e.target.value) : undefined;
+                        <Input
+                          type="number"
+                          placeholder="%"
+                          className="w-20"
+                          onChange={(e) => {
+                            const value = e.target.value ? parseInt(e.target.value) : undefined;
                     const current = form.watch('business_stages') || {};
                     form.setValue('business_stages', { ...current, [stage.key]: value ?? 0 }, { shouldDirty: true, shouldTouch: true });
                   }}
@@ -2475,12 +2475,12 @@ export default function Survey2023() {
                 <FormLabel className="text-sm font-normal text-gray-900 leading-tight">{label}</FormLabel>
               </div>
               <div className="flex-shrink-0">
-                <Input
-                  type="number"
-                  placeholder="%"
-                  className="w-20"
-                  onChange={(e) => {
-                    const value = e.target.value ? parseInt(e.target.value) : undefined;
+                        <Input
+                          type="number"
+                          placeholder="%"
+                          className="w-20"
+                          onChange={(e) => {
+                            const value = e.target.value ? parseInt(e.target.value) : undefined;
                     const current = form.watch('growth_expectations') || {};
                     form.setValue('growth_expectations', { ...current, [key]: value ?? 0 }, { shouldDirty: true, shouldTouch: true });
                   }}
@@ -2533,12 +2533,12 @@ export default function Survey2023() {
                 <FormLabel className="text-sm font-normal text-gray-900 leading-tight">{label}</FormLabel>
               </div>
               <div className="flex-shrink-0">
-                <Input
-                  type="number"
-                  placeholder="%"
-                  className="w-20"
-                  onChange={(e) => {
-                    const value = e.target.value ? parseInt(e.target.value) : undefined;
+                        <Input
+                          type="number"
+                          placeholder="%"
+                          className="w-20"
+                          onChange={(e) => {
+                            const value = e.target.value ? parseInt(e.target.value) : undefined;
                     const current = form.watch('financing_needs') || {};
                     form.setValue('financing_needs', { ...current, [key]: value ?? 0 }, { shouldDirty: true, shouldTouch: true });
                   }}
@@ -2617,12 +2617,12 @@ export default function Survey2023() {
                   />
                 ) : (
                   <div className="flex items-center space-x-2">
-                    <Input
-                      type="number"
-                      placeholder="%"
-                      className="w-20"
-                      onChange={(e) => {
-                        const value = e.target.value ? parseInt(e.target.value) : undefined;
+                            <Input
+                              type="number"
+                              placeholder="%"
+                              className="w-20"
+                              onChange={(e) => {
+                                const value = e.target.value ? parseInt(e.target.value) : undefined;
                         const current = form.watch('sector_focus') || {};
                         form.setValue('sector_focus', { ...current, [key]: value ?? 0 }, { shouldDirty: true, shouldTouch: true });
                       }}
@@ -2749,12 +2749,12 @@ export default function Survey2023() {
                       )}
                     />
                   ) : (
-                    <Input
-                      type="number"
-                      placeholder="%"
-                      className="w-20"
-                      onChange={(e) => {
-                        const value = e.target.value ? parseInt(e.target.value) : undefined;
+                            <Input
+                              type="number"
+                              placeholder="%"
+                              className="w-20"
+                              onChange={(e) => {
+                                const value = e.target.value ? parseInt(e.target.value) : undefined;
                         const current = form.watch('financial_instruments') || {};
                         form.setValue('financial_instruments', { ...current, [key]: value ?? 0 }, { shouldDirty: true, shouldTouch: true });
                       }}
@@ -2945,15 +2945,15 @@ export default function Survey2023() {
                       return criteriaValue === '' ? undefined : criteriaValue;
                     })()}
                   >
-                    <SelectTrigger className="h-8">
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Not Applicable">Not Applicable</SelectItem>
-                      <SelectItem value="Investment Consideration">Investment Consideration</SelectItem>
-                      <SelectItem value="Investment Requirement">Investment Requirement</SelectItem>
-                    </SelectContent>
-                  </Select>
+                            <SelectTrigger className="h-8">
+                              <SelectValue placeholder="Select category" />
+                            </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Not Applicable">Not Applicable</SelectItem>
+                            <SelectItem value="Investment Consideration">Investment Consideration</SelectItem>
+                            <SelectItem value="Investment Requirement">Investment Requirement</SelectItem>
+                          </SelectContent>
+                        </Select>
                   )}
                 </div>
               </div>
@@ -2979,7 +2979,7 @@ export default function Survey2023() {
                 )}
               />
               <div>
-                <FormLabel className="text-sm font-normal">Category for other criteria</FormLabel>
+                    <FormLabel className="text-sm font-normal">Category for other criteria</FormLabel>
                 <Select 
                   onValueChange={(value) => {
                     const current = form.watch('gender_lens_investing') || {};
@@ -2993,15 +2993,15 @@ export default function Survey2023() {
                     return otherValue === '' ? undefined : otherValue;
                   })()}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Not Applicable">Not Applicable</SelectItem>
-                    <SelectItem value="Investment Consideration">Investment Consideration</SelectItem>
-                    <SelectItem value="Investment Requirement">Investment Requirement</SelectItem>
-                  </SelectContent>
-                </Select>
+                <SelectTrigger>
+                          <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+              <SelectContent>
+                        <SelectItem value="Not Applicable">Not Applicable</SelectItem>
+                        <SelectItem value="Investment Consideration">Investment Consideration</SelectItem>
+                        <SelectItem value="Investment Requirement">Investment Requirement</SelectItem>
+              </SelectContent>
+            </Select>
               </div>
             </div>
           </div>
@@ -3049,12 +3049,12 @@ export default function Survey2023() {
                       )}
                     />
                   ) : (
-                    <Input
-                      type="number"
-                      placeholder="%"
-                      className="w-20"
-                      onChange={(e) => {
-                        const value = e.target.value ? parseInt(e.target.value) : undefined;
+                            <Input
+                              type="number"
+                              placeholder="%"
+                              className="w-20"
+                              onChange={(e) => {
+                                const value = e.target.value ? parseInt(e.target.value) : undefined;
                         const current = form.watch('pipeline_sourcing') || {};
                         form.setValue('pipeline_sourcing', { ...current, [key]: value ?? 0 }, { shouldDirty: true, shouldTouch: true });
                       }}
@@ -3189,14 +3189,14 @@ export default function Survey2023() {
             <div key={fundingType} className="flex items-center justify-between border rounded p-2">
               <FormLabel className="text-sm font-normal flex-1 mr-4">{fundingType}</FormLabel>
               <div className="flex items-center space-x-1 w-20">
-                <Input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  placeholder="0"
-                  className="text-right h-8 w-16"
-                  onChange={(e) => {
+                        <Input
+                          type="number"
+                min="0"
+                max="100"
+                          step="0.1"
+                          placeholder="0"
+                          className="text-right h-8 w-16"
+                          onChange={(e) => {
                     const current = form.watch('portfolio_funding_mix') || {};
                     form.setValue('portfolio_funding_mix', {
                       ...current,
@@ -3207,7 +3207,7 @@ export default function Survey2023() {
                     const current = form.watch('portfolio_funding_mix') || {};
                     return current[fundingType] ?? '';
                   })()}
-                />
+      />
                 <span className="text-sm text-gray-500">%</span>
               </div>
             </div>
@@ -3217,7 +3217,7 @@ export default function Survey2023() {
         {form.watch('portfolio_funding_mix')?.Other && (
           <div className="mt-4">
             <div>
-              <FormLabel className="text-sm font-normal">Please specify other funding type</FormLabel>
+                  <FormLabel className="text-sm font-normal">Please specify other funding type</FormLabel>
               <Input
                 onChange={(e) => {
                   form.setValue('portfolio_funding_mix_other', e.target.value, { shouldDirty: true, shouldTouch: true });
@@ -3281,24 +3281,24 @@ export default function Survey2023() {
             <div key={area} className="flex items-center justify-between border rounded p-3">
               <FormLabel className="text-sm font-normal flex-1 mr-4">{area}</FormLabel>
               <div className="flex items-center space-x-2">
-      <Select
+                        <Select
         onValueChange={(value) => {
           const current = form.watch('portfolio_value_creation_priorities') || {};
           form.setValue('portfolio_value_creation_priorities', { ...current, [area]: value }, { shouldDirty: true, shouldTouch: true });
         }}
         value={(() => { const v = (form.watch('portfolio_value_creation_priorities') || {})[area] as any; return v == null ? undefined : String(v); })()}
-      >
-        <SelectTrigger className="w-20">
-          <SelectValue placeholder="Rank" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="1">1 (Lowest need)</SelectItem>
-          <SelectItem value="2">2</SelectItem>
-          <SelectItem value="3">3</SelectItem>
-          <SelectItem value="4">4</SelectItem>
-          <SelectItem value="5">5 (Highest need)</SelectItem>
-        </SelectContent>
-      </Select>
+                        >
+                          <SelectTrigger className="w-20">
+                            <SelectValue placeholder="Rank" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1">1 (Lowest need)</SelectItem>
+                            <SelectItem value="2">2</SelectItem>
+                            <SelectItem value="3">3</SelectItem>
+                            <SelectItem value="4">4</SelectItem>
+                            <SelectItem value="5">5 (Highest need)</SelectItem>
+                          </SelectContent>
+                        </Select>
               </div>
             </div>
           ))}
@@ -3325,25 +3325,25 @@ export default function Survey2023() {
               />
             </div>
             <div className="flex items-center space-x-2">
-              <Select
+                      <Select
                 onValueChange={(value) => {
                   const current = form.watch('portfolio_value_creation_priorities') || {};
                   form.setValue('portfolio_value_creation_priorities', { ...current, Other: value }, { shouldDirty: true, shouldTouch: true });
                 }}
                 value={(() => { const v = (form.watch('portfolio_value_creation_priorities') || {}).Other as any; return v == null ? undefined : String(v); })()}
-                disabled={!form.watch('portfolio_other_selected')}
-              >
-                <SelectTrigger className="w-20">
-                  <SelectValue placeholder="Rank" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1 (Lowest need)</SelectItem>
-                  <SelectItem value="2">2</SelectItem>
-                  <SelectItem value="3">3</SelectItem>
-                  <SelectItem value="4">4</SelectItem>
-                  <SelectItem value="5">5 (Highest need)</SelectItem>
-                </SelectContent>
-              </Select>
+                        disabled={!form.watch('portfolio_other_selected')}
+                      >
+                        <SelectTrigger className="w-20">
+                          <SelectValue placeholder="Rank" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">1 (Lowest need)</SelectItem>
+                          <SelectItem value="2">2</SelectItem>
+                          <SelectItem value="3">3</SelectItem>
+                          <SelectItem value="4">4</SelectItem>
+                          <SelectItem value="5">5 (Highest need)</SelectItem>
+                        </SelectContent>
+                      </Select>
             </div>
           </div>
         </div>
@@ -3403,12 +3403,12 @@ export default function Survey2023() {
                       )}
                     />
                   ) : (
-                    <Input
-                      type="number"
-                      placeholder="%"
-                      className="w-20"
-                      onChange={(e) => {
-                        const value = e.target.value ? parseInt(e.target.value) : undefined;
+                            <Input
+                              type="number"
+                              placeholder="%"
+                              className="w-20"
+                              onChange={(e) => {
+                                const value = e.target.value ? parseInt(e.target.value) : undefined;
                         const current = form.watch('technical_assistance_funding') || {};
                         form.setValue('technical_assistance_funding', { ...current, [key]: value ?? 0 }, { shouldDirty: true, shouldTouch: true });
                       }}
@@ -4031,13 +4031,13 @@ export default function Survey2023() {
               <h4 className="font-medium mb-3">{jobType}</h4>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <FormLabel className="text-sm font-normal">Net increase Jobs as of March 30, 2023</FormLabel>
-                  <Input
-                    type="number"
-                    min="0"
-                    placeholder="0"
-                    className="text-right"
-                    onChange={(e) => {
+                      <FormLabel className="text-sm font-normal">Net increase Jobs as of March 30, 2023</FormLabel>
+                        <Input
+                          type="number"
+                          min="0"
+                          placeholder="0"
+                          className="text-right"
+                          onChange={(e) => {
                       const current = form.watch('jobs_impact') || {};
                       form.setValue('jobs_impact', {
                         ...current,
@@ -4056,13 +4056,13 @@ export default function Survey2023() {
                 </div>
 
                 <div>
-                  <FormLabel className="text-sm font-normal">Anticipated net increase Jobs by March 30, 2024</FormLabel>
-                  <Input
-                    type="number"
-                    min="0"
-                    placeholder="0"
-                    className="text-right"
-                    onChange={(e) => {
+                      <FormLabel className="text-sm font-normal">Anticipated net increase Jobs by March 30, 2024</FormLabel>
+                        <Input
+                          type="number"
+                          min="0"
+                          placeholder="0"
+                          className="text-right"
+                          onChange={(e) => {
                       const current = form.watch('jobs_impact') || {};
                       form.setValue('jobs_impact', {
                         ...current,
@@ -4108,7 +4108,7 @@ export default function Survey2023() {
             {form.watch('jobs_impact_other_selected') && (
               <div className="space-y-4">
                 <div>
-                  <FormLabel className="text-sm font-normal">Please specify other job impact type</FormLabel>
+                      <FormLabel className="text-sm font-normal">Please specify other job impact type</FormLabel>
                   <Input
                     onChange={(e) => {
                       form.setValue('jobs_impact_other_description', e.target.value, { shouldDirty: true, shouldTouch: true });
@@ -4120,13 +4120,13 @@ export default function Survey2023() {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <FormLabel className="text-sm font-normal">Net increase Jobs as of March 30, 2023</FormLabel>
-                    <Input
-                      type="number"
-                      min="0"
-                      placeholder="0"
-                      className="text-right"
-                      onChange={(e) => {
+                        <FormLabel className="text-sm font-normal">Net increase Jobs as of March 30, 2023</FormLabel>
+                          <Input
+                            type="number"
+                            min="0"
+                            placeholder="0"
+                            className="text-right"
+                            onChange={(e) => {
                         const current = form.watch('jobs_impact') || {};
                         form.setValue('jobs_impact', {
                           ...current,
@@ -4145,13 +4145,13 @@ export default function Survey2023() {
                   </div>
 
                   <div>
-                    <FormLabel className="text-sm font-normal">Anticipated net increase Jobs by March 30, 2024</FormLabel>
-                    <Input
-                      type="number"
-                      min="0"
-                      placeholder="0"
-                      className="text-right"
-                      onChange={(e) => {
+                        <FormLabel className="text-sm font-normal">Anticipated net increase Jobs by March 30, 2024</FormLabel>
+                          <Input
+                            type="number"
+                            min="0"
+                            placeholder="0"
+                            className="text-right"
+                            onChange={(e) => {
                         const current = form.watch('jobs_impact') || {};
                         form.setValue('jobs_impact', {
                           ...current,
@@ -4197,24 +4197,24 @@ export default function Survey2023() {
             <div key={priority} className="flex items-center justify-between border rounded p-3">
               <FormLabel className="text-sm font-normal flex-1 mr-4">{priority}</FormLabel>
               <div className="flex items-center space-x-2">
-                <Select
+                        <Select
                   onValueChange={(value) => {
                     const current = form.watch('fund_priorities') || {};
                     form.setValue('fund_priorities', { ...current, [priority]: value }, { shouldDirty: true, shouldTouch: true });
                   }}
                   value={(() => { const v = (form.watch('fund_priorities') || {})[priority] as any; return v == null ? undefined : String(v); })()}
-                >
-                  <SelectTrigger className="w-20">
-                    <SelectValue placeholder="Rank" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1 (Lowest need)</SelectItem>
-                    <SelectItem value="2">2</SelectItem>
-                    <SelectItem value="3">3</SelectItem>
-                    <SelectItem value="4">4</SelectItem>
-                    <SelectItem value="5">5 (Highest need)</SelectItem>
-                  </SelectContent>
-                </Select>
+                        >
+                          <SelectTrigger className="w-20">
+                            <SelectValue placeholder="Rank" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1">1 (Lowest need)</SelectItem>
+                            <SelectItem value="2">2</SelectItem>
+                            <SelectItem value="3">3</SelectItem>
+                            <SelectItem value="4">4</SelectItem>
+                            <SelectItem value="5">5 (Highest need)</SelectItem>
+                          </SelectContent>
+                        </Select>
               </div>
             </div>
           ))}
@@ -4241,25 +4241,25 @@ export default function Survey2023() {
               />
             </div>
             <div className="flex items-center space-x-2">
-              <Select
+                      <Select
                 onValueChange={(value) => {
                   const current = form.watch('fund_priorities') || {};
                   form.setValue('fund_priorities', { ...current, Other: value }, { shouldDirty: true, shouldTouch: true });
                 }}
                 value={(() => { const v = (form.watch('fund_priorities') || {}).Other as any; return v == null ? undefined : String(v); })()}
-                disabled={!form.watch('fund_priorities_other_selected')}
-              >
-                <SelectTrigger className="w-20">
-                  <SelectValue placeholder="Rank" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1</SelectItem>
-                  <SelectItem value="2">2</SelectItem>
-                  <SelectItem value="3">3</SelectItem>
-                  <SelectItem value="4">4</SelectItem>
-                  <SelectItem value="5">5</SelectItem>
-                </SelectContent>
-              </Select>
+                        disabled={!form.watch('fund_priorities_other_selected')}
+                      >
+                        <SelectTrigger className="w-20">
+                          <SelectValue placeholder="Rank" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">1</SelectItem>
+                          <SelectItem value="2">2</SelectItem>
+                          <SelectItem value="3">3</SelectItem>
+                          <SelectItem value="4">4</SelectItem>
+                          <SelectItem value="5">5</SelectItem>
+                        </SelectContent>
+                      </Select>
             </div>
           </div>
         </div>
@@ -4628,15 +4628,15 @@ Which of the following would you be prepared to make available? [note: we are cu
               <Card className="bg-white p-6 rounded-lg border shadow-sm">
                 <div className="flex justify-between items-center">
                   <div className="flex gap-3">
-                    <Button 
-                      type="button"
-                      variant="outline"
-                      onClick={handlePrevious}
-                      disabled={currentSection === 1}
-                      className="px-6 py-2 border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      ← Previous
-                    </Button>
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    onClick={handlePrevious}
+                    disabled={currentSection === 1}
+                    className="px-6 py-2 border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    ← Previous
+                  </Button>
                     
                     {currentSection === totalSections && (
                       <Button 

@@ -168,7 +168,7 @@ const ResetPassword = () => {
           <CardContent className="text-center">
             <Button 
               onClick={() => navigate('/auth')}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-full"
             >
               Go to Sign In
             </Button>
@@ -215,7 +215,7 @@ const ResetPassword = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your new password"
-                  className="pr-10 border-gray-300 focus:border-blue-400 focus:ring-blue-200"
+                  className="pr-10 border-gray-300 focus:border-blue-400 focus:ring-blue-200 rounded-full"
                   disabled={loading || !accessToken || type !== 'recovery'}
                 />
                 <button
@@ -243,7 +243,7 @@ const ResetPassword = () => {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm your new password"
-                  className="pr-10 border-gray-300 focus:border-blue-400 focus:ring-blue-200"
+                  className="pr-10 border-gray-300 focus:border-blue-400 focus:ring-blue-200 rounded-full"
                   disabled={loading || !accessToken || type !== 'recovery'}
                 />
                 <button
@@ -259,7 +259,7 @@ const ResetPassword = () => {
 
             <Button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-full"
               disabled={loading || !accessToken || type !== 'recovery' || !password || !confirmPassword}
             >
               {loading ? (

@@ -197,9 +197,9 @@ export default function AuthForm() {
         
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 bg-blue-700/20 border-blue-600/40">
-              <TabsTrigger value="signin" className="text-white data-[state=active]:bg-blue-700/30 data-[state=active]:text-white">Sign In</TabsTrigger>
-              <TabsTrigger value="signup" className="text-white data-[state=active]:bg-blue-700/30 data-[state=active]:text-white">Sign Up</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 bg-blue-700/20 border-blue-600/40 rounded-full">
+              <TabsTrigger value="signin" className="text-white data-[state=active]:bg-blue-700/30 data-[state=active]:text-white rounded-full">Sign In</TabsTrigger>
+              <TabsTrigger value="signup" className="text-white data-[state=active]:bg-blue-700/30 data-[state=active]:text-white rounded-full">Sign Up</TabsTrigger>
             </TabsList>
             
             <TabsContent value="signin">
@@ -212,7 +212,7 @@ export default function AuthForm() {
                       id="signin-email"
                       type="email"
                       placeholder="Enter your email"
-                      className="pl-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60"
+                      className="pl-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60 rounded-full"
                       value={signInForm.email}
                       onChange={(e) => setSignInForm({ ...signInForm, email: e.target.value })}
                       required
@@ -228,7 +228,7 @@ export default function AuthForm() {
                       id="signin-password"
                       type={showSignInPassword ? "text" : "password"}
                       placeholder="Enter your password"
-                      className="pl-10 pr-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60"
+                      className="pl-10 pr-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60 rounded-full"
                       value={signInForm.password}
                       onChange={(e) => setSignInForm({ ...signInForm, password: e.target.value })}
                       required
@@ -253,7 +253,7 @@ export default function AuthForm() {
                   </button>
                 </div>
                 
-                <Button type="submit" className="w-full bg-blue-600/80 hover:bg-blue-600 text-white backdrop-blur-sm" disabled={isLoading}>
+                <Button type="submit" className="w-full bg-blue-600/80 hover:bg-blue-600 text-white backdrop-blur-sm rounded-full" disabled={isLoading}>
                   {isLoading ? 'Signing In...' : 'Sign In'}
                 </Button>
               </form>
@@ -268,7 +268,7 @@ export default function AuthForm() {
                     <Input
                       id="company-name"
                       placeholder="Enter your company name"
-                      className="pl-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60"
+                      className="pl-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60 rounded-full"
                       value={signUpForm.companyName}
                       onChange={(e) => setSignUpForm({ ...signUpForm, companyName: e.target.value })}
                       required
@@ -284,7 +284,7 @@ export default function AuthForm() {
                       id="signup-email"
                       type="email"
                       placeholder="Enter your email"
-                      className="pl-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60"
+                      className="pl-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60 rounded-full"
                       value={signUpForm.email}
                       onChange={(e) => setSignUpForm({ ...signUpForm, email: e.target.value })}
                       required
@@ -300,7 +300,7 @@ export default function AuthForm() {
                       id="signup-password"
                       type={showSignUpPassword ? "text" : "password"}
                       placeholder="Enter your password"
-                      className="pl-10 pr-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60"
+                      className="pl-10 pr-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60 rounded-full"
                       value={signUpForm.password}
                       onChange={(e) => setSignUpForm({ ...signUpForm, password: e.target.value })}
                       required
@@ -348,7 +348,7 @@ export default function AuthForm() {
                       id="confirm-password"
                       type={showConfirmPassword ? "text" : "password"}
                       placeholder="Confirm your password"
-                      className="pl-10 pr-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60"
+                      className="pl-10 pr-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60 rounded-full"
                       value={signUpForm.confirmPassword}
                       onChange={(e) => setSignUpForm({ ...signUpForm, confirmPassword: e.target.value })}
                       required
@@ -374,7 +374,7 @@ export default function AuthForm() {
                 
                 <Button 
                   type="submit" 
-                  className="w-full bg-blue-600/80 hover:bg-blue-600 text-white backdrop-blur-sm" 
+                  className="w-full bg-blue-600/80 hover:bg-blue-600 text-white backdrop-blur-sm rounded-full" 
                   disabled={isLoading || passwordStrength.score < 3 || !passwordsMatch}
                 >
                   {isLoading ? 'Creating Account...' : 'Create Account'}

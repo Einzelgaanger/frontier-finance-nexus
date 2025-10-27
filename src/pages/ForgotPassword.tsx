@@ -87,7 +87,7 @@ const ForgotPassword = () => {
             <div className="space-y-2">
               <Button 
                 onClick={() => navigate('/auth')}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-full"
               >
                 Back to Sign In
               </Button>
@@ -98,7 +98,7 @@ const ForgotPassword = () => {
                   setEmail('');
                   setError('');
                 }}
-                className="w-full"
+                className="w-full rounded-full"
               >
                 Send Another Email
               </Button>
@@ -147,7 +147,7 @@ const ForgotPassword = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email address"
-                  className="pl-10 border-gray-300 focus:border-blue-400 focus:ring-blue-200"
+                  className="pl-10 border-gray-300 focus:border-blue-400 focus:ring-blue-200 rounded-full"
                   disabled={loading}
                   required
                 />
@@ -156,7 +156,7 @@ const ForgotPassword = () => {
 
             <Button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-full"
               disabled={loading || !email.trim()}
             >
               {loading ? (
