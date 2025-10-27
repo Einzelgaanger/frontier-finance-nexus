@@ -128,7 +128,7 @@ export default function MemberNetworkPageNew() {
           <p className="text-muted-foreground mb-4">
             {userRole === 'admin' 
               ? 'Click on any company to view their survey responses (all sections)' 
-              : 'Click on companies with surveys to view their responses (first 4 sections)'}
+              : 'Click on companies with surveys to view their responses (sections based on your access level)'}
           </p>
           
           <Input
