@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import SidebarLayout from '@/components/layout/SidebarLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Upload, User } from 'lucide-react';
+import { Loader2, Upload, User, Mail, Globe, Building2 } from 'lucide-react';
 
 export default function MyProfile() {
   const { user } = useAuth();
@@ -161,40 +161,100 @@ export default function MyProfile() {
 
   return (
     <SidebarLayout>
-      <div className="container max-w-2xl mx-auto py-8 px-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Company Profile</CardTitle>
-            <CardDescription>
-              Update your company information
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex flex-col items-center gap-4">
-              <Avatar className="w-32 h-32">
-                <AvatarImage src={profile.profile_picture_url} />
-                <AvatarFallback className="text-4xl">
-                  <User className="w-16 h-16" />
-                </AvatarFallback>
-              </Avatar>
+      <div className="container max-w-4xl mx-auto py-6 px-4 bg-gradient-to-br from-blue-50 via-white to-purple-50 min-h-screen">
+        <Card className="shadow-lg border-blue-100">
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left Column - Form Fields */}
               <div>
-                <Label htmlFor="avatar-upload" className="cursor-pointer">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="company_name" className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4" />
+                      Company Name *
+                    </Label>
+                    <Input
+                      id="company_name"
+                      value={profile.company_name}
+                      onChange={(e) => setProfile(prev => ({ ...prev, company_name: e.target.value }))}
+                      placeholder="Enter your company name"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="website" className="flex items-center gap-2">
+                      <Globe className="w-4 h-4" />
+                      Company Website
+                    </Label>
+                    <Input
+                      id="website"
+                      type="url"
+                      value={profile.website}
+                      onChange={(e) => setProfile(prev => ({ ...prev, website: e.target.value }))}
+                      placeholder="https://example.com"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description">
+                      Company Description
+                    </Label>
+                    <Textarea
+                      id="description"
+                      value={profile.description}
+                      onChange={(e) => setProfile(prev => ({ ...prev, description: e.target.value }))}
+                      placeholder="Brief description of your company"
+                      rows={4}
+                      className="resize-none"
+                    />
+                  </div>
+
+                  <div className="pt-2">
+                    <Button
+                      onClick={handleSave}
+                      disabled={saving}
+                      className="w-full"
+                    >
+                      {saving ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        'Save Changes'
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column - Avatar and Email */}
+              <div className="flex flex-col items-center justify-start pt-2">
+                <Avatar className="w-32 h-32 mb-4">
+                  <AvatarImage src={profile.profile_picture_url} />
+                  <AvatarFallback className="text-4xl">
+                    {profile.company_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                
+                <Label htmlFor="avatar-upload" className="cursor-pointer mb-4">
                   <Button
                     type="button"
                     variant="outline"
+                    size="sm"
                     disabled={uploading}
                     asChild
                   >
                     <span>
                       {uploading ? (
                         <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Uploading...
+                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                          Uploading
                         </>
                       ) : (
                         <>
-                          <Upload className="w-4 h-4 mr-2" />
-                          Upload Avatar
+                          <Upload className="w-3 h-3 mr-1" />
+                          Change Photo
                         </>
                       )}
                     </span>
@@ -208,68 +268,13 @@ export default function MyProfile() {
                   onChange={handleUploadAvatar}
                   disabled={uploading}
                 />
+
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Mail className="w-4 h-4" />
+                  <span className="truncate">{user?.email}</span>
+                </div>
               </div>
             </div>
-
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email (Read-only)</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={user?.email || ''}
-                  disabled
-                  className="bg-muted"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="company_name">Company Name *</Label>
-                <Input
-                  id="company_name"
-                  value={profile.company_name}
-                  onChange={(e) => setProfile(prev => ({ ...prev, company_name: e.target.value }))}
-                  placeholder="Enter your company name"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Company Description</Label>
-                <Textarea
-                  id="description"
-                  value={profile.description}
-                  onChange={(e) => setProfile(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Brief description of your company"
-                  rows={4}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="website">Company Website</Label>
-                <Input
-                  id="website"
-                  type="url"
-                  value={profile.website}
-                  onChange={(e) => setProfile(prev => ({ ...prev, website: e.target.value }))}
-                  placeholder="https://example.com"
-                />
-              </div>
-            </div>
-
-            <Button
-              onClick={handleSave}
-              disabled={saving}
-              className="w-full"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                'Save Changes'
-              )}
-            </Button>
           </CardContent>
         </Card>
       </div>

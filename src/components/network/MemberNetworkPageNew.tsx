@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Building2, Mail, Globe, Loader2, User, FileText } from 'lucide-react';
+import { Building2, Mail, Globe, Loader2, User, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 import FundManagerDetailModal from './FundManagerDetailModal';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -26,6 +26,7 @@ export default function MemberNetworkPageNew() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState<{ id: string; name: string } | null>(null);
+  const [expandedDescriptions, setExpandedDescriptions] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     fetchProfiles();
@@ -124,13 +125,6 @@ export default function MemberNetworkPageNew() {
     <>
       <div className="container mx-auto py-8 px-4">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Network Directory</h1>
-          <p className="text-muted-foreground mb-4">
-            {userRole === 'admin' 
-              ? 'Click on any company to view their survey responses (all sections)' 
-              : 'Click on companies with surveys to view their responses (sections based on your access level)'}
-          </p>
-          
           <Input
             placeholder="Search by company name, email, or description..."
             value={searchTerm}
@@ -146,68 +140,106 @@ export default function MemberNetworkPageNew() {
             return (
               <Card 
                 key={profile.id} 
-                className={`transition-shadow ${
+                className={`transition-shadow relative overflow-hidden min-h-[400px] ${
                   isClickable 
                     ? 'hover:shadow-lg cursor-pointer hover:border-primary' 
                     : 'opacity-75'
                 }`}
                 onClick={() => handleCardClick(profile)}
               >
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="w-16 h-16">
-                        <AvatarImage src={profile.profile_picture_url || ''} />
-                        <AvatarFallback>
-                          <Building2 className="w-8 h-8" />
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <CardTitle className="text-lg">{profile.company_name || 'No Company Name'}</CardTitle>
-                        <div className="flex gap-2 mt-1">
-                          <Badge className={getRoleBadgeColor(profile.user_role)}>
-                            {profile.user_role}
-                          </Badge>
-                          {profile.has_surveys && (
-                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
-                              <FileText className="w-3 h-3 mr-1" />
-                              Has Surveys
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {profile.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-3">
-                      {profile.description}
-                    </p>
-                  )}
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Mail className="w-4 h-4 text-muted-foreground" />
-                      <span className="truncate">{profile.email}</span>
-                    </div>
-                    
-                    {profile.website && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Globe className="w-4 h-4 text-muted-foreground" />
-                        <a
-                          href={profile.website}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:underline truncate"
-                          onClick={(e) => e.stopPropagation()}
+                {/* Profile Picture as Background */}
+                <div className="absolute inset-0">
+                  <Avatar className="w-full h-full rounded-lg">
+                    <AvatarImage src={profile.profile_picture_url || ''} className="object-cover" />
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+                      <Building2 className="w-24 h-24" />
+                    </AvatarFallback>
+                  </Avatar>
+                  {/* Dark overlay for readability */}
+                  <div className="absolute inset-0 bg-black/60 group-hover:bg-black/50 transition-all duration-300"></div>
+                </div>
+
+                                 {/* Content Overlay - Directly on Image */}
+                 <div className="relative z-10 h-full flex flex-col justify-end p-6 space-y-1">
+                   {/* Company Name */}
+                   <div className="flex items-center gap-2">
+                     <Building2 className="w-5 h-5 text-blue-400 flex-shrink-0" />
+                     <CardTitle className="text-lg text-white drop-shadow-md">{profile.company_name || 'No Company Name'}</CardTitle>
+                   </div>
+
+                   {/* Email */}
+                   <div className="flex items-center gap-2 text-sm text-gray-100">
+                     <Mail className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                     <span className="truncate drop-shadow">{profile.email}</span>
+                   </div>
+
+                   {/* Website */}
+                   {profile.website && (
+                     <div className="flex items-center gap-2 text-sm text-gray-100">
+                       <Globe className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                       <a
+                         href={profile.website}
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         className="text-blue-300 hover:text-blue-200 hover:underline truncate drop-shadow"
+                         onClick={(e) => e.stopPropagation()}
+                       >
+                         {profile.website}
+                       </a>
+                     </div>
+                   )}
+
+                                       {/* Description */}
+                    {profile.description && (
+                      <div className="relative">
+                        <div 
+                          className={`text-sm text-gray-200 drop-shadow transition-all duration-300 ${
+                            expandedDescriptions[profile.id] ? 'max-h-32 overflow-y-auto' : 'line-clamp-2'
+                          }`}
+                          style={{ maxHeight: expandedDescriptions[profile.id] ? '8rem' : 'none' }}
                         >
-                          {profile.website}
-                        </a>
+                          {profile.description}
+                        </div>
+                        {profile.description.length > 100 && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setExpandedDescriptions(prev => ({
+                                ...prev,
+                                [profile.id]: !prev[profile.id]
+                              }));
+                            }}
+                            className="text-blue-400 hover:text-blue-300 text-xs mt-1 flex items-center gap-1"
+                          >
+                            {expandedDescriptions[profile.id] ? (
+                              <>
+                                <span>Read Less</span>
+                                <ChevronUp className="w-3 h-3" />
+                              </>
+                            ) : (
+                              <>
+                                <span>Read More</span>
+                                <ChevronDown className="w-3 h-3" />
+                              </>
+                            )}
+                          </button>
+                        )}
                       </div>
                     )}
-                  </div>
-                </CardContent>
+
+                   {/* Badges */}
+                   <div className="flex flex-wrap gap-2 pt-2">
+                     <Badge className="bg-black/40 backdrop-blur-sm text-white border-white/20">
+                       {profile.user_role}
+                     </Badge>
+                     {profile.has_surveys && (
+                       <Badge className="bg-green-500/30 backdrop-blur-sm text-green-100 border-green-400/30">
+                         <FileText className="w-3 h-3 mr-1" />
+                         Has Surveys
+                       </Badge>
+                     )}
+                   </div>
+                 </div>
               </Card>
             );
           })}

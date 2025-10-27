@@ -160,11 +160,7 @@ export default function Blogs() {
   return (
     <SidebarLayout>
       <div className="container max-w-6xl mx-auto py-8 px-4">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-foreground mb-2">Community Blogs</h1>
-            <p className="text-muted-foreground">Share insights and connect with fellow fund managers</p>
-          </div>
+        <div className="flex justify-end items-center mb-8">
           <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
             <PlusCircle className="h-5 w-5" />
             Create Post

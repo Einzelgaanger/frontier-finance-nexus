@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Mail, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
+import { Mail, ArrowLeft, CheckCircle, AlertCircle, Home } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -63,7 +63,7 @@ const ForgotPassword = () => {
   if (emailSent) {
     return (
       <div className="min-h-screen bg-cover bg-center bg-fixed flex items-center justify-center p-3 sm:p-4 font-rubik" style={{ backgroundImage: 'url(/auth.jpg)' }}>
-        <Card className="w-full max-w-md border border-blue-600/40 bg-blue-700/30 backdrop-blur-md relative z-10 shadow-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto scrollbar-hide">
+        <Card className="w-full max-w-md border border-blue-600/40 bg-blue-700/30 backdrop-blur-md relative z-10 shadow-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto scrollbar-hide select-none">
           <CardHeader className="text-center pb-4 sm:pb-6 pt-6 sm:pt-8">
             <div className="flex justify-center mb-3 sm:mb-4">
               <img 
@@ -77,9 +77,9 @@ const ForgotPassword = () => {
               We've sent password reset instructions to {email}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 text-center">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-blue-800">
+          <CardContent className="space-y-4 text-center px-4 sm:px-6">
+            <div className="bg-blue-50/20 border border-blue-500/50 rounded-lg p-4 backdrop-blur-sm">
+              <p className="text-sm text-white/90">
                 Check your email and click the reset link to create a new password. 
                 The link will expire in 1 hour for security reasons.
               </p>
@@ -87,7 +87,7 @@ const ForgotPassword = () => {
             <div className="space-y-2">
               <Button 
                 onClick={() => navigate('/auth')}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-full"
+                className="w-full bg-blue-600/80 hover:bg-blue-600 text-white backdrop-blur-sm rounded-full"
               >
                 Back to Sign In
               </Button>
@@ -98,9 +98,17 @@ const ForgotPassword = () => {
                   setEmail('');
                   setError('');
                 }}
-                className="w-full rounded-full"
+                className="w-full border-blue-600/40 text-blue-100 hover:bg-blue-700/30 hover:text-white rounded-full"
               >
                 Send Another Email
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => navigate('/')}
+                className="w-full text-blue-100 hover:text-white hover:bg-blue-700/30 rounded-full"
+              >
+                <Home className="w-4 h-4 mr-2" />
+                Go to Homepage
               </Button>
             </div>
           </CardContent>
@@ -111,7 +119,7 @@ const ForgotPassword = () => {
 
   return (
     <div className="min-h-screen bg-cover bg-center bg-fixed flex items-center justify-center p-3 sm:p-4 font-rubik" style={{ backgroundImage: 'url(/auth.jpg)' }}>
-      <Card className="w-full max-w-md border border-blue-600/40 bg-blue-700/30 backdrop-blur-md relative z-10 shadow-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto scrollbar-hide">
+      <Card className="w-full max-w-md border border-blue-600/40 bg-blue-700/30 backdrop-blur-md relative z-10 shadow-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto scrollbar-hide select-none">
         <CardHeader className="text-center pb-4 sm:pb-6 pt-6 sm:pt-8">
           <div className="flex justify-center mb-3 sm:mb-4">
             <img 
@@ -120,7 +128,7 @@ const ForgotPassword = () => {
               className="h-12 sm:h-14 md:h-16 w-auto object-contain"
             />
           </div>
-          <CardTitle className="text-xl sm:text-2xl font-bold text-white">Reset Your Password</CardTitle>
+                      <CardTitle className="text-xl sm:text-2xl font-bold text-white">Reset Your Password</CardTitle>
           <CardDescription className="text-white/90 text-sm sm:text-base">
             Enter your email address and we'll send you a link to reset your password
           </CardDescription>
@@ -128,35 +136,36 @@ const ForgotPassword = () => {
         
         <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6">
           {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
+            <Alert variant="destructive" className="bg-red-500/20 border-red-500/50">
+              <AlertCircle className="h-4 w-4 text-red-300" />
+              <AlertDescription className="text-red-100">{error}</AlertDescription>
             </Alert>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-gray-700 font-medium">
+              <Label htmlFor="email" className="text-white font-medium">
                 Email Address
               </Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-100/90 w-4 h-4" />
                 <Input
                   id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email address"
-                  className="pl-10 border-gray-300 focus:border-blue-400 focus:ring-blue-200 rounded-full"
+                  className="pl-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-full select-text autofill:bg-blue-700/20 autofill:text-white"
                   disabled={loading}
                   required
+                  autoComplete="email"
                 />
               </div>
             </div>
 
             <Button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-full"
+              className="w-full bg-blue-600/80 hover:bg-blue-600 text-white backdrop-blur-sm rounded-full"
               disabled={loading || !email.trim()}
             >
               {loading ? (
@@ -170,15 +179,24 @@ const ForgotPassword = () => {
             </Button>
           </form>
 
-          <div className="text-center">
+          <div className="space-y-2">
             <Button
               variant="ghost"
               onClick={() => navigate('/auth')}
-              className="text-blue-600 hover:text-blue-700"
+              className="w-full text-blue-100 hover:text-white hover:bg-blue-700/30 rounded-full"
               disabled={loading}
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Sign In
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/')}
+              className="w-full text-blue-100 hover:text-white hover:bg-blue-700/30 rounded-full"
+              disabled={loading}
+            >
+              <Home className="w-4 h-4 mr-2" />
+              Go to Homepage
             </Button>
           </div>
         </CardContent>

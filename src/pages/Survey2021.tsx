@@ -273,6 +273,14 @@ const Survey2021: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
+  // Force scroll to top when navigating to this page from other routes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Load saved draft on component mount
   useEffect(() => {
     const loadDraft = async () => {
@@ -583,11 +591,11 @@ const Survey2021: React.FC = () => {
       <Button
         variant="outline"
         size="sm"
-        onClick={() => navigate('/survey')}
+        onClick={() => navigate('/dashboard')}
         className="mt-4 w-full"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Network
+        Back to Dashboard
       </Button>
     </div>
   );
@@ -2914,7 +2922,7 @@ const Survey2021: React.FC = () => {
 
   return (
     <SidebarLayout>
-      <div className="min-h-screen bg-gray-50 pb-16">
+      <div className={`min-h-screen bg-gray-50 ${showIntro ? 'pb-0' : 'pb-16'}`}>
         <div className={`max-w-6xl mx-auto ${!showIntro ? 'pr-80' : ''}`}>
         {/* Back Button (hidden on intro to reclaim space) */}
         {!showIntro && null}
@@ -2990,15 +2998,15 @@ const Survey2021: React.FC = () => {
               })}
             </div>
 
-            {/* Back to Network Button */}
+            {/* Back to Dashboard Button */}
             <div className="mt-6 pt-6 border-t border-gray-200">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => navigate('/network')}
+                onClick={() => navigate('/dashboard')}
                 className="w-full"
               >
-                Back to Network
+                Back to Dashboard
               </Button>
             </div>
           </div>
@@ -3022,8 +3030,8 @@ const Survey2021: React.FC = () => {
                       <span className="px-2 py-0.5 rounded-full bg-white/80 text-blue-700 border border-blue-200">12–15 min</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" onClick={() => navigate('/network')}>
-                        Back to Network
+                      <Button variant="outline" size="sm" onClick={() => navigate('/dashboard')}>
+                        Back to Dashboard
                       </Button>
                       <Button size="sm" onClick={() => { setShowIntro(false); setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 0); }}>
                         Start Survey
@@ -3112,16 +3120,16 @@ const Survey2021: React.FC = () => {
           <Card className="bg-white p-6 rounded-lg border shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handlePrevious}
-                  disabled={currentSection === 1}
-                    className="px-6 py-2 border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Previous
-                </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handlePrevious}
+              disabled={currentSection === 1}
+                className="px-6 py-2 border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Previous
+            </Button>
 
                 {currentSection === totalSections && (
                   <Button
@@ -3134,17 +3142,17 @@ const Survey2021: React.FC = () => {
                 )}
               </div>
 
-              <div className="flex gap-3">
+            <div className="flex gap-3">
                 {currentSection < totalSections && (
-                  <Button
-                    type="button"
-                    onClick={handleNext}
-                      className="px-8 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                  >
-                      Next &rarr;
-                  </Button>
-                )}
-              </div>
+                <Button
+                  type="button"
+                  onClick={handleNext}
+                    className="px-8 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                    Next &rarr;
+                </Button>
+              )}
+            </div>
             </div>
           </Card>
         </form>

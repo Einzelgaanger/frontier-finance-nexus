@@ -204,8 +204,8 @@ const Index = () => {
                    To achieve a sustainable and growing small business finance ecosystem in Africa and beyond by addressing the <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">"missing middle"</span> financing gap. We support and enable local capital providers to accelerate financing solutions.
                  </p>
                </div>
-             </div>
-             
+          </div>
+          
              {/* Large Image on the Right */}
              <div className="order-2 lg:order-2">
                <div className="relative bg-white/80 backdrop-blur-lg rounded-2xl sm:rounded-3xl p-0 shadow-2xl border border-white/20 overflow-hidden group hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2">
@@ -215,11 +215,11 @@ const Index = () => {
                      alt="CFF Network Gathering" 
                      className="w-full h-full object-cover"
                    />
-                 </div>
-               </div>
-             </div>
-           </div>
-           
+                </div>
+                </div>
+              </div>
+            </div>
+
            {/* Bottom Section: Mission, Image, and Challenge Cards */}
            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 -mt-6 sm:-mt-8 md:-mt-12">
                             {/* Left Column: Mission Card and Image */}
@@ -233,11 +233,11 @@ const Index = () => {
                         alt="CFF Convening Event" 
                         className="w-full h-full object-cover"
                       />
-                    </div>
-                  </div>
+                </div>
                 </div>
               </div>
-              
+            </div>
+
               {/* Right Column: Challenge Content */}
               <div className={`mt-8 sm:mt-12 transition-all duration-[1500ms] delay-400 ease-out ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'}`}>
                 <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
@@ -249,9 +249,9 @@ const Index = () => {
                 <p className="text-xs sm:text-sm text-gray-600">
                   These "missing middle" businesses are too big for microfinance, too small for private equity, and too risky for banks.
                 </p>
+                </div>
               </div>
             </div>
-         </div>
 
         {/* Custom Animations CSS */}
         <style>{`
@@ -380,7 +380,7 @@ const Index = () => {
               </div>
               <div className="text-base text-white font-semibold mb-1">Fund Manager Members</div>
               <div className="text-sm text-blue-200">Across 30+ countries</div>
-            </div>
+                </div>
             
             {/* Capital Target */}
             <div className="group relative text-center">
@@ -395,7 +395,7 @@ const Index = () => {
               <div className="text-base text-white font-semibold mb-1">Capital Target</div>
               <div className="text-sm text-emerald-200">Collectively raising</div>
             </div>
-            
+
             {/* SGBs Invested */}
             <div className="group relative text-center">
               <div className="flex justify-center mb-3">
@@ -405,11 +405,11 @@ const Index = () => {
               </div>
               <div className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-purple-100 mb-1">
                 {sgbCount.toLocaleString()}+
-              </div>
+                </div>
               <div className="text-base text-white font-semibold mb-1">SGBs Invested</div>
               <div className="text-sm text-purple-200">Portfolio companies</div>
-            </div>
-          </div>
+                </div>
+              </div>
         </div>
       </section>
 
@@ -458,8 +458,8 @@ const Index = () => {
                 <p className="text-sm text-gray-700 leading-relaxed">
                   Connect stakeholders facing similar challenges to a peer network of actors operating with shared principles, values, and ambitions to learn from and support one another.
                 </p>
-              </div>
-              
+            </div>
+
               <div>
                 <div className="flex items-center space-x-2 mb-2">
                   <div className="w-8 h-8 bg-gradient-to-br from-purple-700 to-purple-800 rounded-lg flex items-center justify-center shadow-lg">

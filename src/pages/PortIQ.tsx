@@ -25,14 +25,22 @@ const PortIQ = () => {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll to bottom when messages change - instant scroll
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
   };
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Auto-scroll when component first mounts and messages are loaded
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      scrollToBottom();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Reset textarea height when input is cleared
   useEffect(() => {
@@ -218,13 +226,13 @@ const PortIQ = () => {
   return (
     <div className="h-screen overflow-hidden">
       <SidebarLayout>
-        <div className="h-screen bg-cover bg-center bg-fixed overflow-hidden" style={{ backgroundImage: 'url(/auth.jpg)' }}>
-          <div className="absolute inset-0 bg-black/40"></div>
+                 <div className="h-screen bg-cover bg-center bg-fixed overflow-hidden" style={{ backgroundImage: 'url(/auth.jpg)' }}>
+           <div className="absolute inset-0 bg-black/20"></div>
           <div className="relative z-10 h-full flex items-center justify-center p-6 pt-20">
             <div className="w-full max-w-5xl h-[calc(100vh-8rem)] flex flex-col">
 
             {/* Chat Area with warm design - Fixed height like WhatsApp */}
-            <Card className="shadow-2xl border-2 border-blue-100 bg-white/90 backdrop-blur-sm h-full flex flex-col relative">
+            <Card className="shadow-2xl border-2 border-blue-100 bg-white/30 backdrop-blur-sm h-full flex flex-col relative">
               {/* Fixed Header - like WhatsApp */}
               <CardHeader className="border-b bg-gradient-to-r from-blue-50 to-purple-50 flex-shrink-0 relative z-20 py-3 px-4">
                 <div className="flex items-start justify-between">

@@ -20,7 +20,15 @@ import {
   Send,
   User,
   Brain,
-  BookOpen
+  BookOpen,
+  Home,
+  Users,
+  ClipboardList,
+  Sparkles,
+  Newspaper,
+  LineChart,
+  LockKeyhole,
+  UserCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -68,7 +76,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
     { 
       name: "Dashboard", 
       href: "/dashboard", 
-      icon: LayoutDashboard, 
+      icon: Home, 
       roles: ["admin", "member", "viewer"],
       description: (userRole === "viewer" || !userRole) ? "Your overview and insights" : userRole === "member" ? "Your member dashboard and activity" : "Overview and analytics",
       badge: null,
@@ -77,7 +85,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
     { 
       name: "Network", 
       href: "/network", 
-      icon: Network, 
+      icon: Users, 
       roles: ["admin", "member", "viewer"],
       description: (userRole === "viewer" || !userRole) ? "Browse approved fund managers" : "Fund manager directory",
       badge: null,
@@ -86,7 +94,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
     { 
       name: "Application", 
       href: "/application", 
-      icon: Send, 
+      icon: ClipboardList, 
       roles: ["viewer"],
       description: "Submit membership application",
       badge: null,
@@ -95,7 +103,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
     { 
       name: "PortIQ", 
       href: "/portiq", 
-      icon: Brain, 
+      icon: Sparkles, 
       roles: ["admin", "member", "viewer"],
       description: "AI Assistant for data insights",
       badge: null,
@@ -104,7 +112,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
     { 
       name: "Blogs", 
       href: "/blogs", 
-      icon: BookOpen, 
+      icon: Newspaper, 
       roles: ["admin", "member", "viewer"],
       description: "Share insights and connect",
       badge: null,
@@ -113,7 +121,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
     { 
       name: "Analytics", 
       href: "/analytics", 
-      icon: BarChart3, 
+      icon: LineChart, 
       roles: ["admin"],
       description: "Data insights and reports",
       badge: null,
@@ -122,7 +130,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
     { 
       name: "Admin Panel", 
       href: "/admin", 
-      icon: Shield, 
+      icon: LockKeyhole, 
       roles: ["admin"],
       description: "User and system management",
       badge: null,
@@ -131,7 +139,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
     { 
       name: "My Profile", 
       href: "/profile", 
-      icon: User, 
+      icon: UserCircle, 
       roles: ["admin", "member", "viewer"],
       description: "Manage your company information and profile",
       badge: null,
@@ -208,7 +216,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
   }, [navigate, sidebarCollapsed]);
 
   return (
-    <div className="min-h-screen transition-all duration-300 bg-[#f5f5dc]">
+    <div className="min-h-screen transition-all duration-300 bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div 
@@ -222,95 +230,89 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
         className={cn(
           "fixed inset-y-0 left-0 z-50 transform transition-all duration-300 ease-in-out lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full",
-          "w-24",
-          "bg-gradient-to-b from-slate-900 via-blue-950 to-slate-900 shadow-2xl overflow-hidden font-rubik border-r border-slate-700/50"
+          "w-56",
+          "bg-slate-900 shadow-2xl overflow-hidden font-rubik border-r border-slate-700/50"
         )}
       >
-        {/* Animated background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-purple-600/5 to-pink-600/5 pointer-events-none"></div>
-        
-        <div className="flex flex-col h-screen overflow-hidden relative">
+        <div className="flex flex-col h-screen overflow-hidden">
+          {/* CFF Logo at Top */}
+          <div className="p-4 border-b border-slate-700/50">
+            <img 
+              src="/CFF LOGO.png" 
+              alt="CFF Logo" 
+              className="h-12 w-auto object-contain mx-auto"
+            />
+          </div>
+
           {/* Navigation */}
-          <nav className="flex-1 p-2 space-y-1.5 overflow-hidden min-h-0">
+          <nav className="flex-1 p-4 space-y-1 overflow-hidden min-h-0">
             {filteredNavItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.href);
-              const colors = getSmoothColorClasses(item.color, active);
+              const isPortIQ = item.name === "PortIQ";
               
               return (
                 <button
                   key={item.name}
                   onClick={() => handleNavigation(item.href)}
                   className={cn(
-                    "w-full flex flex-col items-center px-2 py-3 rounded-xl transition-all duration-500 group relative transform overflow-hidden",
+                    "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group",
                     active 
-                      ? "bg-gradient-to-br from-blue-500/20 to-purple-500/20 shadow-lg shadow-blue-500/20 ring-1 ring-blue-400/30" 
-                      : "hover:bg-gradient-to-br hover:from-slate-700/30 hover:to-slate-800/30",
-                    "hover:shadow-lg hover:scale-[1.02] hover:-translate-y-0.5"
+                      ? "bg-blue-600 text-white" 
+                      : "text-slate-300 hover:bg-cyan-600/20 hover:text-white"
                   )}
                   title={item.name}
                 >
-                  {/* Active indicator bar */}
-                  {active && (
-                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-400 to-purple-500 rounded-r-full"></div>
+                  {isPortIQ ? (
+                    <img 
+                      src="/robot.png" 
+                      alt="PortIQ" 
+                      className="w-5 h-5 flex-shrink-0 object-contain"
+                    />
+                  ) : (
+                    <Icon className="w-5 h-5 flex-shrink-0" />
                   )}
-                  
-                  {/* Hover glow effect */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-400/0 via-purple-400/0 to-pink-400/0 group-hover:from-blue-400/10 group-hover:via-purple-400/10 group-hover:to-pink-400/10 transition-all duration-500 rounded-xl"></div>
-                  
-                  <div className={cn(
-                    "p-2 rounded-lg transition-all duration-500 shadow-md group-hover:shadow-xl group-hover:scale-110 mb-2 relative z-10",
-                    active 
-                      ? "bg-gradient-to-br from-blue-500 to-purple-600 shadow-blue-500/30" 
-                      : "bg-gradient-to-br from-slate-700/50 to-slate-800/50 group-hover:from-blue-600/30 group-hover:to-purple-600/30"
-                  )}>
-                    <Icon className={cn(
-                      "transition-colors w-4 h-4 relative z-10",
-                      active ? "text-white" : "text-blue-300 group-hover:text-white"
-                    )} />
-                  </div>
-                  <div className="text-center relative z-10">
-                    <p className={cn(
-                      "font-medium text-[10px] transition-colors leading-tight",
-                      active ? "text-white" : "text-slate-300 group-hover:text-white"
-                    )}>
-                      {item.name}
-                    </p>
-                  </div>
+                  <span className="font-medium text-sm">{item.name}</span>
                 </button>
               );
             })}
           </nav>
 
-          {/* Sign Out Button */}
-          <div className="p-2 border-t border-slate-700/50">
-            <button
-              onClick={handleSignOut}
-              className="w-full flex flex-col items-center px-2 py-3 rounded-xl transition-all duration-500 group relative overflow-hidden hover:bg-gradient-to-br hover:from-red-900/20 hover:to-red-800/20 hover:shadow-lg hover:scale-[1.02] hover:-translate-y-0.5"
-              title="Sign Out"
-            >
-              {/* Hover glow effect */}
-              <div className="absolute inset-0 bg-gradient-to-br from-red-500/0 to-orange-500/0 group-hover:from-red-500/10 group-hover:to-orange-500/10 transition-all duration-500 rounded-xl"></div>
-              
-              <div className="p-2 rounded-lg bg-gradient-to-br from-slate-700/50 to-slate-800/50 transition-all duration-500 shadow-md group-hover:shadow-xl group-hover:scale-110 mb-2 group-hover:from-red-600/30 group-hover:to-orange-600/30 relative z-10">
-                <LogOut className="text-red-300 group-hover:text-white w-4 h-4 transition-colors relative z-10" />
+          {/* Email and Profile Picture at Bottom */}
+          <div className="p-4 border-t border-slate-700/50 space-y-3">
+            {/* Email */}
+            <div className="px-4">
+              <p className="text-xs text-slate-400 mb-1">Email</p>
+              <p className="text-sm text-white truncate">{user?.email}</p>
+            </div>
+            
+            {/* Profile Picture */}
+            <div className="flex items-center gap-3 px-4">
+              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                {user?.email?.charAt(0).toUpperCase() || 'U'}
               </div>
-              <div className="text-center relative z-10">
-                <p className="font-medium text-[10px] text-slate-300 group-hover:text-white transition-colors leading-tight">
-                  Sign Out
+              <div>
+                <p className="text-sm font-medium text-white capitalize">
+                  {userRole || 'Viewer'}
                 </p>
+                <button
+                  onClick={handleSignOut}
+                  className="text-xs text-slate-400 hover:text-red-400 transition-colors"
+                >
+                  Sign Out
+                </button>
               </div>
-            </button>
+            </div>
           </div>
 
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-col min-w-0 bg-[#f5f5dc] ml-24">
+      <div className="flex flex-col min-w-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 lg:ml-56">
         {/* Top Header */}
-        <header className="border-b-2 border-black px-6 py-2 transition-colors bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 font-rubik sticky top-0 z-10">
-          <div className="flex items-center justify-between">
+        <header className="border-b-2 border-black px-6 py-4 transition-colors bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 font-rubik sticky top-0 z-10">
+          <div className="flex items-center">
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
@@ -320,15 +322,6 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
               >
                 <Menu className="w-5 h-5" />
               </Button>
-              
-              {/* CFF Logo */}
-              <div className="flex items-center">
-                <img 
-                  src="/CFF LOGO.png" 
-                  alt="CFF Logo" 
-                  className="h-12 w-auto object-contain mr-4"
-                />
-              </div>
               
                 <div>
                   {location.pathname === '/dashboard' && userRole === 'admin' ? (
@@ -341,7 +334,14 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
                       </p>
                     </>
                   ) : location.pathname === '/dashboard' && userRole === 'viewer' ? (
-                    <></>
+                    <>
+                      <h2 className="text-2xl font-bold text-white transition-colors">
+                        Welcome
+                      </h2>
+                      <p className="text-sm text-white/70 transition-colors">
+                        Your gateway to the global fund manager community and comprehensive market intelligence
+                      </p>
+                    </>
                   ) : location.pathname === '/dashboard' && userRole === 'member' ? (
                     <>
                       <h2 className="text-2xl font-bold text-white transition-colors">
@@ -376,6 +376,24 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
                         Join the CFF Network and connect with global fund managers
                       </p>
                     </>
+                  ) : location.pathname === '/blogs' ? (
+                    <>
+                      <h2 className="text-2xl font-bold text-white transition-colors">
+                        Community Blogs
+                      </h2>
+                      <p className="text-sm text-white/70 transition-colors">
+                        Share insights and connect with fellow fund managers
+                      </p>
+                    </>
+                  ) : location.pathname === '/profile' ? (
+                    <>
+                      <h2 className="text-2xl font-bold text-white transition-colors">
+                        Company Profile
+                      </h2>
+                      <p className="text-sm text-white/70 transition-colors">
+                        Update your company information
+                      </p>
+                    </>
                   ) : (
                     <>
                       <h2 className="text-2xl font-bold text-white transition-colors">
@@ -396,38 +414,11 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
                   )}
                 </div>
             </div>
-            
-            {/* Right side - User info for all pages */}
-            <div className="flex items-center space-x-4">
-              {/* Email and Role (2 rows) */}
-              <div className="text-right">
-                <p className="text-sm font-medium text-white">
-                  {user?.email}
-                </p>
-                {/* Role Badge */}
-                <div className="mt-1">
-                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                    userRole === 'admin' 
-                      ? 'bg-red-500/20 text-red-300 border border-red-400/30' 
-                      : userRole === 'member' 
-                      ? 'bg-green-500/20 text-green-300 border border-green-400/30' 
-                      : 'bg-blue-500/20 text-blue-300 border border-blue-400/30'
-                  }`}>
-                    {userRole?.charAt(0).toUpperCase() + userRole?.slice(1) || 'Viewer'}
-                  </span>
-                </div>
-              </div>
-              {/* Profile Picture - furthest right */}
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-semibold text-sm">
-                {user?.email?.charAt(0).toUpperCase() || 'U'}
-              </div>
-            </div>
-            
           </div>
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 bg-[#f5f5dc]">
+        <main className="flex-1 bg-gradient-to-br from-blue-50 via-white to-purple-50">
           {children}
         </main>
       </div>

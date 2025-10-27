@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Mail, Lock, User, Eye, EyeOff, AlertCircle, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, AlertCircle, CheckCircle, XCircle, ArrowLeft, Home } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -181,7 +181,7 @@ export default function AuthForm() {
 
   return (
     <div className="min-h-screen bg-cover bg-center bg-fixed flex items-center justify-center p-3 sm:p-4 font-rubik" style={{ backgroundImage: 'url(/auth.jpg)' }}>
-      <Card className="w-full max-w-md border border-blue-600/40 bg-blue-700/30 backdrop-blur-md relative z-10 shadow-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto scrollbar-hide">
+      <Card className="w-full max-w-md border border-blue-600/40 bg-blue-700/30 backdrop-blur-md relative z-10 shadow-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto scrollbar-hide select-none">
         <CardHeader className="text-center pt-6 sm:pt-8">
           <div className="flex justify-center mb-3 sm:mb-4">
             <img 
@@ -212,10 +212,11 @@ export default function AuthForm() {
                       id="signin-email"
                       type="email"
                       placeholder="Enter your email"
-                      className="pl-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60 rounded-full"
+                      className="pl-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-full select-text autofill:bg-blue-700/20 autofill:text-white"
                       value={signInForm.email}
                       onChange={(e) => setSignInForm({ ...signInForm, email: e.target.value })}
                       required
+                      autoComplete="email"
                     />
                   </div>
                 </div>
@@ -228,10 +229,11 @@ export default function AuthForm() {
                       id="signin-password"
                       type={showSignInPassword ? "text" : "password"}
                       placeholder="Enter your password"
-                      className="pl-10 pr-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60 rounded-full"
+                      className="pl-10 pr-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-full select-text autofill:bg-blue-700/20 autofill:text-white"
                       value={signInForm.password}
                       onChange={(e) => setSignInForm({ ...signInForm, password: e.target.value })}
                       required
+                      autoComplete="current-password"
                     />
                     <button
                       type="button"
@@ -268,10 +270,11 @@ export default function AuthForm() {
                     <Input
                       id="company-name"
                       placeholder="Enter your company name"
-                      className="pl-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60 rounded-full"
+                      className="pl-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-full select-text autofill:bg-blue-700/20 autofill:text-white"
                       value={signUpForm.companyName}
                       onChange={(e) => setSignUpForm({ ...signUpForm, companyName: e.target.value })}
                       required
+                      autoComplete="organization"
                     />
                   </div>
                 </div>
@@ -284,10 +287,11 @@ export default function AuthForm() {
                       id="signup-email"
                       type="email"
                       placeholder="Enter your email"
-                      className="pl-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60 rounded-full"
+                      className="pl-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-full select-text autofill:bg-blue-700/20 autofill:text-white"
                       value={signUpForm.email}
                       onChange={(e) => setSignUpForm({ ...signUpForm, email: e.target.value })}
                       required
+                      autoComplete="email"
                     />
                   </div>
                 </div>
@@ -300,10 +304,11 @@ export default function AuthForm() {
                       id="signup-password"
                       type={showSignUpPassword ? "text" : "password"}
                       placeholder="Enter your password"
-                      className="pl-10 pr-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60 rounded-full"
+                      className="pl-10 pr-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-full select-text autofill:bg-blue-700/20 autofill:text-white"
                       value={signUpForm.password}
                       onChange={(e) => setSignUpForm({ ...signUpForm, password: e.target.value })}
                       required
+                      autoComplete="new-password"
                     />
                     <button
                       type="button"
@@ -348,10 +353,11 @@ export default function AuthForm() {
                       id="confirm-password"
                       type={showConfirmPassword ? "text" : "password"}
                       placeholder="Confirm your password"
-                      className="pl-10 pr-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60 rounded-full"
+                      className="pl-10 pr-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-full select-text autofill:bg-blue-700/20 autofill:text-white"
                       value={signUpForm.confirmPassword}
                       onChange={(e) => setSignUpForm({ ...signUpForm, confirmPassword: e.target.value })}
                       required
+                      autoComplete="new-password"
                     />
                     <button
                       type="button"
@@ -383,17 +389,15 @@ export default function AuthForm() {
             </TabsContent>
           </Tabs>
 
-          <div className="mt-6 p-4 bg-blue-700/20 rounded-lg border border-blue-600/40">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-blue-200 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-white/90">
-                <p className="font-medium mb-2">Access Information:</p>
-                <ul className="space-y-1 text-xs">
-                  <li><span className="font-medium">Viewer:</span> Browse the network directory</li>
-                  <li><span className="font-medium">Member:</span> Access to member data and survey</li>
-                </ul>
-              </div>
-            </div>
+          <div className="mt-6">
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/')}
+              className="w-full text-blue-100 hover:text-white hover:bg-blue-700/30 rounded-full"
+            >
+              <Home className="w-4 h-4 mr-2" />
+              Go to Homepage
+            </Button>
           </div>
         </CardContent>
       </Card>

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Lock, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
+import { Lock, Eye, EyeOff, CheckCircle, AlertCircle, Home, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -151,7 +151,7 @@ const ResetPassword = () => {
   if (success) {
     return (
       <div className="min-h-screen bg-cover bg-center bg-fixed flex items-center justify-center p-3 sm:p-4 font-rubik" style={{ backgroundImage: 'url(/auth.jpg)' }}>
-        <Card className="w-full max-w-md border border-blue-600/40 bg-blue-700/30 backdrop-blur-md relative z-10 shadow-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto scrollbar-hide">
+        <Card className="w-full max-w-md border border-blue-600/40 bg-blue-700/30 backdrop-blur-md relative z-10 shadow-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto scrollbar-hide select-none">
           <CardHeader className="text-center pb-4 sm:pb-6 pt-6 sm:pt-8">
             <div className="flex justify-center mb-3 sm:mb-4">
               <img 
@@ -165,12 +165,20 @@ const ResetPassword = () => {
               Your password has been successfully updated. Redirecting you to sign in...
             </CardDescription>
           </CardHeader>
-          <CardContent className="text-center">
+          <CardContent className="text-center px-4 sm:px-6 space-y-2">
             <Button 
               onClick={() => navigate('/auth')}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-full"
+              className="w-full bg-blue-600/80 hover:bg-blue-600 text-white backdrop-blur-sm rounded-full"
             >
               Go to Sign In
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/')}
+              className="w-full text-blue-100 hover:text-white hover:bg-blue-700/30 rounded-full"
+            >
+              <Home className="w-4 h-4 mr-2" />
+              Go to Homepage
             </Button>
           </CardContent>
         </Card>
@@ -180,7 +188,7 @@ const ResetPassword = () => {
 
   return (
     <div className="min-h-screen bg-cover bg-center bg-fixed flex items-center justify-center p-3 sm:p-4 font-rubik" style={{ backgroundImage: 'url(/auth.jpg)' }}>
-      <Card className="w-full max-w-md border border-blue-600/40 bg-blue-700/30 backdrop-blur-md relative z-10 shadow-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto scrollbar-hide">
+      <Card className="w-full max-w-md border border-blue-600/40 bg-blue-700/30 backdrop-blur-md relative z-10 shadow-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto scrollbar-hide select-none">
         <CardHeader className="text-center pb-4 sm:pb-6 pt-6 sm:pt-8">
           <div className="flex justify-center mb-3 sm:mb-4">
             <img 
@@ -189,7 +197,7 @@ const ResetPassword = () => {
               className="h-12 sm:h-14 md:h-16 w-auto object-contain"
             />
           </div>
-          <CardTitle className="text-xl sm:text-2xl font-bold text-white">Reset Your Password</CardTitle>
+                      <CardTitle className="text-xl sm:text-2xl font-bold text-white">Reset Your Password</CardTitle>
           <CardDescription className="text-white/90 text-sm sm:text-base">
             Enter your new password below
           </CardDescription>
@@ -197,59 +205,63 @@ const ResetPassword = () => {
         
         <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6">
           {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
+            <Alert variant="destructive" className="bg-red-500/20 border-red-500/50">
+              <AlertCircle className="h-4 w-4 text-red-300" />
+              <AlertDescription className="text-red-100">{error}</AlertDescription>
             </Alert>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-gray-700 font-medium">
+              <Label htmlFor="password" className="text-white font-medium">
                 New Password
               </Label>
               <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-100/90 w-4 h-4" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your new password"
-                  className="pr-10 border-gray-300 focus:border-blue-400 focus:ring-blue-200 rounded-full"
+                  className="pl-10 pr-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-full select-text autofill:bg-blue-700/20 autofill:text-white"
                   disabled={loading || !accessToken || type !== 'recovery'}
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-100/90 hover:text-blue-100"
                   disabled={loading}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-white/70">
                 Must be at least 8 characters with uppercase, lowercase, number, and special character
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-gray-700 font-medium">
+              <Label htmlFor="confirmPassword" className="text-white font-medium">
                 Confirm New Password
               </Label>
               <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-100/90 w-4 h-4" />
                 <Input
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm your new password"
-                  className="pr-10 border-gray-300 focus:border-blue-400 focus:ring-blue-200 rounded-full"
+                  className="pl-10 pr-10 bg-blue-700/20 border-blue-600/40 text-white placeholder:text-blue-100/70 focus:bg-blue-700/30 focus:border-blue-500/60 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-full select-text autofill:bg-blue-700/20 autofill:text-white"
                   disabled={loading || !accessToken || type !== 'recovery'}
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-100/90 hover:text-blue-100"
                   disabled={loading}
                 >
                   {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -259,7 +271,7 @@ const ResetPassword = () => {
 
             <Button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-full"
+              className="w-full bg-blue-600/80 hover:bg-blue-600 text-white backdrop-blur-sm rounded-full"
               disabled={loading || !accessToken || type !== 'recovery' || !password || !confirmPassword}
             >
               {loading ? (
@@ -273,14 +285,24 @@ const ResetPassword = () => {
             </Button>
           </form>
 
-          <div className="text-center">
+          <div className="space-y-2">
             <Button
-              variant="link"
+              variant="ghost"
               onClick={() => navigate('/auth')}
-              className="text-blue-600 hover:text-blue-700"
+              className="w-full text-blue-100 hover:text-white hover:bg-blue-700/30 rounded-full"
               disabled={loading}
             >
+              <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Sign In
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/')}
+              className="w-full text-blue-100 hover:text-white hover:bg-blue-700/30 rounded-full"
+              disabled={loading}
+            >
+              <Home className="w-4 h-4 mr-2" />
+              Go to Homepage
             </Button>
           </div>
         </CardContent>

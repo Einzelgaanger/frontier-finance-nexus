@@ -193,6 +193,15 @@ const Survey2022 = () => {
     window.scrollTo(0, 0);
   }, []);
 
+  // Scroll to top when navigating to this page from other routes
+  useEffect(() => {
+    // Force scroll to top after a short delay to ensure the page is rendered
+    const timer = setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Load saved draft on component mount
   useEffect(() => {
     const loadDraft = async () => {
@@ -465,7 +474,7 @@ const Survey2022 = () => {
           />
           
           <div>
-            <FormLabel>3. Email address</FormLabel>
+                <FormLabel>3. Email address</FormLabel>
             <Input 
               type="email" 
               placeholder="your.email@example.com" 
@@ -477,7 +486,7 @@ const Survey2022 = () => {
           </div>
           
           <div>
-            <FormLabel>4. Name of organisation</FormLabel>
+                <FormLabel>4. Name of organisation</FormLabel>
             <Input 
               placeholder="Your organisation name" 
               onChange={(e) => {
@@ -832,15 +841,15 @@ const Survey2022 = () => {
                     }}
                     value={(() => { const v = (form.watch('gp_experience') || {})[experience] as any; return v == null ? undefined : String(v); })()}
                   >
-                    <SelectTrigger className="w-48">
-                      <SelectValue placeholder="Select applicability" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Not Applicable">Not Applicable</SelectItem>
-                      <SelectItem value="Applies to 1 Principal">Applies to 1 Principal</SelectItem>
-                      <SelectItem value="Applies to 2 or more principals">Applies to 2 or more principals</SelectItem>
-                    </SelectContent>
-                  </Select>
+                          <SelectTrigger className="w-48">
+                            <SelectValue placeholder="Select applicability" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Not Applicable">Not Applicable</SelectItem>
+                            <SelectItem value="Applies to 1 Principal">Applies to 1 Principal</SelectItem>
+                            <SelectItem value="Applies to 2 or more principals">Applies to 2 or more principals</SelectItem>
+                          </SelectContent>
+                        </Select>
                 </div>
               </div>
             ))}
@@ -1058,39 +1067,39 @@ const Survey2022 = () => {
     <div className="space-y-6">
       <div className="space-y-6">
           <div>
-            <FormLabel>13. Where is your legal domicile?</FormLabel>
+                <FormLabel>13. Where is your legal domicile?</FormLabel>
             <Select 
               onValueChange={(value) => {
                 form.setValue('legal_domicile', value, { shouldDirty: true, shouldTouch: true });
               }}
               value={(() => { const v = form.watch('legal_domicile') as any; return v == null ? undefined : String(v); })()}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Select legal domicile" />
-              </SelectTrigger>
-              <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
-                <SelectItem value="location_pending">Location Pending. Dependent upon Anchor Investor preference</SelectItem>
-                <SelectItem value="mauritius">Mauritius</SelectItem>
-                <SelectItem value="netherlands">Netherlands</SelectItem>
-                <SelectItem value="dutch_antilles">Dutch Antilles</SelectItem>
-                <SelectItem value="luxembourg">Luxembourg</SelectItem>
-                <SelectItem value="ireland">Ireland</SelectItem>
-                <SelectItem value="delaware">Delaware</SelectItem>
-                <SelectItem value="cayman_island">Cayman Island</SelectItem>
-                <SelectItem value="kenya">Kenya</SelectItem>
-                <SelectItem value="senegal">Senegal</SelectItem>
-                <SelectItem value="nigeria">Nigeria</SelectItem>
-                <SelectItem value="south_africa">South Africa</SelectItem>
-                <SelectItem value="ghana">Ghana</SelectItem>
-                <SelectItem value="other">Other (please specify)</SelectItem>
-              </SelectContent>
-            </Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select legal domicile" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
+                    <SelectItem value="location_pending">Location Pending. Dependent upon Anchor Investor preference</SelectItem>
+                    <SelectItem value="mauritius">Mauritius</SelectItem>
+                    <SelectItem value="netherlands">Netherlands</SelectItem>
+                    <SelectItem value="dutch_antilles">Dutch Antilles</SelectItem>
+                    <SelectItem value="luxembourg">Luxembourg</SelectItem>
+                    <SelectItem value="ireland">Ireland</SelectItem>
+                    <SelectItem value="delaware">Delaware</SelectItem>
+                    <SelectItem value="cayman_island">Cayman Island</SelectItem>
+                    <SelectItem value="kenya">Kenya</SelectItem>
+                    <SelectItem value="senegal">Senegal</SelectItem>
+                    <SelectItem value="nigeria">Nigeria</SelectItem>
+                    <SelectItem value="south_africa">South Africa</SelectItem>
+                    <SelectItem value="ghana">Ghana</SelectItem>
+                    <SelectItem value="other">Other (please specify)</SelectItem>
+                  </SelectContent>
+                </Select>
           </div>
 
           {/* Conditional "Other" input field */}
           {form.watch('legal_domicile') === 'other' && (
             <div>
-              <FormLabel>Please specify other legal domicile</FormLabel>
+                  <FormLabel>Please specify other legal domicile</FormLabel>
               <Input 
                 onChange={(e) => {
                   form.setValue('legal_domicile_other', e.target.value, { shouldDirty: true, shouldTouch: true });
@@ -1110,73 +1119,73 @@ const Survey2022 = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <FormLabel>Currency for Investments</FormLabel>
+                    <FormLabel>Currency for Investments</FormLabel>
               <Select 
                 onValueChange={(value) => {
                   form.setValue('currency_investments', value, { shouldDirty: true, shouldTouch: true });
                 }}
                 value={(() => { const v = form.watch('currency_investments') as any; return v == null ? undefined : String(v); })()}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select currency" />
-                </SelectTrigger>
-                <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
-                  <SelectItem value="Local Currency">Local Currency</SelectItem>
-                  <SelectItem value="Foreign Currency">Foreign Currency</SelectItem>
-                  <SelectItem value="Multiple Currencies">Multiple Currencies</SelectItem>
-                </SelectContent>
-              </Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select currency" />
+                    </SelectTrigger>
+                      <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
+                        <SelectItem value="Local Currency">Local Currency</SelectItem>
+                        <SelectItem value="Foreign Currency">Foreign Currency</SelectItem>
+                        <SelectItem value="Multiple Currencies">Multiple Currencies</SelectItem>
+                    </SelectContent>
+                  </Select>
             </div>
 
             <div>
-              <FormLabel>Currency for LP Commitments</FormLabel>
+                    <FormLabel>Currency for LP Commitments</FormLabel>
               <Select 
                 onValueChange={(value) => {
                   form.setValue('currency_lp_commitments', value, { shouldDirty: true, shouldTouch: true });
                 }}
                 value={(() => { const v = form.watch('currency_lp_commitments') as any; return v == null ? undefined : String(v); })()}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select currency" />
-                </SelectTrigger>
-                <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
-                  <SelectItem value="Local Currency">Local Currency</SelectItem>
-                  <SelectItem value="Foreign Currency">Foreign Currency</SelectItem>
-                  <SelectItem value="Multiple Currencies">Multiple Currencies</SelectItem>
-                </SelectContent>
-              </Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select currency" />
+                    </SelectTrigger>
+                      <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
+                        <SelectItem value="Local Currency">Local Currency</SelectItem>
+                        <SelectItem value="Foreign Currency">Foreign Currency</SelectItem>
+                        <SelectItem value="Multiple Currencies">Multiple Currencies</SelectItem>
+                    </SelectContent>
+                  </Select>
             </div>
           </div>
 
           <div>
-            <FormLabel>15. What is the type (closed vs. open ended) and current status of your fund vehicle's operations?</FormLabel>
-            <p className="text-sm text-gray-600 mb-3">(Please select appropriate response)</p>
+                <FormLabel>15. What is the type (closed vs. open ended) and current status of your fund vehicle's operations?</FormLabel>
+                <p className="text-sm text-gray-600 mb-3">(Please select appropriate response)</p>
             <Select 
               onValueChange={(value) => {
                 form.setValue('fund_operations', value, { shouldDirty: true, shouldTouch: true });
               }}
               value={(() => { const v = form.watch('fund_operations') as any; return v == null ? undefined : String(v); })()}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Select fund type and status" />
-              </SelectTrigger>
-              <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
-                <SelectItem value="Closed ended - fundraising">Closed ended - fundraising</SelectItem>
-                <SelectItem value="Closed ended - completed first close">Closed ended - completed first close</SelectItem>
-                <SelectItem value="Closed ended - completed second close">Closed ended - completed second close</SelectItem>
-                <SelectItem value="Open ended - fundraising and heading towards equivalent of 1st close (i.e. lack sufficient committed funds to cover fund economics)">Open ended - fundraising and heading towards equivalent of 1st close (i.e. lack sufficient committed funds to cover fund economics)</SelectItem>
-                <SelectItem value="Open ended - achieved equivalent of 1st close with sufficient committed funds to cover fund economics">Open ended - achieved equivalent of 1st close with sufficient committed funds to cover fund economics</SelectItem>
-                <SelectItem value="Second fund/vehicle">Second fund/vehicle</SelectItem>
-                <SelectItem value="Third or later fund/vehicle">Third or later fund/vehicle</SelectItem>
-                <SelectItem value="Other">Other (please specify)</SelectItem>
-              </SelectContent>
-            </Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select fund type and status" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
+                    <SelectItem value="Closed ended - fundraising">Closed ended - fundraising</SelectItem>
+                    <SelectItem value="Closed ended - completed first close">Closed ended - completed first close</SelectItem>
+                    <SelectItem value="Closed ended - completed second close">Closed ended - completed second close</SelectItem>
+                    <SelectItem value="Open ended - fundraising and heading towards equivalent of 1st close (i.e. lack sufficient committed funds to cover fund economics)">Open ended - fundraising and heading towards equivalent of 1st close (i.e. lack sufficient committed funds to cover fund economics)</SelectItem>
+                    <SelectItem value="Open ended - achieved equivalent of 1st close with sufficient committed funds to cover fund economics">Open ended - achieved equivalent of 1st close with sufficient committed funds to cover fund economics</SelectItem>
+                    <SelectItem value="Second fund/vehicle">Second fund/vehicle</SelectItem>
+                    <SelectItem value="Third or later fund/vehicle">Third or later fund/vehicle</SelectItem>
+                    <SelectItem value="Other">Other (please specify)</SelectItem>
+                  </SelectContent>
+                </Select>
           </div>
 
           {/* Conditional "Other" input field */}
           {form.watch('fund_operations') === 'Other' && (
             <div>
-              <FormLabel>Please specify other fund type and status</FormLabel>
+                  <FormLabel>Please specify other fund type and status</FormLabel>
               <Input 
                 onChange={(e) => {
                   form.setValue('fund_operations_other', e.target.value, { shouldDirty: true, shouldTouch: true });
@@ -1195,91 +1204,91 @@ const Survey2022 = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <FormLabel>Current Funds Raised</FormLabel>
+                    <FormLabel>Current Funds Raised</FormLabel>
               <Select 
                 onValueChange={(value) => {
                   form.setValue('current_funds_raised', value, { shouldDirty: true, shouldTouch: true });
                 }}
                 value={(() => { const v = form.watch('current_funds_raised') as any; return v == null ? undefined : String(v); })()}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select amount" />
-                </SelectTrigger>
-                <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
-                  <SelectItem value="< $1 million">&lt; $1 million</SelectItem>
-                  <SelectItem value="$1 - 4 million">$1 - 4 million</SelectItem>
-                  <SelectItem value="$5 - 9 million">$5 - 9 million</SelectItem>
-                  <SelectItem value="$10 - 19 million">$10 - 19 million</SelectItem>
-                  <SelectItem value="$20 - 29 million">$20 - 29 million</SelectItem>
-                  <SelectItem value="$30 million or more">$30 million or more</SelectItem>
-                </SelectContent>
-              </Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select amount" />
+                    </SelectTrigger>
+                      <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
+                        <SelectItem value="< $1 million">&lt; $1 million</SelectItem>
+                        <SelectItem value="$1 - 4 million">$1 - 4 million</SelectItem>
+                        <SelectItem value="$5 - 9 million">$5 - 9 million</SelectItem>
+                        <SelectItem value="$10 - 19 million">$10 - 19 million</SelectItem>
+                        <SelectItem value="$20 - 29 million">$20 - 29 million</SelectItem>
+                        <SelectItem value="$30 million or more">$30 million or more</SelectItem>
+                    </SelectContent>
+                  </Select>
             </div>
 
             <div>
-              <FormLabel>Current Amount Invested by Fund</FormLabel>
+                    <FormLabel>Current Amount Invested by Fund</FormLabel>
               <Select 
                 onValueChange={(value) => {
                   form.setValue('current_amount_invested', value, { shouldDirty: true, shouldTouch: true });
                 }}
                 value={(() => { const v = form.watch('current_amount_invested') as any; return v == null ? undefined : String(v); })()}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select amount" />
-                </SelectTrigger>
-                <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
-                  <SelectItem value="< $1 million">&lt; $1 million</SelectItem>
-                  <SelectItem value="$1 - 4 million">$1 - 4 million</SelectItem>
-                  <SelectItem value="$5 - 9 million">$5 - 9 million</SelectItem>
-                  <SelectItem value="$10 - 19 million">$10 - 19 million</SelectItem>
-                  <SelectItem value="$20 - 29 million">$20 - 29 million</SelectItem>
-                  <SelectItem value="$30 million or more">$30 million or more</SelectItem>
-                </SelectContent>
-              </Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select amount" />
+                    </SelectTrigger>
+                      <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
+                        <SelectItem value="< $1 million">&lt; $1 million</SelectItem>
+                        <SelectItem value="$1 - 4 million">$1 - 4 million</SelectItem>
+                        <SelectItem value="$5 - 9 million">$5 - 9 million</SelectItem>
+                        <SelectItem value="$10 - 19 million">$10 - 19 million</SelectItem>
+                        <SelectItem value="$20 - 29 million">$20 - 29 million</SelectItem>
+                        <SelectItem value="$30 million or more">$30 million or more</SelectItem>
+                    </SelectContent>
+                  </Select>
             </div>
 
             <div>
-              <FormLabel>Target Fund Size</FormLabel>
+                    <FormLabel>Target Fund Size</FormLabel>
               <Select 
                 onValueChange={(value) => {
                   form.setValue('target_fund_size', value, { shouldDirty: true, shouldTouch: true });
                 }}
                 value={(() => { const v = form.watch('target_fund_size') as any; return v == null ? undefined : String(v); })()}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select amount" />
-                </SelectTrigger>
-                <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
-                  <SelectItem value="< $1 million">&lt; $1 million</SelectItem>
-                  <SelectItem value="$1 - 4 million">$1 - 4 million</SelectItem>
-                  <SelectItem value="$5 - 9 million">$5 - 9 million</SelectItem>
-                  <SelectItem value="$10 - 19 million">$10 - 19 million</SelectItem>
-                  <SelectItem value="$20 - 29 million">$20 - 29 million</SelectItem>
-                  <SelectItem value="$30 million or more">$30 million or more</SelectItem>
-                </SelectContent>
-              </Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select amount" />
+                    </SelectTrigger>
+                      <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
+                        <SelectItem value="< $1 million">&lt; $1 million</SelectItem>
+                        <SelectItem value="$1 - 4 million">$1 - 4 million</SelectItem>
+                        <SelectItem value="$5 - 9 million">$5 - 9 million</SelectItem>
+                        <SelectItem value="$10 - 19 million">$10 - 19 million</SelectItem>
+                        <SelectItem value="$20 - 29 million">$20 - 29 million</SelectItem>
+                        <SelectItem value="$30 million or more">$30 million or more</SelectItem>
+                    </SelectContent>
+                  </Select>
             </div>
             </div>
           </div>
 
             <div>
-              <FormLabel>17. What is target number of investments / borrowers for your fund?</FormLabel>
+                <FormLabel>17. What is target number of investments / borrowers for your fund?</FormLabel>
               <Select 
                 onValueChange={(value) => {
                   form.setValue('target_investments', value, { shouldDirty: true, shouldTouch: true });
                 }}
                 value={(() => { const v = form.watch('target_investments') as any; return v == null ? undefined : String(v); })()}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select number of enterprises" />
-                </SelectTrigger>
-                <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
-                  <SelectItem value="< 10 Enterprises">&lt; 10 Enterprises</SelectItem>
-                  <SelectItem value="11 - 20 Enterprises">11 - 20 Enterprises</SelectItem>
-                  <SelectItem value="21 - 30 Enterprises">21 - 30 Enterprises</SelectItem>
-                  <SelectItem value="> 30 Enterprises">&gt; 30 Enterprises</SelectItem>
-                </SelectContent>
-              </Select>
+                    <SelectTrigger>
+                    <SelectValue placeholder="Select number of enterprises" />
+                    </SelectTrigger>
+                  <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
+                    <SelectItem value="< 10 Enterprises">&lt; 10 Enterprises</SelectItem>
+                    <SelectItem value="11 - 20 Enterprises">11 - 20 Enterprises</SelectItem>
+                    <SelectItem value="21 - 30 Enterprises">21 - 30 Enterprises</SelectItem>
+                    <SelectItem value="> 30 Enterprises">&gt; 30 Enterprises</SelectItem>
+                    </SelectContent>
+                  </Select>
             </div>
 
             <FormField
@@ -1477,12 +1486,12 @@ const Survey2022 = () => {
                     </div>
                     <div className="flex items-center space-x-4">
                       <div>
-                        <FormLabel className="text-xs font-normal">Existing (%)</FormLabel>
-                        <Input
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="0.1"
+                            <FormLabel className="text-xs font-normal">Existing (%)</FormLabel>
+                              <Input
+                                type="number"
+                                min="0"
+                                max="100"
+                                step="0.1"
                           onChange={(e) => {
                             const current = form.watch('lp_capital_sources') || {};
                             form.setValue('lp_capital_sources', {
@@ -1498,17 +1507,17 @@ const Survey2022 = () => {
                             const categoryData = current[category] || {};
                             return categoryData.existing ?? '';
                           })()}
-                          placeholder="0"
-                          className="h-8 w-20"
-                        />
+                                placeholder="0"
+                                className="h-8 w-20"
+                              />
                       </div>
                       <div>
-                        <FormLabel className="text-xs font-normal">Targeted (%)</FormLabel>
-                        <Input
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="0.1"
+                            <FormLabel className="text-xs font-normal">Targeted (%)</FormLabel>
+                              <Input
+                                type="number"
+                                min="0"
+                                max="100"
+                                step="0.1"
                           onChange={(e) => {
                             const current = form.watch('lp_capital_sources') || {};
                             form.setValue('lp_capital_sources', {
@@ -1524,9 +1533,9 @@ const Survey2022 = () => {
                             const categoryData = current[category] || {};
                             return categoryData.targeted ?? '';
                           })()}
-                          placeholder="0"
-                          className="h-8 w-20"
-                        />
+                                placeholder="0"
+                                className="h-8 w-20"
+                      />
                       </div>
                     </div>
                     <div className="text-center w-20">
@@ -1564,12 +1573,12 @@ const Survey2022 = () => {
                 </div>
                 <div className="flex items-center space-x-4">
                   <div>
-                    <FormLabel className="text-xs font-normal">Existing (%)</FormLabel>
-                    <Input
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="0.1"
+                        <FormLabel className="text-xs font-normal">Existing (%)</FormLabel>
+                          <Input
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="0.1"
                       onChange={(e) => {
                         const current = form.watch('lp_capital_sources') || {};
                         const otherData = current.Other || {};
@@ -1583,18 +1592,18 @@ const Survey2022 = () => {
                         const otherData = current.Other || {};
                         return otherData.existing ?? '';
                       })()}
-                      placeholder="0"
-                      className="h-8 w-20"
-                      disabled={!form.watch('lp_capital_sources_other_selected')}
-                    />
+                            placeholder="0"
+                            className="h-8 w-20"
+                            disabled={!form.watch('lp_capital_sources_other_selected')}
+                          />
                   </div>
                   <div>
-                    <FormLabel className="text-xs font-normal">Targeted (%)</FormLabel>
-                    <Input
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="0.1"
+                        <FormLabel className="text-xs font-normal">Targeted (%)</FormLabel>
+                          <Input
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="0.1"
                       onChange={(e) => {
                         const current = form.watch('lp_capital_sources') || {};
                         const otherData = current.Other || {};
@@ -1608,10 +1617,10 @@ const Survey2022 = () => {
                         const otherData = current.Other || {};
                         return otherData.targeted ?? '';
                       })()}
-                      placeholder="0"
-                      className="h-8 w-20"
-                      disabled={!form.watch('lp_capital_sources_other_selected')}
-                    />
+                            placeholder="0"
+                            className="h-8 w-20"
+                            disabled={!form.watch('lp_capital_sources_other_selected')}
+                  />
                   </div>
                 </div>
                 <div className="text-center w-20">
@@ -1643,7 +1652,7 @@ const Survey2022 = () => {
               {form.watch('lp_capital_sources_other_selected') && (
                 <div className="pl-6 border-l-2 border-gray-200">
                   <div>
-                    <FormLabel className="text-sm font-normal">Please specify other LP capital source</FormLabel>
+                        <FormLabel className="text-sm font-normal">Please specify other LP capital source</FormLabel>
                     <Input 
                       onChange={(e) => {
                         form.setValue('lp_capital_sources_other_description', e.target.value);
@@ -1917,17 +1926,17 @@ const Survey2022 = () => {
             }}
             value={(() => { const v = (form.watch('business_stages') || {})[stage] as any; return v == null ? undefined : String(v); })()}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="Select percentage" />
-            </SelectTrigger>
-            <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
-              <SelectItem value="0% Not a target Segment">0% Not a target Segment</SelectItem>
-              <SelectItem value="1 - 24% of target portfolio">1 - 24% of target portfolio</SelectItem>
-              <SelectItem value="25 - 49% of target portfolio">25 - 49% of target portfolio</SelectItem>
-              <SelectItem value="50 - 74% of target portfolio">50 - 74% of target portfolio</SelectItem>
-              <SelectItem value="gte_75_percent_target_portfolio">&ge; 75% of target portfolio</SelectItem>
-            </SelectContent>
-          </Select>
+                  <SelectTrigger>
+                                <SelectValue placeholder="Select percentage" />
+                  </SelectTrigger>
+                              <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
+                                <SelectItem value="0% Not a target Segment">0% Not a target Segment</SelectItem>
+                                <SelectItem value="1 - 24% of target portfolio">1 - 24% of target portfolio</SelectItem>
+                                <SelectItem value="25 - 49% of target portfolio">25 - 49% of target portfolio</SelectItem>
+                                <SelectItem value="50 - 74% of target portfolio">50 - 74% of target portfolio</SelectItem>
+                                <SelectItem value="gte_75_percent_target_portfolio">&ge; 75% of target portfolio</SelectItem>
+                  </SelectContent>
+                </Select>
                     </div>
                   </div>
                 ))}
@@ -1955,7 +1964,7 @@ const Survey2022 = () => {
                   {form.watch('business_stages_other_selected') && (
                     <div className="space-y-3 ml-6">
                       <div>
-                        <FormLabel className="text-sm font-normal">Please specify the business stage</FormLabel>
+                            <FormLabel className="text-sm font-normal">Please specify the business stage</FormLabel>
                         <Input 
                           onChange={(e) => {
                             form.setValue('business_stages_other_description', e.target.value);
@@ -1977,17 +1986,17 @@ const Survey2022 = () => {
                             }}
                             value={(() => { const v = (form.watch('business_stages') || {}).Other as any; return v == null ? undefined : String(v); })()}
                           >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select percentage" />
-                            </SelectTrigger>
-                            <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
-                              <SelectItem value="0% Not a target Segment">0% Not a target Segment</SelectItem>
-                              <SelectItem value="1 - 24% of target portfolio">1 - 24% of target portfolio</SelectItem>
-                              <SelectItem value="25 - 49% of target portfolio">25 - 49% of target portfolio</SelectItem>
-                              <SelectItem value="50 - 74% of target portfolio">50 - 74% of target portfolio</SelectItem>
-                              <SelectItem value="gte_75_percent_target_portfolio">&ge; 75% of target portfolio</SelectItem>
-                            </SelectContent>
-                          </Select>
+                  <SelectTrigger>
+                                    <SelectValue placeholder="Select percentage" />
+                  </SelectTrigger>
+                                  <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
+                                    <SelectItem value="0% Not a target Segment">0% Not a target Segment</SelectItem>
+                                    <SelectItem value="1 - 24% of target portfolio">1 - 24% of target portfolio</SelectItem>
+                                    <SelectItem value="25 - 49% of target portfolio">25 - 49% of target portfolio</SelectItem>
+                                    <SelectItem value="50 - 74% of target portfolio">50 - 74% of target portfolio</SelectItem>
+                                    <SelectItem value="gte_75_percent_target_portfolio">&ge; 75% of target portfolio</SelectItem>
+                  </SelectContent>
+                </Select>
                         </div>
                       </div>
                     </div>
@@ -2068,17 +2077,17 @@ const Survey2022 = () => {
                         }}
                         value={(() => { const v = (form.watch('financing_needs') || {})[financingNeed] as any; return v == null ? undefined : String(v); })()}
                       >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select percentage" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
-                          <SelectItem value="0% Not a target investment focus">0% Not a target investment focus</SelectItem>
-                          <SelectItem value="1-24% of target portfolio">1-24% of target portfolio</SelectItem>
-                          <SelectItem value="25-49% of target portfolio">25-49% of target portfolio</SelectItem>
-                          <SelectItem value="50-74% of target portfolio">50-74% of target portfolio</SelectItem>
-                          <SelectItem value="gte_75_percent_target_portfolio">&ge; 75% of target portfolio</SelectItem>
-                        </SelectContent>
-                      </Select>
+                  <SelectTrigger>
+                                <SelectValue placeholder="Select percentage" />
+                  </SelectTrigger>
+                              <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
+                                <SelectItem value="0% Not a target investment focus">0% Not a target investment focus</SelectItem>
+                                <SelectItem value="1-24% of target portfolio">1-24% of target portfolio</SelectItem>
+                                <SelectItem value="25-49% of target portfolio">25-49% of target portfolio</SelectItem>
+                                <SelectItem value="50-74% of target portfolio">50-74% of target portfolio</SelectItem>
+                                <SelectItem value="gte_75_percent_target_portfolio">&ge; 75% of target portfolio</SelectItem>
+                  </SelectContent>
+                </Select>
                     </div>
                   </div>
                 ))}
@@ -2106,7 +2115,7 @@ const Survey2022 = () => {
                   {form.watch('financing_needs_other_selected') && (
                     <div className="space-y-3 ml-6">
                       <div>
-                        <FormLabel className="text-sm font-normal">Please specify the financing need</FormLabel>
+                            <FormLabel className="text-sm font-normal">Please specify the financing need</FormLabel>
                         <Input 
                           onChange={(e) => {
                             form.setValue('financing_needs_other_description', e.target.value);
@@ -2128,17 +2137,17 @@ const Survey2022 = () => {
                             }}
                             value={(() => { const v = (form.watch('financing_needs') || {}).Other as any; return v == null ? undefined : String(v); })()}
                           >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select percentage" />
-                            </SelectTrigger>
-                            <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
-                              <SelectItem value="0% Not a target investment focus">0% Not a target investment focus</SelectItem>
-                              <SelectItem value="1-24% of target portfolio">1-24% of target portfolio</SelectItem>
-                              <SelectItem value="25-49% of target portfolio">25-49% of target portfolio</SelectItem>
-                              <SelectItem value="50-74% of target portfolio">50-74% of target portfolio</SelectItem>
-                              <SelectItem value="gte_75_percent_target_portfolio">&ge; 75% of target portfolio</SelectItem>
-                            </SelectContent>
-                          </Select>
+                  <SelectTrigger>
+                                    <SelectValue placeholder="Select percentage" />
+                  </SelectTrigger>
+                                  <SelectContent className="max-h-60 overflow-y-auto" side="bottom" align="start">
+                                    <SelectItem value="0% Not a target investment focus">0% Not a target investment focus</SelectItem>
+                                    <SelectItem value="1-24% of target portfolio">1-24% of target portfolio</SelectItem>
+                                    <SelectItem value="25-49% of target portfolio">25-49% of target portfolio</SelectItem>
+                                    <SelectItem value="50-74% of target portfolio">50-74% of target portfolio</SelectItem>
+                                    <SelectItem value="gte_75_percent_target_portfolio">&ge; 75% of target portfolio</SelectItem>
+                  </SelectContent>
+                </Select>
                         </div>
                       </div>
                     </div>
@@ -2176,10 +2185,10 @@ const Survey2022 = () => {
                     <div key={sectorRank} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
                       <div className="text-sm font-normal">{sectorRank}</div>
                       <div>
-                        <Input 
-                          type="number" 
-                          placeholder="%" 
-                          className="h-8"
+                                <Input 
+                                  type="number" 
+                                  placeholder="%" 
+                                  className="h-8"
                           onChange={(e) => {
                             const current = form.watch('sector_activities') || {};
                             form.setValue('sector_activities', {
@@ -2198,10 +2207,10 @@ const Survey2022 = () => {
                         />
                       </div>
                       <div>
-                        <Input 
-                          type="number" 
-                          placeholder="%" 
-                          className="h-8"
+                                <Input 
+                                  type="number" 
+                                  placeholder="%" 
+                                  className="h-8"
                           onChange={(e) => {
                             const current = form.watch('sector_activities') || {};
                             form.setValue('sector_activities', {
@@ -2256,7 +2265,7 @@ const Survey2022 = () => {
                   {form.watch('sector_activities_other_selected') && (
                     <div className="space-y-3 ml-6">
                       <div>
-                        <FormLabel className="text-sm font-normal">Please specify the sector and ranking</FormLabel>
+                            <FormLabel className="text-sm font-normal">Please specify the sector and ranking</FormLabel>
                         <Input 
                           onChange={(e) => {
                             form.setValue('sector_activities_other_description', e.target.value, { shouldDirty: true, shouldTouch: true });
@@ -2269,10 +2278,10 @@ const Survey2022 = () => {
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
                         <div className="text-sm font-normal">Other Sector</div>
                         <div>
-                          <Input 
-                            type="number" 
-                            placeholder="%" 
-                            className="h-8"
+                                  <Input 
+                                    type="number" 
+                                    placeholder="%" 
+                                    className="h-8"
                             onChange={(e) => {
                               const current = form.watch('sector_activities') || {};
                               form.setValue('sector_activities', {
@@ -2291,10 +2300,10 @@ const Survey2022 = () => {
                           />
                         </div>
                         <div>
-                          <Input 
-                            type="number" 
-                            placeholder="%" 
-                            className="h-8"
+                                  <Input 
+                                    type="number" 
+                                    placeholder="%" 
+                                    className="h-8"
                             onChange={(e) => {
                               const current = form.watch('sector_activities') || {};
                               form.setValue('sector_activities', {
@@ -2632,43 +2641,43 @@ const Survey2022 = () => {
               <FormLabel>33. How does the role of technology in the business model of your target portfolio enterprises play into your investment thesis?</FormLabel>
               <p className="text-sm text-gray-600 mt-1 mb-4">(Please select the most appropriate answer)</p>
               
-              <FormItem className="space-y-3">
-                <FormControl>
-                  <RadioGroup
+                  <FormItem className="space-y-3">
+                    <FormControl>
+                      <RadioGroup
                     onValueChange={(value) => {
                       form.setValue('technology_role_investment_thesis', value, { shouldDirty: true, shouldTouch: true });
                     }}
                     value={(() => { const v = form.watch('technology_role_investment_thesis') as any; return v == null ? undefined : String(v); })()}
-                    className="flex flex-col space-y-2"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="Not Relevant / Tech is Not an Investment Criteria/Focus" id="tech-not-relevant" />
-                      <Label htmlFor="tech-not-relevant" className="text-sm font-normal">
-                        Not Relevant / "Tech" is Not an Investment Criteria/Focus
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="Beneficial if technology can accelerate growth, yet tech is not driving investment thesis" id="tech-beneficial" />
-                      <Label htmlFor="tech-beneficial" className="text-sm font-normal">
-                        Beneficial if technology can accelerate the enterprise's growth, yet tech is not driving investment thesis
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="Specifically target business that can accelerate performance via being tech-enabled" id="tech-enabled" />
-                      <Label htmlFor="tech-enabled" className="text-sm font-normal">
-                        Specifically target business that can accelerate performance via being "tech-enabled"
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="We consider ourselves tech-oriented investors. All investment assessed based on the technology of the investee enterprise." id="tech-oriented" />
-                      <Label htmlFor="tech-oriented" className="text-sm font-normal">
-                        We consider ourselves tech-oriented investors. All investment assessed based on the technology of the investee enterprise.
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+                        className="flex flex-col space-y-2"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="Not Relevant / Tech is Not an Investment Criteria/Focus" id="tech-not-relevant" />
+                          <Label htmlFor="tech-not-relevant" className="text-sm font-normal">
+                            Not Relevant / "Tech" is Not an Investment Criteria/Focus
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="Beneficial if technology can accelerate growth, yet tech is not driving investment thesis" id="tech-beneficial" />
+                          <Label htmlFor="tech-beneficial" className="text-sm font-normal">
+                            Beneficial if technology can accelerate the enterprise's growth, yet tech is not driving investment thesis
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="Specifically target business that can accelerate performance via being tech-enabled" id="tech-enabled" />
+                          <Label htmlFor="tech-enabled" className="text-sm font-normal">
+                            Specifically target business that can accelerate performance via being "tech-enabled"
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="We consider ourselves tech-oriented investors. All investment assessed based on the technology of the investee enterprise." id="tech-oriented" />
+                          <Label htmlFor="tech-oriented" className="text-sm font-normal">
+                            We consider ourselves tech-oriented investors. All investment assessed based on the technology of the investee enterprise.
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
             </div>
           </div>
     </div>
@@ -2895,17 +2904,17 @@ const Survey2022 = () => {
                     }}
                     value={(() => { const v = (form.watch('portfolio_value_creation_priorities') || {})[priority] as any; return v == null ? undefined : String(v); })()}
                   >
-                    <SelectTrigger className="w-24">
-                      <SelectValue placeholder="Rank" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 (Lowest need)</SelectItem>
-                      <SelectItem value="2">2</SelectItem>
-                      <SelectItem value="3">3</SelectItem>
-                      <SelectItem value="4">4</SelectItem>
-                      <SelectItem value="5">5 (Highest need)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                            <SelectTrigger className="w-24">
+                              <SelectValue placeholder="Rank" />
+                  </SelectTrigger>
+                  <SelectContent>
+                            <SelectItem value="1">1 (Lowest need)</SelectItem>
+                            <SelectItem value="2">2</SelectItem>
+                            <SelectItem value="3">3</SelectItem>
+                            <SelectItem value="4">4</SelectItem>
+                            <SelectItem value="5">5 (Highest need)</SelectItem>
+                  </SelectContent>
+                </Select>
                 </div>
               ))}
 
@@ -2938,28 +2947,28 @@ const Survey2022 = () => {
                       }}
                       value={(() => { const v = (form.watch('portfolio_value_creation_priorities') || {}).Other as any; return v == null ? undefined : String(v); })()}
                     >
-                      <SelectTrigger className="w-24">
-                        <SelectValue placeholder="Rank" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">1 (Lowest need)</SelectItem>
-                        <SelectItem value="2">2</SelectItem>
-                        <SelectItem value="3">3</SelectItem>
-                        <SelectItem value="4">4</SelectItem>
-                        <SelectItem value="5">5 (Highest need)</SelectItem>
-                      </SelectContent>
-                    </Select>
+                              <SelectTrigger className="w-24">
+                                <SelectValue placeholder="Rank" />
+                  </SelectTrigger>
+                  <SelectContent>
+                              <SelectItem value="1">1 (Lowest need)</SelectItem>
+                              <SelectItem value="2">2</SelectItem>
+                              <SelectItem value="3">3</SelectItem>
+                              <SelectItem value="4">4</SelectItem>
+                              <SelectItem value="5">5 (Highest need)</SelectItem>
+                  </SelectContent>
+                </Select>
                   )}
                 </div>
                 
                 {form.watch('portfolio_value_creation_other_selected') && (
-                  <Input
-                    placeholder="Please specify other priority area"
+                          <Input
+                            placeholder="Please specify other priority area"
                     onChange={(e) => {
                       form.setValue('portfolio_value_creation_other_description', e.target.value);
                     }}
                     value={form.watch('portfolio_value_creation_other_description') ?? ''}
-                    className="ml-6"
+                            className="ml-6"
                   />
                 )}
               </div>
@@ -2970,15 +2979,15 @@ const Survey2022 = () => {
           <div>
             <FormLabel>37. Typical investment timeframe?</FormLabel>
             
-            <FormItem className="space-y-3 mt-4">
-              <FormControl>
-                <RadioGroup
+                <FormItem className="space-y-3 mt-4">
+                  <FormControl>
+                    <RadioGroup
                   onValueChange={(value) => {
                     form.setValue('typical_investment_timeframe', value, { shouldDirty: true, shouldTouch: true });
                   }}
                   value={(() => { const v = form.watch('typical_investment_timeframe') as any; return v == null ? undefined : String(v); })()}
-                  className="flex flex-col space-y-2"
-                >
+                      className="flex flex-col space-y-2"
+                    >
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="< 1 year" id="timeframe-under-1yr" />
                         <Label htmlFor="timeframe-under-1yr" className="text-sm font-normal">
@@ -3009,9 +3018,9 @@ const Survey2022 = () => {
                           8+ years
                         </Label>
                       </div>
-                </RadioGroup>
-              </FormControl>
-            </FormItem>
+                    </RadioGroup>
+                  </FormControl>
+                </FormItem>
           </div>
 
           {/* Question 38: Investment Monetization/Exit Forms */}
@@ -3230,15 +3239,15 @@ const Survey2022 = () => {
             <FormLabel>42. How many exits/monetization events do you anticipate in the next 12 months? *</FormLabel>
             <p className="text-sm text-gray-600 mt-1">(Please select appropriate response)</p>
             
-            <FormItem className="space-y-3 mt-4">
-              <FormControl>
-                <RadioGroup
+                <FormItem className="space-y-3 mt-4">
+                  <FormControl>
+                    <RadioGroup
                   onValueChange={(value) => {
                     form.setValue('anticipated_exits_12_months', value, { shouldDirty: true, shouldTouch: true });
                   }}
                   value={(() => { const v = form.watch('anticipated_exits_12_months') as any; return v == null ? undefined : String(v); })()}
-                  className="flex flex-col space-y-2"
-                >
+                      className="flex flex-col space-y-2"
+                    >
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="0" id="exits-0" />
                         <Label htmlFor="exits-0" className="text-sm font-normal">
@@ -3263,9 +3272,9 @@ const Survey2022 = () => {
                         &gt; 5
                         </Label>
                       </div>
-                </RadioGroup>
-              </FormControl>
-            </FormItem>
+                    </RadioGroup>
+                  </FormControl>
+                </FormItem>
           </div>
 
           {/* Question 43: Portfolio Performance Matrix */}
@@ -3650,17 +3659,17 @@ const Survey2022 = () => {
                     }}
                     value={(() => { const v = (form.watch('fund_priority_areas') || {})[priority] as any; return v == null ? undefined : String(v); })()}
                   >
-                    <SelectTrigger className="w-24">
-                      <SelectValue placeholder="Rank" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 (Lowest need)</SelectItem>
-                      <SelectItem value="2">2</SelectItem>
-                      <SelectItem value="3">3</SelectItem>
-                      <SelectItem value="4">4</SelectItem>
-                      <SelectItem value="5">5 (Highest need)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                            <SelectTrigger className="w-24">
+                              <SelectValue placeholder="Rank" />
+                            </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1">1 (Lowest need)</SelectItem>
+                            <SelectItem value="2">2</SelectItem>
+                            <SelectItem value="3">3</SelectItem>
+                            <SelectItem value="4">4</SelectItem>
+                            <SelectItem value="5">5 (Highest need)</SelectItem>
+                          </SelectContent>
+                        </Select>
                 </div>
               ))}
               
@@ -3693,28 +3702,28 @@ const Survey2022 = () => {
                       }}
                       value={(() => { const v = (form.watch('fund_priority_areas') || {}).Other as any; return v == null ? undefined : String(v); })()}
                     >
-                      <SelectTrigger className="w-24">
-                        <SelectValue placeholder="Rank" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">1 (Lowest need)</SelectItem>
-                        <SelectItem value="2">2</SelectItem>
-                        <SelectItem value="3">3</SelectItem>
-                        <SelectItem value="4">4</SelectItem>
-                        <SelectItem value="5">5 (Highest need)</SelectItem>
-                      </SelectContent>
-                    </Select>
+                              <SelectTrigger className="w-24">
+                                <SelectValue placeholder="Rank" />
+                              </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="1">1 (Lowest need)</SelectItem>
+                              <SelectItem value="2">2</SelectItem>
+                              <SelectItem value="3">3</SelectItem>
+                              <SelectItem value="4">4</SelectItem>
+                              <SelectItem value="5">5 (Highest need)</SelectItem>
+                            </SelectContent>
+                          </Select>
                   )}
                 </div>
                 
                 {form.watch('fund_priority_areas_other_selected') && (
-                  <Input
-                    placeholder="Please specify other priority area"
+                          <Input
+                            placeholder="Please specify other priority area"
                     onChange={(e) => {
                       form.setValue('fund_priority_areas_other_description', e.target.value);
                     }}
                     value={form.watch('fund_priority_areas_other_description') ?? ''}
-                    className="ml-6"
+                            className="ml-6"
                   />
                 )}
               </div>
@@ -4091,11 +4100,11 @@ const Survey2022 = () => {
       <Button
         variant="outline"
         size="sm"
-        onClick={() => navigate('/network')}
+        onClick={() => navigate('/dashboard')}
         className="mt-6 w-full border-gray-300 hover:bg-gray-50"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Network
+        Back to Dashboard
       </Button>
     </div>
   );
@@ -4114,7 +4123,7 @@ const Survey2022 = () => {
               <span className="px-2 py-0.5 rounded-full bg-white/80 text-blue-700 border border-blue-200">10-12 min</span>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => navigate('/network')}>Back to Network</Button>
+              <Button variant="outline" size="sm" onClick={() => navigate('/dashboard')}>Back to Dashboard</Button>
               <Button size="sm" onClick={() => { setShowIntro(false); setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 0); }}>Start Survey</Button>
             </div>
           </div>
@@ -4157,7 +4166,7 @@ const Survey2022 = () => {
 
   return (
     <SidebarLayout>
-      <div className="min-h-screen bg-gray-50 pb-16">
+      <div className={`min-h-screen bg-gray-50 ${showIntro ? 'pb-0' : 'pb-16'}`}>
         <div className={`max-w-6xl mx-auto ${!showIntro ? 'pr-80' : ''}`}>
         {/* Back Button hidden on intro */}
         {!showIntro && null}
@@ -4214,15 +4223,15 @@ const Survey2022 = () => {
               )}
               <div className="flex items-center justify-between">
                 <div className="flex gap-3">
-                  <Button 
-                    type="button"
-                    variant="outline"
-                    onClick={handlePrevious}
-                    disabled={currentSection === 1}
-                    className="px-6 py-2 border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    &larr; Previous
-                  </Button>
+                <Button 
+                  type="button"
+                  variant="outline"
+                  onClick={handlePrevious}
+                  disabled={currentSection === 1}
+                  className="px-6 py-2 border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  &larr; Previous
+                </Button>
                   
                   {currentSection === totalSections && (
                     <Button 

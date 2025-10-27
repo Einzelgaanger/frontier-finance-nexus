@@ -667,26 +667,12 @@ const ViewerDashboardV2 = () => {
   // Preview/Landing Page
   if (!showApplicationForm) {
     return (
-      <div className="h-screen overflow-hidden bg-gradient-to-br from-[#f5f5dc] to-[#f0f0e6]">
-        {/* Welcome Section */}
-        <div className="relative z-10 pt-4 pb-2">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-left">
-              <h1 className="text-xl font-bold text-gray-800 mb-1">
-                Welcome
-              </h1>
-              <p className="text-xs text-gray-600 mb-4 max-w-2xl">
-                Your gateway to the global fund manager community and comprehensive market intelligence
-              </p>
-            </div>
-          </div>
-        </div>
-
+      <div className="h-screen overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50">
         {/* Preview Cards */}
-        <div className="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4">
+        <div className="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             {/* Network Benefits */}
-            <div className="group relative overflow-hidden rounded-lg bg-[#f5f5dc] border-2 border-blue-200 hover:border-blue-400 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg cursor-pointer">
+            <div className="group relative overflow-hidden rounded-lg bg-white border-2 border-blue-200 hover:border-blue-400 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg cursor-pointer">
               <div className="relative p-4">
                 <div className="flex items-center space-x-3 mb-3">
                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-sm group-hover:scale-110 transition-all duration-300">
@@ -707,7 +693,7 @@ const ViewerDashboardV2 = () => {
             </div>
 
             {/* Survey Access with Year Buttons */}
-            <div className="group relative overflow-hidden rounded-lg bg-[#f5f5dc] border-2 border-green-200 hover:border-green-400 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg">
+            <div className="group relative overflow-hidden rounded-lg bg-white border-2 border-green-200 hover:border-green-400 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg">
               <div className="relative p-4">
                 <div className="flex items-center space-x-3 mb-3">
                   <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-sm group-hover:scale-110 transition-all duration-300">
@@ -744,7 +730,7 @@ const ViewerDashboardV2 = () => {
             </div>
 
             {/* Professional Development */}
-            <div className="group relative overflow-hidden rounded-lg bg-[#f5f5dc] border-2 border-purple-200 hover:border-purple-400 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg cursor-pointer">
+            <div className="group relative overflow-hidden rounded-lg bg-white border-2 border-purple-200 hover:border-purple-400 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg cursor-pointer">
               <div className="relative p-4">
                 <div className="flex items-center space-x-3 mb-3">
                   <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shadow-sm group-hover:scale-110 transition-all duration-300">
@@ -766,7 +752,7 @@ const ViewerDashboardV2 = () => {
           </div>
 
           {/* Application Preview */}
-          <div className="group relative overflow-hidden rounded-lg bg-[#f5f5dc] border-2 border-orange-200 hover:border-orange-400 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg">
+          <div className="group relative overflow-hidden rounded-lg bg-white border-2 border-orange-200 hover:border-orange-400 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg">
             <div className="relative p-4">
               <div className="text-center mb-4">
                 <h2 className="text-lg font-bold text-gray-800 mb-2">Ready to Join?</h2>
