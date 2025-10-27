@@ -150,18 +150,18 @@ const ResetPassword = () => {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-cover bg-center bg-fixed flex items-center justify-center p-4 font-rubik" style={{ backgroundImage: 'url(/auth.jpg)' }}>
-        <Card className="w-full max-w-md border border-blue-600/40 bg-blue-700/30 backdrop-blur-md relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide">
-          <CardHeader className="text-center pb-6">
-            <div className="flex justify-center mb-4">
+      <div className="min-h-screen bg-cover bg-center bg-fixed flex items-center justify-center p-3 sm:p-4 font-rubik" style={{ backgroundImage: 'url(/auth.jpg)' }}>
+        <Card className="w-full max-w-md border border-blue-600/40 bg-blue-700/30 backdrop-blur-md relative z-10 shadow-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto scrollbar-hide">
+          <CardHeader className="text-center pb-4 sm:pb-6 pt-6 sm:pt-8">
+            <div className="flex justify-center mb-3 sm:mb-4">
               <img 
                 src="/CFF LOGO.png" 
                 alt="CFF Logo" 
-                className="h-16 w-auto object-contain"
+                className="h-12 sm:h-14 md:h-16 w-auto object-contain"
               />
             </div>
-            <CardTitle className="text-2xl font-bold text-white">Password Updated!</CardTitle>
-            <CardDescription className="text-white/90">
+            <CardTitle className="text-xl sm:text-2xl font-bold text-white">Password Updated!</CardTitle>
+            <CardDescription className="text-white/90 text-sm sm:text-base">
               Your password has been successfully updated. Redirecting you to sign in...
             </CardDescription>
           </CardHeader>
@@ -179,23 +179,23 @@ const ResetPassword = () => {
   }
 
   return (
-    <div className="min-h-screen bg-cover bg-center bg-fixed flex items-center justify-center p-4 font-rubik" style={{ backgroundImage: 'url(/auth.jpg)' }}>
-      <Card className="w-full max-w-md border border-blue-600/40 bg-blue-700/30 backdrop-blur-md relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide">
-        <CardHeader className="text-center pb-6">
-          <div className="flex justify-center mb-4">
+    <div className="min-h-screen bg-cover bg-center bg-fixed flex items-center justify-center p-3 sm:p-4 font-rubik" style={{ backgroundImage: 'url(/auth.jpg)' }}>
+      <Card className="w-full max-w-md border border-blue-600/40 bg-blue-700/30 backdrop-blur-md relative z-10 shadow-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto scrollbar-hide">
+        <CardHeader className="text-center pb-4 sm:pb-6 pt-6 sm:pt-8">
+          <div className="flex justify-center mb-3 sm:mb-4">
             <img 
               src="/CFF LOGO.png" 
               alt="CFF Logo" 
-              className="h-16 w-auto object-contain"
+              className="h-12 sm:h-14 md:h-16 w-auto object-contain"
             />
           </div>
-          <CardTitle className="text-2xl font-bold text-white">Reset Your Password</CardTitle>
-          <CardDescription className="text-white/90">
+          <CardTitle className="text-xl sm:text-2xl font-bold text-white">Reset Your Password</CardTitle>
+          <CardDescription className="text-white/90 text-sm sm:text-base">
             Enter your new password below
           </CardDescription>
         </CardHeader>
         
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6">
           {error && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />

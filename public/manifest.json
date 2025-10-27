@@ -12,80 +12,55 @@
       "src": "/CCF_ColorLogomark (1).ico",
       "sizes": "16x16 32x32 48x48",
       "type": "image/x-icon",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/CFF LOGO.png",
-      "sizes": "192x192",
-      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/CFF LOGO.png",
+      "src": "/CCF_ColorLogomark (1).png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/CCF_ColorLogomark (1).png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/CFF LOGO.png",
+      "src": "/CCF_ColorLogomark (1).png",
       "sizes": "180x180",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/CFF LOGO.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/CFF LOGO.png",
+      "src": "/CCF_ColorLogomark (1).png",
       "sizes": "144x144",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/CFF LOGO.png",
+      "src": "/CCF_ColorLogomark (1).png",
       "sizes": "120x120",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/CFF LOGO.png",
-      "sizes": "114x114",
+      "src": "/CCF_ColorLogomark (1).png",
+      "sizes": "96x96",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/CFF LOGO.png",
-      "sizes": "76x76",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/CFF LOGO.png",
+      "src": "/CCF_ColorLogomark (1).png",
       "sizes": "72x72",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/CFF LOGO.png",
-      "sizes": "60x60",
+      "src": "/CCF_ColorLogomark (1).png",
+      "sizes": "48x48",
       "type": "image/png",
       "purpose": "any"
-    },
-    {
-      "src": "/CFF LOGO.png",
-      "sizes": "57x57",
-      "type": "image/png",
-      "purpose": "any"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/CFF LOGO.png",
-      "sizes": "1280x720",
-      "type": "image/png"
     }
   ],
   "categories": ["finance", "business", "investment"],

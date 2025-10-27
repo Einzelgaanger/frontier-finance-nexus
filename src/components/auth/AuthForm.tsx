@@ -180,17 +180,17 @@ export default function AuthForm() {
   };
 
   return (
-    <div className="min-h-screen bg-cover bg-center bg-fixed flex items-center justify-center p-4 font-rubik" style={{ backgroundImage: 'url(/auth.jpg)' }}>
-      <Card className="w-full max-w-md border border-blue-600/40 bg-blue-700/30 backdrop-blur-md relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
+    <div className="min-h-screen bg-cover bg-center bg-fixed flex items-center justify-center p-3 sm:p-4 font-rubik" style={{ backgroundImage: 'url(/auth.jpg)' }}>
+      <Card className="w-full max-w-md border border-blue-600/40 bg-blue-700/30 backdrop-blur-md relative z-10 shadow-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto scrollbar-hide">
+        <CardHeader className="text-center pt-6 sm:pt-8">
+          <div className="flex justify-center mb-3 sm:mb-4">
             <img 
               src="/CFF LOGO.png" 
               alt="CFF Logo" 
-              className="h-20 w-auto object-contain"
+              className="h-14 sm:h-16 md:h-20 w-auto object-contain"
             />
           </div>
-          <CardDescription className="text-white/90">
+          <CardDescription className="text-white/90 text-sm sm:text-base">
             Fund Manager Database Platform
           </CardDescription>
         </CardHeader>
