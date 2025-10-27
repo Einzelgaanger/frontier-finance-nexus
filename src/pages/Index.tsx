@@ -559,7 +559,7 @@ const Index = () => {
               <div className="aspect-video relative h-full">
                 <iframe
                   className="w-full h-full"
-                  src="https://www.youtube.com/embed/vQmrvp8R2fc?autoplay=1&loop=1&playlist=vQmrvp8R2fc&controls=1&mute=0&modestbranding=1&rel=0&showinfo=0"
+                  src="https://www.youtube.com/embed/vQmrvp8R2fc?autoplay=1&loop=1&playlist=vQmrvp8R2fc&controls=1&mute=1&modestbranding=1&rel=0&showinfo=0"
                   title="YouTube video player"
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
