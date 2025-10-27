@@ -24,12 +24,37 @@ export default function FundManagerDetailModal({ userId, companyName, open, onCl
   const [surveys, setSurveys] = useState<SurveyYear[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [fieldVisibility, setFieldVisibility] = useState<Record<string, { viewer: boolean; member: boolean; admin: boolean }>>({});
 
   useEffect(() => {
     if (open && userId) {
       fetchSurveys();
+      fetchFieldVisibility();
     }
   }, [open, userId]);
+
+  const fetchFieldVisibility = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('field_visibility')
+        .select('field_name, viewer_visible, member_visible, admin_visible, survey_year');
+
+      if (error) throw error;
+
+      const visibilityMap: Record<string, { viewer: boolean; member: boolean; admin: boolean }> = {};
+      data?.forEach((field: any) => {
+        visibilityMap[`${field.field_name}_${field.survey_year}`] = {
+          viewer: field.viewer_visible,
+          member: field.member_visible,
+          admin: field.admin_visible,
+        };
+      });
+      
+      setFieldVisibility(visibilityMap);
+    } catch (error) {
+      console.error('Error fetching field visibility:', error);
+    }
+  };
 
   const fetchSurveys = async () => {
     setLoading(true);
@@ -60,48 +85,64 @@ export default function FundManagerDetailModal({ userId, companyName, open, onCl
     setLoading(false);
   };
 
-  const getSectionData = (surveyData: any, year: number) => {
-    // Define sections based on year - show first 4 for members, all for admins
-    const allSections = {
-      2021: [
-        { id: 1, title: 'Background Information', fields: ['email_address', 'firm_name', 'participant_name', 'role_title', 'team_based', 'geographic_focus', 'fund_stage'] },
-        { id: 2, title: 'Investment Thesis & Capital', fields: ['investment_vehicle_type', 'current_fund_size', 'target_fund_size', 'investment_timeframe'] },
-        { id: 3, title: 'Portfolio & Team', fields: ['investment_forms', 'target_sectors', 'carried_interest_principals', 'current_ftes'] },
-        { id: 4, title: 'Portfolio Development', fields: ['investment_monetization', 'exits_achieved'] },
-        { id: 5, title: 'COVID-19 Impact', fields: ['covid_impact_aggregate', 'covid_government_support'] },
-        { id: 6, title: 'Network Feedback', fields: ['network_value_rating', 'communication_platform'] },
-        { id: 7, title: 'Convening Objectives', fields: ['participate_mentoring_program', 'additional_comments'] },
-      ],
-      2022: [
-        { id: 1, title: 'Organization Details', fields: ['name', 'organisation', 'email', 'role_title'] },
-        { id: 2, title: 'Fund Information', fields: ['legal_domicile', 'fund_operations', 'current_funds_raised', 'target_fund_size'] },
-        { id: 3, title: 'Investment Strategy', fields: ['financial_instruments', 'sector_activities', 'business_stages'] },
-        { id: 4, title: 'Team & Operations', fields: ['current_ftes', 'principals_count', 'team_based'] },
-        { id: 5, title: 'Portfolio Performance', fields: ['investments_made_to_date', 'equity_exits_achieved', 'revenue_growth_recent_12_months'] },
-        { id: 6, title: 'Market Factors', fields: ['domestic_factors_concerns', 'international_factors_concerns'] },
-      ],
-      2023: [
-        { id: 1, title: 'Basic Information', fields: ['email_address', 'organisation_name', 'fund_name', 'funds_raising_investing'] },
-        { id: 2, title: 'Fund Structure', fields: ['legal_domicile', 'fund_type_status', 'current_funds_raised', 'target_fund_size'] },
-        { id: 3, title: 'Investment Approach', fields: ['financial_instruments', 'sector_focus', 'business_stages'] },
-        { id: 4, title: 'Team Composition', fields: ['fte_staff_current', 'principals_count', 'team_based'] },
-        { id: 5, title: 'Performance Metrics', fields: ['revenue_growth_historical', 'cash_flow_growth_historical', 'jobs_impact_historical_direct'] },
-        { id: 6, title: 'Strategic Priorities', fields: ['fund_priorities', 'concerns_ranking'] },
-      ],
-      2024: [
-        { id: 1, title: 'Organization Profile', fields: ['email_address', 'organisation_name', 'fund_name', 'funds_raising_investing'] },
-        { id: 2, title: 'Fund Details', fields: ['legal_domicile', 'fund_type_status', 'hard_commitments_current', 'target_fund_size_current'] },
-        { id: 3, title: 'Investment Focus', fields: ['sector_target_allocation', 'business_stages', 'financial_instruments_ranking'] },
-        { id: 4, title: 'Operations', fields: ['fte_staff_current', 'principals_total', 'team_based'] },
-        { id: 5, title: 'Portfolio Outcomes', fields: ['equity_investments_made', 'portfolio_revenue_growth_12m', 'direct_jobs_current'] },
-        { id: 6, title: 'Strategic Focus', fields: ['fund_priorities_next_12m', 'fundraising_barriers'] },
-      ],
-    };
-
-    const sections = allSections[year as keyof typeof allSections] || [];
+  const isFieldVisible = (fieldName: string, year: number): boolean => {
+    const key = `${fieldName}_${year}`;
+    const visibility = fieldVisibility[key];
     
-    // Return first 4 sections for members, all for admins
-    return userRole === 'admin' ? sections : sections.slice(0, 4);
+    if (!visibility) return false;
+    
+    if (userRole === 'admin') return visibility.admin;
+    if (userRole === 'member') return visibility.member;
+    if (userRole === 'viewer') return visibility.viewer;
+    
+    return false;
+  };
+
+  const getSectionData = (surveyData: any, year: number) => {
+    if (!surveyData) return [];
+
+    // Group visible fields by category
+    const fieldsByCategory: Record<string, string[]> = {};
+    
+    Object.keys(surveyData).forEach(fieldName => {
+      // Skip internal fields
+      if (['id', 'user_id', 'created_at', 'updated_at', 'submission_status', 'completed_at', 'form_data'].includes(fieldName)) {
+        return;
+      }
+
+      // Check if field is visible for current user role
+      if (!isFieldVisible(fieldName, year)) {
+        return;
+      }
+
+      // Categorize field
+      let category = 'Other Information';
+      if (fieldName.includes('email') || fieldName.includes('name') || fieldName.includes('organisation') || fieldName.includes('firm')) {
+        category = 'Contact & Organization';
+      } else if (fieldName.includes('fund') || fieldName.includes('capital') || fieldName.includes('raised') || fieldName.includes('target')) {
+        category = 'Fund Information';
+      } else if (fieldName.includes('investment') || fieldName.includes('sector') || fieldName.includes('stage') || fieldName.includes('instrument')) {
+        category = 'Investment Strategy';
+      } else if (fieldName.includes('team') || fieldName.includes('fte') || fieldName.includes('principal')) {
+        category = 'Team & Operations';
+      } else if (fieldName.includes('portfolio') || fieldName.includes('performance') || fieldName.includes('revenue') || fieldName.includes('jobs')) {
+        category = 'Performance & Impact';
+      }
+
+      if (!fieldsByCategory[category]) {
+        fieldsByCategory[category] = [];
+      }
+      fieldsByCategory[category].push(fieldName);
+    });
+
+    // Convert to sections array
+    const sections = Object.entries(fieldsByCategory).map(([title, fields], idx) => ({
+      id: idx + 1,
+      title,
+      fields
+    }));
+
+    return sections;
   };
 
   const formatFieldValue = (value: any): string => {
@@ -158,50 +199,62 @@ export default function FundManagerDetailModal({ userId, companyName, open, onCl
             </div>
 
             {/* Section Tabs */}
-            {selectedYear && (
-              <Tabs defaultValue="section-1" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
-                  {getSectionData(
-                    surveys.find(s => s.year === selectedYear)?.data,
-                    selectedYear
-                  ).map((section) => (
-                    <TabsTrigger key={section.id} value={`section-${section.id}`}>
-                      Section {section.id}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
+            {selectedYear && (() => {
+              const sections = getSectionData(
+                surveys.find(s => s.year === selectedYear)?.data,
+                selectedYear
+              );
 
-                {getSectionData(
-                  surveys.find(s => s.year === selectedYear)?.data,
-                  selectedYear
-                ).map((section) => {
-                  const surveyData = surveys.find(s => s.year === selectedYear)?.data;
-                  return (
-                    <TabsContent key={section.id} value={`section-${section.id}`}>
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>{section.title}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-4">
-                            {section.fields.map((field) => (
-                              <div key={field} className="border-b pb-3 last:border-b-0">
-                                <p className="font-medium text-sm text-muted-foreground mb-1">
-                                  {formatFieldName(field)}
-                                </p>
-                                <p className="text-sm whitespace-pre-wrap">
-                                  {formatFieldValue(surveyData?.[field])}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </TabsContent>
-                  );
-                })}
-              </Tabs>
-            )}
+              if (sections.length === 0) {
+                return (
+                  <div className="text-center py-12">
+                    <p className="text-muted-foreground">No visible data for your access level</p>
+                  </div>
+                );
+              }
+
+              return (
+                <Tabs defaultValue="section-1" className="w-full">
+                  <TabsList className={`grid w-full grid-cols-${Math.min(sections.length, 4)}`}>
+                    {sections.map((section) => (
+                      <TabsTrigger key={section.id} value={`section-${section.id}`}>
+                        {section.title.length > 15 ? section.title.substring(0, 12) + '...' : section.title}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+
+                  {sections.map((section) => {
+                    const surveyData = surveys.find(s => s.year === selectedYear)?.data;
+                    return (
+                      <TabsContent key={section.id} value={`section-${section.id}`}>
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="flex items-center justify-between">
+                              <span>{section.title}</span>
+                              <Badge variant="secondary">{section.fields.length} fields</Badge>
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-4">
+                              {section.fields.map((field) => (
+                                <div key={field} className="border-b pb-3 last:border-b-0">
+                                  <p className="font-medium text-sm text-muted-foreground mb-1">
+                                    {formatFieldName(field)}
+                                  </p>
+                                  <p className="text-sm whitespace-pre-wrap">
+                                    {formatFieldValue(surveyData?.[field])}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </TabsContent>
+                    );
+                  })}
+                </Tabs>
+              );
+            })()}
           </div>
         )}
       </DialogContent>
