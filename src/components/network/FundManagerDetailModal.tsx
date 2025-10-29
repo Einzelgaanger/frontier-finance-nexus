@@ -145,12 +145,75 @@ export default function FundManagerDetailModal({ userId, companyName, open, onCl
     return sections;
   };
 
-  const formatFieldValue = (value: any): string => {
-    if (value === null || value === undefined) return 'N/A';
-    if (typeof value === 'boolean') return value ? 'Yes' : 'No';
-    if (Array.isArray(value)) return value.join(', ') || 'N/A';
-    if (typeof value === 'object') return JSON.stringify(value, null, 2);
-    return String(value);
+  const isPlainObject = (val: unknown): val is Record<string, unknown> => {
+    return Object.prototype.toString.call(val) === '[object Object]';
+  };
+
+  const renderArray = (arr: unknown[]) => {
+    if (arr.length === 0) return <span className="text-muted-foreground">N/A</span>;
+    return (
+      <div className="flex flex-wrap gap-2">
+        {arr.map((item, idx) => (
+          <Badge key={idx} variant="secondary" className="px-2 py-0.5">
+            {String(item)}
+          </Badge>
+        ))}
+      </div>
+    );
+  };
+
+  const renderObject = (obj: Record<string, unknown>) => {
+    const entries = Object.entries(obj).filter(([k, v]) => k !== '_id');
+    if (entries.length === 0) return <span className="text-muted-foreground">N/A</span>;
+
+    return (
+      <div className="space-y-2">
+        {entries.map(([key, val]) => (
+          <div key={key} className="flex flex-col sm:flex-row sm:items-start sm:gap-3">
+            <span className="text-xs font-medium text-muted-foreground sm:w-1/3">
+              {formatFieldName(key)}
+            </span>
+            <div className="text-sm sm:flex-1">
+              {val === null || val === undefined ? (
+                <span className="text-muted-foreground">N/A</span>
+              ) : Array.isArray(val) ? (
+                renderArray(val)
+              ) : isPlainObject(val) ? (
+                // One level deep rendering
+                <div className="space-y-1">
+                  {Object.entries(val as Record<string, unknown>).map(([k2, v2]) => (
+                    <div key={k2} className="flex items-start gap-2">
+                      <span className="text-xs font-medium text-muted-foreground min-w-[12rem]">
+                        {formatFieldName(k2)}
+                      </span>
+                      <span className="text-sm">
+                        {v2 === null || v2 === undefined
+                          ? 'N/A'
+                          : Array.isArray(v2)
+                          ? (renderArray(v2) as unknown as string)
+                          : isPlainObject(v2)
+                          ? String(v2)
+                          : String(v2)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <span>{String(val)}</span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const formatFieldValue = (value: any): JSX.Element => {
+    if (value === null || value === undefined) return <span className="text-muted-foreground">N/A</span>;
+    if (typeof value === 'boolean') return <span>{value ? 'Yes' : 'No'}</span>;
+    if (Array.isArray(value)) return renderArray(value);
+    if (isPlainObject(value)) return renderObject(value);
+    return <span>{String(value)}</span>;
   };
 
   const formatFieldName = (field: string): string => {
@@ -164,11 +227,14 @@ export default function FundManagerDetailModal({ userId, companyName, open, onCl
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl flex items-center gap-2">
-            <FileText className="w-6 h-6" />
-            {companyName} - Survey Responses
+          <DialogTitle className="text-2xl flex items-center gap-3">
+            <div className="p-2 rounded-md bg-primary/10 text-primary">
+              <FileText className="w-6 h-6" />
+            </div>
+            <span className="font-semibold">{companyName}</span>
+            <span className="text-muted-foreground">Survey Responses</span>
           </DialogTitle>
         </DialogHeader>
 
@@ -188,8 +254,8 @@ export default function FundManagerDetailModal({ userId, companyName, open, onCl
               {surveys.map((survey) => (
                 <Badge
                   key={survey.year}
-                  variant={selectedYear === survey.year ? 'default' : 'outline'}
-                  className="cursor-pointer px-4 py-2"
+                  variant={selectedYear === survey.year ? 'default' : 'secondary'}
+                  className={`cursor-pointer px-4 py-2 transition-colors ${selectedYear === survey.year ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}
                   onClick={() => setSelectedYear(survey.year)}
                 >
                   <Calendar className="w-4 h-4 mr-2" />
@@ -215,10 +281,15 @@ export default function FundManagerDetailModal({ userId, companyName, open, onCl
 
               return (
                 <Tabs defaultValue="section-1" className="w-full">
-                  <TabsList className={`grid w-full grid-cols-${Math.min(sections.length, 4)}`}>
+                  <TabsList className="w-full overflow-x-auto flex flex-wrap gap-2 p-1 bg-muted/50 rounded-lg">
                     {sections.map((section) => (
-                      <TabsTrigger key={section.id} value={`section-${section.id}`}>
-                        {section.title.length > 15 ? section.title.substring(0, 12) + '...' : section.title}
+                      <TabsTrigger
+                        key={section.id}
+                        value={`section-${section.id}`}
+                        className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                        title={section.title}
+                      >
+                        {section.title.length > 22 ? section.title.substring(0, 20) + '…' : section.title}
                       </TabsTrigger>
                     ))}
                   </TabsList>
@@ -228,22 +299,22 @@ export default function FundManagerDetailModal({ userId, companyName, open, onCl
                     return (
                       <TabsContent key={section.id} value={`section-${section.id}`}>
                         <Card>
-                          <CardHeader>
+                          <CardHeader className="border-b bg-muted/30">
                             <CardTitle className="flex items-center justify-between">
                               <span>{section.title}</span>
-                              <Badge variant="secondary">{section.fields.length} fields</Badge>
+                              <Badge variant="outline">{section.fields.length} fields</Badge>
                             </CardTitle>
                           </CardHeader>
-                          <CardContent>
-                            <div className="space-y-4">
+                          <CardContent className="pt-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               {section.fields.map((field) => (
-                                <div key={field} className="border-b pb-3 last:border-b-0">
-                                  <p className="font-medium text-sm text-muted-foreground mb-1">
+                                <div key={field} className="rounded-md border p-3 bg-background">
+                                  <p className="font-medium text-xs uppercase tracking-wide text-muted-foreground mb-2">
                                     {formatFieldName(field)}
                                   </p>
-                                  <p className="text-sm whitespace-pre-wrap">
+                                  <div className="text-sm whitespace-pre-wrap leading-relaxed">
                                     {formatFieldValue(surveyData?.[field])}
-                                  </p>
+                                  </div>
                                 </div>
                               ))}
                             </div>
