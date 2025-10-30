@@ -90,7 +90,7 @@ export default function MyProfile() {
 
       const { error: uploadError } = await supabase.storage
         .from('profile-pictures')
-        .upload(fileName, file, { upsert: true });
+        .upload(fileName, file, { upsert: true, contentType: file.type, cacheControl: '3600' });
 
       if (uploadError) throw uploadError;
 
