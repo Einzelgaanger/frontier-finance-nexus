@@ -61,36 +61,86 @@ export default function MyProfile() {
     }
   };
 
+  // Convert any image to PNG via canvas (used when uploading ICO files)
+  const convertImageToPng = async (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width || 256;
+          canvas.height = img.height || 256;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return reject(new Error('Canvas not supported'));
+          ctx.drawImage(img, 0, 0);
+          canvas.toBlob((blob) => {
+            if (!blob) return reject(new Error('PNG conversion failed'));
+            resolve(blob);
+          }, 'image/png', 0.92);
+        };
+        img.onerror = reject;
+        img.src = reader.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleUploadAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
+    // Basic validation
     if (!file.type.startsWith('image/')) {
-      toast({
-        title: "Invalid file",
-        description: "Please upload an image file",
-        variant: "destructive"
-      });
+      toast({ title: 'Invalid file', description: 'Please upload an image file', variant: 'destructive' });
+      e.currentTarget.value = '';
       return;
     }
 
     if (file.size > 2 * 1024 * 1024) {
-      toast({
-        title: "File too large",
-        description: "Please upload an image smaller than 2MB",
-        variant: "destructive"
-      });
+      toast({ title: 'File too large', description: 'Please upload an image smaller than 2MB', variant: 'destructive' });
+      e.currentTarget.value = '';
       return;
+    }
+
+    // Handle supported types and convert unsupported (e.g., ICO) to PNG
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    let uploadBlob: Blob = file;
+    let uploadExt = 'png';
+    let contentType = 'image/png';
+
+    if (!allowedTypes.includes(file.type)) {
+      // Try converting ICO to PNG, otherwise block
+      if (file.type === 'image/x-icon' || file.type === 'image/vnd.microsoft.icon' || file.name.toLowerCase().endsWith('.ico')) {
+        try {
+          uploadBlob = await convertImageToPng(file);
+          uploadExt = 'png';
+          contentType = 'image/png';
+        } catch (err) {
+          console.error('ICO conversion failed', err);
+          toast({ title: 'Unsupported format', description: 'Please upload PNG, JPG or WEBP.', variant: 'destructive' });
+          e.currentTarget.value = '';
+          return;
+        }
+      } else {
+        toast({ title: 'Unsupported format', description: 'Please upload PNG, JPG or WEBP.', variant: 'destructive' });
+        e.currentTarget.value = '';
+        return;
+      }
+    } else {
+      if (file.type === 'image/jpeg' || file.type === 'image/jpg') { contentType = 'image/jpeg'; uploadExt = 'jpg'; }
+      else if (file.type === 'image/webp') { contentType = 'image/webp'; uploadExt = 'webp'; }
+      else { contentType = 'image/png'; uploadExt = 'png'; }
     }
 
     try {
       setUploading(true);
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/avatar.${fileExt}`;
+      const fileName = `${user.id}/avatar.${uploadExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('profile-pictures')
-        .upload(fileName, file, { upsert: true });
+        .upload(fileName, uploadBlob, { upsert: true, contentType, cacheControl: '3600' });
 
       if (uploadError) throw uploadError;
 
@@ -100,17 +150,11 @@ export default function MyProfile() {
 
       setProfile(prev => ({ ...prev, profile_picture_url: publicUrl }));
 
-      toast({
-        title: "Success",
-        description: "Avatar uploaded successfully"
-      });
+      toast({ title: 'Success', description: 'Avatar uploaded successfully' });
+      e.currentTarget.value = '';
     } catch (error) {
       console.error('Error uploading avatar:', error);
-      toast({
-        title: "Upload failed",
-        description: "Could not upload avatar",
-        variant: "destructive"
-      });
+      toast({ title: 'Upload failed', description: 'Could not upload avatar', variant: 'destructive' });
     } finally {
       setUploading(false);
     }
@@ -133,22 +177,14 @@ export default function MyProfile() {
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Profile updated successfully"
-      });
+      toast({ title: 'Success', description: 'Profile updated successfully' });
     } catch (error) {
       console.error('Error saving profile:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update profile",
-        variant: "destructive"
-      });
+      toast({ title: 'Error', description: 'Failed to update profile', variant: 'destructive' });
     } finally {
       setSaving(false);
     }
   };
-
   if (loading) {
     return (
       <SidebarLayout>
@@ -263,7 +299,7 @@ export default function MyProfile() {
                 <input
                   id="avatar-upload"
                   type="file"
-                  accept="image/*"
+                  accept="image/png,image/jpeg,image/webp"
                   className="hidden"
                   onChange={handleUploadAvatar}
                   disabled={uploading}

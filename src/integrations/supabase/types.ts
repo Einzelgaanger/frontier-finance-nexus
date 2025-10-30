@@ -1758,6 +1758,7 @@ export type Database = {
         Returns: undefined
       }
       get_user_role: { Args: { _user_id: string }; Returns: string }
+      has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

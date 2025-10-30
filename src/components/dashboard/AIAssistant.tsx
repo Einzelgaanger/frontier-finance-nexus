@@ -23,10 +23,11 @@ export default function AIAssistant() {
     setInput('');
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setLoading(true);
+    const history = [...messages, { role: 'user', content: userMessage }];
 
     try {
       const { data, error } = await supabase.functions.invoke('ai-chat', {
-        body: { message: userMessage }
+        body: { messages: history }
       });
 
       if (error) throw error;
