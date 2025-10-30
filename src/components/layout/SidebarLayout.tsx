@@ -377,14 +377,16 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
                       </p>
                     </>
                   ) : location.pathname === '/blogs' ? (
-                    <>
-                      <h2 className="text-2xl font-bold text-white transition-colors">
-                        Community Blogs
-                      </h2>
-                      <p className="text-sm text-white/70 transition-colors">
-                        Share insights and connect with fellow fund managers
-                      </p>
-                    </>
+                    <div className="flex-1 flex items-center justify-between">
+                      <div>
+                        <h2 className="text-2xl font-bold text-white transition-colors">
+                          Community Blogs
+                        </h2>
+                        <p className="text-sm text-white/70 transition-colors">
+                          Share insights and connect with fellow fund managers
+                        </p>
+                      </div>
+                    </div>
                   ) : location.pathname === '/profile' ? (
                     <>
                       <h2 className="text-2xl font-bold text-white transition-colors">

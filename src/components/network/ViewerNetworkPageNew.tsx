@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Building2, Mail, Globe, User, Loader2, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 import FundManagerDetailModal from './FundManagerDetailModal';
+import { useNavigate } from 'react-router-dom';
 
 interface UserProfile {
   id: string;
@@ -19,6 +20,7 @@ interface UserProfile {
 }
 
 export default function ViewerNetworkPageNew() {
+  const navigate = useNavigate();
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [filteredProfiles, setFilteredProfiles] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -105,7 +107,7 @@ export default function ViewerNetworkPageNew() {
 
   const handleCardClick = (profile: UserProfile) => {
     if (profile.has_surveys) {
-      setSelectedUser({ id: profile.id, name: profile.company_name });
+      navigate(`/network/fund-manager/${profile.id}`);
     }
   };
 
@@ -249,14 +251,7 @@ export default function ViewerNetworkPageNew() {
       )}
     </div>
 
-    {selectedUser && (
-      <FundManagerDetailModal
-        userId={selectedUser.id}
-        companyName={selectedUser.name}
-        open={!!selectedUser}
-        onClose={() => setSelectedUser(null)}
-      />
-    )}
+    {/* Modal no longer used for viewers; navigation to detail page instead */}
   </>
   );
 }

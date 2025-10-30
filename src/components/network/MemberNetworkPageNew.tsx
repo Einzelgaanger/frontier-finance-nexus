@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Building2, Mail, Globe, Loader2, User, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 import FundManagerDetailModal from './FundManagerDetailModal';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 interface UserProfile {
   id: string;
@@ -21,6 +22,7 @@ interface UserProfile {
 
 export default function MemberNetworkPageNew() {
   const { userRole } = useAuth();
+  const navigate = useNavigate();
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [filteredProfiles, setFilteredProfiles] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -106,10 +108,8 @@ export default function MemberNetworkPageNew() {
   };
 
   const handleCardClick = (profile: UserProfile) => {
-    // Only allow clicking on cards with surveys for members/viewers
-    // Admins can see all
     if (profile.has_surveys || userRole === 'admin') {
-      setSelectedUser({ id: profile.id, name: profile.company_name });
+      navigate(`/network/fund-manager/${profile.id}`);
     }
   };
 
@@ -253,14 +253,7 @@ export default function MemberNetworkPageNew() {
         )}
       </div>
 
-      {selectedUser && (
-        <FundManagerDetailModal
-          userId={selectedUser.id}
-          companyName={selectedUser.name}
-          open={!!selectedUser}
-          onClose={() => setSelectedUser(null)}
-        />
-      )}
+      {/* Modal no longer used; redirecting to detail page */}
     </>
   );
 }

@@ -158,156 +158,179 @@ export default function Blogs() {
   };
 
   return (
-    <SidebarLayout>
-      <div className="container max-w-6xl mx-auto py-8 px-4">
-        <div className="flex justify-end items-center mb-8">
-          <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
-            <PlusCircle className="h-5 w-5" />
-            Create Post
-          </Button>
-        </div>
-
-        {loading ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <Card key={i} className="animate-pulse">
-                <CardHeader className="space-y-4">
-                  <div className="h-4 bg-muted rounded w-3/4" />
-                  <div className="h-3 bg-muted rounded w-1/2" />
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="h-3 bg-muted rounded" />
-                    <div className="h-3 bg-muted rounded" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : blogs.length === 0 ? (
-          <Card className="text-center py-12">
-            <CardContent>
-              <FileText className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-semibold mb-2">No blogs yet</h3>
-              <p className="text-muted-foreground mb-4">Be the first to share your insights!</p>
-              <Button onClick={() => setIsCreateModalOpen(true)}>
-                Create First Post
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {blogs.map((blog) => (
-              <Card 
-                key={blog.id} 
-                className="hover:shadow-lg transition-shadow group cursor-pointer"
-                onClick={() => setSelectedBlog(blog)}
+    <div className="h-screen overflow-hidden bg-cover bg-center bg-fixed" style={{ backgroundImage: 'url(/auth.jpg)' }}>
+      <SidebarLayout>
+        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="relative z-10 h-screen overflow-y-auto">
+          <div className="container max-w-7xl mx-auto px-4 pt-6">
+            {/* Floating Create Post Button */}
+            <div className="fixed top-20 right-8 z-50">
+              <Button 
+                onClick={() => setIsCreateModalOpen(true)} 
+                className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-2xl text-white rounded-full px-4 py-3"
               >
-                <CardHeader>
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={blog.author?.profile_picture_url || ""} />
-                        <AvatarFallback>
-                          {blog.author?.full_name?.charAt(0) || "U"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-semibold text-sm">{blog.author?.full_name || "Unknown"}</p>
-                          {blog.author?.total_points !== undefined && (
-                            <span className="text-lg">
-                              {getBadge(blog.author.total_points).icon}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground">{blog.author?.company_name}</p>
+                <PlusCircle className="h-5 w-5" />
+                Create Post
+              </Button>
+            </div>
+
+            {loading ? (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <Card key={i} className="animate-pulse shadow-xl border-2 border-blue-100 bg-white/30 backdrop-blur-sm">
+                    <CardHeader className="space-y-4">
+                      <div className="h-4 bg-white/50 rounded w-3/4" />
+                      <div className="h-3 bg-white/50 rounded w-1/2" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="h-3 bg-white/50 rounded" />
+                        <div className="h-3 bg-white/50 rounded" />
                       </div>
-                    </div>
-                    <Badge variant="secondary" className="gap-1">
-                      {getMediaIcon(blog.media_type)}
-                      {blog.media_type || "text"}
-                    </Badge>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : blogs.length === 0 ? (
+              <Card className="text-center py-12 shadow-xl border-2 border-blue-100 bg-white/30 backdrop-blur-sm">
+                <CardContent>
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <FileText className="h-10 w-10 text-blue-600" />
                   </div>
-                  <h2 className="text-xl font-bold line-clamp-2">{blog.title}</h2>
-                  <p className="text-sm text-muted-foreground">
-                    {format(new Date(blog.created_at), "MMM d, yyyy")}
-                  </p>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {blog.media_type === "image" && blog.media_url && (
-                    <div className="relative rounded-lg overflow-hidden">
-                      <img 
-                        src={blog.media_url} 
-                        alt={blog.title}
-                        className="w-full h-48 object-cover"
-                      />
-                      <Badge 
-                        variant="secondary" 
-                        className="absolute top-2 left-2 bg-black/60 text-white backdrop-blur-sm"
-                      >
-                        {blog.author?.company_name}
-                      </Badge>
-                    </div>
-                  )}
-                  {blog.media_type === "video" && blog.media_url && (
-                    <video 
-                      src={blog.media_url}
-                      muted
-                      loop
-                      playsInline
-                      className="w-full h-48 object-cover rounded-lg"
-                      onMouseEnter={(e) => e.currentTarget.play()}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.pause();
-                        e.currentTarget.currentTime = 0;
-                      }}
-                    />
-                  )}
-                  {blog.caption && (
-                    <p className="text-sm text-muted-foreground italic line-clamp-2">
-                      {blog.caption}
-                    </p>
-                  )}
-                  {blog.content && (
-                    <p className="text-sm line-clamp-3">{blog.content}</p>
-                  )}
-                  
-                  <div className="flex items-center gap-4 pt-2 border-t">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleLike(blog.id, blog.is_liked || false);
-                      }}
-                      className="flex items-center gap-1 text-sm hover:text-primary transition-colors"
-                    >
-                      <Heart className={`w-4 h-4 ${blog.is_liked ? 'fill-red-500 text-red-500' : ''}`} />
-                      <span>{blog.like_count}</span>
-                    </button>
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <MessageCircle className="w-4 h-4" />
-                      <span>{blog.comment_count}</span>
-                    </div>
-                  </div>
+                  <h3 className="text-xl font-semibold mb-2 text-gray-800">No blogs yet</h3>
+                  <p className="text-muted-foreground mb-4">Be the first to share your insights!</p>
+                  <Button 
+                    onClick={() => setIsCreateModalOpen(true)}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg text-white"
+                  >
+                    Create First Post
+                  </Button>
                 </CardContent>
               </Card>
-            ))}
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {blogs.map((blog) => (
+                  <Card 
+                    key={blog.id} 
+                    className="hover:shadow-2xl transition-all duration-300 group cursor-pointer transform hover:-translate-y-1 shadow-xl border-2 border-blue-100 bg-white/30 backdrop-blur-sm"
+                    onClick={() => setSelectedBlog(blog)}
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-12 w-12 ring-2 ring-blue-200">
+                            <AvatarImage src={blog.author?.profile_picture_url || ""} />
+                            <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                              {blog.author?.full_name?.charAt(0) || "U"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="font-semibold text-sm text-gray-800">{blog.author?.full_name || "Unknown"}</p>
+                              {blog.author?.total_points !== undefined && (
+                                <span className="text-lg">
+                                  {getBadge(blog.author.total_points).icon}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-600">{blog.author?.company_name}</p>
+                          </div>
+                        </div>
+                        <Badge 
+                          variant="secondary" 
+                          className="gap-1 bg-blue-100/80 text-blue-700 border-blue-300 backdrop-blur-sm"
+                        >
+                          {getMediaIcon(blog.media_type)}
+                          {blog.media_type || "text"}
+                        </Badge>
+                      </div>
+                      <h2 className="text-lg font-bold line-clamp-2 text-gray-900 group-hover:text-blue-600 transition-colors">
+                        {blog.title}
+                      </h2>
+                      <p className="text-sm text-gray-500 mt-2">
+                        {format(new Date(blog.created_at), "MMM d, yyyy")}
+                      </p>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {blog.media_type === "image" && blog.media_url && (
+                        <div className="relative rounded-xl overflow-hidden shadow-md group-hover:shadow-xl transition-shadow">
+                          <img 
+                            src={blog.media_url} 
+                            alt={blog.title}
+                            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                          <Badge 
+                            variant="secondary" 
+                            className="absolute top-3 left-3 bg-black/60 text-white backdrop-blur-sm border-white/30"
+                          >
+                            {blog.author?.company_name}
+                          </Badge>
+                        </div>
+                      )}
+                      {blog.media_type === "video" && blog.media_url && (
+                        <div className="relative rounded-xl overflow-hidden shadow-md group-hover:shadow-xl transition-shadow">
+                          <video 
+                            src={blog.media_url}
+                            muted
+                            loop
+                            playsInline
+                            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                            onMouseEnter={(e) => e.currentTarget.play()}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.pause();
+                              e.currentTarget.currentTime = 0;
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                        </div>
+                      )}
+                      {blog.caption && (
+                        <p className="text-sm text-gray-600 italic line-clamp-2">
+                          "{blog.caption}"
+                        </p>
+                      )}
+                      {blog.content && (
+                        <p className="text-sm text-gray-700 line-clamp-3">{blog.content}</p>
+                      )}
+                      
+                      <div className="flex items-center gap-4 pt-3 border-t border-blue-200/50">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleLike(blog.id, blog.is_liked || false);
+                          }}
+                          className="flex items-center gap-2 text-sm hover:text-pink-600 transition-colors group/like"
+                        >
+                          <Heart className={`w-5 h-5 transition-all ${blog.is_liked ? 'fill-pink-500 text-pink-500 scale-110' : 'group-hover/like:scale-110'}`} />
+                          <span className="font-medium">{blog.like_count}</span>
+                        </button>
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <MessageCircle className="w-5 h-5" />
+                          <span className="font-medium">{blog.comment_count}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            <CreateBlogModal
+              open={isCreateModalOpen}
+              onOpenChange={setIsCreateModalOpen}
+              onSuccess={fetchBlogs}
+            />
+
+            <BlogDetailModal
+              blog={selectedBlog}
+              open={!!selectedBlog}
+              onOpenChange={(open) => !open && setSelectedBlog(null)}
+              onToggleLike={toggleLike}
+            />
           </div>
-        )}
-
-        <CreateBlogModal
-          open={isCreateModalOpen}
-          onOpenChange={setIsCreateModalOpen}
-          onSuccess={fetchBlogs}
-        />
-
-        <BlogDetailModal
-          blog={selectedBlog}
-          open={!!selectedBlog}
-          onOpenChange={(open) => !open && setSelectedBlog(null)}
-          onToggleLike={toggleLike}
-        />
-      </div>
-    </SidebarLayout>
+        </div>
+      </SidebarLayout>
+    </div>
   );
 }
