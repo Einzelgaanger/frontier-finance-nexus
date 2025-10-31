@@ -148,9 +148,21 @@ export default function MyProfile() {
         .from('profile-pictures')
         .getPublicUrl(fileName);
 
+      // Persist the new avatar URL immediately
       setProfile(prev => ({ ...prev, profile_picture_url: publicUrl }));
 
-      toast({ title: 'Success', description: 'Avatar uploaded successfully' });
+      // Save to DB so it shows everywhere without needing "Save Changes"
+      const { error: saveError } = await supabase
+        .from('user_profiles')
+        .update({ profile_picture_url: publicUrl })
+        .eq('id', user.id);
+
+      if (saveError) {
+        console.error('Avatar saved to storage but DB update failed:', saveError);
+        toast({ title: 'Avatar uploaded', description: 'But failed to save to profile. Please click Save Changes.', variant: 'destructive' });
+      } else {
+        toast({ title: 'Success', description: 'Avatar uploaded and saved to your profile' });
+      }
       e.currentTarget.value = '';
     } catch (error) {
       console.error('Error uploading avatar:', error);
