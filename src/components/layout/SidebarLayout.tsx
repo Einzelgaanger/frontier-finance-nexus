@@ -28,7 +28,8 @@ import {
   Newspaper,
   LineChart,
   LockKeyhole,
-  UserCircle
+  UserCircle,
+  PlusCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -311,8 +312,8 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
       {/* Main Content */}
       <div className="flex flex-col min-w-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 lg:ml-56">
         {/* Top Header */}
-        <header className="border-b-2 border-black px-6 py-4 transition-colors bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 font-rubik sticky top-0 z-10">
-          <div className="flex items-center">
+        <header className="border-b-2 border-black px-6 py-4 transition-colors bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 font-rubik sticky top-0 z-50">
+          <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
@@ -377,16 +378,14 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
                       </p>
                     </>
                   ) : location.pathname === '/blogs' ? (
-                    <div className="flex-1 flex items-center justify-between">
-                      <div>
-                        <h2 className="text-2xl font-bold text-white transition-colors">
-                          Community Blogs
-                        </h2>
-                        <p className="text-sm text-white/70 transition-colors">
-                          Share insights and connect with fellow fund managers
-                        </p>
-                      </div>
-                    </div>
+                    <>
+                      <h2 className="text-2xl font-bold text-white transition-colors">
+                        Community Blogs
+                      </h2>
+                      <p className="text-sm text-white/70 transition-colors">
+                        Share insights and connect with fellow fund managers
+                      </p>
+                    </>
                   ) : location.pathname === '/profile' ? (
                     <>
                       <h2 className="text-2xl font-bold text-white transition-colors">
@@ -416,6 +415,20 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
                   )}
                 </div>
             </div>
+            
+            {/* Header Actions */}
+            {location.pathname === '/blogs' && (
+              <Button 
+                onClick={() => {
+                  const event = new CustomEvent('openCreateBlogModal');
+                  window.dispatchEvent(event);
+                }}
+                className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg text-white rounded-full px-4"
+              >
+                <PlusCircle className="h-5 w-5" />
+                Create Post
+              </Button>
+            )}
           </div>
         </header>
 

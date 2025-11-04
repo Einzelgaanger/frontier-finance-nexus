@@ -9,9 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { PlusCircle, Image, Video, FileText, Heart, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { CreateBlogModal } from "@/components/blogs/CreateBlogModal";
-import { BlogDetailModal } from "@/components/blogs/BlogDetailModal";
 import { format } from "date-fns";
 import { getBadge } from "@/utils/badgeSystem";
+import { useNavigate } from "react-router-dom";
 
 interface Blog {
   id: string;
@@ -35,10 +35,10 @@ interface Blog {
 
 export default function Blogs() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null);
 
   useEffect(() => {
     document.title = "Blogs | CFF Network";
@@ -52,6 +52,17 @@ export default function Blogs() {
     if (user) {
       fetchBlogs();
     }
+    
+    // Listen for the create blog modal event from header
+    const handleOpenModal = () => {
+      setIsCreateModalOpen(true);
+    };
+    
+    window.addEventListener('openCreateBlogModal', handleOpenModal);
+    
+    return () => {
+      window.removeEventListener('openCreateBlogModal', handleOpenModal);
+    };
   }, [user]);
 
   const fetchBlogs = async () => {
@@ -163,17 +174,6 @@ export default function Blogs() {
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="relative z-10 h-screen overflow-y-auto">
           <div className="container max-w-7xl mx-auto px-4 pt-6">
-            {/* Floating Create Post Button */}
-            <div className="fixed top-20 right-8 z-50">
-              <Button 
-                onClick={() => setIsCreateModalOpen(true)} 
-                className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-2xl text-white rounded-full px-4 py-3"
-              >
-                <PlusCircle className="h-5 w-5" />
-                Create Post
-              </Button>
-            </div>
-
             {loading ? (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -213,7 +213,7 @@ export default function Blogs() {
                   <Card 
                     key={blog.id} 
                     className="hover:shadow-2xl transition-all duration-300 group cursor-pointer transform hover:-translate-y-1 shadow-xl border-2 border-blue-100 bg-white/30 backdrop-blur-sm"
-                    onClick={() => setSelectedBlog(blog)}
+                    onClick={() => navigate(`/blogs/${blog.id}`)}
                   >
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between mb-3">
@@ -320,13 +320,6 @@ export default function Blogs() {
               open={isCreateModalOpen}
               onOpenChange={setIsCreateModalOpen}
               onSuccess={fetchBlogs}
-            />
-
-            <BlogDetailModal
-              blog={selectedBlog}
-              open={!!selectedBlog}
-              onOpenChange={(open) => !open && setSelectedBlog(null)}
-              onToggleLike={toggleLike}
             />
           </div>
         </div>

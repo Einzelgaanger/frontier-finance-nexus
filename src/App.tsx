@@ -22,6 +22,7 @@ import MyProfile from "./pages/MyProfile";
 import ViewerSettings from "./pages/ViewerSettings";
 import Application from "./pages/Application";
 import Blogs from "./pages/Blogs";
+import BlogDetail from "./pages/BlogDetail";
 import ResetPassword from "./pages/ResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import AdminWrapper from "./components/AdminWrapper";
@@ -130,6 +131,11 @@ const App = () => {
             <Route path="/blogs" element={
               <ProtectedRoute>
                 <Blogs />
+              </ProtectedRoute>
+            } />
+            <Route path="/blogs/:id" element={
+              <ProtectedRoute>
+                <BlogDetail />
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />

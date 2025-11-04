@@ -40,13 +40,26 @@ const ApplicationManagement = () => {
   const fetchApplications = async () => {
     try {
       setLoading(true);
+      // Use membership_requests table to match AdminV2 data source
       const { data, error } = await supabase
-        .from('applications' as any)
+        .from('membership_requests')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setApplications((data as any) || []);
+      // Map membership_requests fields to Application interface
+      setApplications((data || []).map((req: any) => ({
+        id: req.id,
+        user_id: req.user_id,
+        company_name: req.vehicle_name || req.applicant_name || 'Unknown',
+        email: req.email,
+        application_text: req.thesis || req.team_description || req.expectations || 'No application text provided',
+        status: req.status,
+        admin_notes: req.admin_notes,
+        created_at: req.created_at,
+        reviewed_at: req.reviewed_at,
+        reviewed_by: req.reviewed_by
+      })));
     } catch (error) {
       console.error('Error fetching applications:', error);
       toast({
@@ -71,9 +84,9 @@ const ApplicationManagement = () => {
     try {
       setReviewing(true);
 
-      // Update application status
+      // Update application status in membership_requests table
       const { error: appError } = await supabase
-        .from('applications' as any)
+        .from('membership_requests')
         .update({
           status: 'approved',
           admin_notes: adminNotes,
@@ -126,9 +139,9 @@ const ApplicationManagement = () => {
     try {
       setReviewing(true);
 
-      // Update application status
+      // Update application status in membership_requests table
       const { error } = await supabase
-        .from('applications' as any)
+        .from('membership_requests')
         .update({
           status: 'rejected',
           admin_notes: adminNotes,
@@ -375,7 +388,7 @@ const ApplicationManagement = () => {
                 try {
                   setReviewing(true);
                   const { error } = await supabase
-                    .from('applications' as any)
+                    .from('membership_requests')
                     .update({
                       status: 'rejected',
                       admin_notes: adminNotes,
@@ -412,7 +425,7 @@ const ApplicationManagement = () => {
                 try {
                   setReviewing(true);
                   const { error: appError } = await supabase
-                    .from('applications' as any)
+                    .from('membership_requests')
                     .update({
                       status: 'approved',
                       admin_notes: adminNotes,

@@ -38,21 +38,50 @@ export default function ViewerNetworkPageNew() {
 
   const fetchProfiles = async () => {
     try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('id, email, company_name, description, website, profile_picture_url, user_role')
-        .not('email', 'like', '%.test@escpnetwork.net')
-        .order('company_name');
+      setLoading(true);
+      
+      // Fetch profiles and all survey data in parallel (optimized: only 5 queries total)
+      const [profilesResult, survey2021Result, survey2022Result, survey2023Result, survey2024Result] = await Promise.all([
+        supabase
+          .from('user_profiles')
+          .select('id, email, company_name, description, website, profile_picture_url, user_role')
+          .not('email', 'like', '%.test@escpnetwork.net')
+          .order('company_name'),
+        supabase
+          .from('survey_responses_2021')
+          .select('user_id')
+          .eq('submission_status', 'completed'),
+        supabase
+          .from('survey_responses_2022')
+          .select('user_id')
+          .eq('submission_status', 'completed'),
+        supabase
+          .from('survey_responses_2023')
+          .select('user_id')
+          .eq('submission_status', 'completed'),
+        supabase
+          .from('survey_responses_2024')
+          .select('user_id')
+          .eq('submission_status', 'completed')
+      ]);
 
-      if (error) throw error;
+      if (profilesResult.error) throw profilesResult.error;
 
-      // Check which users have completed surveys
-      const profilesWithSurveys = await Promise.all(
-        (data || []).map(async (profile) => {
-          const hasSurveys = await checkUserHasSurveys(profile.id);
-          return { ...profile, has_surveys: hasSurveys };
-        })
-      );
+      // Create a Set of user_ids that have completed surveys (fast lookup)
+      const usersWithSurveys = new Set<string>();
+      [survey2021Result.data, survey2022Result.data, survey2023Result.data, survey2024Result.data].forEach(surveyData => {
+        (surveyData || []).forEach(survey => {
+          if (survey.user_id) {
+            usersWithSurveys.add(survey.user_id);
+          }
+        });
+      });
+
+      // Map profiles and check survey status in memory (no additional queries)
+      const profilesWithSurveys = (profilesResult.data || []).map(profile => ({
+        ...profile,
+        has_surveys: usersWithSurveys.has(profile.id)
+      }));
 
       setProfiles(profilesWithSurveys);
     } catch (error) {
@@ -60,26 +89,6 @@ export default function ViewerNetworkPageNew() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const checkUserHasSurveys = async (userId: string): Promise<boolean> => {
-    const years = [2021, 2022, 2023, 2024];
-    
-    for (const year of years) {
-      try {
-        const { data } = await supabase
-          .from(`survey_responses_${year}` as any)
-          .select('id')
-          .eq('user_id', userId)
-          .eq('submission_status', 'completed')
-          .maybeSingle();
-
-        if (data) return true;
-      } catch (error) {
-        // Continue to next year
-      }
-    }
-    return false;
   };
 
   const filterProfiles = () => {
@@ -113,8 +122,28 @@ export default function ViewerNetworkPageNew() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin" />
+      <div className="container mx-auto py-8 px-4">
+        <div className="mb-8">
+          <div className="h-10 bg-gray-200 rounded-md animate-pulse max-w-md"></div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i} className="relative overflow-hidden min-h-[400px] animate-pulse">
+              <div className="absolute inset-0 bg-gradient-to-br from-gray-300 to-gray-400"></div>
+              <div className="relative z-10 h-full flex flex-col justify-end p-6 space-y-4">
+                <div className="h-6 bg-gray-500/50 rounded w-3/4"></div>
+                <div className="h-4 bg-gray-500/40 rounded w-1/2"></div>
+                <div className="h-4 bg-gray-500/40 rounded w-2/3"></div>
+                <div className="h-3 bg-gray-500/30 rounded w-full"></div>
+                <div className="h-3 bg-gray-500/30 rounded w-5/6"></div>
+                <div className="flex gap-2 pt-2">
+                  <div className="h-6 bg-gray-500/40 rounded-full w-16"></div>
+                  <div className="h-6 bg-gray-500/40 rounded-full w-24"></div>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
       </div>
     );
   }
@@ -158,7 +187,7 @@ export default function ViewerNetworkPageNew() {
                 </div>
 
                                  {/* Content Overlay - Directly on Image */}
-                 <div className="relative z-10 h-full flex flex-col justify-end p-6 space-y-1">
+                 <div className="relative z-[1] h-full flex flex-col justify-end p-6 space-y-1">
                    {/* Company Name */}
                    <div className="flex items-center gap-2">
                      <Building2 className="w-5 h-5 text-blue-400 flex-shrink-0" />

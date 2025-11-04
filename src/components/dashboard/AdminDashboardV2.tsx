@@ -47,7 +47,6 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import AIAssistant from './AIAssistant';
 
 interface StatCard {
   title: string;
@@ -160,7 +159,17 @@ const AdminDashboardV2 = () => {
         supabase.from('network_users').select('user_id, role, created_at')
       ]);
 
-      // Handle errors gracefully
+      // Handle errors gracefully and log them
+      if (survey2021Result.error) console.error('Error fetching survey 2021:', survey2021Result.error);
+      if (survey2022Result.error) console.error('Error fetching survey 2022:', survey2022Result.error);
+      if (survey2023Result.error) console.error('Error fetching survey 2023:', survey2023Result.error);
+      if (survey2024Result.error) console.error('Error fetching survey 2024:', survey2024Result.error);
+      if (userRolesResult.error) console.error('Error fetching user_roles:', userRolesResult.error);
+      if (applicationsResult.error) console.error('Error fetching membership_requests:', applicationsResult.error);
+      if (profilesResult.error) console.error('Error fetching profiles:', profilesResult.error);
+      if (userProfilesResult.error) console.error('Error fetching user_profiles:', userProfilesResult.error);
+      if (networkUsersResult.error) console.error('Error fetching network_users:', networkUsersResult.error);
+
       const survey2021Users = survey2021Result.data || [];
       const survey2022Users = survey2022Result.data || [];
       const survey2023Users = survey2023Result.data || [];
@@ -171,11 +180,35 @@ const AdminDashboardV2 = () => {
       const networkUsers = networkUsersResult.data || [];
       const membershipRequests = applicationsResult.data || [];
 
+      // Log data counts for debugging
+      console.log('AdminDashboardV2 - Raw data counts:', {
+        survey2021Count: survey2021Users.length,
+        survey2022Count: survey2022Users.length,
+        survey2023Count: survey2023Users.length,
+        survey2024Count: survey2024Users.length,
+        userRolesCount: userRoles.length,
+        profilesCount: profiles.length,
+        membershipRequestsCount: membershipRequests.length
+      });
+
       // Calculate comprehensive metrics
-      const totalUsers = userRoles.length;
-      const activeMembers = userRoles.filter(ur => ur.role === 'member').length;
-      const viewers = userRoles.filter(ur => ur.role === 'viewer').length;
-      const admins = userRoles.filter(ur => ur.role === 'admin').length;
+      // Note: If user_roles query fails due to RLS, use profiles as fallback for total count
+      // Then try to get role-specific counts from survey data or use profiles count
+      const totalUsers = userRoles.length > 0 ? userRoles.length : profiles.length;
+      const activeMembers = userRoles.length > 0 
+        ? userRoles.filter(ur => ur.role === 'member').length 
+        : 0; // If we can't get user_roles, we can't determine members
+      const viewers = userRoles.length > 0 
+        ? userRoles.filter(ur => ur.role === 'viewer').length 
+        : 0;
+      const admins = userRoles.length > 0 
+        ? userRoles.filter(ur => ur.role === 'admin').length 
+        : 0;
+      
+      // If user_roles query returned empty but we have profiles, log a warning
+      if (userRoles.length === 0 && profiles.length > 0) {
+        console.warn('AdminDashboardV2 - user_roles query returned 0 results but profiles exist. This may be due to RLS policies. Using profiles count as fallback.');
+      }
       const totalSurveyResponses = survey2021Users.length + survey2022Users.length + survey2023Users.length + survey2024Users.length;
       const pendingApplications = membershipRequests.filter(app => app.status === 'pending').length;
       const approvedApplications = membershipRequests.filter(app => app.status === 'approved').length;
@@ -191,7 +224,7 @@ const AdminDashboardV2 = () => {
         ...survey2024Users.filter(s => new Date(s.created_at) >= thisMonth)
       ].length;
 
-      const thisMonthUsers = userRoles.filter(ur => new Date(ur.created_at) >= thisMonth).length;
+      const thisMonthUsers = userRoles.filter(ur => ur.created_at && new Date(ur.created_at) >= thisMonth).length;
 
       console.log('AdminDashboardV2 - Data fetched:', {
         totalUsers,
@@ -224,11 +257,11 @@ const AdminDashboardV2 = () => {
           value: activeMembers.toString(),
           icon: UserCheck,
           description: 'Verified fund managers',
-          trend: { value: Math.round((activeMembers / totalUsers) * 100), isPositive: true },
+          trend: { value: totalUsers > 0 ? Math.round((activeMembers / totalUsers) * 100) : 0, isPositive: true },
           color: 'bg-green-500',
           bgColor: 'bg-green-50',
           textColor: 'text-green-700',
-          change: `${Math.round((activeMembers / totalUsers) * 100)}% of total`
+          change: totalUsers > 0 ? `${Math.round((activeMembers / totalUsers) * 100)}% of total` : 'No users yet'
         },
         {
           title: 'Survey Responses',
@@ -437,13 +470,13 @@ const AdminDashboardV2 = () => {
 
       // Add comprehensive user activity logs
       const recentUserActivity = userRoles
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
         .slice(0, 3)
         .map((user, index) => ({
           id: `user-${user.user_id}`,
           type: 'user' as const,
           message: `New ${user.role} registered: ${user.user_id.slice(0, 8)}...`,
-          timestamp: new Date(user.created_at).toLocaleString(),
+          timestamp: user.created_at ? new Date(user.created_at).toLocaleString() : 'Unknown',
           icon: user.role === 'admin' ? Crown : user.role === 'member' ? UserCheck : Users,
           color: user.role === 'admin' ? 'text-red-600' : user.role === 'member' ? 'text-green-600' : 'text-blue-600',
           priority: user.role === 'admin' ? 'high' as const : 'medium' as const,
@@ -513,9 +546,9 @@ const AdminDashboardV2 = () => {
     fetchAllData();
   }, [fetchAllData]);
 
-  // Prevent body scrolling like the AI page
+  // Allow scrolling on admin dashboard
   useEffect(() => {
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = 'auto';
     return () => {
       document.body.style.overflow = 'unset';
     };
@@ -542,8 +575,8 @@ const AdminDashboardV2 = () => {
   };
 
   return (
-    <div className="h-screen overflow-hidden bg-gradient-to-br from-[#f5f5dc] to-[#f0f0e6]">
-      <div className="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <div className="min-h-screen overflow-y-auto bg-gradient-to-br from-[#f5f5dc] to-[#f0f0e6]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         
 
         {/* Single Comprehensive Card - Everything in One */}
@@ -740,9 +773,6 @@ const AdminDashboardV2 = () => {
               </div>
             </div>
           </div>
-
-          {/* AI Assistant Section */}
-          <AIAssistant />
         </div>
       </div>
     </div>
