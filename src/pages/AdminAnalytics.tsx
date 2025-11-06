@@ -25,12 +25,7 @@ import {
   LineChart,
   Line,
   AreaChart,
-  Area,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar
+  Area
 } from 'recharts';
 import {
   Calendar,
@@ -45,10 +40,22 @@ import {
   Send,
   Bot,
   RefreshCw,
-  Download
+  Download,
+  Activity,
+  Briefcase,
+  PieChart as PieChartIcon
 } from 'lucide-react';
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+const CHART_COLORS = [
+  'hsl(221.2 83.2% 53.3%)', // primary
+  'hsl(142.1 76.2% 36.3%)', // green
+  'hsl(262.1 83.3% 57.8%)', // purple  
+  'hsl(346.8 77.2% 49.8%)', // pink
+  'hsl(24.6 95% 53.1%)', // orange
+  'hsl(199.89 89.26% 48.43%)', // cyan
+  'hsl(47.9 95.8% 53.1%)', // yellow
+  'hsl(280.7 83.3% 50%)', // violet
+];
 
 // Section configurations for each year
 const SURVEY_SECTIONS = {
@@ -126,23 +133,29 @@ export default function AdminAnalytics() {
 
   const calculateDistribution = (fieldName: string) => {
     const distribution: Record<string, number> = {};
+    let totalCount = 0;
 
     surveyData.forEach(response => {
       const value = response[fieldName];
       if (Array.isArray(value)) {
         value.forEach(item => {
-          distribution[item] = (distribution[item] || 0) + 1;
+          if (item !== null && item !== undefined && item !== '') {
+            distribution[String(item)] = (distribution[String(item)] || 0) + 1;
+            totalCount++;
+          }
         });
-      } else if (value !== null && value !== undefined) {
+      } else if (value !== null && value !== undefined && value !== '') {
         distribution[String(value)] = (distribution[String(value)] || 0) + 1;
+        totalCount++;
       }
     });
 
+    // Use actual count for percentage calculation, not surveyData.length
     return Object.entries(distribution)
       .map(([name, count]) => ({
-        name,
+        name: name.length > 30 ? name.substring(0, 27) + '...' : name,
         value: count,
-        percentage: surveyData.length > 0 ? ((count / surveyData.length) * 100).toFixed(1) : '0'
+        percentage: totalCount > 0 ? ((count / totalCount) * 100).toFixed(1) : '0'
       }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 10);
@@ -152,20 +165,28 @@ export default function AdminAnalytics() {
     const values = surveyData
       .map(r => {
         const val = r[fieldName];
-        return typeof val === 'number' ? val : parseFloat(val);
+        if (typeof val === 'number') return val;
+        if (typeof val === 'string') {
+          const parsed = parseFloat(val.replace(/[^0-9.-]/g, ''));
+          return isNaN(parsed) ? null : parsed;
+        }
+        return null;
       })
-      .filter(v => !isNaN(v));
+      .filter((v): v is number => v !== null && !isNaN(v) && isFinite(v));
 
-    if (values.length === 0) return { min: 0, max: 0, avg: 0, median: 0, total: 0 };
+    if (values.length === 0) return null;
 
     const sorted = [...values].sort((a, b) => a - b);
     const sum = values.reduce((acc, val) => acc + val, 0);
+    const median = sorted.length % 2 === 0
+      ? (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2
+      : sorted[Math.floor(sorted.length / 2)];
 
     return {
       min: sorted[0],
       max: sorted[sorted.length - 1],
       avg: sum / values.length,
-      median: sorted[Math.floor(sorted.length / 2)],
+      median,
       total: sum,
       count: values.length
     };
@@ -225,54 +246,70 @@ export default function AdminAnalytics() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-foreground">{currentSection.title}</h2>
-            <p className="text-muted-foreground">Analytics for {surveyData.length} responses</p>
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">{currentSection.title}</h2>
+            <p className="text-muted-foreground mt-1">Analyzing {surveyData.length} survey responses</p>
           </div>
-          <Button onClick={fetchSurveyData} variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+          <Button onClick={fetchSurveyData} variant="outline" size="sm" className="gap-2">
+            <RefreshCw className="h-4 w-4" />
+            Refresh Data
           </Button>
         </div>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Responses</CardTitle>
-              <Users className="h-4 w-4 text-primary" />
+        {/* Summary Cards with Gradients */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="relative overflow-hidden border-none">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-blue-600/5 to-transparent" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
+              <CardTitle className="text-sm font-medium">Total Responses</CardTitle>
+              <div className="p-2 bg-blue-500/10 rounded-lg">
+                <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-foreground">{surveyData.length}</div>
+            <CardContent className="relative">
+              <div className="text-3xl font-bold">{surveyData.length}</div>
+              <p className="text-xs text-muted-foreground mt-1">Completed surveys</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Fields Analyzed</CardTitle>
-              <BarChart3 className="h-4 w-4 text-primary" />
+          <Card className="relative overflow-hidden border-none">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 via-green-600/5 to-transparent" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
+              <CardTitle className="text-sm font-medium">Fields Analyzed</CardTitle>
+              <div className="p-2 bg-green-500/10 rounded-lg">
+                <Activity className="h-5 w-5 text-green-600 dark:text-green-400" />
+              </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-foreground">{currentSection.fields.length}</div>
+            <CardContent className="relative">
+              <div className="text-3xl font-bold">{currentSection.fields.length}</div>
+              <p className="text-xs text-muted-foreground mt-1">Data points</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Survey Year</CardTitle>
-              <Calendar className="h-4 w-4 text-primary" />
+          <Card className="relative overflow-hidden border-none">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-purple-600/5 to-transparent" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
+              <CardTitle className="text-sm font-medium">Survey Year</CardTitle>
+              <div className="p-2 bg-purple-500/10 rounded-lg">
+                <Calendar className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-foreground">{selectedYear}</div>
+            <CardContent className="relative">
+              <div className="text-3xl font-bold">{selectedYear}</div>
+              <p className="text-xs text-muted-foreground mt-1">Current dataset</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Section</CardTitle>
-              <Target className="h-4 w-4 text-primary" />
+          <Card className="relative overflow-hidden border-none">
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-transparent" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
+              <CardTitle className="text-sm font-medium">Section Progress</CardTitle>
+              <div className="p-2 bg-orange-500/10 rounded-lg">
+                <Target className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+              </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-foreground">{selectedSection}/{sections.length}</div>
+            <CardContent className="relative">
+              <div className="text-3xl font-bold">{selectedSection} / {sections.length}</div>
+              <p className="text-xs text-muted-foreground mt-1">Sections reviewed</p>
             </CardContent>
           </Card>
         </div>
@@ -282,76 +319,138 @@ export default function AdminAnalytics() {
           {currentSection.fields.map((field, idx) => {
             const distribution = calculateDistribution(field);
             const stats = calculateNumericStats(field);
-            const hasNumericData = stats.count > 0;
+            const hasNumericData = stats !== null && stats.count > 0;
 
             return (
-              <Card key={field}>
+              <Card key={field} className="hover-lift">
                 <CardHeader>
-                  <CardTitle className="text-lg">{formatFieldName(field)}</CardTitle>
-                  <CardDescription>Distribution and statistics</CardDescription>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <CardTitle className="text-lg">{formatFieldName(field)}</CardTitle>
+                      <CardDescription className="mt-1">
+                        {hasNumericData ? `${stats.count} numeric values` : `${distribution.reduce((sum, d) => sum + d.value, 0)} responses`}
+                      </CardDescription>
+                    </div>
+                    <Badge variant="secondary" className="ml-2">
+                      {hasNumericData ? 'Numeric' : 'Categorical'}
+                    </Badge>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {hasNumericData ? (
                     <div className="space-y-4">
-                      <div className="grid grid-cols-4 gap-2 text-center">
-                        <div>
-                          <p className="text-sm text-muted-foreground">Avg</p>
-                          <p className="text-xl font-bold text-foreground">{stats.avg.toFixed(1)}</p>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div className="p-3 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900">
+                          <p className="text-xs font-medium text-muted-foreground mb-1">Average</p>
+                          <p className="text-xl font-bold">{stats.avg.toLocaleString(undefined, { maximumFractionDigits: 1 })}</p>
                         </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Min</p>
-                          <p className="text-xl font-bold text-foreground">{stats.min}</p>
+                        <div className="p-3 rounded-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900">
+                          <p className="text-xs font-medium text-muted-foreground mb-1">Median</p>
+                          <p className="text-xl font-bold">{stats.median.toLocaleString(undefined, { maximumFractionDigits: 1 })}</p>
                         </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Max</p>
-                          <p className="text-xl font-bold text-foreground">{stats.max}</p>
+                        <div className="p-3 rounded-lg bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900">
+                          <p className="text-xs font-medium text-muted-foreground mb-1">Min</p>
+                          <p className="text-xl font-bold">{stats.min.toLocaleString()}</p>
                         </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Count</p>
-                          <p className="text-xl font-bold text-foreground">{stats.count}</p>
+                        <div className="p-3 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900">
+                          <p className="text-xs font-medium text-muted-foreground mb-1">Max</p>
+                          <p className="text-xl font-bold">{stats.max.toLocaleString()}</p>
                         </div>
                       </div>
-                      <ResponsiveContainer width="100%" height={200}>
-                        <BarChart data={distribution}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                          <YAxis />
-                          <Tooltip />
-                          <Bar dataKey="value" fill={COLORS[idx % COLORS.length]} />
-                        </BarChart>
-                      </ResponsiveContainer>
+                      {distribution.length > 0 && (
+                        <ResponsiveContainer width="100%" height={200}>
+                          <BarChart data={distribution}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                            <XAxis 
+                              dataKey="name" 
+                              tick={{ fontSize: 11 }} 
+                              stroke="hsl(var(--muted-foreground))"
+                            />
+                            <YAxis stroke="hsl(var(--muted-foreground))" />
+                            <Tooltip 
+                              contentStyle={{ 
+                                backgroundColor: 'hsl(var(--card))',
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: '6px'
+                              }}
+                            />
+                            <Bar dataKey="value" fill={CHART_COLORS[idx % CHART_COLORS.length]} radius={[4, 4, 0, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      )}
                     </div>
                   ) : distribution.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={250}>
-                      {distribution.length > 5 ? (
-                        <BarChart data={distribution}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-45} textAnchor="end" height={100} />
-                          <YAxis />
-                          <Tooltip />
-                          <Bar dataKey="value" fill={COLORS[idx % COLORS.length]} />
-                        </BarChart>
-                      ) : (
-                        <PieChart>
-                          <Pie
-                            data={distribution}
-                            cx="50%"
-                            cy="50%"
-                            labelLine={false}
-                            label={({ name, percentage }) => `${name}: ${percentage}%`}
-                            outerRadius={80}
-                            dataKey="value"
-                          >
-                            {distribution.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                          </Pie>
-                          <Tooltip />
-                        </PieChart>
-                      )}
-                    </ResponsiveContainer>
+                    <div className="space-y-4">
+                      <ResponsiveContainer width="100%" height={280}>
+                        {distribution.length > 6 ? (
+                          <BarChart data={distribution}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                            <XAxis 
+                              dataKey="name" 
+                              tick={{ fontSize: 10 }} 
+                              angle={-45} 
+                              textAnchor="end" 
+                              height={100}
+                              stroke="hsl(var(--muted-foreground))"
+                            />
+                            <YAxis stroke="hsl(var(--muted-foreground))" />
+                            <Tooltip 
+                              contentStyle={{ 
+                                backgroundColor: 'hsl(var(--card))',
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: '6px'
+                              }}
+                            />
+                            <Bar dataKey="value" fill={CHART_COLORS[idx % CHART_COLORS.length]} radius={[4, 4, 0, 0]} />
+                          </BarChart>
+                        ) : (
+                          <PieChart>
+                            <Pie
+                              data={distribution}
+                              cx="50%"
+                              cy="50%"
+                              labelLine={true}
+                              label={({ name, percentage }) => `${name}: ${percentage}%`}
+                              outerRadius={90}
+                              dataKey="value"
+                            >
+                              {distribution.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip 
+                              contentStyle={{ 
+                                backgroundColor: 'hsl(var(--card))',
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: '6px'
+                              }}
+                            />
+                          </PieChart>
+                        )}
+                      </ResponsiveContainer>
+                      <div className="space-y-2">
+                        {distribution.slice(0, 5).map((item, i) => (
+                          <div key={i} className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className="w-3 h-3 rounded-full" 
+                                style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }}
+                              />
+                              <span className="text-muted-foreground">{item.name}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{item.value}</span>
+                              <Badge variant="secondary">{item.percentage}%</Badge>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   ) : (
-                    <p className="text-center text-muted-foreground py-8">No data available</p>
+                    <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                      <PieChartIcon className="h-12 w-12 mb-3 opacity-20" />
+                      <p className="text-sm">No data available for this field</p>
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -388,29 +487,35 @@ export default function AdminAnalytics() {
     <SidebarLayout>
       <div className="container mx-auto p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-bold text-foreground">Survey Analytics</h1>
-            <p className="text-muted-foreground mt-1">Comprehensive section-by-section analysis</p>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-purple-600 to-primary bg-clip-text text-transparent">
+              Survey Analytics Dashboard
+            </h1>
+            <p className="text-muted-foreground mt-2">Comprehensive insights and data visualization</p>
           </div>
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
+          <Button variant="default" className="gap-2">
+            <Download className="h-4 w-4" />
             Export Report
           </Button>
         </div>
 
         {/* Year Selection */}
-        <Card>
+        <Card className="border-none shadow-lg">
           <CardHeader>
-            <CardTitle>Select Survey Year</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              Select Survey Year
+            </CardTitle>
+            <CardDescription>Choose which year's survey data to analyze</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs value={String(selectedYear)} onValueChange={(v) => setSelectedYear(Number(v))}>
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="2021">2021</TabsTrigger>
-                <TabsTrigger value="2022">2022</TabsTrigger>
-                <TabsTrigger value="2023">2023</TabsTrigger>
-                <TabsTrigger value="2024">2024</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-4 h-12">
+                <TabsTrigger value="2021" className="text-base">2021</TabsTrigger>
+                <TabsTrigger value="2022" className="text-base">2022</TabsTrigger>
+                <TabsTrigger value="2023" className="text-base">2023</TabsTrigger>
+                <TabsTrigger value="2024" className="text-base">2024</TabsTrigger>
               </TabsList>
             </Tabs>
           </CardContent>
@@ -418,21 +523,29 @@ export default function AdminAnalytics() {
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Section Navigation */}
-          <Card className="lg:col-span-1">
+          <Card className="lg:col-span-1 border-none shadow-lg">
             <CardHeader>
-              <CardTitle>Sections</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Briefcase className="h-5 w-5 text-primary" />
+                Survey Sections
+              </CardTitle>
+              <CardDescription>Navigate through sections</CardDescription>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="h-[600px]">
+              <ScrollArea className="h-[600px] pr-4">
                 <div className="space-y-2">
                   {sections.map((section) => (
                     <Button
                       key={section.id}
-                      variant={selectedSection === section.id ? 'default' : 'outline'}
-                      className="w-full justify-start"
+                      variant={selectedSection === section.id ? 'default' : 'ghost'}
+                      className={`w-full justify-start transition-all ${
+                        selectedSection === section.id 
+                          ? 'shadow-md' 
+                          : 'hover:bg-accent'
+                      }`}
                       onClick={() => setSelectedSection(section.id)}
                     >
-                      <span className="font-semibold mr-2">{section.id}.</span>
+                      <span className="font-bold mr-3 text-primary">{section.id}.</span>
                       {section.title}
                     </Button>
                   ))}
@@ -447,13 +560,14 @@ export default function AdminAnalytics() {
           </div>
 
           {/* AI Assistant */}
-          <Card className="lg:col-span-1">
-            <CardHeader>
+          <Card className="lg:col-span-1 border-none shadow-lg relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-transparent rounded-full -mr-16 -mt-16" />
+            <CardHeader className="relative">
               <CardTitle className="flex items-center gap-2">
-                <Bot className="h-5 w-5" />
+                <Bot className="h-5 w-5 text-primary" />
                 AI Assistant
               </CardTitle>
-              <CardDescription>Ask questions about the data</CardDescription>
+              <CardDescription>Get insights from your data</CardDescription>
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-[400px] mb-4 pr-4">
