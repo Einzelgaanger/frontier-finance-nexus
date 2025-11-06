@@ -85,17 +85,20 @@ export default function BlogDetail() {
       // Fetch like count
       const { data: likeCounts } = await supabase
         .from("blog_likes" as any)
-        .select("blog_id");
-      const likeCount = likeCounts?.filter(like => like.blog_id === blogData.id).length || 0;
+        .select("*")
+        .eq("blog_id", blogData.id);
+      const likeCount = likeCounts?.length || 0;
 
       // Fetch comment count
       const { data: commentCounts } = await supabase
         .from("blog_comments")
-        .select("blog_id");
-      const commentCount = commentCounts?.filter(comment => comment.blog_id === blogData.id).length || 0;
+        .select("*")
+        .eq("blog_id", blogData.id);
+      const commentCount = commentCounts?.length || 0;
 
       const fullBlog: Blog = {
         ...blogData,
+        media_type: blogData.media_type as 'text' | 'image' | 'video' | null,
         like_count: likeCount,
         comment_count: commentCount,
         is_liked: isLiked,

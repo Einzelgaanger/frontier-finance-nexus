@@ -40,20 +40,18 @@ const ApplicationManagement = () => {
   const fetchApplications = async () => {
     try {
       setLoading(true);
-      // Use membership_requests table to match AdminV2 data source
       const { data, error } = await supabase
-        .from('membership_requests')
+        .from('applications')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      // Map membership_requests fields to Application interface
       setApplications((data || []).map((req: any) => ({
         id: req.id,
         user_id: req.user_id,
-        company_name: req.vehicle_name || req.applicant_name || 'Unknown',
+        company_name: req.company_name || 'Unknown',
         email: req.email,
-        application_text: req.thesis || req.team_description || req.expectations || 'No application text provided',
+        application_text: req.application_text || 'No application text provided',
         status: req.status,
         admin_notes: req.admin_notes,
         created_at: req.created_at,
@@ -84,9 +82,8 @@ const ApplicationManagement = () => {
     try {
       setReviewing(true);
 
-      // Update application status in membership_requests table
       const { error: appError } = await supabase
-        .from('membership_requests')
+        .from('applications')
         .update({
           status: 'approved',
           admin_notes: adminNotes,
@@ -139,9 +136,8 @@ const ApplicationManagement = () => {
     try {
       setReviewing(true);
 
-      // Update application status in membership_requests table
       const { error } = await supabase
-        .from('membership_requests')
+        .from('applications')
         .update({
           status: 'rejected',
           admin_notes: adminNotes,
@@ -388,7 +384,7 @@ const ApplicationManagement = () => {
                 try {
                   setReviewing(true);
                   const { error } = await supabase
-                    .from('membership_requests')
+                    .from('applications')
                     .update({
                       status: 'rejected',
                       admin_notes: adminNotes,
@@ -425,7 +421,7 @@ const ApplicationManagement = () => {
                 try {
                   setReviewing(true);
                   const { error: appError } = await supabase
-                    .from('membership_requests')
+                    .from('applications')
                     .update({
                       status: 'approved',
                       admin_notes: adminNotes,
