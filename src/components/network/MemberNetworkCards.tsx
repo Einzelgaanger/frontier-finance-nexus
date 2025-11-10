@@ -318,153 +318,135 @@ const MemberNetworkCards = () => {
       setLoading(true);
       console.log('Fetching member network data...');
 
-      // Fetch from member_surveys table which has RLS policies allowing all users to view all member surveys
-      const [memberSurveysResult, profilesResult, userRolesResult] = await Promise.all([
-        supabase
-          .from('member_surveys')
-          .select(`
-            id,
-            user_id,
-            fund_name,
-            website,
-            fund_type,
-            primary_investment_region,
-            year_founded,
-            team_size,
-            typical_check_size,
-            aum,
-            investment_thesis,
-            sector_focus,
-            stage_focus,
-            completed_at,
-            created_at
-          `)
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('profiles')
-          .select('id, first_name, last_name, email'),
-        supabase
-          .from('user_roles')
-          .select('user_id, role')
+      // Fetch ALL survey years with correct column names for each year
+      const [survey2021Result, survey2022Result, survey2023Result, survey2024Result, profilesResult, userRolesResult] = await Promise.all([
+        supabase.from('survey_responses_2021').select('user_id, firm_name, participant_name, email_address, geographic_focus, investment_vehicle_type, fund_stage, current_ftes').eq('submission_status', 'completed'),
+        supabase.from('survey_responses_2022').select('user_id, organisation, name, email, geographic_markets, investment_type, fund_operations, current_ftes').eq('submission_status', 'completed'),
+        supabase.from('survey_responses_2023').select('user_id, organisation_name, fund_name, email_address, geographic_markets, fund_type_status, fte_staff_current').eq('submission_status', 'completed'),
+        supabase.from('survey_responses_2024').select('user_id, organisation_name, fund_name, email_address, geographic_markets, fund_type_status, fte_staff_current').eq('submission_status', 'completed'),
+        supabase.from('user_profiles').select('id, email, company_name'),
+        supabase.from('user_roles').select('user_id, role')
       ]);
 
-      // Handle errors gracefully
-      if (memberSurveysResult.error) {
-        console.error('Error fetching member surveys:', memberSurveysResult.error);
-        throw memberSurveysResult.error;
-      }
+      // Create a unified map of all users with their most recent survey data
+      const userSurveyMap = new Map();
 
-      console.log('Member surveys result:', memberSurveysResult.data);
-      console.log('Profiles result:', profilesResult.data);
-      console.log('User roles result:', userRolesResult.data);
+      // Process 2021 surveys
+      survey2021Result.data?.forEach(survey => {
+        userSurveyMap.set(survey.user_id, {
+          user_id: survey.user_id,
+          year: 2021,
+          fund_name: survey.firm_name || 'Unnamed Fund',
+          firm_name: survey.firm_name,
+          participant_name: survey.participant_name,
+          email_address: survey.email_address,
+          geographic_focus: survey.geographic_focus || [],
+          vehicle_type: survey.investment_vehicle_type?.[0],
+          fund_stage: survey.fund_stage,
+          team_size: survey.current_ftes ? parseInt(survey.current_ftes) : null
+        });
+      });
 
-      // Create maps for efficient lookups
+      // Process 2022 surveys (overwrite if user has both)
+      survey2022Result.data?.forEach(survey => {
+        userSurveyMap.set(survey.user_id, {
+          user_id: survey.user_id,
+          year: 2022,
+          fund_name: survey.organisation || 'Unnamed Fund',
+          firm_name: survey.organisation,
+          participant_name: survey.name,
+          email_address: survey.email,
+          geographic_focus: survey.geographic_markets || [],
+          vehicle_type: survey.investment_type,
+          fund_stage: survey.fund_operations || 'Active',
+          team_size: survey.current_ftes ? parseInt(survey.current_ftes) : null
+        });
+      });
+
+      // Process 2023 surveys
+      survey2023Result.data?.forEach(survey => {
+        userSurveyMap.set(survey.user_id, {
+          user_id: survey.user_id,
+          year: 2023,
+          fund_name: survey.fund_name || survey.organisation_name || 'Unnamed Fund',
+          firm_name: survey.organisation_name,
+          participant_name: survey.fund_name,
+          email_address: survey.email_address,
+          geographic_focus: survey.geographic_markets || [],
+          vehicle_type: survey.fund_type_status,
+          fund_stage: 'Active',
+          team_size: survey.fte_staff_current || null
+        });
+      });
+
+      // Process 2024 surveys (most recent)
+      survey2024Result.data?.forEach(survey => {
+        userSurveyMap.set(survey.user_id, {
+          user_id: survey.user_id,
+          year: 2024,
+          fund_name: survey.fund_name || survey.organisation_name || 'Unnamed Fund',
+          firm_name: survey.organisation_name,
+          participant_name: survey.fund_name,
+          email_address: survey.email_address,
+          geographic_focus: survey.geographic_markets || [],
+          vehicle_type: survey.fund_type_status,
+          fund_stage: 'Active',
+          team_size: survey.fte_staff_current || null
+        });
+      });
+
+      // Create profiles map
       const profilesMap = new Map();
+      profilesResult.data?.forEach(profile => {
+        profilesMap.set(profile.id, profile);
+      });
+
+      // Create user roles map
       const userRolesMap = new Map();
-      
-      if (profilesResult.data) {
-        profilesResult.data.forEach(profile => {
-          profilesMap.set(profile.id, profile);
-        });
-      }
-      
-      if (userRolesResult.data) {
-        userRolesResult.data.forEach(userRole => {
-          userRolesMap.set(userRole.user_id, userRole.role);
-        });
-      }
+      userRolesResult.data?.forEach(userRole => {
+        userRolesMap.set(userRole.user_id, userRole.role);
+      });
 
-      // Process member surveys data
-      let processedManagers = [];
-      
-      if (memberSurveysResult.data && memberSurveysResult.data.length > 0) {
-        console.log(`Processing ${memberSurveysResult.data.length} member surveys`);
-        processedManagers = memberSurveysResult.data.map(survey => {
-          const profile = profilesMap.get(survey.user_id);
-          const userRole = userRolesMap.get(survey.user_id) || 'member';
-          
-          return {
-            id: survey.user_id,
-            user_id: survey.user_id,
-            fund_name: survey.fund_name || 'Unnamed Fund',
-            firm_name: survey.fund_name || 'Unnamed Fund',
-            participant_name: profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : 'Unknown Member',
-            email_address: profile?.email || 'No email provided',
-            has_survey: true, // All entries in member_surveys have completed surveys
-            profile: {
-              first_name: profile?.first_name || 'Unknown',
-              last_name: profile?.last_name || 'Member',
-              email: profile?.email || 'No email provided'
-            },
-            // Use member survey data
-            primary_investment_region: survey.primary_investment_region || 'Global',
-            fund_type: survey.fund_type || 'Investment Fund',
-            year_founded: survey.year_founded || 2020,
-            team_size: survey.team_size || 5,
-            typical_check_size: survey.typical_check_size || '$100K - $500K',
-            aum: survey.aum || '$10M - $50M',
-            investment_thesis: survey.investment_thesis || 'Early-stage technology investments',
-            sector_focus: survey.sector_focus || ['Technology', 'Healthcare', 'Fintech'],
-            stage_focus: survey.stage_focus || ['Seed', 'Series A'],
-            role_badge: userRole,
-            website: survey.website || '',
-            completed_at: survey.completed_at || survey.created_at,
-            geographic_focus: [survey.primary_investment_region || 'Global'],
-            vehicle_type: survey.fund_type || 'Investment Fund',
-            fund_stage: 'Active'
-          };
-        });
-      } else {
-        console.log('No member surveys found, falling back to survey data...');
+      // Build final manager list from survey data
+      const processedManagers = Array.from(userSurveyMap.values()).map(survey => {
+        const profile = profilesMap.get(survey.user_id);
+        const userRole = userRolesMap.get(survey.user_id) || 'member';
         
-        // Fallback: If member_surveys is empty, try to get data from survey tables
-        const [survey2021Result, surveyResult] = await Promise.all([
-          supabase.from('survey_responses_2021').select('user_id, firm_name, participant_name, geographic_focus, investment_vehicle_type, fund_stage, current_ftes'),
-          supabase.from('survey_responses').select('user_id')
-        ]);
-
-        if (survey2021Result.data && survey2021Result.data.length > 0) {
-          console.log(`Found ${survey2021Result.data.length} survey responses as fallback`);
-          processedManagers = survey2021Result.data.map(survey => {
-            const profile = profilesMap.get(survey.user_id);
-            const userRole = userRolesMap.get(survey.user_id) || 'member';
-            
-            return {
-              id: survey.user_id,
-              user_id: survey.user_id,
-              fund_name: survey.firm_name || 'Unnamed Fund',
-              firm_name: survey.firm_name || 'Unnamed Fund',
-              participant_name: survey.participant_name || 'Unknown Member',
-              email_address: profile?.email || 'No email provided',
-              has_survey: true,
-              profile: {
-                first_name: survey.participant_name?.split(' ')[0] || 'Unknown',
-                last_name: survey.participant_name?.split(' ').slice(1).join(' ') || 'Member',
-                email: profile?.email || 'No email provided'
-              },
-              primary_investment_region: survey.geographic_focus?.[0] || 'Global',
-              fund_type: survey.investment_vehicle_type?.[0] || 'Investment Fund',
-              year_founded: 2020,
-              team_size: survey.current_ftes ? parseInt(survey.current_ftes) : 5,
-              typical_check_size: '$100K - $500K',
-              aum: '$10M - $50M',
-              investment_thesis: 'Early-stage technology investments',
-              sector_focus: ['Technology', 'Healthcare', 'Fintech'],
-              stage_focus: ['Seed', 'Series A'],
-              role_badge: userRole,
-              website: '',
-              completed_at: new Date().toISOString(),
-              geographic_focus: survey.geographic_focus || ['Global'],
-              vehicle_type: survey.investment_vehicle_type?.[0] || 'Investment Fund',
-              fund_stage: survey.fund_stage || 'Active'
-            };
-          });
-        }
-      }
+        return {
+          id: survey.user_id,
+          user_id: survey.user_id,
+          year: survey.year,
+          fund_name: survey.fund_name || profile?.company_name || 'Unnamed Fund',
+          firm_name: survey.firm_name || profile?.company_name || 'Unnamed Fund',
+          participant_name: survey.participant_name || profile?.company_name || 'Unknown Member',
+          email_address: survey.email_address || profile?.email || 'No email provided',
+          has_survey: true,
+          profile: {
+            first_name: survey.participant_name?.split(' ')[0] || 'Unknown',
+            last_name: survey.participant_name?.split(' ').slice(1).join(' ') || 'Member',
+            email: survey.email_address || profile?.email || 'No email provided'
+          },
+          geographic_focus: survey.geographic_focus,
+          vehicle_type: survey.vehicle_type || 'Investment Fund',
+          fund_stage: survey.fund_stage || 'Active',
+          team_size: survey.team_size || 5,
+          primary_investment_region: survey.geographic_focus?.[0] || 'Global',
+          fund_type: survey.vehicle_type || 'Investment Fund',
+          year_founded: 2020,
+          typical_check_size: '$100K - $500K',
+          aum: '$10M - $50M',
+          investment_thesis: 'Investment focus details available in survey',
+          sector_focus: ['Multiple Sectors'],
+          stage_focus: ['Various Stages'],
+          role_badge: userRole,
+          website: '',
+          completed_at: new Date().toISOString()
+        };
+      });
 
       setFundManagers(processedManagers);
       setLastUpdated(new Date());
-      console.log(`Loaded ${processedManagers.length} network members from member_surveys table`);
+      console.log(`Loaded ${processedManagers.length} network members from surveys (2021-2024)`);
     } catch (error) {
       console.error('Error fetching fund managers:', error);
       toast({
