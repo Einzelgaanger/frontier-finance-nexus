@@ -65,17 +65,26 @@ Deno.serve(async (req) => {
     const dataContext: any = {}
     const surveyYears = [2021, 2022, 2023, 2024]
     
+    // Define base fields for each year (these exist in each year's table)
+    const baseFieldsByYear: Record<number, string[]> = {
+      2021: ['id', 'email_address', 'firm_name', 'participant_name', 'submission_status', 'completed_at', 'created_at'],
+      2022: ['id', 'email', 'organisation', 'name', 'submission_status', 'completed_at', 'created_at'],
+      2023: ['id', 'email_address', 'organisation_name', 'fund_name', 'submission_status', 'completed_at', 'created_at'],
+      2024: ['id', 'email_address', 'organisation_name', 'fund_name', 'submission_status', 'completed_at', 'created_at']
+    }
+    
     // Get survey field names for efficient queries
     const surveyFieldsByYear: Record<number, string[]> = {}
     surveyYears.forEach(year => {
       const yearFields = visibleFields.filter(f => f.table_name === `survey_responses_${year}`)
-      surveyFieldsByYear[year] = yearFields.length > 0 
-        ? ['id', 'email_address', 'email', 'organisation_name', 'organization_name', 'firm_name', 'fund_name', ...yearFields.map(f => f.field_name)]
-        : ['id', 'email_address', 'email', 'organisation_name', 'organization_name', 'firm_name', 'fund_name']
+      const baseFields = baseFieldsByYear[year] || ['id', 'submission_status']
+      const additionalFields = yearFields.map(f => f.field_name).filter(f => !baseFields.includes(f))
+      surveyFieldsByYear[year] = [...baseFields, ...additionalFields]
     })
 
     // Fetch survey data efficiently - only visible fields
     dataContext.surveys = {}
+    dataContext.survey_counts = {}
     let totalSurveys = 0
     
     for (const year of surveyYears) {
@@ -85,17 +94,24 @@ Deno.serve(async (req) => {
         .from(`survey_responses_${year}`)
         .select(fieldsToSelect)
         .eq('submission_status', 'completed')
-        .limit(100) // Reasonable limit
 
       if (!error && data && data.length > 0) {
+        // Store full data for detailed queries
         dataContext.surveys[year] = data
         totalSurveys += data.length
+        dataContext.survey_counts[year] = data.length
+        
+        console.log(`Fetched ${data.length} surveys for ${year}`)
+      } else if (error) {
+        console.error(`Error fetching ${year} surveys:`, error)
       }
     }
 
     dataContext.survey_summary = {
       total_responses: totalSurveys,
-      years_with_data: Object.keys(dataContext.surveys)
+      years_with_data: Object.keys(dataContext.surveys),
+      by_year: dataContext.survey_counts,
+      note: 'All counts are for COMPLETED surveys only'
     }
 
     // User's own credits (all roles)
@@ -182,26 +198,44 @@ Deno.serve(async (req) => {
 Role: **${userRole}** | Email: ${user.email}
 ${creditsData ? `Points: ${creditsData.total_points} | AI Uses: ${creditsData.ai_usage_count} | Blogs: ${creditsData.blog_posts_count}` : ''}
 
+# DATABASE SUMMARY
+- Total Completed Surveys: ${totalSurveys}
+- 2021: ${dataContext.survey_counts['2021'] || 0} surveys
+- 2022: ${dataContext.survey_counts['2022'] || 0} surveys
+- 2023: ${dataContext.survey_counts['2023'] || 0} surveys
+- 2024: ${dataContext.survey_counts['2024'] || 0} surveys
+- Applications: ${dataContext.applications?.length || 0}
+- Network Profiles: ${dataContext.network_profiles_count || 0}
+- Recent Blogs: ${dataContext.recent_blogs?.length || 0}
+
 # AVAILABLE DATA
 ${JSON.stringify(dataContext, null, 2)}
 
 # ACCESSIBLE FIELDS (${userRole} role)
 ${accessibleFields}
 
+# COLUMN NAME GUIDE (Important for accurate queries)
+**2021:** email_address, firm_name, participant_name
+**2022:** email, organisation, name
+**2023:** email_address, organisation_name, fund_name
+**2024:** email_address, organisation_name, fund_name
+
 # INSTRUCTIONS
-1. **Answer precisely** using the data provided above. Cite specific numbers and examples.
-2. **Format with markdown**: Use **bold**, bullet points, ### headings, and \`code\` for field names.
-3. **Handle restrictions gracefully**: If data isn't available for their role, explain clearly and suggest alternatives.
-4. **Be specific**: Reference actual data points (fund names, numbers, dates) from the context.
-5. **Keep responses concise** but informative. Use sections for organization.
-6. **Suggest follow-ups**: End with 2-3 relevant questions they can ask next.
+1. **Answer precisely** using the ACTUAL data provided above. The survey counts are: 2021=${dataContext.survey_counts['2021'] || 0}, 2022=${dataContext.survey_counts['2022'] || 0}, 2023=${dataContext.survey_counts['2023'] || 0}, 2024=${dataContext.survey_counts['2024'] || 0}.
+2. **Use exact numbers** from the data - never say 0 when data exists. Check survey_counts and dataContext carefully.
+3. **Format with markdown**: Use **bold**, bullet points, ### headings, and \`code\` for field names.
+4. **Handle restrictions gracefully**: If data isn't available for their role, explain clearly what data they CAN access.
+5. **Be specific**: Reference actual organization/fund names, numbers, and dates from the surveys data.
+6. **Cross-year analysis**: When comparing years, note that column names differ (e.g., firm_name vs organisation_name).
+7. **Suggest follow-ups**: End with 2-3 relevant questions they can ask next.
 
 # KEY RULES
-- Admins: Full access to all data including financial details and applications
-- Members: Extended fund data, network profiles, their own activity
-- Viewers: Basic fund info and their own profile
-- Always acknowledge when data is restricted by role
-- For general knowledge (e.g., "What is IRR?"), provide clear explanations and note it's not from platform data`
+- Admins: Full access to all survey data, financial details, applications, and network profiles
+- Members: Access to completed surveys, network profiles, and their own activity
+- Viewers: Limited access to basic info and their own profile only
+- Always verify data availability before answering - check if surveys[year] exists and has data
+- For general knowledge questions (e.g., "What is IRR?"), provide clear explanations and note it's not from platform data
+- **NEVER say there are 0 surveys when data exists** - always count from the actual data provided`
 
     // Call Lovable AI
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
